@@ -5,6 +5,7 @@ pub trait Analysis<L: Language>: Sized {
     type Data: Eq + Clone;
     fn make(eg: &EGraph<L, Self>, enode: &L) -> Self::Data;
     fn merge(l: Self::Data, r: Self::Data) -> Self::Data;
+    fn modify(egraph: &mut EGraph<L, Self>, id: Id) {}
 }
 
 impl<L: Language> Analysis<L> for () {

@@ -189,6 +189,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             *analysis_to = new_analysis_to;
 
             if changed {
+                self.modify_queue.push(to.id);
                 self.touched_class(to.id, PendingType::OnlyAnalysis);
             }
         }

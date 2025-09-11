@@ -136,6 +136,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if CHECKS {
             self.check();
         }
+
         while let Some(sh) = self.pending.keys().cloned().next() {
             let pending_ty = self.pending.remove(&sh).unwrap();
             self.handle_pending(sh, pending_ty);
@@ -143,6 +144,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             if CHECKS {
                 self.check();
             }
+        }
+
+        while let Some(i) = self.modify_queue.pop() {
+            let i = self.find_id(i);
+            N::modify(self, i);
         }
     }
 
@@ -215,6 +221,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         c.analysis_data = new.clone();
 
         if new != old {
+            self.modify_queue.push(i);
             self.touched_class(i, PendingType::OnlyAnalysis);
         }
     }

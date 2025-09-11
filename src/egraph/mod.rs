@@ -58,6 +58,10 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     pub(crate) subst_method: Option<Box<dyn SubstMethod<L, N>>>,
 
     pub analysis: N,
+
+    // N::modify(_) will be run on these classes.
+    // We delay handling modify so that all invariants can be rebuild again, first.
+    modify_queue: Vec<Id>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -114,6 +118,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             proof_registry: ProofRegistry::default(),
             subst_method: Some(S::new_boxed()),
             analysis,
+            modify_queue: Vec::new(),
         }
     }
 

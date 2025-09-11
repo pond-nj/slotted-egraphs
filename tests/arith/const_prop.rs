@@ -43,6 +43,24 @@ fn const_prop() {
 }
 
 #[test]
+fn const_prop2() {
+    let s = "(add 1 (add 0 1))";
+
+    let s: RecExpr<Arith> = RecExpr::parse(s).unwrap();
+
+    let mut runner: Runner<Arith, ConstProp, (), ()> = Runner::default()
+        .with_expr(&s);
+    let _report = runner.run(&[]);
+
+    let root = runner.roots.first().unwrap();
+
+    assert_eq!(runner.egraph.analysis_data(root.id), &Some(2));
+
+    let output = extract::<Arith, ConstProp, AstSize>(&root, &runner.egraph);
+    println!("{}", output);
+}
+
+#[test]
 fn const_prop_union() {
     let mut eg = EGraph::<Arith, ConstProp>::default();
     let a = eg.add_expr(RecExpr::parse("a").unwrap());
