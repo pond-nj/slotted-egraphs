@@ -26,6 +26,13 @@ impl Analysis<Arith> for ConstProp {
             _ => None,
         }
     }
+
+    fn modify(eg: &mut EGraph<Arith, Self>, i: Id) {
+        if let Some(x) = eg.analysis_data(i) {
+            let a = eg.add(Arith::Number(*x));
+            eg.union(&a, &eg.mk_identity_applied_id(i));
+        }
+    }
 }
 
 fn get_both(eg: &EGraph<Arith, ConstProp>, x: &AppliedId, y: &AppliedId) -> Option<(u32, u32)> {
@@ -40,24 +47,9 @@ fn const_prop() {
     let i = eg.add_expr(start.clone());
 
     assert_eq!(eg.analysis_data(i.id), &Some(8));
-}
 
-#[test]
-fn const_prop2() {
-    let s = "(add 1 (add 0 1))";
-
-    let s: RecExpr<Arith> = RecExpr::parse(s).unwrap();
-
-    let mut runner: Runner<Arith, ConstProp, (), ()> = Runner::default()
-        .with_expr(&s);
-    let _report = runner.run(&[]);
-
-    let root = runner.roots.first().unwrap();
-
-    assert_eq!(runner.egraph.analysis_data(root.id), &Some(2));
-
-    let output = extract::<Arith, ConstProp, AstSize>(&root, &runner.egraph);
-    println!("{}", output);
+    let t: RecExpr<Arith> = RecExpr::parse("8").unwrap();
+    assert_eq!(t, extract::<Arith, ConstProp, AstSize>(&i, &eg));
 }
 
 #[test]

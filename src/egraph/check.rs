@@ -15,6 +15,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         app_id
     }
 
+
+    // public API:
+    #[track_caller]
+    pub fn mk_identity_applied_id(&self, i: Id) -> AppliedId {
+        self.mk_sem_identity_applied_id(i)
+    }
+
     #[track_caller]
     pub(crate) fn mk_sem_identity_applied_id(&self, i: Id) -> AppliedId {
         self.mk_sem_applied_id(i, SlotMap::identity(&self.slots(i)))
