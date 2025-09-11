@@ -1,6 +1,6 @@
 [package]
 name = "slotted-egraphs"
-version = "0.0.35"
+version = "0.0.36"
 edition = "2021"
 description = "E-Graphs with name binding"
 license = "Apache-2.0 OR MIT"
@@ -15,7 +15,7 @@ profiling = []
 features = ["explanations"]
 
 [dependencies]
-slotted-egraphs-derive = "=0.0.35"
+slotted-egraphs-derive = "=0.0.36"
 #slotted-egraphs-derive = { path = "slotted-egraphs-derive" }
 symbol_table = { version = "0.3", features = ["global"] }
 rustc-hash = "2.1.1"
