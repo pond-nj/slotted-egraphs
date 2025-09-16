@@ -208,6 +208,62 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
     }
 }
 
+impl<L: LanguageChildren> LanguageChildren for Vec<L> {
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        self.into_iter()
+            .flat_map(|x| x.all_slot_occurrences_iter_mut())
+    }
+
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        self.into_iter()
+            .flat_map(|x| x.public_slot_occurrences_iter_mut())
+    }
+
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut AppliedId> {
+        self.into_iter()
+            .flat_map(|x| x.applied_id_occurrences_iter_mut())
+    }
+
+    // immut:
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        self.iter().flat_map(|x| x.all_slot_occurrences_iter())
+    }
+
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        self.iter().flat_map(|x| x.public_slot_occurrences_iter())
+    }
+
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item = &AppliedId> {
+        self.iter().flat_map(|x| x.applied_id_occurrences_iter())
+    }
+
+    // syntax:
+    fn to_syntax(&self) -> Vec<SyntaxElem> {
+        self.iter().flat_map(|x| x.to_syntax()).collect()
+    }
+
+    fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+        let mut out = Vec::new();
+        for x in elems {
+            let arr = [x.clone()];
+            if let Some(y) = L::from_syntax(&arr) {
+                out.push(y);
+            } else {
+                return None;
+            }
+        }
+        Some(out)
+    }
+
+    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
+        // let s = self.slot;
+        // add_slot(&mut self.slot, m);
+        // self.elem.weak_shape_impl(m);
+        // m.0.remove(s);
+        println!("ERROR not impl");
+    }
+}
+
 // TODO: add LanguageChildren definition for tuples.
 
 /// A trait to define your Language (i.e. your E-Node type).

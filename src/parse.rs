@@ -137,8 +137,10 @@ fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), P
 fn parse_pattern_nosubst<L: Language>(
     mut tok: &[Token],
 ) -> Result<(Pattern<L>, &[Token]), ParseError> {
+    println!("tok = {:?}", tok);
     if let Token::PVar(p) = &tok[0] {
         let pat = Pattern::PVar(p.to_string());
+        println!("pat1 = {:?}", pat);
         return Ok((pat, &tok[1..]));
     }
 
@@ -170,6 +172,7 @@ fn parse_pattern_nosubst<L: Language>(
                 NestedSyntaxElem::Pattern(_) => SyntaxElem::AppliedId(AppliedId::null()),
             })
             .collect();
+        println!("syntax_elems_mock = {:?}", syntax_elems_mock);
         let node = L::from_syntax(&syntax_elems_mock)
             .ok_or_else(|| ParseError::FromSyntaxFailed(syntax_elems_mock))?;
         let syntax_elems = syntax_elems
@@ -181,6 +184,7 @@ fn parse_pattern_nosubst<L: Language>(
             })
             .collect();
         let re = Pattern::ENode(node, syntax_elems);
+        println!("re = {:?}", re);
         Ok((re, tok))
     } else {
         let Token::Ident(op) = &tok[0] else {
@@ -192,6 +196,7 @@ fn parse_pattern_nosubst<L: Language>(
         let node =
             L::from_syntax(&elems).ok_or_else(|| ParseError::FromSyntaxFailed(to_vec(&elems)))?;
         let pat = Pattern::ENode(node, Vec::new());
+        println!("pat = {:?}", pat);
         Ok((pat, tok))
     }
 }
