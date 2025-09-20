@@ -175,6 +175,7 @@ fn parse_pattern_nosubst<L: Language>(
         println!("syntax_elems_mock = {:?}", syntax_elems_mock);
         let node = L::from_syntax(&syntax_elems_mock)
             .ok_or_else(|| ParseError::FromSyntaxFailed(syntax_elems_mock))?;
+        println!("node = {:?}", node);
         let syntax_elems = syntax_elems
             .into_iter()
             .filter_map(|x| match x {

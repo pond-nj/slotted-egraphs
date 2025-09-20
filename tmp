@@ -1,0 +1,88 @@
+    Blocking waiting for file lock on build directory
+   Compiling slotted-egraphs v0.0.36 (/Users/nutdranaijaruthikorn/Downloads/2025/PhD/Project/slotted-egraphs)
+warning: ambiguous glob re-exports
+  --> tests/entry.rs:17:9
+   |
+17 | pub use fgh::*;
+   |         ^^^^^^ the name `Fgh` in the type namespace is first re-exported here
+...
+26 | pub use chc::*;
+   |         ------ but the name `Fgh` in the type namespace is also re-exported here
+   |
+   = note: `#[warn(ambiguous_glob_reexports)]` on by default
+
+warning: unused import: `fgh::*`
+  --> tests/entry.rs:17:9
+   |
+17 | pub use fgh::*;
+   |         ^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `chc::*`
+  --> tests/entry.rs:26:9
+   |
+26 | pub use chc::*;
+   |         ^^^^^^
+
+warning: `slotted-egraphs` (test "entry") generated 3 warnings (run `cargo fix --test "entry"` to apply 2 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.09s
+     Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-ab985400831defb3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/entry.rs (target/debug/deps/entry-fb822ce6c8a84649)
+
+running 1 test
+tok = [LParen, Ident("f"), Slot($1), Slot($2), RParen]
+syntax_elems_mock = [String("f"), Slot($1), Slot($2)]
+node = F($1, $2)
+re = (f $1 $2)
+tok = [LParen, Ident("g"), Slot($2), Slot($1), RParen]
+syntax_elems_mock = [String("g"), Slot($2), Slot($1)]
+node = G($2, $1)
+re = (g $2 $1)
+tok = [PVar("a")]
+pat1 = ?a
+tok = [PVar("b")]
+pat1 = ?b
+tok = [LParen, Ident("g"), Slot($1), Slot($2), RParen]
+syntax_elems_mock = [String("g"), Slot($1), Slot($2)]
+node = G($1, $2)
+re = (g $1 $2)
+tok = [LParen, Ident("h"), Slot($1), Slot($2), RParen]
+syntax_elems_mock = [String("h"), Slot($1), Slot($2)]
+node = H([$1])
+re = (h $1)
+tok = [PVar("a")]
+pat1 = ?a
+tok = [PVar("b")]
+pat1 = ?b
+
+
+id2($f4):
+>> H([$f4])
+ - H([$f4])
+ - G($f4, $f7)
+ - F($f8, $f4)
+
+tok = [LParen, Ident("f"), Slot($1), Slot($2), RParen]
+syntax_elems_mock = [String("f"), Slot($1), Slot($2)]
+node = F($1, $2)
+re = (f $1 $2)
+tok = [LParen, Ident("h"), Slot($2), Slot($1), RParen]
+syntax_elems_mock = [String("h"), Slot($2), Slot($1)]
+node = H([$2])
+re = (h $2)
+test chc::transitive_symmetry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.01s
+
+   Doc-tests slotted_egraphs
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

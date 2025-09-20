@@ -244,6 +244,9 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
 
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
         let mut out = Vec::new();
+        if elems.is_empty() {
+            return None;
+        }
         for x in elems {
             let arr = [x.clone()];
             if let Some(y) = L::from_syntax(&arr) {
@@ -256,11 +259,9 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
     }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
-        // let s = self.slot;
-        // add_slot(&mut self.slot, m);
-        // self.elem.weak_shape_impl(m);
-        // m.0.remove(s);
-        println!("ERROR not impl");
+        for x in self {
+            x.weak_shape_impl(m);
+        }
     }
 }
 
