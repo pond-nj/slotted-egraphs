@@ -79,7 +79,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .map(|x| produce_weak_shape_inplace(&name, x))
         .collect();
 
-    quote! {
+    let ret = quote! {
         #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)]
         #ie
 
@@ -159,7 +159,9 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         }
     }
     .to_token_stream()
-    .into()
+    .into();
+    eprintln!("{}", ret);
+    ret
 }
 
 fn produce_all_slot_occurrences_mut(name: &Ident, v: &Variant) -> TokenStream2 {
@@ -307,6 +309,7 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
     Some(quote! {
         #e => {
             let mut children = &elems[1..];
+            eprintln!("children: {:?}", children);
             let mut rest = children;
             #(
                 let #fields = (0..=children.len()).filter_map(|n| {
@@ -315,7 +318,9 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
 
                     <#types>::from_syntax(a)
                 }).next()?;
+                eprintln!("fields: {:?}", #fields);
                 children = rest;
+                eprintln!("children2: {:?}", children);
             )*
             Some(#name::#variant_name(#(#fields),*))
         }

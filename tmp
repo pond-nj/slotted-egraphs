@@ -1,5 +1,2507 @@
     Blocking waiting for file lock on build directory
    Compiling slotted-egraphs v0.0.36 (/Users/nutdranaijaruthikorn/Downloads/2025/PhD/Project/slotted-egraphs)
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub enum Arith
+{
+    Lam(Bind < AppliedId >), App(AppliedId, AppliedId), Var(Slot),
+    Let(Bind < AppliedId > , AppliedId), Add(AppliedId, AppliedId),
+    Mul(AppliedId, AppliedId), Number(u32), Symbol(Symbol),
+} impl Language for Arith
+{
+    fn all_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Arith :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, Arith :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Arith :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, Arith :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Arith :: Add(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Arith :: Mul(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Arith :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, Arith :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn public_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Arith :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Arith :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Arith :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Arith :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Arith :: Add(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Arith :: Mul(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Arith :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Arith :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences_mut(& mut self) -> Vec < & mut AppliedId >
+    {
+        match self
+        {
+            Arith :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, Arith :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Arith :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, Arith :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Arith :: Add(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Arith :: Mul(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Arith :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, Arith :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn all_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Arith :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Add(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Mul(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn public_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Arith :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Add(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Mul(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences(& self) -> Vec < & AppliedId >
+    {
+        match self
+        {
+            Arith :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, Arith :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Arith :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, Arith :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Arith :: Add(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Arith :: Mul(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Arith :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, Arith :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }
+        }
+    } fn to_syntax(& self) -> Vec < SyntaxElem >
+    {
+        match self
+        {
+            Arith :: Lam(a0) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("lam"))];
+                out.extend(a0.to_syntax()); out
+            }, Arith :: App(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("app"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Arith :: Var(a0) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("var"))];
+                out.extend(a0.to_syntax()); out
+            }, Arith :: Let(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("let"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Arith :: Add(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("add"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Arith :: Mul(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("mul"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Arith :: Number(a0) => { a0.to_syntax() }, Arith :: Symbol(a0)
+            => { a0.to_syntax() }
+        }
+    } fn from_syntax(elems : & [SyntaxElem]) -> Option < Self >
+    {
+        let SyntaxElem :: String(op) = elems.get(0) ? else { return None };
+        match & * * op
+        {
+            "lam" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Bind
+                    < AppliedId > > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Arith :: Lam(a0))
+            }, "app" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Arith :: App(a0, a1))
+            }, "var" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Arith :: Var(a0))
+            }, "let" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Bind
+                    < AppliedId > > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Arith :: Let(a0, a1))
+            }, "add" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Arith :: Add(a0, a1))
+            }, "mul" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Arith :: Mul(a0, a1))
+            } _ =>
+            {
+                if let Some(a) = < u32 > :: from_syntax(elems)
+                { return Some(Arith :: Number(a)); } if let Some(a) = < Symbol
+                > :: from_syntax(elems) { return Some(Arith :: Symbol(a)); }
+                None
+            },
+        }
+    } fn slots(& self) -> slotted_egraphs :: SmallHashSet < Slot >
+    {
+        match self
+        {
+            Arith :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Add(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Mul(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Arith :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn weak_shape_inplace(& mut self) -> slotted_egraphs :: SlotMap
+    {
+        let m = & mut (slotted_egraphs :: SlotMap :: new(), 0); match self
+        {
+            Arith :: Lam(a0) => { a0.weak_shape_impl(m); }, Arith ::
+            App(a0, a1) => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); },
+            Arith :: Var(a0) => { a0.weak_shape_impl(m); }, Arith ::
+            Let(a0, a1) => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); },
+            Arith :: Add(a0, a1) =>
+            { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }, Arith ::
+            Mul(a0, a1) => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); },
+            Arith :: Number(a0) => { a0.weak_shape_impl(m); }, Arith ::
+            Symbol(a0) => { a0.weak_shape_impl(m); }
+        } m.0.inverse()
+    }
+}
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub enum Lambda
+{
+    Lam(Bind < AppliedId >), App(AppliedId, AppliedId), Var(Slot),
+    Let(Bind < AppliedId > , AppliedId),
+} impl Language for Lambda
+{
+    fn all_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Lambda :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, Lambda :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Lambda :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, Lambda :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn public_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Lambda :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Lambda :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Lambda :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Lambda :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences_mut(& mut self) -> Vec < & mut AppliedId >
+    {
+        match self
+        {
+            Lambda :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, Lambda :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Lambda :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, Lambda :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn all_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Lambda :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Lambda :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Lambda :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Lambda :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn public_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Lambda :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Lambda :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Lambda :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Lambda :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences(& self) -> Vec < & AppliedId >
+    {
+        match self
+        {
+            Lambda :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, Lambda :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Lambda :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, Lambda :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }
+        }
+    } fn to_syntax(& self) -> Vec < SyntaxElem >
+    {
+        match self
+        {
+            Lambda :: Lam(a0) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("lam"))];
+                out.extend(a0.to_syntax()); out
+            }, Lambda :: App(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("app"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Lambda :: Var(a0) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("var"))];
+                out.extend(a0.to_syntax()); out
+            }, Lambda :: Let(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("let"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }
+        }
+    } fn from_syntax(elems : & [SyntaxElem]) -> Option < Self >
+    {
+        let SyntaxElem :: String(op) = elems.get(0) ? else { return None };
+        match & * * op
+        {
+            "lam" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Bind
+                    < AppliedId > > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Lambda :: Lam(a0))
+            }, "app" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Lambda :: App(a0, a1))
+            }, "var" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Lambda :: Var(a0))
+            }, "let" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Bind
+                    < AppliedId > > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Lambda :: Let(a0, a1))
+            } _ => { None },
+        }
+    } fn slots(& self) -> slotted_egraphs :: SmallHashSet < Slot >
+    {
+        match self
+        {
+            Lambda :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Lambda :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Lambda :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Lambda :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn weak_shape_inplace(& mut self) -> slotted_egraphs :: SlotMap
+    {
+        let m = & mut (slotted_egraphs :: SlotMap :: new(), 0); match self
+        {
+            Lambda :: Lam(a0) => { a0.weak_shape_impl(m); }, Lambda ::
+            App(a0, a1) => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); },
+            Lambda :: Var(a0) => { a0.weak_shape_impl(m); }, Lambda ::
+            Let(a0, a1) => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }
+        } m.0.inverse()
+    }
+}
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub enum Rise
+{
+    Lam(Bind < AppliedId >), App(AppliedId, AppliedId), Var(Slot),
+    Let(Bind < AppliedId > , AppliedId), Number(u32), Symbol(Symbol),
+} impl Language for Rise
+{
+    fn all_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Rise :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, Rise :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Rise :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, Rise :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Rise :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, Rise :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn public_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Rise :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Rise :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Rise :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Rise :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Rise :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Rise :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences_mut(& mut self) -> Vec < & mut AppliedId >
+    {
+        match self
+        {
+            Rise :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, Rise :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Rise :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, Rise :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Rise :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, Rise :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn all_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Rise :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn public_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Rise :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences(& self) -> Vec < & AppliedId >
+    {
+        match self
+        {
+            Rise :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, Rise :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Rise :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, Rise :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Rise :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, Rise :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }
+        }
+    } fn to_syntax(& self) -> Vec < SyntaxElem >
+    {
+        match self
+        {
+            Rise :: Lam(a0) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("lam"))];
+                out.extend(a0.to_syntax()); out
+            }, Rise :: App(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("app"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Rise :: Var(a0) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("var"))];
+                out.extend(a0.to_syntax()); out
+            }, Rise :: Let(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("let"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Rise :: Number(a0) => { a0.to_syntax() }, Rise :: Symbol(a0) =>
+            { a0.to_syntax() }
+        }
+    } fn from_syntax(elems : & [SyntaxElem]) -> Option < Self >
+    {
+        let SyntaxElem :: String(op) = elems.get(0) ? else { return None };
+        match & * * op
+        {
+            "lam" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Bind
+                    < AppliedId > > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); Some(Rise :: Lam(a0))
+            }, "app" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Rise :: App(a0, a1))
+            }, "var" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); Some(Rise :: Var(a0))
+            }, "let" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Bind
+                    < AppliedId > > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Rise :: Let(a0, a1))
+            } _ =>
+            {
+                if let Some(a) = < u32 > :: from_syntax(elems)
+                { return Some(Rise :: Number(a)); } if let Some(a) = < Symbol
+                > :: from_syntax(elems) { return Some(Rise :: Symbol(a)); }
+                None
+            },
+        }
+    } fn slots(& self) -> slotted_egraphs :: SmallHashSet < Slot >
+    {
+        match self
+        {
+            Rise :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Rise :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn weak_shape_inplace(& mut self) -> slotted_egraphs :: SlotMap
+    {
+        let m = & mut (slotted_egraphs :: SlotMap :: new(), 0); match self
+        {
+            Rise :: Lam(a0) => { a0.weak_shape_impl(m); }, Rise :: App(a0, a1)
+            => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }, Rise ::
+            Var(a0) => { a0.weak_shape_impl(m); }, Rise :: Let(a0, a1) =>
+            { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }, Rise ::
+            Number(a0) => { a0.weak_shape_impl(m); }, Rise :: Symbol(a0) =>
+            { a0.weak_shape_impl(m); }
+        } m.0.inverse()
+    }
+}
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub enum Var
+{ F(Slot, Slot), } impl Language for Var
+{
+    fn all_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Var :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn public_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Var :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences_mut(& mut self) -> Vec < & mut AppliedId >
+    {
+        match self
+        {
+            Var :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn all_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Var :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn public_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Var :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences(& self) -> Vec < & AppliedId >
+    {
+        match self
+        {
+            Var :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }
+        }
+    } fn to_syntax(& self) -> Vec < SyntaxElem >
+    {
+        match self
+        {
+            Var :: F(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("f"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }
+        }
+    } fn from_syntax(elems : & [SyntaxElem]) -> Option < Self >
+    {
+        let SyntaxElem :: String(op) = elems.get(0) ? else { return None };
+        match & * * op
+        {
+            "f" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Var :: F(a0, a1))
+            } _ => { None },
+        }
+    } fn slots(& self) -> slotted_egraphs :: SmallHashSet < Slot >
+    {
+        match self
+        {
+            Var :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn weak_shape_inplace(& mut self) -> slotted_egraphs :: SlotMap
+    {
+        let m = & mut (slotted_egraphs :: SlotMap :: new(), 0); match self
+        {
+            Var :: F(a0, a1) =>
+            { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }
+        } m.0.inverse()
+    }
+}
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub enum Fgh
+{ F(Slot, Slot), G(Slot, Slot), H(Slot, Slot), } impl Language for Fgh
+{
+    fn all_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Fgh :: H(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn public_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Fgh :: H(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences_mut(& mut self) -> Vec < & mut AppliedId >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Fgh :: H(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn all_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: H(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn public_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: H(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences(& self) -> Vec < & AppliedId >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Fgh :: H(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }
+        }
+    } fn to_syntax(& self) -> Vec < SyntaxElem >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("f"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Fgh :: G(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("g"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Fgh :: H(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("h"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }
+        }
+    } fn from_syntax(elems : & [SyntaxElem]) -> Option < Self >
+    {
+        let SyntaxElem :: String(op) = elems.get(0) ? else { return None };
+        match & * * op
+        {
+            "f" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Fgh :: F(a0, a1))
+            }, "g" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Fgh :: G(a0, a1))
+            }, "h" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Fgh :: H(a0, a1))
+            } _ => { None },
+        }
+    } fn slots(& self) -> slotted_egraphs :: SmallHashSet < Slot >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: H(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn weak_shape_inplace(& mut self) -> slotted_egraphs :: SlotMap
+    {
+        let m = & mut (slotted_egraphs :: SlotMap :: new(), 0); match self
+        {
+            Fgh :: F(a0, a1) =>
+            { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }, Fgh ::
+            G(a0, a1) => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); },
+            Fgh :: H(a0, a1) =>
+            { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }
+        } m.0.inverse()
+    }
+}
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub enum Sdql
+{
+    Lam(Bind < AppliedId >), Var(Slot), Sing(AppliedId, AppliedId),
+    Sum(AppliedId, Bind < Bind < AppliedId > >),
+} impl Language for Sdql
+{
+    fn all_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Sdql :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, Sdql :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, Sdql :: Sing(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Sdql :: Sum(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn public_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Sdql :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Sdql :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Sdql :: Sing(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Sdql :: Sum(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences_mut(& mut self) -> Vec < & mut AppliedId >
+    {
+        match self
+        {
+            Sdql :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, Sdql :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, Sdql :: Sing(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Sdql :: Sum(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn all_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Sdql :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Sdql :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Sdql :: Sing(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Sdql :: Sum(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn public_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Sdql :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Sdql :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Sdql :: Sing(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Sdql :: Sum(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences(& self) -> Vec < & AppliedId >
+    {
+        match self
+        {
+            Sdql :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, Sdql :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, Sdql :: Sing(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Sdql :: Sum(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }
+        }
+    } fn to_syntax(& self) -> Vec < SyntaxElem >
+    {
+        match self
+        {
+            Sdql :: Lam(a0) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("lambda"))];
+                out.extend(a0.to_syntax()); out
+            }, Sdql :: Var(a0) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("var"))];
+                out.extend(a0.to_syntax()); out
+            }, Sdql :: Sing(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("sing"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Sdql :: Sum(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("sum"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }
+        }
+    } fn from_syntax(elems : & [SyntaxElem]) -> Option < Self >
+    {
+        let SyntaxElem :: String(op) = elems.get(0) ? else { return None };
+        match & * * op
+        {
+            "lambda" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Bind
+                    < AppliedId > > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); Some(Sdql :: Lam(a0))
+            }, "var" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); Some(Sdql :: Var(a0))
+            }, "sing" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Sdql :: Sing(a0, a1))
+            }, "sum" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Bind
+                    < Bind < AppliedId > > > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Sdql :: Sum(a0, a1))
+            } _ => { None },
+        }
+    } fn slots(& self) -> slotted_egraphs :: SmallHashSet < Slot >
+    {
+        match self
+        {
+            Sdql :: Lam(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Sdql :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Sdql :: Sing(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Sdql :: Sum(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn weak_shape_inplace(& mut self) -> slotted_egraphs :: SlotMap
+    {
+        let m = & mut (slotted_egraphs :: SlotMap :: new(), 0); match self
+        {
+            Sdql :: Lam(a0) => { a0.weak_shape_impl(m); }, Sdql :: Var(a0) =>
+            { a0.weak_shape_impl(m); }, Sdql :: Sing(a0, a1) =>
+            { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }, Sdql ::
+            Sum(a0, a1) => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }
+        } m.0.inverse()
+    }
+}
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub enum
+ArrayLang
+{
+    Lam(Slot, AppliedId), App(AppliedId, AppliedId), Var(Slot),
+    Let(Bind < AppliedId > , AppliedId), Number(u32), Symbol(Symbol),
+} impl Language for ArrayLang
+{
+    fn all_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            ArrayLang :: Lam(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, ArrayLang :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, ArrayLang :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, ArrayLang :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, ArrayLang :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }, ArrayLang :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn public_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            ArrayLang :: Lam(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, ArrayLang :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, ArrayLang :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, ArrayLang :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, ArrayLang :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, ArrayLang :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences_mut(& mut self) -> Vec < & mut AppliedId >
+    {
+        match self
+        {
+            ArrayLang :: Lam(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, ArrayLang :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, ArrayLang :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, ArrayLang :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, ArrayLang :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }, ArrayLang :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn all_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            ArrayLang :: Lam(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn public_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            ArrayLang :: Lam(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences(& self) -> Vec < & AppliedId >
+    {
+        match self
+        {
+            ArrayLang :: Lam(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, ArrayLang :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, ArrayLang :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, ArrayLang :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, ArrayLang :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }, ArrayLang :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }
+        }
+    } fn to_syntax(& self) -> Vec < SyntaxElem >
+    {
+        match self
+        {
+            ArrayLang :: Lam(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("lam"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, ArrayLang :: App(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("app"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, ArrayLang :: Var(a0) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("var"))];
+                out.extend(a0.to_syntax()); out
+            }, ArrayLang :: Let(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("let"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, ArrayLang :: Number(a0) => { a0.to_syntax() }, ArrayLang ::
+            Symbol(a0) => { a0.to_syntax() }
+        }
+    } fn from_syntax(elems : & [SyntaxElem]) -> Option < Self >
+    {
+        let SyntaxElem :: String(op) = elems.get(0) ? else { return None };
+        match & * * op
+        {
+            "lam" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(ArrayLang :: Lam(a0, a1))
+            }, "app" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(ArrayLang :: App(a0, a1))
+            }, "var" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(ArrayLang :: Var(a0))
+            }, "let" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Bind
+                    < AppliedId > > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; <
+                    AppliedId > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(ArrayLang :: Let(a0, a1))
+            } _ =>
+            {
+                if let Some(a) = < u32 > :: from_syntax(elems)
+                { return Some(ArrayLang :: Number(a)); } if let Some(a) = <
+                Symbol > :: from_syntax(elems)
+                { return Some(ArrayLang :: Symbol(a)); } None
+            },
+        }
+    } fn slots(& self) -> slotted_egraphs :: SmallHashSet < Slot >
+    {
+        match self
+        {
+            ArrayLang :: Lam(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: App(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Var(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Let(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Number(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, ArrayLang :: Symbol(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn weak_shape_inplace(& mut self) -> slotted_egraphs :: SlotMap
+    {
+        let m = & mut (slotted_egraphs :: SlotMap :: new(), 0); match self
+        {
+            ArrayLang :: Lam(a0, a1) =>
+            { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }, ArrayLang ::
+            App(a0, a1) => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); },
+            ArrayLang :: Var(a0) => { a0.weak_shape_impl(m); }, ArrayLang ::
+            Let(a0, a1) => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); },
+            ArrayLang :: Number(a0) => { a0.weak_shape_impl(m); }, ArrayLang
+            :: Symbol(a0) => { a0.weak_shape_impl(m); }
+        } m.0.inverse()
+    }
+}
+#[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub enum Fgh
+{ F(Slot, Slot), G(Slot, Slot), H(Vec < Slot >), } impl Language for Fgh
+{
+    fn all_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.all_slot_occurrences_iter_mut()); out.collect()
+            }, Fgh :: H(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn public_slot_occurrences_mut(& mut self) -> Vec < & mut Slot >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut()); let out =
+                out.chain(a1.public_slot_occurrences_iter_mut());
+                out.collect()
+            }, Fgh :: H(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter_mut());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences_mut(& mut self) -> Vec < & mut AppliedId >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); let out =
+                out.chain(a1.applied_id_occurrences_iter_mut()); out.collect()
+            }, Fgh :: H(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter_mut()); out.collect()
+            }
+        }
+    } fn all_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied()); let out =
+                out.chain(a1.all_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: H(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.all_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn public_slot_occurrences(& self) -> Vec < Slot >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: H(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn applied_id_occurrences(& self) -> Vec < & AppliedId >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); let out =
+                out.chain(a1.applied_id_occurrences_iter()); out.collect()
+            }, Fgh :: H(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.applied_id_occurrences_iter()); out.collect()
+            }
+        }
+    } fn to_syntax(& self) -> Vec < SyntaxElem >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("f"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Fgh :: G(a0, a1) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("g"))];
+                out.extend(a0.to_syntax()); out.extend(a1.to_syntax()); out
+            }, Fgh :: H(a0) =>
+            {
+                let mut out : Vec < SyntaxElem > = vec!
+                [SyntaxElem :: String(String :: from("h"))];
+                out.extend(a0.to_syntax()); out
+            }
+        }
+    } fn from_syntax(elems : & [SyntaxElem]) -> Option < Self >
+    {
+        let SyntaxElem :: String(op) = elems.get(0) ? else { return None };
+        match & * * op
+        {
+            "f" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Fgh :: F(a0, a1))
+            }, "g" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); let a1 =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Slot
+                    > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a1); children = rest;
+                eprintln! ("children2: {:?}", children);
+                Some(Fgh :: G(a0, a1))
+            }, "h" =>
+            {
+                let mut children = & elems [1 ..]; eprintln!
+                ("children: {:?}", children); let mut rest = children; let a0
+                =
+                (0 ..=
+                children.len()).filter_map(| n |
+                {
+                    let a = & children [.. n]; rest = & children [n ..]; < Vec <
+                    Slot > > :: from_syntax(a)
+                }).next() ? ; eprintln! ("fields: {:?}", a0); children = rest;
+                eprintln! ("children2: {:?}", children); Some(Fgh :: H(a0))
+            } _ => { None },
+        }
+    } fn slots(& self) -> slotted_egraphs :: SmallHashSet < Slot >
+    {
+        match self
+        {
+            Fgh :: F(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: G(a0, a1) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied()); let out
+                = out.chain(a1.public_slot_occurrences_iter().copied());
+                out.collect()
+            }, Fgh :: H(a0) =>
+            {
+                let out = std :: iter :: empty(); let out =
+                out.chain(a0.public_slot_occurrences_iter().copied());
+                out.collect()
+            }
+        }
+    } fn weak_shape_inplace(& mut self) -> slotted_egraphs :: SlotMap
+    {
+        let m = & mut (slotted_egraphs :: SlotMap :: new(), 0); match self
+        {
+            Fgh :: F(a0, a1) =>
+            { a0.weak_shape_impl(m); a1.weak_shape_impl(m); }, Fgh ::
+            G(a0, a1) => { a0.weak_shape_impl(m); a1.weak_shape_impl(m); },
+            Fgh :: H(a0) => { a0.weak_shape_impl(m); }
+        } m.0.inverse()
+    }
+}
 warning: ambiguous glob re-exports
   --> tests/entry.rs:17:9
    |
@@ -26,22 +2528,32 @@ warning: unused import: `chc::*`
    |         ^^^^^^
 
 warning: `slotted-egraphs` (test "entry") generated 3 warnings (run `cargo fix --test "entry"` to apply 2 suggestions)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.09s
-     Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-ab985400831defb3)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.03s
+     Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-a75c009adbc8746d)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
 
-     Running tests/entry.rs (target/debug/deps/entry-fb822ce6c8a84649)
+     Running tests/entry.rs (target/debug/deps/entry-b511166c17875f13)
 
 running 1 test
 tok = [LParen, Ident("f"), Slot($1), Slot($2), RParen]
 syntax_elems_mock = [String("f"), Slot($1), Slot($2)]
+children: [Slot($1), Slot($2)]
+fields: $1
+children2: [Slot($2)]
+fields: $2
+children2: []
 node = F($1, $2)
 re = (f $1 $2)
 tok = [LParen, Ident("g"), Slot($2), Slot($1), RParen]
 syntax_elems_mock = [String("g"), Slot($2), Slot($1)]
+children: [Slot($2), Slot($1)]
+fields: $2
+children2: [Slot($1)]
+fields: $1
+children2: []
 node = G($2, $1)
 re = (g $2 $1)
 tok = [PVar("a")]
@@ -50,10 +2562,18 @@ tok = [PVar("b")]
 pat1 = ?b
 tok = [LParen, Ident("g"), Slot($1), Slot($2), RParen]
 syntax_elems_mock = [String("g"), Slot($1), Slot($2)]
+children: [Slot($1), Slot($2)]
+fields: $1
+children2: [Slot($2)]
+fields: $2
+children2: []
 node = G($1, $2)
 re = (g $1 $2)
 tok = [LParen, Ident("h"), Slot($1), Slot($2), RParen]
 syntax_elems_mock = [String("h"), Slot($1), Slot($2)]
+children: [Slot($1), Slot($2)]
+fields: [$1]
+children2: [Slot($2)]
 node = H([$1])
 re = (h $1)
 tok = [PVar("a")]
@@ -70,10 +2590,18 @@ id2($f4):
 
 tok = [LParen, Ident("f"), Slot($1), Slot($2), RParen]
 syntax_elems_mock = [String("f"), Slot($1), Slot($2)]
+children: [Slot($1), Slot($2)]
+fields: $1
+children2: [Slot($2)]
+fields: $2
+children2: []
 node = F($1, $2)
 re = (f $1 $2)
 tok = [LParen, Ident("h"), Slot($2), Slot($1), RParen]
 syntax_elems_mock = [String("h"), Slot($2), Slot($1)]
+children: [Slot($2), Slot($1)]
+fields: [$2]
+children2: [Slot($1)]
 node = H([$2])
 re = (h $2)
 test chc::transitive_symmetry ... ok
