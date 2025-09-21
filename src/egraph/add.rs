@@ -74,6 +74,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if CHECKS {
             assert_eq!(re.children.len(), refs.len());
         }
+        // (Pond) update AppliedId under this enode
         for (i, child) in re.children.into_iter().enumerate() {
             *(refs[i]) = self.add_expr(child);
         }
