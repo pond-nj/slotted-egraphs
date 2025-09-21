@@ -160,7 +160,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
     }
     .to_token_stream()
     .into();
-    eprintln!("{}", ret);
+    // eprintln!("{}", ret);
     ret
 }
 
@@ -306,7 +306,7 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
 
     let types: Vec<Type> = v.fields.iter().map(|x| x.ty.clone()).collect();
 
-    Some(quote! {
+    let ret = Some(quote! {
         #e => {
             let mut children = &elems[1..];
             eprintln!("children: {:?}", children);
@@ -324,7 +324,8 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
             )*
             Some(#name::#variant_name(#(#fields),*))
         }
-    })
+    });
+    ret
 }
 
 fn produce_from_syntax2(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<TokenStream2> {

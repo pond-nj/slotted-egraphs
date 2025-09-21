@@ -1,6 +1,6 @@
 use crate::*;
 
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 /// A Pattern to match against, or as the rhs of a rewrite rule.
 ///
 /// - It supports pattern-variables `?x` to match against anything.

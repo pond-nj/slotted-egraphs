@@ -1,0 +1,275 @@
+    Blocking waiting for file lock on build directory
+   Compiling slotted-egraphs v0.0.36 (/home/pondnj/chc/project/slotted-egraphs)
+warning: unreachable statement
+   --> src/lang.rs:151:1
+    |
+137 |                   return None;
+    |                   ----------- any code following this expression is unreachable
+...
+151 | / bare_language_child!(
+152 | |     u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol
+153 | | );
+    | |_^ unreachable statement
+    |
+    = note: `#[warn(unreachable_code)]` on by default
+    = note: this warning originates in the macro `println` which comes from the expansion of the macro `bare_language_child` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unreachable statement
+   --> src/lang.rs:151:1
+    |
+137 |                   return None;
+    |                   ----------- any code following this expression is unreachable
+...
+151 | / bare_language_child!(
+152 | |     u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol
+153 | | );
+    | |_^ unreachable statement
+    |
+    = note: this warning originates in the macro `println` which comes from the expansion of the macro `bare_language_child` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused variable: `elems`
+   --> src/lang.rs:136:28
+    |
+136 |               fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+    |                              ^^^^^ help: if this is intentional, prefix it with an underscore: `_elems`
+...
+151 | / bare_language_child!(
+152 | |     u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol
+153 | | );
+    | |_- in this macro invocation
+    |
+    = note: `#[warn(unused_variables)]` on by default
+    = note: this warning originates in the macro `bare_language_child` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused variable: `elems`
+   --> src/lang.rs:136:28
+    |
+136 |               fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+    |                              ^^^^^ help: if this is intentional, prefix it with an underscore: `_elems`
+...
+151 | / bare_language_child!(
+152 | |     u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol
+153 | | );
+    | |_- in this macro invocation
+    |
+    = note: this warning originates in the macro `bare_language_child` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: `slotted-egraphs` (lib) generated 30 warnings (26 duplicates)
+fields1 = [Ident { ident: "a0", span: #43 bytes(3533..3915) }]
+fields1 = [Ident { ident: "a0", span: #43 bytes(3533..3915) }, Ident { ident: "a1", span: #43 bytes(3533..3915) }]
+fields1 = [Ident { ident: "a0", span: #43 bytes(3533..3915) }]
+fields1 = [Ident { ident: "a0", span: #43 bytes(3533..3915) }, Ident { ident: "a1", span: #43 bytes(3533..3915) }]
+fields1 = [Ident { ident: "a0", span: #43 bytes(3533..3915) }, Ident { ident: "a1", span: #43 bytes(3533..3915) }]
+fields1 = [Ident { ident: "a0", span: #43 bytes(3533..3915) }, Ident { ident: "a1", span: #43 bytes(3533..3915) }]
+fields1 = [Ident { ident: "a0", span: #308 bytes(11781..11986) }]
+fields1 = [Ident { ident: "a0", span: #308 bytes(11781..11986) }, Ident { ident: "a1", span: #308 bytes(11781..11986) }]
+fields1 = [Ident { ident: "a0", span: #308 bytes(11781..11986) }]
+fields1 = [Ident { ident: "a0", span: #308 bytes(11781..11986) }, Ident { ident: "a1", span: #308 bytes(11781..11986) }]
+fields1 = [Ident { ident: "a0", span: #422 bytes(42166..42460) }]
+fields1 = [Ident { ident: "a0", span: #422 bytes(42166..42460) }, Ident { ident: "a1", span: #422 bytes(42166..42460) }]
+fields1 = [Ident { ident: "a0", span: #422 bytes(42166..42460) }]
+fields1 = [Ident { ident: "a0", span: #422 bytes(42166..42460) }, Ident { ident: "a1", span: #422 bytes(42166..42460) }]
+fields1 = [Ident { ident: "a0", span: #483 bytes(59970..60044) }, Ident { ident: "a1", span: #483 bytes(59970..60044) }]
+fields1 = [Ident { ident: "a0", span: #515 bytes(60494..60626) }, Ident { ident: "a1", span: #515 bytes(60494..60626) }]
+fields1 = [Ident { ident: "a0", span: #515 bytes(60494..60626) }, Ident { ident: "a1", span: #515 bytes(60494..60626) }]
+fields1 = [Ident { ident: "a0", span: #515 bytes(60494..60626) }, Ident { ident: "a1", span: #515 bytes(60494..60626) }]
+fields1 = [Ident { ident: "a0", span: #582 bytes(60957..61171) }]
+fields1 = [Ident { ident: "a0", span: #582 bytes(60957..61171) }]
+fields1 = [Ident { ident: "a0", span: #582 bytes(60957..61171) }, Ident { ident: "a1", span: #582 bytes(60957..61171) }]
+fields1 = [Ident { ident: "a0", span: #582 bytes(60957..61171) }, Ident { ident: "a1", span: #582 bytes(60957..61171) }]
+fields1 = [Ident { ident: "a0", span: #643 bytes(62385..62684) }, Ident { ident: "a1", span: #643 bytes(62385..62684) }]
+fields1 = [Ident { ident: "a0", span: #643 bytes(62385..62684) }, Ident { ident: "a1", span: #643 bytes(62385..62684) }]
+fields1 = [Ident { ident: "a0", span: #643 bytes(62385..62684) }]
+fields1 = [Ident { ident: "a0", span: #643 bytes(62385..62684) }, Ident { ident: "a1", span: #643 bytes(62385..62684) }]
+fields1 = [Ident { ident: "a0", span: #720 bytes(63927..64090) }, Ident { ident: "a1", span: #720 bytes(63927..64090) }]
+fields1 = [Ident { ident: "a0", span: #720 bytes(63927..64090) }, Ident { ident: "a1", span: #720 bytes(63927..64090) }]
+fields1 = [Ident { ident: "a0", span: #720 bytes(63927..64090) }]
+warning: ambiguous glob re-exports
+  --> tests/entry.rs:17:9
+   |
+17 | pub use fgh::*;
+   |         ^^^^^^ the name `Fgh` in the type namespace is first re-exported here
+...
+26 | pub use chc::*;
+   |         ------ but the name `Fgh` in the type namespace is also re-exported here
+   |
+   = note: `#[warn(ambiguous_glob_reexports)]` on by default
+
+warning: unused import: `fgh::*`
+  --> tests/entry.rs:17:9
+   |
+17 | pub use fgh::*;
+   |         ^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `chc::*`
+  --> tests/entry.rs:26:9
+   |
+26 | pub use chc::*;
+   |         ^^^^^^
+
+warning: `slotted-egraphs` (lib test) generated 30 warnings (30 duplicates)
+warning: `slotted-egraphs` (test "entry") generated 3 warnings (run `cargo fix --test "entry"` to apply 2 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.10s
+     Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-3e46d232c8c3c10a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/entry.rs (target/debug/deps/entry-e549fe6ff08365f6)
+
+running 1 test
+tok = [LParen, Ident("f"), Slot($1), Slot($2), RParen]
+syntax_elems_mock = [String("f"), Slot($1), Slot($2)]
+Call Fgh::from_syntax with elems = [String("f"), Slot($1), Slot($2)]
+children = [Slot($1), Slot($2)]
+a = []
+Call Slot::from_syntax with elems = []
+Call Slot::from_syntax return None
+a = [Slot($1)]
+Call Slot::from_syntax with elems = [Slot($1)]
+Call Slot::from_syntax return Some($1)
+fields2 = $1
+children = [Slot($2)]
+a = []
+Call Slot::from_syntax with elems = []
+Call Slot::from_syntax return None
+a = [Slot($2)]
+Call Slot::from_syntax with elems = [Slot($2)]
+Call Slot::from_syntax return Some($2)
+fields2 = $2
+children = []
+node = F($1, $2)
+node = F($1, $2)
+syntax_elems = []
+re = (f $1 $2)
+tok = [LParen, Ident("g"), Slot($2), Slot($1), RParen]
+syntax_elems_mock = [String("g"), Slot($2), Slot($1)]
+Call Fgh::from_syntax with elems = [String("g"), Slot($2), Slot($1)]
+children = [Slot($2), Slot($1)]
+a = []
+Call Slot::from_syntax with elems = []
+Call Slot::from_syntax return None
+a = [Slot($2)]
+Call Slot::from_syntax with elems = [Slot($2)]
+Call Slot::from_syntax return Some($2)
+fields2 = $2
+children = [Slot($1)]
+a = []
+Call Slot::from_syntax with elems = []
+Call Slot::from_syntax return None
+a = [Slot($1)]
+Call Slot::from_syntax with elems = [Slot($1)]
+Call Slot::from_syntax return Some($1)
+fields2 = $1
+children = []
+node = G($2, $1)
+node = G($2, $1)
+syntax_elems = []
+re = (g $2 $1)
+tok = [PVar("a")]
+pat1 = ?a
+tok = [PVar("b")]
+pat1 = ?b
+tok = [LParen, Ident("g"), Slot($1), Slot($2), RParen]
+syntax_elems_mock = [String("g"), Slot($1), Slot($2)]
+Call Fgh::from_syntax with elems = [String("g"), Slot($1), Slot($2)]
+children = [Slot($1), Slot($2)]
+a = []
+Call Slot::from_syntax with elems = []
+Call Slot::from_syntax return None
+a = [Slot($1)]
+Call Slot::from_syntax with elems = [Slot($1)]
+Call Slot::from_syntax return Some($1)
+fields2 = $1
+children = [Slot($2)]
+a = []
+Call Slot::from_syntax with elems = []
+Call Slot::from_syntax return None
+a = [Slot($2)]
+Call Slot::from_syntax with elems = [Slot($2)]
+Call Slot::from_syntax return Some($2)
+fields2 = $2
+children = []
+node = G($1, $2)
+node = G($1, $2)
+syntax_elems = []
+re = (g $1 $2)
+tok = [LParen, Ident("h"), Slot($1), Slot($2), RParen]
+syntax_elems_mock = [String("h"), Slot($1), Slot($2)]
+Call Fgh::from_syntax with elems = [String("h"), Slot($1), Slot($2)]
+children = [Slot($1), Slot($2)]
+a = []
+Call Vec<L>::from_syntax with elems = []
+Call Vec<L>::from_syntax return None
+a = [Slot($1)]
+Call Vec<L>::from_syntax with elems = [Slot($1)]
+Call Slot::from_syntax with elems = [Slot($1)]
+Call Slot::from_syntax return Some($1)
+Call Vec<L>::from_syntax return Some([$1])
+fields2 = [$1]
+children = [Slot($2)]
+node = H([$1])
+node = H([$1])
+syntax_elems = []
+re = (h $1)
+tok = [PVar("a")]
+pat1 = ?a
+tok = [PVar("b")]
+pat1 = ?b
+
+
+id2($f4):
+>> H([$f4])
+ - H([$f4])
+ - G($f4, $f7)
+ - F($f8, $f4)
+
+tok = [LParen, Ident("f"), Slot($1), Slot($2), RParen]
+syntax_elems_mock = [String("f"), Slot($1), Slot($2)]
+Call Fgh::from_syntax with elems = [String("f"), Slot($1), Slot($2)]
+children = [Slot($1), Slot($2)]
+a = []
+Call Slot::from_syntax with elems = []
+Call Slot::from_syntax return None
+a = [Slot($1)]
+Call Slot::from_syntax with elems = [Slot($1)]
+Call Slot::from_syntax return Some($1)
+fields2 = $1
+children = [Slot($2)]
+a = []
+Call Slot::from_syntax with elems = []
+Call Slot::from_syntax return None
+a = [Slot($2)]
+Call Slot::from_syntax with elems = [Slot($2)]
+Call Slot::from_syntax return Some($2)
+fields2 = $2
+children = []
+node = F($1, $2)
+node = F($1, $2)
+syntax_elems = []
+re = (f $1 $2)
+tok = [LParen, Ident("h"), Slot($2), Slot($1), RParen]
+syntax_elems_mock = [String("h"), Slot($2), Slot($1)]
+Call Fgh::from_syntax with elems = [String("h"), Slot($2), Slot($1)]
+children = [Slot($2), Slot($1)]
+a = []
+Call Vec<L>::from_syntax with elems = []
+Call Vec<L>::from_syntax return None
+a = [Slot($2)]
+Call Vec<L>::from_syntax with elems = [Slot($2)]
+Call Slot::from_syntax with elems = [Slot($2)]
+Call Slot::from_syntax return Some($2)
+Call Vec<L>::from_syntax return Some([$2])
+fields2 = [$2]
+children = [Slot($1)]
+node = H([$2])
+node = H([$2])
+syntax_elems = []
+re = (h $2)
+test chc::transitive_symmetry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.00s
+
