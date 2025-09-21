@@ -309,7 +309,7 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
     let ret = Some(quote! {
         #e => {
             let mut children = &elems[1..];
-            eprintln!("children: {:?}", children);
+            // eprintln!("children: {:?}", children);
             let mut rest = children;
             #(
                 let #fields = (0..=children.len()).filter_map(|n| {
@@ -318,9 +318,9 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
 
                     <#types>::from_syntax(a)
                 }).next()?;
-                eprintln!("fields: {:?}", #fields);
+                // eprintln!("fields: {:?}", #fields);
                 children = rest;
-                eprintln!("children2: {:?}", children);
+                // eprintln!("children2: {:?}", children);
             )*
             Some(#name::#variant_name(#(#fields),*))
         }

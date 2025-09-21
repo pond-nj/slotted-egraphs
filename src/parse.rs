@@ -49,7 +49,6 @@ fn crop_ident(s: &str) -> Result<(/*ident*/ &str, /*rest*/ &str), ParseError> {
 }
 
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
-    println!("\ns: {:?}", s);
     let mut tokens = Vec::new();
 
     loop {
@@ -101,6 +100,7 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
 // parse:
 impl<L: Language> Pattern<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
+        println!("\ns = {:?}", s);
         let tok = tokenize(s)?;
         let (re, rest) = parse_pattern(&tok)?;
 
@@ -146,7 +146,10 @@ fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), P
         pat = Pattern::Subst(Box::new(pat), Box::new(l), Box::new(r));
     }
     let ret = (pat.clone(), tok);
-    println!("parse_pattern ret = {:#?}, pat = {}", ret, pat);
+    println!(
+        "parse_pattern pat_struct = {:#?}, pat_display = {}",
+        ret.0, pat
+    );
     Ok(ret)
 }
 
@@ -157,7 +160,7 @@ fn parse_pattern_nosubst<L: Language>(
     println!("parse_pattern_nosubst input tok = {:?}", tok);
     if let Token::PVar(p) = &tok[0] {
         let pat = Pattern::PVar(p.to_string());
-        println!("parse_pattern_nosubst ret = {:?}", pat);
+        println!("parse_pattern_nosubst ret1 = {:?}", pat);
         return Ok((pat, &tok[1..]));
     }
 
@@ -208,7 +211,7 @@ fn parse_pattern_nosubst<L: Language>(
             })
             .collect();
         let re = Pattern::ENode(node, syntax_elems);
-        println!("parse_pattern_nosubst ret = {:?}", re);
+        println!("parse_pattern_nosubst ret2 = {:?}", re);
         Ok((re, tok))
     } else {
         println!("second case");
@@ -225,7 +228,7 @@ fn parse_pattern_nosubst<L: Language>(
         let node =
             L::from_syntax(&elems).ok_or_else(|| ParseError::FromSyntaxFailed(to_vec(&elems)))?;
         let pat = Pattern::ENode(node, Vec::new());
-        println!("parse_pattern_nosubst ret = {:?}", pat);
+        println!("parse_pattern_nosubst ret3 = {:?}", pat);
         Ok((pat, tok))
     }
 }
