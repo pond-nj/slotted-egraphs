@@ -1,3 +1,5 @@
+use serial_test::serial;
+
 use crate::*;
 
 #[derive(Default)]
@@ -40,6 +42,7 @@ fn get_both(eg: &EGraph<Arith, ConstProp>, x: &AppliedId, y: &AppliedId) -> Opti
 }
 
 #[test]
+#[serial]
 fn const_prop() {
     let start = RecExpr::parse("(add 2 (mul 2 3))").unwrap();
 
@@ -53,6 +56,7 @@ fn const_prop() {
 }
 
 #[test]
+#[serial]
 fn const_prop_union() {
     let mut eg = EGraph::<Arith, ConstProp>::default();
     let a = eg.add_expr(RecExpr::parse("a").unwrap());

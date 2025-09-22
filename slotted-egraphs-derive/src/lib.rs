@@ -61,7 +61,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .zip(&str_names)
         .filter_map(|(x, n)| produce_from_syntax1(&name, &n, x))
         .collect();
-    println!("from_syntax_arms1 = {}", quote! {#(#from_syntax_arms1),*});
+    eprintln!("from_syntax_arms1 = {}", quote! {#(#from_syntax_arms1),*});
     let from_syntax_arms2: Vec<TokenStream2> = ie
         .variants
         .iter()

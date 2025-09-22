@@ -7,11 +7,12 @@ use slotted_egraphs::*;
 define_language! {
     pub enum CHC {
         Var(Slot) = "var",
-        Pred(String, Vec<Slot>) = "pred", //(pred P <$1>)
+        Pred(AppliedId, Vec<Slot>) = "pred", //(pred P <$1>)
         New(AppliedId, AppliedId, Vec<AppliedId>) = "new", // (new Pred Constraint <Body>)
         Compose(Vec<AppliedId>) = "compose",
         True() = "true",
         False() = "false",
+        PredName(String),
     }
 }
 
