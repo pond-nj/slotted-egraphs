@@ -1,1 +1,1 @@
-RUST_BACKTRACE=1 cargo test chc -- --no-capture
+RUST_BACKTRACE=1 cargo test chc -- --no-capture &> tmp

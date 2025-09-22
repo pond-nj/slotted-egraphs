@@ -61,6 +61,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .zip(&str_names)
         .filter_map(|(x, n)| produce_from_syntax1(&name, &n, x))
         .collect();
+    println!("from_syntax_arms1 = {}", quote! {#(#from_syntax_arms1),*});
     let from_syntax_arms2: Vec<TokenStream2> = ie
         .variants
         .iter()
@@ -131,15 +132,18 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
             }
 
             fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+                println!("from_syntax::elems = {:?}", elems);
                 let SyntaxElem::String(op) = elems.get(0)? else { return None };
-                match &**op {
+                let ret = match &**op {
                     #(#from_syntax_arms1),*
                     _ => {
                         #(#from_syntax_arms2)*
 
                         None
                     },
-                }
+                };
+                println!("from_syntax::ret = {:?}", ret);
+                ret
             }
 
             fn slots(&self) -> slotted_egraphs::SmallHashSet<Slot> {
@@ -309,16 +313,18 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
     let ret = Some(quote! {
         #e => {
             let mut children = &elems[1..];
-            // eprintln!("children: {:?}", children);
+            println!("children: {:?}", children);
             let mut rest = children;
             #(
-                let #fields = (0..=children.len()).filter_map(|n| {
+                let mut tmp = (0..=children.len()).filter_map(|n| {
                     let a = &children[..n];
                     rest = &children[n..];
 
                     <#types>::from_syntax(a)
-                }).next()?;
-                // eprintln!("fields: {:?}", #fields);
+                }).next();
+                println!("tmp = {:?}", tmp);
+                let #fields = tmp?;
+                println!("fields: {:?}", #fields);
                 children = rest;
                 // eprintln!("children2: {:?}", children);
             )*

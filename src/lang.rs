@@ -5,6 +5,7 @@ pub enum SyntaxElem {
     String(String), // used for identitifers and payloads
     AppliedId(AppliedId),
     Slot(Slot),
+    Vec(Vec<SyntaxElem>),
 }
 
 pub trait LanguageChildren: Debug + Clone + Hash + Eq {
@@ -67,7 +68,14 @@ impl LanguageChildren for AppliedId {
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
         match elems {
             [SyntaxElem::AppliedId(x)] => Some(x.clone()),
-            _ => None,
+            [] => None,
+            _ => {
+                panic!(
+                    "(Pond) slotted_egraphs::lang::AppliedId::from_syntax: expected a single applied id, got {:?}",
+                    elems
+                );
+                None
+            }
         }
     }
 
@@ -105,7 +113,14 @@ impl LanguageChildren for Slot {
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
         match elems {
             [SyntaxElem::Slot(x)] => Some(x.clone()),
-            _ => None,
+            [] => None,
+            _ => {
+                panic!(
+                    "(Pond) slotted_egraphs::slot::Slot::from_syntax: expected a single slot, got {:?}",
+                    elems
+                );
+                None
+            }
         }
     }
 
@@ -132,7 +147,13 @@ macro_rules! bare_language_child {
             fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
                 match elems {
                     [SyntaxElem::String(x)] => x.parse().ok(),
-                    _ => None,
+                    _ => {
+                        panic!(
+                            "(Pond) slotted_egraphs::lang::Bind::from_syntax: expected a single string, got {:?}",
+                            elems
+                        );
+                        None
+                    },
                 }
             }
 
@@ -193,6 +214,10 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
 
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
         let SyntaxElem::Slot(slot) = elems.get(0)? else {
+            panic!(
+                "(Pond) slotted_egraphs::lang::Bind::from_syntax: expected a single slot, got {:?}",
+                elems
+            );
             return None;
         };
         let elem = L::from_syntax(&elems[1..])?;
@@ -243,18 +268,25 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
     }
 
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+        println!("vec<L>::from_syntax input elems = {:?}", elems);
         let mut out = Vec::new();
         if elems.is_empty() {
+            println!("vec<L>::from_syntax return None1");
             return None;
         }
-        for x in elems {
-            let arr = [x.clone()];
-            if let Some(y) = L::from_syntax(&arr) {
-                out.push(y);
-            } else {
-                return None;
+
+        if let [SyntaxElem::Vec(v)] = elems {
+            for x in v {
+                let arr = [x.clone()];
+                if let Some(y) = L::from_syntax(&arr) {
+                    out.push(y);
+                } else {
+                    println!("vec<L>::from_syntax return None2");
+                    return None;
+                }
             }
         }
+
         Some(out)
     }
 

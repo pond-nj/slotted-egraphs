@@ -153,6 +153,19 @@ fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), P
     Ok(ret)
 }
 
+fn nested_syntax_elem_to_syntax_elem<L: Language>(ne: &NestedSyntaxElem<L>) -> SyntaxElem {
+    match ne {
+        NestedSyntaxElem::String(s) => SyntaxElem::String(s.clone()),
+        NestedSyntaxElem::Slot(s) => SyntaxElem::Slot(*s),
+        NestedSyntaxElem::Pattern(_) => SyntaxElem::AppliedId(AppliedId::null()),
+        NestedSyntaxElem::Vec(v) => SyntaxElem::Vec(
+            v.into_iter()
+                .map(nested_syntax_elem_to_syntax_elem)
+                .collect(),
+        ),
+    }
+}
+
 // no substitutions. = dont deal with [:=]
 fn parse_pattern_nosubst<L: Language>(
     mut tok: &[Token],
@@ -190,26 +203,27 @@ fn parse_pattern_nosubst<L: Language>(
 
         let syntax_elems_mock: Vec<_> = syntax_elems
             .iter()
-            .map(|x| match x {
-                NestedSyntaxElem::String(s) => SyntaxElem::String(s.clone()),
-                NestedSyntaxElem::Slot(s) => SyntaxElem::Slot(*s),
-                NestedSyntaxElem::Pattern(_) => SyntaxElem::AppliedId(AppliedId::null()),
-                NestedSyntaxElem::Vec(v) => todo!(),
-            })
+            .map(nested_syntax_elem_to_syntax_elem)
             .collect();
         println!("syntax_elems_mock = {:?}", syntax_elems_mock);
+        println!("node = {:?}", L::from_syntax(&syntax_elems_mock));
         let node = L::from_syntax(&syntax_elems_mock)
             .ok_or_else(|| ParseError::FromSyntaxFailed(syntax_elems_mock))?;
         println!("node = {:?}", node);
+        println!("syntax_elems = {:?}", syntax_elems);
         let syntax_elems = syntax_elems
             .into_iter()
-            .filter_map(|x| match x {
-                NestedSyntaxElem::Pattern(pat) => Some(pat),
-                NestedSyntaxElem::String(_) => None,
-                NestedSyntaxElem::Slot(_) => None,
-                NestedSyntaxElem::Vec(_) => todo!(),
+            .filter_map(|x| {
+                match x {
+                    NestedSyntaxElem::Pattern(pat) => Some(pat),
+                    NestedSyntaxElem::String(_) => None,
+                    NestedSyntaxElem::Slot(_) => None,
+                    // NestedSyntaxElem::Vec(_) => todo!(),
+                    NestedSyntaxElem::Vec(_) => None,
+                }
             })
             .collect();
+        println!("transformed syntax_elems = {:?}", syntax_elems);
         let re = Pattern::ENode(node, syntax_elems);
         println!("parse_pattern_nosubst ret2 = {:?}", re);
         Ok((re, tok))
@@ -249,12 +263,11 @@ fn parse_nested_syntax_elem<L: Language>(
     if let Token::LVecBracket = &tok[0] {
         // TODO(Pond)
         let mut ret: Vec<NestedSyntaxElem<L>> = Vec::new();
-        let mut next = tok;
+        let mut next = &tok[1..];
         loop {
             if let Token::RVecBracket = next[0] {
                 break;
             }
-            next = &next[1..];
             let (x, next2) = parse_nested_syntax_elem::<L>(next)?;
             next = next2;
 
@@ -276,64 +289,6 @@ fn parse_nested_syntax_elem<L: Language>(
         recur_parse_result.map(|(x, rest)| (NestedSyntaxElem::Pattern(x), rest));
     println!("parse_nested_syntax_elem ret = {:?}", ret.clone());
     ret
-}
-
-// print:
-impl<L: Language> std::fmt::Display for Pattern<L> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Pattern::ENode(node, syntax_elems) => {
-                let l = node.to_syntax();
-                let n = l.len();
-
-                if n != 1 {
-                    write!(f, "(")?;
-                }
-                let mut se_idx = 0;
-                for (i, r) in l.into_iter().enumerate() {
-                    match r {
-                        SyntaxElem::AppliedId(_) => {
-                            write!(f, "{}", &syntax_elems[se_idx])?;
-                            se_idx += 1;
-                        }
-                        SyntaxElem::Slot(slot) => {
-                            write!(f, "{}", slot.to_string())?;
-                        }
-                        SyntaxElem::String(s) => {
-                            write!(f, "{}", s)?;
-                        }
-                    }
-                    if i != n - 1 {
-                        write!(f, " ")?;
-                    }
-                }
-                if n != 1 {
-                    write!(f, ")")?;
-                }
-                Ok(())
-            }
-            Pattern::PVar(p) => write!(f, "?{p}"),
-            Pattern::Subst(b, x, t) => write!(f, "{b}[{x} := {t}]"),
-        }
-    }
-}
-
-// impl<L: Language> std::fmt::Debug for Pattern<L> {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "{}", self)
-//     }
-// }
-
-impl<L: Language> std::fmt::Display for RecExpr<L> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", re_to_pattern(self))
-    }
-}
-
-impl<L: Language> std::fmt::Debug for RecExpr<L> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", re_to_pattern(self))
-    }
 }
 
 fn to_vec<T: Clone>(t: &[T]) -> Vec<T> {
