@@ -28,7 +28,7 @@ fn and_comm() -> Rewrite<CHC> {
 }
 
 fn and_3() -> Rewrite<CHC> {
-    let pat = "(and ?a (and ?b ?c))";
+    let pat = "(and <?a (and <?b ?c>)>)";
     let outpat = "(and <?a ?b ?c>)";
     Rewrite::new("and-3", pat, outpat)
 }

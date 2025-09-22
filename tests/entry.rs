@@ -125,6 +125,8 @@ where
     if let StopReason::Other(ReachError::Reached) = report.stop_reason {
         #[cfg(feature = "explanations")]
         runner.egraph.explain_equivalence(start, goal);
+
+        runner.egraph.dump();
         return;
     }
 

@@ -618,7 +618,7 @@ note: `get_all_rewrites` could also refer to the function imported here
    = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
 
 warning: `slotted-egraphs` (test "entry") generated 6 warnings
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.24s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.91s
      Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-3e46d232c8c3c10a)
 
 running 0 tests
@@ -997,62 +997,67 @@ parse_pattern pat_struct = ENode(
     ],
 ), pat_display = (and ?b ?a)
 
-s = "(and ?a (and ?b ?c))"
-tokenize: ret = [LParen, Ident("and"), PVar("a"), LParen, Ident("and"), PVar("b"), PVar("c"), RParen, RParen]
-parse_pattern input tok = [LParen, Ident("and"), PVar("a"), LParen, Ident("and"), PVar("b"), PVar("c"), RParen, RParen]
-parse_pattern_nosubst input tok = [LParen, Ident("and"), PVar("a"), LParen, Ident("and"), PVar("b"), PVar("c"), RParen, RParen]
-parse_nested_syntax_elem input tok = [PVar("a"), LParen, Ident("and"), PVar("b"), PVar("c"), RParen, RParen]
-parse_pattern input tok = [PVar("a"), LParen, Ident("and"), PVar("b"), PVar("c"), RParen, RParen]
-parse_pattern_nosubst input tok = [PVar("a"), LParen, Ident("and"), PVar("b"), PVar("c"), RParen, RParen]
+s = "(and <?a (and <?b ?c>)>)"
+tokenize: ret = [LParen, Ident("and"), LVecBracket, PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_nested_syntax_elem input tok = [LVecBracket, PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_nested_syntax_elem input tok = [PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_pattern input tok = [PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_pattern_nosubst input tok = [PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
 parse_pattern_nosubst ret1 = PVar("a")
 parse_pattern pat_struct = PVar(
     "a",
 ), pat_display = ?a
-parse_nested_syntax_elem ret = Ok((Pattern(PVar("a")), [LParen, Ident("and"), PVar("b"), PVar("c"), RParen, RParen]))
-parse_nested_syntax_elem input tok = [LParen, Ident("and"), PVar("b"), PVar("c"), RParen, RParen]
-parse_pattern input tok = [LParen, Ident("and"), PVar("b"), PVar("c"), RParen, RParen]
-parse_pattern_nosubst input tok = [LParen, Ident("and"), PVar("b"), PVar("c"), RParen, RParen]
-parse_nested_syntax_elem input tok = [PVar("b"), PVar("c"), RParen, RParen]
-parse_pattern input tok = [PVar("b"), PVar("c"), RParen, RParen]
-parse_pattern_nosubst input tok = [PVar("b"), PVar("c"), RParen, RParen]
+parse_nested_syntax_elem ret = Ok((Pattern(PVar("a")), [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem input tok = [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_nested_syntax_elem input tok = [LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_nested_syntax_elem input tok = [PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_pattern input tok = [PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_pattern_nosubst input tok = [PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
 parse_pattern_nosubst ret1 = PVar("b")
 parse_pattern pat_struct = PVar(
     "b",
 ), pat_display = ?b
-parse_nested_syntax_elem ret = Ok((Pattern(PVar("b")), [PVar("c"), RParen, RParen]))
-parse_nested_syntax_elem input tok = [PVar("c"), RParen, RParen]
-parse_pattern input tok = [PVar("c"), RParen, RParen]
-parse_pattern_nosubst input tok = [PVar("c"), RParen, RParen]
+parse_nested_syntax_elem ret = Ok((Pattern(PVar("b")), [PVar("c"), RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem input tok = [PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_pattern input tok = [PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
+parse_pattern_nosubst input tok = [PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
 parse_pattern_nosubst ret1 = PVar("c")
 parse_pattern pat_struct = PVar(
     "c",
 ), pat_display = ?c
-parse_nested_syntax_elem ret = Ok((Pattern(PVar("c")), [RParen, RParen]))
-syntax_elems_mock = [String("and"), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
-from_syntax::elems = [String("and"), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
-children: [AppliedId(id0, map-[]), AppliedId(id0, map-[])]
+parse_nested_syntax_elem ret = Ok((Pattern(PVar("c")), [RVecBracket, RParen, RVecBracket, RParen]))
+syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 vec<L>::from_syntax input elems = []
 vec<L>::from_syntax return None1
-vec<L>::from_syntax input elems = [AppliedId(id0, map-[])]
-tmp = Some([])
-fields: []
-from_syntax::ret = Some(And([]))
-node = Some(And([]))
-from_syntax::elems = [String("and"), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
-children: [AppliedId(id0, map-[]), AppliedId(id0, map-[])]
+vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+tmp = Some([id0, map-[], id0, map-[]])
+fields: [id0, map-[], id0, map-[]]
+from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
+node = Some(And([id0, map-[], id0, map-[]]))
+from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 vec<L>::from_syntax input elems = []
 vec<L>::from_syntax return None1
-vec<L>::from_syntax input elems = [AppliedId(id0, map-[])]
-tmp = Some([])
-fields: []
-from_syntax::ret = Some(And([]))
-node = And([])
-before syntax_elems = [String("and"), Pattern(PVar("b")), Pattern(PVar("c"))]
+vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+tmp = Some([id0, map-[], id0, map-[]])
+fields: [id0, map-[], id0, map-[]]
+from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
+node = And([id0, map-[], id0, map-[]])
+before syntax_elems = [String("and"), Vec([Pattern(PVar("b")), Pattern(PVar("c"))])]
 transformed syntax_elems = [PVar("b"), PVar("c")]
-parse_pattern_nosubst ret2 = ENode(And([]), [PVar("b"), PVar("c")])
+parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")])
 parse_pattern pat_struct = ENode(
     And(
-        [],
+        [
+            id0, map-[],
+            id0, map-[],
+        ],
     ),
     [
         PVar(
@@ -1062,33 +1067,36 @@ parse_pattern pat_struct = ENode(
             "c",
         ),
     ],
-), pat_display = and
-parse_nested_syntax_elem ret = Ok((Pattern(ENode(And([]), [PVar("b"), PVar("c")])), [RParen]))
-syntax_elems_mock = [String("and"), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
-from_syntax::elems = [String("and"), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
-children: [AppliedId(id0, map-[]), AppliedId(id0, map-[])]
+), pat_display = (and ?b ?c)
+parse_nested_syntax_elem ret = Ok((Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")])), [RVecBracket, RParen]))
+syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 vec<L>::from_syntax input elems = []
 vec<L>::from_syntax return None1
-vec<L>::from_syntax input elems = [AppliedId(id0, map-[])]
-tmp = Some([])
-fields: []
-from_syntax::ret = Some(And([]))
-node = Some(And([]))
-from_syntax::elems = [String("and"), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
-children: [AppliedId(id0, map-[]), AppliedId(id0, map-[])]
+vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+tmp = Some([id0, map-[], id0, map-[]])
+fields: [id0, map-[], id0, map-[]]
+from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
+node = Some(And([id0, map-[], id0, map-[]]))
+from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 vec<L>::from_syntax input elems = []
 vec<L>::from_syntax return None1
-vec<L>::from_syntax input elems = [AppliedId(id0, map-[])]
-tmp = Some([])
-fields: []
-from_syntax::ret = Some(And([]))
-node = And([])
-before syntax_elems = [String("and"), Pattern(PVar("a")), Pattern(ENode(And([]), [PVar("b"), PVar("c")]))]
-transformed syntax_elems = [PVar("a"), ENode(And([]), [PVar("b"), PVar("c")])]
-parse_pattern_nosubst ret2 = ENode(And([]), [PVar("a"), ENode(And([]), [PVar("b"), PVar("c")])])
+vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+tmp = Some([id0, map-[], id0, map-[]])
+fields: [id0, map-[], id0, map-[]]
+from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
+node = And([id0, map-[], id0, map-[]])
+before syntax_elems = [String("and"), Vec([Pattern(PVar("a")), Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")]))])]
+transformed syntax_elems = [PVar("a"), ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")])]
+parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [PVar("a"), ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")])])
 parse_pattern pat_struct = ENode(
     And(
-        [],
+        [
+            id0, map-[],
+            id0, map-[],
+        ],
     ),
     [
         PVar(
@@ -1096,7 +1104,10 @@ parse_pattern pat_struct = ENode(
         ),
         ENode(
             And(
-                [],
+                [
+                    id0, map-[],
+                    id0, map-[],
+                ],
             ),
             [
                 PVar(
@@ -1108,7 +1119,7 @@ parse_pattern pat_struct = ENode(
             ],
         ),
     ],
-), pat_display = and
+), pat_display = (and ?a (and ?b ?c))
 
 s = "(and <?a ?b ?c>)"
 tokenize: ret = [LParen, Ident("and"), LVecBracket, PVar("a"), PVar("b"), PVar("c"), RVecBracket, RParen]
@@ -1532,7 +1543,9 @@ pattern_to_re input pat = ENode(Var($0), [])
 pattern_to_re input pat = ENode(Var($1), [])
 pattern_to_re input pat = ENode(Var($2), [])
 RecExpr::parse: ret = ENode(And([id0, map-[], id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), []), ENode(Var($2), [])])
-[tests/entry.rs:124:5] &report.stop_reason = Saturated
+[tests/entry.rs:124:5] &report.stop_reason = Other(
+    Reached,
+)
 
 
 id0($f0):
@@ -1548,36 +1561,12 @@ id3($f11, $f12, $f13):
 >> And([id0, map-[$f0 -> $f13], id1, map-[$f1 -> $f12, $f2 -> $f11]])
  - And([id1, map-[$f1 -> $f11, $f2 -> $f12], id0, map-[$f0 -> $f13]])
  - And([id0, map-[$f0 -> $f13], id1, map-[$f1 -> $f11, $f2 -> $f12]])
+ - And([id0, map-[$f0 -> $f13], id0, map-[$f0 -> $f12], id0, map-[$f0 -> $f11]])
  -- [$f11 -> $f13, $f12 -> $f11, $f13 -> $f12]
  -- [$f11 -> $f11, $f12 -> $f13, $f13 -> $f12]
  -- [$f11 -> $f12, $f12 -> $f11, $f13 -> $f13]
 
+test chc::and ... ok
 
-thread 'chc::and' panicked at tests/entry.rs:134:5:
-failed to reach goal
-stack backtrace:
-   0: __rustc::rust_begin_unwind
-             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/panicking.rs:697:5
-   1: core::panicking::panic_fmt
-             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/panicking.rs:75:14
-   2: entry::assert_reaches
-             at ./tests/entry.rs:134:5
-   3: entry::chc::and
-             at ./tests/chc/mod.rs:44:5
-   4: entry::chc::and::{{closure}}
-             at ./tests/chc/mod.rs:37:9
-   5: core::ops::function::FnOnce::call_once
-             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
-   6: core::ops::function::FnOnce::call_once
-             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/ops/function.rs:250:5
-note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
-test chc::and ... FAILED
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.00s
 
-failures:
-
-failures:
-    chc::and
-
-test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.01s
-
-error: test failed, to rerun pass `--test entry`
