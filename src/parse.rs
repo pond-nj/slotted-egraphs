@@ -166,6 +166,18 @@ fn nested_syntax_elem_to_syntax_elem<L: Language>(ne: &NestedSyntaxElem<L>) -> S
     }
 }
 
+fn nested_syntax_elem_to_pattern<L: Language>(ne: NestedSyntaxElem<L>) -> Vec<Pattern<L>> {
+    match ne {
+        NestedSyntaxElem::Pattern(pat) => Vec::from([pat]),
+        NestedSyntaxElem::String(_) => Vec::new(),
+        NestedSyntaxElem::Slot(_) => Vec::new(),
+        NestedSyntaxElem::Vec(v) => v
+            .into_iter()
+            .flat_map(nested_syntax_elem_to_pattern)
+            .collect(),
+    }
+}
+
 // no substitutions. = dont deal with [:=]
 fn parse_pattern_nosubst<L: Language>(
     mut tok: &[Token],
@@ -201,6 +213,7 @@ fn parse_pattern_nosubst<L: Language>(
         }
         tok = &tok[1..];
 
+        // (Pond) use to create an Enode
         let syntax_elems_mock: Vec<_> = syntax_elems
             .iter()
             .map(nested_syntax_elem_to_syntax_elem)
@@ -210,18 +223,12 @@ fn parse_pattern_nosubst<L: Language>(
         let node = L::from_syntax(&syntax_elems_mock)
             .ok_or_else(|| ParseError::FromSyntaxFailed(syntax_elems_mock))?;
         println!("node = {:?}", node);
-        println!("syntax_elems = {:?}", syntax_elems);
+
+        // (Pond) use to create Enode's children
+        println!("before syntax_elems = {:?}", syntax_elems);
         let syntax_elems = syntax_elems
             .into_iter()
-            .filter_map(|x| {
-                match x {
-                    NestedSyntaxElem::Pattern(pat) => Some(pat),
-                    NestedSyntaxElem::String(_) => None,
-                    NestedSyntaxElem::Slot(_) => None,
-                    // NestedSyntaxElem::Vec(_) => todo!(),
-                    NestedSyntaxElem::Vec(_) => None,
-                }
-            })
+            .flat_map(nested_syntax_elem_to_pattern)
             .collect();
         println!("transformed syntax_elems = {:?}", syntax_elems);
         let re = Pattern::ENode(node, syntax_elems);

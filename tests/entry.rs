@@ -131,5 +131,5 @@ where
     // `start` did not reach `goal` in `steps` steps.
     // or it saturated before then
     runner.egraph.dump();
-    assert!(false);
+    panic!("failed to reach goal");
 }

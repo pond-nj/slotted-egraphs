@@ -66,6 +66,7 @@ pub fn lookup_rec_expr<L: Language, N: Analysis<L>>(
 }
 
 pub fn pattern_to_re<L: Language>(pat: &Pattern<L>) -> RecExpr<L> {
+    println!("pattern_to_re input pat = {:?}", pat);
     let Pattern::ENode(n, children) = &pat else {
         panic!()
     };
