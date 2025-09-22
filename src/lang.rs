@@ -145,6 +145,7 @@ macro_rules! bare_language_child {
 
             fn to_syntax(&self) -> Vec<SyntaxElem> { vec![SyntaxElem::String(self.to_string())] }
             fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+                println!("L(Bare)::from_syntax with elems = {:?}", elems);
                 match elems {
                     [SyntaxElem::String(x)] => x.parse().ok(),
                     _ => {
@@ -164,7 +165,7 @@ macro_rules! bare_language_child {
 }
 
 bare_language_child!(
-    u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol
+    u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol, String
 );
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone, PartialOrd, Ord)]

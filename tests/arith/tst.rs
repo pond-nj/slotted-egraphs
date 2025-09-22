@@ -1,6 +1,8 @@
 use crate::*;
+use serial_test::serial;
 
 #[test]
+#[serial]
 fn t1() {
     // x+y = y+x
     let x = "$0";
@@ -13,6 +15,7 @@ fn t1() {
 }
 
 #[test]
+#[serial]
 fn t2() {
     // (x+y) * (x+y) = (x+y) * (y+x)
     let x = "$0";
@@ -26,6 +29,7 @@ fn t2() {
 }
 
 #[test]
+#[serial]
 fn t3() {
     // (x+y) * (y+z) = (z+y) * (y+x)
     let x = "$0";
@@ -39,6 +43,7 @@ fn t3() {
 }
 
 #[test]
+#[serial]
 fn t4() {
     // (x+y)**2 = x**2 + x*y + x*y + y**2
     let a = "(mul (add (var $x) (var $y)) (add (var $x) (var $y)))";
@@ -60,6 +65,7 @@ fn add_chain(it: impl Iterator<Item = usize>) -> String {
 }
 
 #[test]
+#[serial]
 #[cfg_attr(feature = "explanations", ignore = "TODO: fails")]
 fn t5() {
     // x0+...+xN = xN+...+x0
@@ -74,6 +80,7 @@ fn t5() {
 }
 
 #[test]
+#[serial]
 fn t6() {
     // z*(x+y) = z*(y+x)
     let x = "$0";

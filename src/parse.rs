@@ -93,7 +93,7 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
         }
     }
 
-    eprintln!("tokenize: ret = {:?}", tokens);
+    println!("tokenize: ret = {:?}", tokens);
     Ok(tokens)
 }
 
@@ -116,7 +116,7 @@ impl<L: Language> RecExpr<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
         let pat = Pattern::parse(s)?;
         let ret = pattern_to_re(&pat);
-        eprintln!("RecExpr::parse: ret = {:?}", ret);
+        println!("RecExpr::parse: ret = {:?}", ret);
         Ok(ret)
     }
 }
@@ -219,7 +219,7 @@ fn parse_pattern_nosubst<L: Language>(
             .map(nested_syntax_elem_to_syntax_elem)
             .collect();
         println!("syntax_elems_mock = {:?}", syntax_elems_mock);
-        println!("node = {:?}", L::from_syntax(&syntax_elems_mock));
+        println!("node1 = {:?}", L::from_syntax(&syntax_elems_mock));
         let node = L::from_syntax(&syntax_elems_mock)
             .ok_or_else(|| ParseError::FromSyntaxFailed(syntax_elems_mock))?;
         println!("node = {:?}", node);
@@ -246,6 +246,7 @@ fn parse_pattern_nosubst<L: Language>(
         tok = &tok[1..];
 
         let elems = [SyntaxElem::String(op.to_string())];
+        println!("node2 = {:?}", L::from_syntax(&elems));
         let node =
             L::from_syntax(&elems).ok_or_else(|| ParseError::FromSyntaxFailed(to_vec(&elems)))?;
         let pat = Pattern::ENode(node, Vec::new());
@@ -280,21 +281,27 @@ fn parse_nested_syntax_elem<L: Language>(
 
             ret.push(x);
         }
+        println!(
+            "parse_nested_syntax_elem ret1 = {:?}",
+            NestedSyntaxElem::Vec(ret.clone())
+        );
         return Ok((NestedSyntaxElem::Vec(ret), &next[1..]));
     }
 
     if let Token::Slot(slot) = &tok[0] {
         println!(
-            "parse_nested_syntax_elem ret = {:?}",
+            "parse_nested_syntax_elem ret2 = {:?}",
             NestedSyntaxElem::<L>::Slot(*slot)
         );
         return Ok((NestedSyntaxElem::Slot(*slot), &tok[1..]));
     }
 
+    println!("Last case in parse_nested_syntax_elem, tok = {:?}", tok);
+
     let recur_parse_result = parse_pattern::<L>(tok);
     let ret: Result<(NestedSyntaxElem<L>, &[Token]), ParseError> =
         recur_parse_result.map(|(x, rest)| (NestedSyntaxElem::Pattern(x), rest));
-    println!("parse_nested_syntax_elem ret = {:?}", ret.clone());
+    println!("parse_nested_syntax_elem ret3 = {:?}", ret.clone());
     ret
 }
 

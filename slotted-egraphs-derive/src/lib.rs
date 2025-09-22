@@ -139,6 +139,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                     _ => {
                         #(#from_syntax_arms2)*
 
+                        println!("L::from_syntax(&elems) = None");
                         None
                     },
                 };
