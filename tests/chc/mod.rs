@@ -7,23 +7,18 @@ use slotted_egraphs::*;
 define_language! {
     pub enum CHC {
         Var(Slot) = "var",
-        Pred(AppliedId, Vec<Slot>) = "pred", //(pred P <$1>)
-        New(AppliedId, AppliedId, Vec<AppliedId>) = "new", // (new Pred Constraint <Body>)
+        PredSyntax(AppliedId, Vec<Slot>) = "pred", //(pred P <$1>)
+        New(AppliedId, AppliedId, Vec<AppliedId>) = "new", // (new PredSyntax Constraint <Body>)
         Compose(Vec<AppliedId>) = "compose",
         True() = "true",
-        False() = "false",
         PredName(String),
     }
 }
 
-pub fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
-    vec![unfold()]
-}
+fn unfold() -> Rewrite<CHC> {}
 
-fn unfold() -> Rewrite<CHC> {
-    let pat = "(and <?1 (and <?2 ?3>)>)";
-    let outpat = "(and <(and <?1 ?2>) ?3>)";
-    Rewrite::new("unfold", pat, outpat)
+fn get_all_rewrites(rule: &str) -> Vec<Rewrite<CHC>> {
+    vec![unfold()]
 }
 
 #[test]
@@ -46,6 +41,8 @@ fn tst1() {
     let p_syntax = &format!("(pred P <{x} {y}>)");
     let p_chc1 = &format!("(new {p_syntax} (true) <{q_compose}>)");
     let p_compose = &format!("(compose <{p_chc1}>)");
+
+    println!("p_compose = {p_compose}");
 
     let eg = &mut EGraph::<CHC>::default();
     id(&p_compose, eg);

@@ -58,6 +58,8 @@ warning: unused variable: `v`
    = note: `#[warn(unused_variables)]` on by default
 
 warning: `slotted-egraphs` (lib) generated 20 warnings (15 duplicates)
+   Compiling slotted-egraphs v0.0.36 (/Users/nutdranaijaruthikorn/Downloads/2025/PhD/Project/slotted-egraphs)
+warning: `slotted-egraphs` (lib test) generated 20 warnings (20 duplicates)
 from_syntax_arms1 = "lam" =>
 {
     let mut children = & elems [1 ..]; println! ("children: {:?}", children);
@@ -498,7 +500,7 @@ from_syntax_arms1 = "var" =>
         let a = & children [.. n]; rest = & children [n ..]; < Vec < Slot > >
         :: from_syntax(a)
     }).next(); println! ("tmp = {:?}", tmp); let a1 = tmp ? ; println!
-    ("fields: {:?}", a1); children = rest; Some(CHC :: Pred(a0, a1))
+    ("fields: {:?}", a1); children = rest; Some(CHC :: PredSyntax(a0, a1))
 }, "new" =>
 {
     let mut children = & elems [1 ..]; println! ("children: {:?}", children);
@@ -539,136 +541,8 @@ from_syntax_arms1 = "var" =>
 {
     let mut children = & elems [1 ..]; println! ("children: {:?}", children);
     let mut rest = children; Some(CHC :: True())
-}, "false" =>
-{
-    let mut children = & elems [1 ..]; println! ("children: {:?}", children);
-    let mut rest = children; Some(CHC :: False())
 }
-warning: ambiguous glob re-exports
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^ the name `get_all_rewrites` in the value namespace is first re-exported here
-...
-26 | pub use chc::*;
-   |         ------ but the name `get_all_rewrites` in the value namespace is also re-exported here
-   |
-   = note: `#[warn(ambiguous_glob_reexports)]` on by default
-
-warning: `get_all_rewrites` is ambiguous
-  --> tests/arith/tst.rs:14:27
-   |
-14 |     assert_reaches(a, b, &get_all_rewrites()[..], 3);
-   |                           ^^^^^^^^^^^^^^^^ ambiguous name
-   |
-   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
-   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
-   = note: ambiguous because of multiple glob imports of a name in the same module
-note: `get_all_rewrites` could refer to the function imported here
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-note: `get_all_rewrites` could also refer to the function imported here
-  --> tests/entry.rs:26:9
-   |
-26 | pub use chc::*;
-   |         ^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-   = note: `#[warn(ambiguous_glob_imports)]` on by default
-
-warning: `get_all_rewrites` is ambiguous
-  --> tests/arith/tst.rs:28:27
-   |
-28 |     assert_reaches(a, b, &get_all_rewrites()[..], 2);
-   |                           ^^^^^^^^^^^^^^^^ ambiguous name
-   |
-   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
-   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
-   = note: ambiguous because of multiple glob imports of a name in the same module
-note: `get_all_rewrites` could refer to the function imported here
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-note: `get_all_rewrites` could also refer to the function imported here
-  --> tests/entry.rs:26:9
-   |
-26 | pub use chc::*;
-   |         ^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-
-warning: `get_all_rewrites` is ambiguous
-  --> tests/arith/tst.rs:42:27
-   |
-42 |     assert_reaches(a, b, &get_all_rewrites()[..], 3);
-   |                           ^^^^^^^^^^^^^^^^ ambiguous name
-   |
-   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
-   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
-   = note: ambiguous because of multiple glob imports of a name in the same module
-note: `get_all_rewrites` could refer to the function imported here
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-note: `get_all_rewrites` could also refer to the function imported here
-  --> tests/entry.rs:26:9
-   |
-26 | pub use chc::*;
-   |         ^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-
-warning: `get_all_rewrites` is ambiguous
-  --> tests/arith/tst.rs:55:27
-   |
-55 |     assert_reaches(a, b, &get_all_rewrites()[..], 10);
-   |                           ^^^^^^^^^^^^^^^^ ambiguous name
-   |
-   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
-   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
-   = note: ambiguous because of multiple glob imports of a name in the same module
-note: `get_all_rewrites` could refer to the function imported here
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-note: `get_all_rewrites` could also refer to the function imported here
-  --> tests/entry.rs:26:9
-   |
-26 | pub use chc::*;
-   |         ^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-
-warning: `get_all_rewrites` is ambiguous
-  --> tests/arith/tst.rs:79:27
-   |
-79 |     assert_reaches(a, b, &get_all_rewrites()[..], 10);
-   |                           ^^^^^^^^^^^^^^^^ ambiguous name
-   |
-   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
-   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
-   = note: ambiguous because of multiple glob imports of a name in the same module
-note: `get_all_rewrites` could refer to the function imported here
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-note: `get_all_rewrites` could also refer to the function imported here
-  --> tests/entry.rs:26:9
-   |
-26 | pub use chc::*;
-   |         ^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-
-warning: `slotted-egraphs` (test "entry") generated 6 warnings
-warning: `slotted-egraphs` (lib test) generated 20 warnings (20 duplicates)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.38s
      Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-da51ac60e9e03fa4)
 
 running 0 tests
@@ -678,6 +552,25 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; fini
      Running tests/entry.rs (target/debug/deps/entry-1795150ff3165311)
 
 running 1 test
+p_compose = 
+(compose 
+    <
+    (new (pred P <$0 $1>) (true) 
+        <(compose 
+            <(new (pred Q <$0 $1>) (true) 
+                <(compose
+                    <(new (pred R1 <$0>) (true) <>)
+                >) 
+                (compose 
+                    <(new (pred R2 <$1>) (true) <>)>
+                )
+            >)
+        >)
+    >)
+    (new (pred P 
+    ))
+    >
+)
 
 s = "(compose <(new (pred P <$0 $1>) (true) <(compose <(new (pred Q <$0 $1>) (true) <(compose <(new (pred R1 <$0>) (true) <>)>) (compose <(new (pred R2 <$1>) (true) <>)>)>)>)>)>)"
 tokenize: ret = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("P"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("Q"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
@@ -726,8 +619,8 @@ vec<L>::from_syntax return None1
 vec<L>::from_syntax input elems = [Vec([Slot($0), Slot($1)])]
 tmp = Some([$0, $1])
 fields: [$0, $1]
-from_syntax::ret = Some(Pred(id0, map-[], [$0, $1]))
-node1 = Some(Pred(id0, map-[], [$0, $1]))
+from_syntax::ret = Some(PredSyntax(id0, map-[], [$0, $1]))
+node1 = Some(PredSyntax(id0, map-[], [$0, $1]))
 from_syntax::elems = [String("pred"), AppliedId(id0, map-[]), Vec([Slot($0), Slot($1)])]
 children: [AppliedId(id0, map-[]), Vec([Slot($0), Slot($1)])]
 tmp = Some(id0, map-[])
@@ -737,13 +630,13 @@ vec<L>::from_syntax return None1
 vec<L>::from_syntax input elems = [Vec([Slot($0), Slot($1)])]
 tmp = Some([$0, $1])
 fields: [$0, $1]
-from_syntax::ret = Some(Pred(id0, map-[], [$0, $1]))
-node = Pred(id0, map-[], [$0, $1])
+from_syntax::ret = Some(PredSyntax(id0, map-[], [$0, $1]))
+node = PredSyntax(id0, map-[], [$0, $1])
 before syntax_elems = [String("pred"), Pattern(ENode(PredName("P"), [])), Vec([Slot($0), Slot($1)])]
 transformed syntax_elems = [ENode(PredName("P"), [])]
-parse_pattern_nosubst ret2 = ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])])
+parse_pattern_nosubst ret2 = ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])])
 parse_pattern pat_struct = ENode(
-    Pred(
+    PredSyntax(
         id0, map-[],
         [
             $0,
@@ -759,7 +652,7 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (pred P $0 $1)
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])])), [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("Q"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])])), [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("Q"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
 parse_nested_syntax_elem input tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("Q"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 Last case in parse_nested_syntax_elem, tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("Q"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 parse_pattern input tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("Q"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
@@ -829,8 +722,8 @@ vec<L>::from_syntax return None1
 vec<L>::from_syntax input elems = [Vec([Slot($0), Slot($1)])]
 tmp = Some([$0, $1])
 fields: [$0, $1]
-from_syntax::ret = Some(Pred(id0, map-[], [$0, $1]))
-node1 = Some(Pred(id0, map-[], [$0, $1]))
+from_syntax::ret = Some(PredSyntax(id0, map-[], [$0, $1]))
+node1 = Some(PredSyntax(id0, map-[], [$0, $1]))
 from_syntax::elems = [String("pred"), AppliedId(id0, map-[]), Vec([Slot($0), Slot($1)])]
 children: [AppliedId(id0, map-[]), Vec([Slot($0), Slot($1)])]
 tmp = Some(id0, map-[])
@@ -840,13 +733,13 @@ vec<L>::from_syntax return None1
 vec<L>::from_syntax input elems = [Vec([Slot($0), Slot($1)])]
 tmp = Some([$0, $1])
 fields: [$0, $1]
-from_syntax::ret = Some(Pred(id0, map-[], [$0, $1]))
-node = Pred(id0, map-[], [$0, $1])
+from_syntax::ret = Some(PredSyntax(id0, map-[], [$0, $1]))
+node = PredSyntax(id0, map-[], [$0, $1])
 before syntax_elems = [String("pred"), Pattern(ENode(PredName("Q"), [])), Vec([Slot($0), Slot($1)])]
 transformed syntax_elems = [ENode(PredName("Q"), [])]
-parse_pattern_nosubst ret2 = ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])])
+parse_pattern_nosubst ret2 = ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])])
 parse_pattern pat_struct = ENode(
-    Pred(
+    PredSyntax(
         id0, map-[],
         [
             $0,
@@ -862,7 +755,7 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (pred Q $0 $1)
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])])), [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])])), [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
 parse_nested_syntax_elem input tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 Last case in parse_nested_syntax_elem, tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 parse_pattern input tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
@@ -930,8 +823,8 @@ vec<L>::from_syntax return None1
 vec<L>::from_syntax input elems = [Vec([Slot($0)])]
 tmp = Some([$0])
 fields: [$0]
-from_syntax::ret = Some(Pred(id0, map-[], [$0]))
-node1 = Some(Pred(id0, map-[], [$0]))
+from_syntax::ret = Some(PredSyntax(id0, map-[], [$0]))
+node1 = Some(PredSyntax(id0, map-[], [$0]))
 from_syntax::elems = [String("pred"), AppliedId(id0, map-[]), Vec([Slot($0)])]
 children: [AppliedId(id0, map-[]), Vec([Slot($0)])]
 tmp = Some(id0, map-[])
@@ -941,13 +834,13 @@ vec<L>::from_syntax return None1
 vec<L>::from_syntax input elems = [Vec([Slot($0)])]
 tmp = Some([$0])
 fields: [$0]
-from_syntax::ret = Some(Pred(id0, map-[], [$0]))
-node = Pred(id0, map-[], [$0])
+from_syntax::ret = Some(PredSyntax(id0, map-[], [$0]))
+node = PredSyntax(id0, map-[], [$0])
 before syntax_elems = [String("pred"), Pattern(ENode(PredName("R1"), [])), Vec([Slot($0)])]
 transformed syntax_elems = [ENode(PredName("R1"), [])]
-parse_pattern_nosubst ret2 = ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])])
+parse_pattern_nosubst ret2 = ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])])
 parse_pattern pat_struct = ENode(
-    Pred(
+    PredSyntax(
         id0, map-[],
         [
             $0,
@@ -962,7 +855,7 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (pred R1 $0)
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])])), [LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])])), [LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
 parse_nested_syntax_elem input tok = [LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 Last case in parse_nested_syntax_elem, tok = [LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 parse_pattern input tok = [LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
@@ -1013,9 +906,9 @@ tmp = Some([])
 fields: []
 from_syntax::ret = Some(New(id0, map-[], id0, map-[], []))
 node = New(id0, map-[], id0, map-[], [])
-before syntax_elems = [String("new"), Pattern(ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])])), Pattern(ENode(True, [])), Vec([])]
-transformed syntax_elems = [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])]
-parse_pattern_nosubst ret2 = ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])
+before syntax_elems = [String("new"), Pattern(ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])])), Pattern(ENode(True, [])), Vec([])]
+transformed syntax_elems = [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])]
+parse_pattern_nosubst ret2 = ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])
 parse_pattern pat_struct = ENode(
     New(
         id0, map-[],
@@ -1024,7 +917,7 @@ parse_pattern pat_struct = ENode(
     ),
     [
         ENode(
-            Pred(
+            PredSyntax(
                 id0, map-[],
                 [
                     $0,
@@ -1045,8 +938,8 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (new (pred R1 $0) true)
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])), [RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
-parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])]))])
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])), [RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])]))])
 syntax_elems_mock = [String("compose"), Vec([AppliedId(id0, map-[])])]
 from_syntax::elems = [String("compose"), Vec([AppliedId(id0, map-[])])]
 children: [Vec([AppliedId(id0, map-[])])]
@@ -1066,9 +959,9 @@ tmp = Some([id0, map-[]])
 fields: [id0, map-[]]
 from_syntax::ret = Some(Compose([id0, map-[]]))
 node = Compose([id0, map-[]])
-before syntax_elems = [String("compose"), Vec([Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])]))])]
-transformed syntax_elems = [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]
-parse_pattern_nosubst ret2 = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])])
+before syntax_elems = [String("compose"), Vec([Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])]))])]
+transformed syntax_elems = [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]
+parse_pattern_nosubst ret2 = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])])
 parse_pattern pat_struct = ENode(
     Compose(
         [
@@ -1084,7 +977,7 @@ parse_pattern pat_struct = ENode(
             ),
             [
                 ENode(
-                    Pred(
+                    PredSyntax(
                         id0, map-[],
                         [
                             $0,
@@ -1107,7 +1000,7 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (compose (new (pred R1 $0) true))
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])])), [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])])), [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
 parse_nested_syntax_elem input tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 Last case in parse_nested_syntax_elem, tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 parse_pattern input tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
@@ -1153,8 +1046,8 @@ vec<L>::from_syntax return None1
 vec<L>::from_syntax input elems = [Vec([Slot($1)])]
 tmp = Some([$1])
 fields: [$1]
-from_syntax::ret = Some(Pred(id0, map-[], [$1]))
-node1 = Some(Pred(id0, map-[], [$1]))
+from_syntax::ret = Some(PredSyntax(id0, map-[], [$1]))
+node1 = Some(PredSyntax(id0, map-[], [$1]))
 from_syntax::elems = [String("pred"), AppliedId(id0, map-[]), Vec([Slot($1)])]
 children: [AppliedId(id0, map-[]), Vec([Slot($1)])]
 tmp = Some(id0, map-[])
@@ -1164,13 +1057,13 @@ vec<L>::from_syntax return None1
 vec<L>::from_syntax input elems = [Vec([Slot($1)])]
 tmp = Some([$1])
 fields: [$1]
-from_syntax::ret = Some(Pred(id0, map-[], [$1]))
-node = Pred(id0, map-[], [$1])
+from_syntax::ret = Some(PredSyntax(id0, map-[], [$1]))
+node = PredSyntax(id0, map-[], [$1])
 before syntax_elems = [String("pred"), Pattern(ENode(PredName("R2"), [])), Vec([Slot($1)])]
 transformed syntax_elems = [ENode(PredName("R2"), [])]
-parse_pattern_nosubst ret2 = ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])])
+parse_pattern_nosubst ret2 = ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])])
 parse_pattern pat_struct = ENode(
-    Pred(
+    PredSyntax(
         id0, map-[],
         [
             $1,
@@ -1185,7 +1078,7 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (pred R2 $1)
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])])), [LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])])), [LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
 parse_nested_syntax_elem input tok = [LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 Last case in parse_nested_syntax_elem, tok = [LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 parse_pattern input tok = [LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
@@ -1236,9 +1129,9 @@ tmp = Some([])
 fields: []
 from_syntax::ret = Some(New(id0, map-[], id0, map-[], []))
 node = New(id0, map-[], id0, map-[], [])
-before syntax_elems = [String("new"), Pattern(ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])])), Pattern(ENode(True, [])), Vec([])]
-transformed syntax_elems = [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])]
-parse_pattern_nosubst ret2 = ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])
+before syntax_elems = [String("new"), Pattern(ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])])), Pattern(ENode(True, [])), Vec([])]
+transformed syntax_elems = [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])]
+parse_pattern_nosubst ret2 = ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])
 parse_pattern pat_struct = ENode(
     New(
         id0, map-[],
@@ -1247,7 +1140,7 @@ parse_pattern pat_struct = ENode(
     ),
     [
         ENode(
-            Pred(
+            PredSyntax(
                 id0, map-[],
                 [
                     $1,
@@ -1268,8 +1161,8 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (new (pred R2 $1) true)
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])), [RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
-parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])]))])
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])), [RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])]))])
 syntax_elems_mock = [String("compose"), Vec([AppliedId(id0, map-[])])]
 from_syntax::elems = [String("compose"), Vec([AppliedId(id0, map-[])])]
 children: [Vec([AppliedId(id0, map-[])])]
@@ -1289,9 +1182,9 @@ tmp = Some([id0, map-[]])
 fields: [id0, map-[]]
 from_syntax::ret = Some(Compose([id0, map-[]]))
 node = Compose([id0, map-[]])
-before syntax_elems = [String("compose"), Vec([Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])]))])]
-transformed syntax_elems = [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])]
-parse_pattern_nosubst ret2 = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])
+before syntax_elems = [String("compose"), Vec([Pattern(ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])]))])]
+transformed syntax_elems = [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])]
+parse_pattern_nosubst ret2 = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])
 parse_pattern pat_struct = ENode(
     Compose(
         [
@@ -1307,7 +1200,7 @@ parse_pattern pat_struct = ENode(
             ),
             [
                 ENode(
-                    Pred(
+                    PredSyntax(
                         id0, map-[],
                         [
                             $1,
@@ -1330,8 +1223,8 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (compose (new (pred R2 $1) true))
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])), [RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
-parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])])), Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])]))])
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])), [RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])])), Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])]))])
 syntax_elems_mock = [String("new"), AppliedId(id0, map-[]), AppliedId(id0, map-[]), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 from_syntax::elems = [String("new"), AppliedId(id0, map-[]), AppliedId(id0, map-[]), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 children: [AppliedId(id0, map-[]), AppliedId(id0, map-[]), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
@@ -1359,9 +1252,9 @@ tmp = Some([id0, map-[], id0, map-[]])
 fields: [id0, map-[], id0, map-[]]
 from_syntax::ret = Some(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]))
 node = New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]])
-before syntax_elems = [String("new"), Pattern(ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])])), Pattern(ENode(True, [])), Vec([Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])])), Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])]))])]
-transformed syntax_elems = [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])]
-parse_pattern_nosubst ret2 = ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])
+before syntax_elems = [String("new"), Pattern(ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])])), Pattern(ENode(True, [])), Vec([Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])])), Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])]))])]
+transformed syntax_elems = [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])]
+parse_pattern_nosubst ret2 = ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])
 parse_pattern pat_struct = ENode(
     New(
         id0, map-[],
@@ -1373,7 +1266,7 @@ parse_pattern pat_struct = ENode(
     ),
     [
         ENode(
-            Pred(
+            PredSyntax(
                 id0, map-[],
                 [
                     $0,
@@ -1408,7 +1301,7 @@ parse_pattern pat_struct = ENode(
                     ),
                     [
                         ENode(
-                            Pred(
+                            PredSyntax(
                                 id0, map-[],
                                 [
                                     $0,
@@ -1446,7 +1339,7 @@ parse_pattern pat_struct = ENode(
                     ),
                     [
                         ENode(
-                            Pred(
+                            PredSyntax(
                                 id0, map-[],
                                 [
                                     $1,
@@ -1471,8 +1364,8 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (new (pred Q $0 $1) true (compose (new (pred R1 $0) true)) (compose (new (pred R2 $1) true)))
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])), [RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
-parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])]))])
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])), [RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])]))])
 syntax_elems_mock = [String("compose"), Vec([AppliedId(id0, map-[])])]
 from_syntax::elems = [String("compose"), Vec([AppliedId(id0, map-[])])]
 children: [Vec([AppliedId(id0, map-[])])]
@@ -1492,9 +1385,9 @@ tmp = Some([id0, map-[]])
 fields: [id0, map-[]]
 from_syntax::ret = Some(Compose([id0, map-[]]))
 node = Compose([id0, map-[]])
-before syntax_elems = [String("compose"), Vec([Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])]))])]
-transformed syntax_elems = [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])]
-parse_pattern_nosubst ret2 = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])
+before syntax_elems = [String("compose"), Vec([Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])]))])]
+transformed syntax_elems = [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])]
+parse_pattern_nosubst ret2 = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])
 parse_pattern pat_struct = ENode(
     Compose(
         [
@@ -1513,7 +1406,7 @@ parse_pattern pat_struct = ENode(
             ),
             [
                 ENode(
-                    Pred(
+                    PredSyntax(
                         id0, map-[],
                         [
                             $0,
@@ -1548,7 +1441,7 @@ parse_pattern pat_struct = ENode(
                             ),
                             [
                                 ENode(
-                                    Pred(
+                                    PredSyntax(
                                         id0, map-[],
                                         [
                                             $0,
@@ -1586,7 +1479,7 @@ parse_pattern pat_struct = ENode(
                             ),
                             [
                                 ENode(
-                                    Pred(
+                                    PredSyntax(
                                         id0, map-[],
                                         [
                                             $1,
@@ -1613,8 +1506,8 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (compose (new (pred Q $0 $1) true (compose (new (pred R1 $0) true)) (compose (new (pred R2 $1) true))))
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])), [RVecBracket, RParen, RVecBracket, RParen]))
-parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])]))])
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])), [RVecBracket, RParen, RVecBracket, RParen]))
+parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])]))])
 syntax_elems_mock = [String("new"), AppliedId(id0, map-[]), AppliedId(id0, map-[]), Vec([AppliedId(id0, map-[])])]
 from_syntax::elems = [String("new"), AppliedId(id0, map-[]), AppliedId(id0, map-[]), Vec([AppliedId(id0, map-[])])]
 children: [AppliedId(id0, map-[]), AppliedId(id0, map-[]), Vec([AppliedId(id0, map-[])])]
@@ -1642,9 +1535,9 @@ tmp = Some([id0, map-[]])
 fields: [id0, map-[]]
 from_syntax::ret = Some(New(id0, map-[], id0, map-[], [id0, map-[]]))
 node = New(id0, map-[], id0, map-[], [id0, map-[]])
-before syntax_elems = [String("new"), Pattern(ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])])), Pattern(ENode(True, [])), Vec([Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])]))])]
-transformed syntax_elems = [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])]
-parse_pattern_nosubst ret2 = ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])
+before syntax_elems = [String("new"), Pattern(ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])])), Pattern(ENode(True, [])), Vec([Pattern(ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])]))])]
+transformed syntax_elems = [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])]
+parse_pattern_nosubst ret2 = ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])
 parse_pattern pat_struct = ENode(
     New(
         id0, map-[],
@@ -1655,7 +1548,7 @@ parse_pattern pat_struct = ENode(
     ),
     [
         ENode(
-            Pred(
+            PredSyntax(
                 id0, map-[],
                 [
                     $0,
@@ -1693,7 +1586,7 @@ parse_pattern pat_struct = ENode(
                     ),
                     [
                         ENode(
-                            Pred(
+                            PredSyntax(
                                 id0, map-[],
                                 [
                                     $0,
@@ -1728,7 +1621,7 @@ parse_pattern pat_struct = ENode(
                                     ),
                                     [
                                         ENode(
-                                            Pred(
+                                            PredSyntax(
                                                 id0, map-[],
                                                 [
                                                     $0,
@@ -1766,7 +1659,7 @@ parse_pattern pat_struct = ENode(
                                     ),
                                     [
                                         ENode(
-                                            Pred(
+                                            PredSyntax(
                                                 id0, map-[],
                                                 [
                                                     $1,
@@ -1795,8 +1688,8 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (new (pred P $0 $1) true (compose (new (pred Q $0 $1) true (compose (new (pred R1 $0) true)) (compose (new (pred R2 $1) true)))))
-parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])), [RVecBracket, RParen]))
-parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])]))])
+parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])), [RVecBracket, RParen]))
+parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])]))])
 syntax_elems_mock = [String("compose"), Vec([AppliedId(id0, map-[])])]
 from_syntax::elems = [String("compose"), Vec([AppliedId(id0, map-[])])]
 children: [Vec([AppliedId(id0, map-[])])]
@@ -1816,9 +1709,9 @@ tmp = Some([id0, map-[]])
 fields: [id0, map-[]]
 from_syntax::ret = Some(Compose([id0, map-[]]))
 node = Compose([id0, map-[]])
-before syntax_elems = [String("compose"), Vec([Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])]))])]
-transformed syntax_elems = [ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])]
-parse_pattern_nosubst ret2 = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])])
+before syntax_elems = [String("compose"), Vec([Pattern(ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])]))])]
+transformed syntax_elems = [ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])]
+parse_pattern_nosubst ret2 = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])])
 parse_pattern pat_struct = ENode(
     Compose(
         [
@@ -1836,7 +1729,7 @@ parse_pattern pat_struct = ENode(
             ),
             [
                 ENode(
-                    Pred(
+                    PredSyntax(
                         id0, map-[],
                         [
                             $0,
@@ -1874,7 +1767,7 @@ parse_pattern pat_struct = ENode(
                             ),
                             [
                                 ENode(
-                                    Pred(
+                                    PredSyntax(
                                         id0, map-[],
                                         [
                                             $0,
@@ -1909,7 +1802,7 @@ parse_pattern pat_struct = ENode(
                                             ),
                                             [
                                                 ENode(
-                                                    Pred(
+                                                    PredSyntax(
                                                         id0, map-[],
                                                         [
                                                             $0,
@@ -1947,7 +1840,7 @@ parse_pattern pat_struct = ENode(
                                             ),
                                             [
                                                 ENode(
-                                                    Pred(
+                                                    PredSyntax(
                                                         id0, map-[],
                                                         [
                                                             $1,
@@ -1978,27 +1871,27 @@ parse_pattern pat_struct = ENode(
         ),
     ],
 ), pat_display = (compose (new (pred P $0 $1) true (compose (new (pred Q $0 $1) true (compose (new (pred R1 $0) true)) (compose (new (pred R2 $1) true))))))
-pattern_to_re input pat = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])])
-pattern_to_re input pat = ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])
-pattern_to_re input pat = ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])])
+pattern_to_re input pat = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])])
+pattern_to_re input pat = ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])
+pattern_to_re input pat = ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])])
 pattern_to_re input pat = ENode(PredName("P"), [])
 pattern_to_re input pat = ENode(True, [])
-pattern_to_re input pat = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])
-pattern_to_re input pat = ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])
-pattern_to_re input pat = ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])])
+pattern_to_re input pat = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])
+pattern_to_re input pat = ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])
+pattern_to_re input pat = ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])])
 pattern_to_re input pat = ENode(PredName("Q"), [])
 pattern_to_re input pat = ENode(True, [])
-pattern_to_re input pat = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])])
-pattern_to_re input pat = ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])
-pattern_to_re input pat = ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])])
+pattern_to_re input pat = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])])
+pattern_to_re input pat = ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])
+pattern_to_re input pat = ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])])
 pattern_to_re input pat = ENode(PredName("R1"), [])
 pattern_to_re input pat = ENode(True, [])
-pattern_to_re input pat = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])
-pattern_to_re input pat = ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])
-pattern_to_re input pat = ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])])
+pattern_to_re input pat = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])
+pattern_to_re input pat = ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])
+pattern_to_re input pat = ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])])
 pattern_to_re input pat = ENode(PredName("R2"), [])
 pattern_to_re input pat = ENode(True, [])
-RecExpr::parse: ret = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(Pred(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(Pred(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])])
+RecExpr::parse: ret = ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("P"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], [id0, map-[], id0, map-[]]), [ENode(PredSyntax(id0, map-[], [$0, $1]), [ENode(PredName("Q"), [])]), ENode(True, []), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$0]), [ENode(PredName("R1"), [])]), ENode(True, [])])]), ENode(Compose([id0, map-[]]), [ENode(New(id0, map-[], id0, map-[], []), [ENode(PredSyntax(id0, map-[], [$1]), [ENode(PredName("R2"), [])]), ENode(True, [])])])])])])])
 
 
 id0():
@@ -2006,8 +1899,8 @@ id0():
  - PredName("P")
 
 id1($f0, $f1):
->> Pred(id0, map-[], [$f0, $f1])
- - Pred(id0, map-[], [$f0, $f1])
+>> PredSyntax(id0, map-[], [$f0, $f1])
+ - PredSyntax(id0, map-[], [$f0, $f1])
 
 id2():
 >> True
@@ -2018,16 +1911,16 @@ id3():
  - PredName("Q")
 
 id4($f2, $f3):
->> Pred(id3, map-[], [$f2, $f3])
- - Pred(id3, map-[], [$f2, $f3])
+>> PredSyntax(id3, map-[], [$f2, $f3])
+ - PredSyntax(id3, map-[], [$f2, $f3])
 
 id5():
 >> PredName("R1")
  - PredName("R1")
 
 id6($f4):
->> Pred(id5, map-[], [$f4])
- - Pred(id5, map-[], [$f4])
+>> PredSyntax(id5, map-[], [$f4])
+ - PredSyntax(id5, map-[], [$f4])
 
 id7($f5):
 >> New(id6, map-[$f4 -> $f5], id2, map-[], [])
@@ -2042,8 +1935,8 @@ id9():
  - PredName("R2")
 
 id10($f7):
->> Pred(id9, map-[], [$f7])
- - Pred(id9, map-[], [$f7])
+>> PredSyntax(id9, map-[], [$f7])
+ - PredSyntax(id9, map-[], [$f7])
 
 id11($f8):
 >> New(id10, map-[$f7 -> $f8], id2, map-[], [])
@@ -2071,5 +1964,5 @@ id16($f16, $f17):
 
 test chc::tst1 ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.01s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.02s
 
