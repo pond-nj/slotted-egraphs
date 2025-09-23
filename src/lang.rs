@@ -1,5 +1,7 @@
 use crate::*;
 
+use log::debug;
+
 #[derive(Debug, Clone)]
 pub enum SyntaxElem {
     String(String), // used for identitifers and payloads
@@ -145,7 +147,7 @@ macro_rules! bare_language_child {
 
             fn to_syntax(&self) -> Vec<SyntaxElem> { vec![SyntaxElem::String(self.to_string())] }
             fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
-                println!("L(Bare)::from_syntax with elems = {:?}", elems);
+                debug!("L(Bare)::from_syntax with elems = {:?}", elems);
                 match elems {
                     [SyntaxElem::String(x)] => x.parse().ok(),
                     _ => {
@@ -269,10 +271,10 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
     }
 
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
-        println!("vec<L>::from_syntax input elems = {:?}", elems);
+        debug!("vec<L>::from_syntax input elems = {:?}", elems);
         let mut out = Vec::new();
         if elems.is_empty() {
-            println!("vec<L>::from_syntax return None1");
+            debug!("vec<L>::from_syntax return None1");
             return None;
         }
 
@@ -282,7 +284,7 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
                 if let Some(y) = L::from_syntax(&arr) {
                     out.push(y);
                 } else {
-                    println!("vec<L>::from_syntax return None2");
+                    debug!("vec<L>::from_syntax return None2");
                     return None;
                 }
             }

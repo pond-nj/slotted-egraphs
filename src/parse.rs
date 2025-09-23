@@ -1,4 +1,5 @@
 use crate::*;
+use log::debug;
 
 #[derive(Debug, Clone)]
 pub enum ParseError {
@@ -93,14 +94,14 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
         }
     }
 
-    println!("tokenize: ret = {:?}", tokens);
+    debug!("tokenize: ret = {:?}", tokens);
     Ok(tokens)
 }
 
 // parse:
 impl<L: Language> Pattern<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
-        println!("\ns = {:?}", s);
+        debug!("\ns = {:?}", s);
         let tok = tokenize(s)?;
         let (re, rest) = parse_pattern(&tok)?;
 
@@ -116,13 +117,13 @@ impl<L: Language> RecExpr<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
         let pat = Pattern::parse(s)?;
         let ret = pattern_to_re(&pat);
-        println!("RecExpr::parse: ret = {:?}", ret);
+        debug!("RecExpr::parse: ret = {:?}", ret);
         Ok(ret)
     }
 }
 
 fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), ParseError> {
-    println!("parse_pattern input tok = {:?}", tok);
+    debug!("parse_pattern input tok = {:?}", tok);
     let (mut pat, mut tok) = parse_pattern_nosubst(tok)?;
     // Case [:=]?
     while let Some(Token::LBracket) = tok.get(0) {
@@ -146,7 +147,7 @@ fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), P
         pat = Pattern::Subst(Box::new(pat), Box::new(l), Box::new(r));
     }
     let ret = (pat.clone(), tok);
-    println!(
+    debug!(
         "parse_pattern pat_struct = {:#?}, pat_display = {}",
         ret.0, pat
     );
@@ -182,10 +183,10 @@ fn nested_syntax_elem_to_pattern<L: Language>(ne: NestedSyntaxElem<L>) -> Vec<Pa
 fn parse_pattern_nosubst<L: Language>(
     mut tok: &[Token],
 ) -> Result<(Pattern<L>, &[Token]), ParseError> {
-    println!("parse_pattern_nosubst input tok = {:?}", tok);
+    debug!("parse_pattern_nosubst input tok = {:?}", tok);
     if let Token::PVar(p) = &tok[0] {
         let pat = Pattern::PVar(p.to_string());
-        println!("parse_pattern_nosubst ret1 = {:?}", pat);
+        debug!("parse_pattern_nosubst ret1 = {:?}", pat);
         return Ok((pat, &tok[1..]));
     }
 
@@ -193,7 +194,7 @@ fn parse_pattern_nosubst<L: Language>(
         tok = &tok[1..];
 
         let Token::Ident(op) = &tok[0] else {
-            println!(
+            debug!(
                 "Error: parse_pattern_nosubst: expected Ident, got {:?}",
                 tok[0]
             );
@@ -218,26 +219,26 @@ fn parse_pattern_nosubst<L: Language>(
             .iter()
             .map(nested_syntax_elem_to_syntax_elem)
             .collect();
-        println!("syntax_elems_mock = {:?}", syntax_elems_mock);
-        println!("node1 = {:?}", L::from_syntax(&syntax_elems_mock));
+        debug!("syntax_elems_mock = {:?}", syntax_elems_mock);
+        debug!("node1 = {:?}", L::from_syntax(&syntax_elems_mock));
         let node = L::from_syntax(&syntax_elems_mock)
             .ok_or_else(|| ParseError::FromSyntaxFailed(syntax_elems_mock))?;
-        println!("node = {:?}", node);
+        debug!("node = {:?}", node);
 
         // (Pond) use to create Enode's children
-        println!("before syntax_elems = {:?}", syntax_elems);
+        debug!("before syntax_elems = {:?}", syntax_elems);
         let syntax_elems = syntax_elems
             .into_iter()
             .flat_map(nested_syntax_elem_to_pattern)
             .collect();
-        println!("transformed syntax_elems = {:?}", syntax_elems);
+        debug!("transformed syntax_elems = {:?}", syntax_elems);
         let re = Pattern::ENode(node, syntax_elems);
-        println!("parse_pattern_nosubst ret2 = {:?}", re);
+        debug!("parse_pattern_nosubst ret2 = {:?}", re);
         Ok((re, tok))
     } else {
-        println!("second case");
+        debug!("second case");
         let Token::Ident(op) = &tok[0] else {
-            println!(
+            debug!(
                 "Error: parse_pattern_nosubst: expected Ident2, got {:?}",
                 tok[0]
             );
@@ -246,11 +247,11 @@ fn parse_pattern_nosubst<L: Language>(
         tok = &tok[1..];
 
         let elems = [SyntaxElem::String(op.to_string())];
-        println!("node2 = {:?}", L::from_syntax(&elems));
+        debug!("node2 = {:?}", L::from_syntax(&elems));
         let node =
             L::from_syntax(&elems).ok_or_else(|| ParseError::FromSyntaxFailed(to_vec(&elems)))?;
         let pat = Pattern::ENode(node, Vec::new());
-        println!("parse_pattern_nosubst ret3 = {:?}", pat);
+        debug!("parse_pattern_nosubst ret3 = {:?}", pat);
         Ok((pat, tok))
     }
 }
@@ -267,7 +268,7 @@ enum NestedSyntaxElem<L: Language> {
 fn parse_nested_syntax_elem<L: Language>(
     tok: &[Token],
 ) -> Result<(NestedSyntaxElem<L>, &[Token]), ParseError> {
-    println!("parse_nested_syntax_elem input tok = {:?}", tok);
+    debug!("parse_nested_syntax_elem input tok = {:?}", tok);
     if let Token::LVecBracket = &tok[0] {
         // TODO(Pond)
         let mut ret: Vec<NestedSyntaxElem<L>> = Vec::new();
@@ -281,7 +282,7 @@ fn parse_nested_syntax_elem<L: Language>(
 
             ret.push(x);
         }
-        println!(
+        debug!(
             "parse_nested_syntax_elem ret1 = {:?}",
             NestedSyntaxElem::Vec(ret.clone())
         );
@@ -289,19 +290,19 @@ fn parse_nested_syntax_elem<L: Language>(
     }
 
     if let Token::Slot(slot) = &tok[0] {
-        println!(
+        debug!(
             "parse_nested_syntax_elem ret2 = {:?}",
             NestedSyntaxElem::<L>::Slot(*slot)
         );
         return Ok((NestedSyntaxElem::Slot(*slot), &tok[1..]));
     }
 
-    println!("Last case in parse_nested_syntax_elem, tok = {:?}", tok);
+    debug!("Last case in parse_nested_syntax_elem, tok = {:?}", tok);
 
     let recur_parse_result = parse_pattern::<L>(tok);
     let ret: Result<(NestedSyntaxElem<L>, &[Token]), ParseError> =
         recur_parse_result.map(|(x, rest)| (NestedSyntaxElem::Pattern(x), rest));
-    println!("parse_nested_syntax_elem ret3 = {:?}", ret.clone());
+    debug!("parse_nested_syntax_elem ret3 = {:?}", ret.clone());
     ret
 }
 

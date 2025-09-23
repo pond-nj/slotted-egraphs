@@ -1,52 +1,56 @@
 #![allow(unused)]
 #![allow(non_snake_case)]
 
+use env_logger::Builder;
+use log::debug;
+use std::env;
+
 use crate::*;
 use slotted_egraphs::*;
 
 define_language! {
     pub enum CHC {
         Var(Slot) = "var",
-        PredSyntax(AppliedId, Vec<Slot>) = "pred", //(pred P <$1>)
-        New(AppliedId, AppliedId, Vec<AppliedId>) = "new", // (new PredSyntax Constraint <Body>)
-        Compose(Vec<AppliedId>) = "compose",
-        True() = "true",
-        PredName(String),
+        And(Vec<AppliedId>) = "and",
     }
+    // p <- q, r
 }
 
-fn unfold() -> Rewrite<CHC> {}
+pub fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
+    vec![and_assoc(), and_comm(), and_3()]
+}
 
-fn get_all_rewrites(rule: &str) -> Vec<Rewrite<CHC>> {
-    vec![unfold()]
+fn and_assoc() -> Rewrite<CHC> {
+    let pat = "(and <?1 (and <?2 ?3>)>)";
+    let outpat = "(and <(and <?1 ?2>) ?3>)";
+    Rewrite::new("and-assoc", pat, outpat)
+}
+
+fn and_comm() -> Rewrite<CHC> {
+    let pat = "(and <?a ?b>)";
+    let outpat = "(and <?b ?a>)";
+    Rewrite::new("and-comm", pat, outpat)
+}
+
+fn and_3() -> Rewrite<CHC> {
+    let pat = "(and <?a (and <?b ?c>)>)";
+    let outpat = "(and <?a ?b ?c>)";
+    Rewrite::new("and-3", pat, outpat)
 }
 
 #[test]
-fn tst1() {
+fn and() {
+    env_logger::builder()
+        .format_timestamp(None)
+        .format_level(false)
+        .format_target(true)
+        .init();
+
     let x = "$0";
     let y = "$1";
+    let z = "$2";
 
-    let r1_syntax = &format!("(pred R1 <{x}>)");
-    let r1_chc1 = &format!("(new {r1_syntax} (true) <>)");
-    let r1_compose = &format!("(compose <{r1_chc1}>)");
-
-    let r2_syntax = &format!("(pred R2 <{y}>)");
-    let r2_chc1 = &format!("(new {r2_syntax} (true) <>)");
-    let r2_compose = &format!("(compose <{r2_chc1}>)");
-
-    let q_syntax = &format!("(pred Q <{x} {y}>)");
-    let q_chc1 = &format!("(new {q_syntax} (true) <{r1_compose} {r2_compose}>)");
-    let q_compose = &format!("(compose <{q_chc1}>)");
-
-    let p_syntax = &format!("(pred P <{x} {y}>)");
-    let p_chc1 = &format!("(new {p_syntax} (true) <{q_compose}>)");
-    let p_compose = &format!("(compose <{p_chc1}>)");
-
-    println!("p_compose = {p_compose}");
-
-    let eg = &mut EGraph::<CHC>::default();
-    id(&p_compose, eg);
-
-    eg.dump();
-    // assert_reaches(a, b, &get_all_rewrites()[..], 10);
+    let a = &format!("(and <(and <(var {x}) (var {y})>) (var {z})>)");
+    let b = &format!("(and <(var {x}) (var {y}) (var {z})>)");
+    assert_reaches(a, b, &get_all_rewrites()[..], 10);
 }

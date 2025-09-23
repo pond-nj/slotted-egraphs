@@ -2,6 +2,7 @@
 #![allow(non_snake_case)]
 
 use crate::*;
+use log::debug;
 use slotted_egraphs::*;
 
 define_language! {

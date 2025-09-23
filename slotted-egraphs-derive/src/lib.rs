@@ -132,18 +132,18 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
             }
 
             fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
-                println!("from_syntax::elems = {:?}", elems);
+                debug!("from_syntax::elems = {:?}", elems);
                 let SyntaxElem::String(op) = elems.get(0)? else { return None };
                 let ret = match &**op {
                     #(#from_syntax_arms1),*
                     _ => {
                         #(#from_syntax_arms2)*
 
-                        println!("L::from_syntax(&elems) = None");
+                        debug!("L::from_syntax(&elems) = None");
                         None
                     },
                 };
-                println!("from_syntax::ret = {:?}", ret);
+                debug!("from_syntax::ret = {:?}", ret);
                 ret
             }
 
@@ -314,7 +314,7 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
     let ret = Some(quote! {
         #e => {
             let mut children = &elems[1..];
-            println!("children: {:?}", children);
+            debug!("children: {:?}", children);
             let mut rest = children;
             #(
                 let mut tmp = (0..=children.len()).filter_map(|n| {
@@ -323,9 +323,9 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
 
                     <#types>::from_syntax(a)
                 }).next();
-                println!("tmp = {:?}", tmp);
+                debug!("tmp = {:?}", tmp);
                 let #fields = tmp?;
-                println!("fields: {:?}", #fields);
+                debug!("fields: {:?}", #fields);
                 children = rest;
                 // eprintln!("children2: {:?}", children);
             )*
