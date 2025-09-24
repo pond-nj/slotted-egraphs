@@ -13,6 +13,7 @@ pub enum SyntaxElem {
     Star,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LanguageChildrenType {
     Slot(Slot),
     AppliedId(AppliedId),
@@ -251,6 +252,7 @@ impl LanguageChildren for AppliedIdOrStar {
     }
 
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+        debug!("AppliedIdOrStar::from_syntax, elems: {:?}", elems);
         match elems {
             [SyntaxElem::AppliedId(x)] => Some(AppliedIdOrStar::AppliedId(x.clone())),
             [SyntaxElem::Star] => Some(AppliedIdOrStar::Star),
@@ -383,19 +385,26 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
             return None;
         }
 
-        if let [SyntaxElem::Vec(v)] = elems {
-            for x in v {
-                let arr = [x.clone()];
-                if let Some(y) = L::from_syntax(&arr) {
-                    out.push(y);
-                } else {
-                    debug!("vec<L>::from_syntax return None2");
-                    return None;
+        match elems {
+            [SyntaxElem::Vec(v)] => {
+                for x in v {
+                    let arr = [x.clone()];
+                    if let Some(y) = L::from_syntax(&arr) {
+                        out.push(y);
+                    } else {
+                        debug!("vec<L>::from_syntax return None2");
+                        return None;
+                    }
                 }
+
+                Some(out)
             }
+            _ => panic!(""),
         }
 
-        Some(out)
+        // (Pond): If you want to use * for vec, please use it like this: <*>
+
+        // Some(out)
     }
 
     fn get_type(&self) -> Vec<LanguageChildrenType> {
@@ -444,6 +453,27 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     fn weak_shape_inplace(&mut self) -> Bijection;
 
     fn get_children_type(&self) -> Vec<LanguageChildrenType>;
+
+    // TODO(Pond): How does this behave with (and <?a *> ?b)?
+    fn children_eq_with_star(&self, other: &Self) -> bool {
+        let c1 = self.get_children_type();
+        let c2 = other.get_children_type();
+        for i in 0..(c1.len()).min(c2.len()) {
+            if c1[i] == LanguageChildrenType::Star || c2[i] == LanguageChildrenType::Star {
+                return true;
+            }
+
+            if c1[i] != c2[i] {
+                return false;
+            }
+        }
+
+        if c1.len() != c2.len() {
+            return false;
+        }
+
+        return true;
+    }
 
     #[track_caller]
     #[doc(hidden)]

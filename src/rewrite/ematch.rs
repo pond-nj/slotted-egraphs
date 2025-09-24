@@ -100,6 +100,15 @@ fn ematch_node<L: Language, N: Analysis<L>>(
         let (clear_n2_sh, _) = clear_n2.weak_shape();
         println!("clear_n2_sh: {:?}", clear_n2_sh);
         // (Pond) they check numbers of slots here?
+        println!(
+            "ematch_impl children_type {:?} vs {:?}",
+            n_sh.get_children_type(),
+            clear_n2_sh.get_children_type()
+        );
+        println!(
+            "eq with star = {:?}",
+            n_sh.children_eq_with_star(&clear_n2_sh)
+        );
         if n_sh != clear_n2_sh {
             println!("ematch_impl continue at {n_sh:?} != {clear_n2_sh:?}");
             continue 'nodeloop;

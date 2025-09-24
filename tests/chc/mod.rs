@@ -7,6 +7,7 @@ use crate::*;
 use log::{debug, LevelFilter};
 use slotted_egraphs::*;
 
+// TODO(Pond): Star should only be allowed inside a vector(dynamic length)
 define_language! {
     pub enum And {
         Var(Slot) = "var",
@@ -40,8 +41,10 @@ pub fn get_all_and_rewrites() -> Vec<Rewrite<And>> {
 // }
 
 fn and_tmp() -> Rewrite<And> {
-    let pat = "(and <?a *>)";
-    let outpat = "(and ?a)";
+    // let pat = "(and <?a *>)";
+    // TODO(Pond): (and <?a *> ?b)
+    let pat = "(and <*>)";
+    let outpat = "(and <?a>)";
     Rewrite::new("and-tmp", pat, outpat)
 }
 
