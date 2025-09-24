@@ -82,9 +82,7 @@ impl<L: Language> std::fmt::Display for Pattern<L> {
             }
             Pattern::PVar(p) => write!(f, "?{p}"),
             Pattern::Subst(b, x, t) => write!(f, "{b}[{x} := {t}]"),
-            Pattern::Star => {
-                todo!()
-            }
+            Pattern::Star => write!(f, "*"),
         }
     }
 }

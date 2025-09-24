@@ -11,7 +11,7 @@ use slotted_egraphs::*;
 define_language! {
     pub enum And {
         Var(Slot) = "var",
-        And(Vec<AppliedIdOrStar>) = "and",
+        And(Vec<AppliedIdOrStar>, AppliedId) = "and",
         // And(AppliedId, AppliedId) = "and",
     }
     // p <- q, r
@@ -43,8 +43,8 @@ pub fn get_all_and_rewrites() -> Vec<Rewrite<And>> {
 fn and_tmp() -> Rewrite<And> {
     // let pat = "(and <?a *>)";
     // TODO(Pond): (and <?a *> ?b)
-    let pat = "(and <*>)";
-    let outpat = "(and <?a>)";
+    let pat = "(and <*> ?b)";
+    let outpat = "(and <?a> ?b)";
     Rewrite::new("and-tmp", pat, outpat)
 }
 
@@ -60,9 +60,10 @@ fn and() {
     let x = "$0";
     let y = "$1";
     let z = "$2";
+    let tmp = "$3";
 
-    let a = &format!("(and <(and <(var {x}) (var {y})>) (var {z})>)");
-    let b = &format!("(and <(var {x}) (var {y}) (var {z})>)");
+    let a = &format!("(and <(and <(var {x}) (var {y})> (var {tmp})) (var {z})> (var {tmp}))");
+    let b = &format!("(and <(var {x}) (var {y}) (var {z})> (var {tmp}))");
     assert_reaches(a, b, &get_all_and_rewrites()[..], 10);
 }
 
