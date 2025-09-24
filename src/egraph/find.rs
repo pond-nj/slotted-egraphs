@@ -123,6 +123,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.unionfind_get(i).id
     }
 
+    // (Pond) only get canonical id
     pub fn ids(&self) -> Vec<Id> {
         let map = self.unionfind.borrow();
         (0..map.len())

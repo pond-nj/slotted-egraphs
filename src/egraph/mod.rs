@@ -19,7 +19,10 @@ mod analysis;
 pub use analysis::*;
 use vec_collections::AbstractVecSet;
 
-use std::cell::RefCell;
+use derive_more::Debug;
+use std::{cell::RefCell, fmt};
+
+use log::debug;
 
 // invariants:
 // 1. If two ENodes (that are in the EGraph) have equal .shape(), they have to be in the same eclass.
@@ -73,10 +76,11 @@ pub(crate) enum PendingType {
 /// Each E-Class can be understood "semantically" or "syntactically":
 /// - semantically means that it respects the equations already in the e-graph, and hence doesn't differentiate between equal things.
 /// - syntactically means that it only talks about the single representative term associated to each E-Class, recursively obtainable using syn_enode.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct EClass<L: Language, N: Analysis<L>> {
     // The set of equivalent ENodes that make up this eclass.
     // for (sh, bij) in nodes; sh.apply_slotmap(bij) represents the actual ENode.
+    // (Pond) sh is probably the shape of the enode.
     nodes: HashMap<L, ProvenSourceNode>,
 
     // All other slots are considered "redundant" (or they have to be qualified by a ENode::Lam).
@@ -92,6 +96,7 @@ pub(crate) struct EClass<L: Language, N: Analysis<L>> {
     // TODO remove this if explanations are disabled.
     syn_enode: L,
 
+    #[debug(skip)]
     analysis_data: N::Data,
 }
 
@@ -155,14 +160,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // Generates fresh slots for redundant slots.
     pub fn enodes_applied(&self, i: &AppliedId) -> Vec<L> {
+        debug!("enodes_applied i = {:?}", i);
+        debug!("classes = {:#?}", self.classes[&i.id]);
         let class = &self.classes[&i.id];
         let class_slots = &class.slots;
 
         let mut result = Vec::with_capacity(class.nodes.len());
 
         for (x, psn) in &class.nodes {
+            // (Pond) They said this is the actual enode. why?
             let mut x = x.apply_slotmap(&psn.elem);
 
+            // (Pond) Create a mapping of unfound slots (of this enode) in eclass slots to fresh slots.
             let mut map: SmallHashMap<Slot, Slot> = SmallHashMap::default();
             for slot in x.all_slot_occurrences_mut() {
                 if !class_slots.contains(&slot) {
@@ -191,6 +200,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             result.push(x);
         }
 
+        println!("enodes_applied result = {:?}", result);
         result
     }
 

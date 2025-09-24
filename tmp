@@ -1,36 +1,37 @@
+   Compiling slotted-egraphs v0.0.36 (/Users/nutdranaijaruthikorn/Downloads/2025/PhD/Project/slotted-egraphs)
 warning: unreachable expression
-  --> src/lang.rs:79:17
+  --> src/lang.rs:82:17
    |
-75 | /                 panic!(
-76 | |                     "(Pond) slotted_egraphs::lang::AppliedId::from_syntax: expected a single applied id, got {:?}",
-77 | |                     elems
-78 | |                 );
+78 | /                 panic!(
+79 | |                     "(Pond) slotted_egraphs::lang::AppliedId::from_syntax: expected a single applied id, got {:?}",
+80 | |                     elems
+81 | |                 );
    | |_________________- any code following this expression is unreachable
-79 |                   None
+82 |                   None
    |                   ^^^^ unreachable expression
    |
    = note: `#[warn(unreachable_code)]` on by default
 
 warning: unreachable expression
-   --> src/lang.rs:124:17
+   --> src/lang.rs:127:17
     |
-120 | /                 panic!(
-121 | |                     "(Pond) slotted_egraphs::slot::Slot::from_syntax: expected a single slot, got {:?}",
-122 | |                     elems
-123 | |                 );
+123 | /                 panic!(
+124 | |                     "(Pond) slotted_egraphs::slot::Slot::from_syntax: expected a single slot, got {:?}",
+125 | |                     elems
+126 | |                 );
     | |_________________- any code following this expression is unreachable
-124 |                   None
+127 |                   None
     |                   ^^^^ unreachable expression
 
 warning: unreachable expression
-   --> src/lang.rs:158:25
+   --> src/lang.rs:161:25
     |
-158 |                           None
+161 |                           None
     |                           ^^^^ unreachable expression
 ...
-169 | / bare_language_child!(
-170 | |     u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol, String
-171 | | );
+172 | / bare_language_child!(
+173 | |     u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol, String
+174 | | );
     | | -
     | | |
     | |_any code following this expression is unreachable
@@ -38,15 +39,23 @@ warning: unreachable expression
     |
     = note: this warning originates in the macro `bare_language_child` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-warning: unreachable statement
-   --> src/lang.rs:224:13
+warning: unreachable expression
+   --> src/lang.rs:241:17
     |
-220 | /             panic!(
-221 | |                 "(Pond) slotted_egraphs::lang::Bind::from_syntax: expected a single slot, got {:?}",
-222 | |                 elems
-223 | |             );
+240 |                 panic!("(Pond) slotted_egraphs::lang::AppliedIdOrStar::from_syntax");
+    |                 -------------------------------------------------------------------- any code following this expression is unreachable
+241 |                 None
+    |                 ^^^^ unreachable expression
+
+warning: unreachable statement
+   --> src/lang.rs:299:13
+    |
+295 | /             panic!(
+296 | |                 "(Pond) slotted_egraphs::lang::Bind::from_syntax: expected a single slot, got {:?}",
+297 | |                 elems
+298 | |             );
     | |_____________- any code following this expression is unreachable
-224 |               return None;
+299 |               return None;
     |               ^^^^^^^^^^^^ unreachable statement
 
 warning: unused variable: `v`
@@ -57,7 +66,8 @@ warning: unused variable: `v`
    |
    = note: `#[warn(unused_variables)]` on by default
 
-warning: `slotted-egraphs` (lib) generated 20 warnings (15 duplicates)
+warning: `slotted-egraphs` (lib) generated 21 warnings (15 duplicates)
+str_names = [Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "lam" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "app" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "let" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "add" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "mul" } }), None, None]
 from_syntax_arms1 = "lam" =>
 {
     let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
@@ -72,6 +82,7 @@ from_syntax_arms1 = "lam" =>
 }, "app" =>
 {
     let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
+warning: `slotted-egraphs` (lib test) generated 21 warnings (21 duplicates)
     let mut rest = children; let mut tmp =
     (0 ..=
     children.len()).filter_map(| n |
@@ -153,6 +164,18 @@ from_syntax_arms1 = "lam" =>
     }).next(); debug! ("tmp = {:?}", tmp); let a1 = tmp ? ; debug!
     ("fields: {:?}", a1); children = rest; Some(Arith :: Mul(a0, a1))
 }
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "lam" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "app" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "let" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "add" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "mul" } }), return None
+v: Variant { attrs: [], ident: Ident { ident: "Number", span: #0 bytes(3934..3940) }, fields: Fields::Unnamed { paren_token: Paren, unnamed: [Field { attrs: [], vis: Visibility::Inherited, mutability: FieldMutability::None, ident: None, colon_token: None, ty: Type::Path { qself: None, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "u32", span: #0 bytes(3941..3944) }, arguments: PathArguments::None }] } } }] }, discriminant: None }
+v: Variant { attrs: [], ident: Ident { ident: "Symbol", span: #0 bytes(3955..3961) }, fields: Fields::Unnamed { paren_token: Paren, unnamed: [Field { attrs: [], vis: Visibility::Inherited, mutability: FieldMutability::None, ident: None, colon_token: None, ty: Type::Path { qself: None, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "Symbol", span: #0 bytes(3962..3968) }, arguments: PathArguments::None }] } } }] }, discriminant: None }
+from_syntax_arms2 = if let Some(a) = < u32 > :: from_syntax(elems)
+{ return Some(Arith :: Number(a)); }, if let Some(a) = < Symbol > ::
+from_syntax(elems) { return Some(Arith :: Symbol(a)); }
+str_names = [Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "lam" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "app" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "let" } })]
 from_syntax_arms1 = "lam" =>
 {
     let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
@@ -212,6 +235,12 @@ from_syntax_arms1 = "lam" =>
     }).next(); debug! ("tmp = {:?}", tmp); let a1 = tmp ? ; debug!
     ("fields: {:?}", a1); children = rest; Some(Lambda :: Let(a0, a1))
 }
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "lam" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "app" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "let" } }), return None
+from_syntax_arms2 = 
+str_names = [Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "lam" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "app" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "let" } }), None, None]
 from_syntax_arms1 = "lam" =>
 {
     let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
@@ -271,6 +300,16 @@ from_syntax_arms1 = "lam" =>
     }).next(); debug! ("tmp = {:?}", tmp); let a1 = tmp ? ; debug!
     ("fields: {:?}", a1); children = rest; Some(Rise :: Let(a0, a1))
 }
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "lam" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "app" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "let" } }), return None
+v: Variant { attrs: [], ident: Ident { ident: "Number", span: #0 bytes(42642..42648) }, fields: Fields::Unnamed { paren_token: Paren, unnamed: [Field { attrs: [], vis: Visibility::Inherited, mutability: FieldMutability::None, ident: None, colon_token: None, ty: Type::Path { qself: None, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "u32", span: #0 bytes(42649..42652) }, arguments: PathArguments::None }] } } }] }, discriminant: None }
+v: Variant { attrs: [], ident: Ident { ident: "Symbol", span: #0 bytes(42663..42669) }, fields: Fields::Unnamed { paren_token: Paren, unnamed: [Field { attrs: [], vis: Visibility::Inherited, mutability: FieldMutability::None, ident: None, colon_token: None, ty: Type::Path { qself: None, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "Symbol", span: #0 bytes(42670..42676) }, arguments: PathArguments::None }] } } }] }, discriminant: None }
+from_syntax_arms2 = if let Some(a) = < u32 > :: from_syntax(elems)
+{ return Some(Rise :: Number(a)); }, if let Some(a) = < Symbol > ::
+from_syntax(elems) { return Some(Rise :: Symbol(a)); }
+str_names = [Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "f" } })]
 from_syntax_arms1 = "f" =>
 {
     let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
@@ -290,6 +329,9 @@ from_syntax_arms1 = "f" =>
     }).next(); debug! ("tmp = {:?}", tmp); let a1 = tmp ? ; debug!
     ("fields: {:?}", a1); children = rest; Some(Var :: F(a0, a1))
 }
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "f" } }), return None
+from_syntax_arms2 = 
+str_names = [Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "f" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "g" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "h" } })]
 from_syntax_arms1 = "f" =>
 {
     let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
@@ -345,6 +387,11 @@ from_syntax_arms1 = "f" =>
     }).next(); debug! ("tmp = {:?}", tmp); let a1 = tmp ? ; debug!
     ("fields: {:?}", a1); children = rest; Some(Fgh :: H(a0, a1))
 }
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "f" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "g" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "h" } }), return None
+from_syntax_arms2 = 
+str_names = [Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "lambda" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "sing" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "sum" } })]
 from_syntax_arms1 = "lambda" =>
 {
     let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
@@ -404,6 +451,12 @@ from_syntax_arms1 = "lambda" =>
     }).next(); debug! ("tmp = {:?}", tmp); let a1 = tmp ? ; debug!
     ("fields: {:?}", a1); children = rest; Some(Sdql :: Sum(a0, a1))
 }
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "lambda" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "sing" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "sum" } }), return None
+from_syntax_arms2 = 
+str_names = [Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "lam" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "app" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "let" } }), None, None]
 from_syntax_arms1 = "lam" =>
 {
     let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
@@ -470,6 +523,43 @@ from_syntax_arms1 = "lam" =>
     }).next(); debug! ("tmp = {:?}", tmp); let a1 = tmp ? ; debug!
     ("fields: {:?}", a1); children = rest; Some(ArrayLang :: Let(a0, a1))
 }
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "lam" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "app" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "let" } }), return None
+v: Variant { attrs: [], ident: Ident { ident: "Number", span: #0 bytes(62930..62936) }, fields: Fields::Unnamed { paren_token: Paren, unnamed: [Field { attrs: [], vis: Visibility::Inherited, mutability: FieldMutability::None, ident: None, colon_token: None, ty: Type::Path { qself: None, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "u32", span: #0 bytes(62937..62940) }, arguments: PathArguments::None }] } } }] }, discriminant: None }
+v: Variant { attrs: [], ident: Ident { ident: "Symbol", span: #0 bytes(62951..62957) }, fields: Fields::Unnamed { paren_token: Paren, unnamed: [Field { attrs: [], vis: Visibility::Inherited, mutability: FieldMutability::None, ident: None, colon_token: None, ty: Type::Path { qself: None, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "Symbol", span: #0 bytes(62958..62964) }, arguments: PathArguments::None }] } } }] }, discriminant: None }
+from_syntax_arms2 = if let Some(a) = < u32 > :: from_syntax(elems)
+{ return Some(ArrayLang :: Number(a)); }, if let Some(a) = < Symbol > ::
+from_syntax(elems) { return Some(ArrayLang :: Symbol(a)); }
+str_names = [Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "and" } })]
+from_syntax_arms1 = "var" =>
+{
+    let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
+    let mut rest = children; let mut tmp =
+    (0 ..=
+    children.len()).filter_map(| n |
+    {
+        let a = & children [.. n]; rest = & children [n ..]; < Slot > ::
+        from_syntax(a)
+    }).next(); debug! ("tmp = {:?}", tmp); let a0 = tmp ? ; debug!
+    ("fields: {:?}", a0); children = rest; Some(And :: Var(a0))
+}, "and" =>
+{
+    let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
+    let mut rest = children; let mut tmp =
+    (0 ..=
+    children.len()).filter_map(| n |
+    {
+        let a = & children [.. n]; rest = & children [n ..]; < Vec <
+        AppliedIdOrStar > > :: from_syntax(a)
+    }).next(); debug! ("tmp = {:?}", tmp); let a0 = tmp ? ; debug!
+    ("fields: {:?}", a0); children = rest; Some(And :: And(a0))
+}
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "and" } }), return None
+from_syntax_arms2 = 
+str_names = [Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "pred" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "new" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "compose" } }), Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "true" } }), None]
 from_syntax_arms1 = "var" =>
 {
     let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
@@ -481,7 +571,50 @@ from_syntax_arms1 = "var" =>
         from_syntax(a)
     }).next(); debug! ("tmp = {:?}", tmp); let a0 = tmp ? ; debug!
     ("fields: {:?}", a0); children = rest; Some(CHC :: Var(a0))
-}, "and" =>
+}, "pred" =>
+{
+    let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
+    let mut rest = children; let mut tmp =
+    (0 ..=
+    children.len()).filter_map(| n |
+    {
+        let a = & children [.. n]; rest = & children [n ..]; < AppliedId > ::
+        from_syntax(a)
+    }).next(); debug! ("tmp = {:?}", tmp); let a0 = tmp ? ; debug!
+    ("fields: {:?}", a0); children = rest; let mut tmp =
+    (0 ..=
+    children.len()).filter_map(| n |
+    {
+        let a = & children [.. n]; rest = & children [n ..]; < Vec < Slot > >
+        :: from_syntax(a)
+    }).next(); debug! ("tmp = {:?}", tmp); let a1 = tmp ? ; debug!
+    ("fields: {:?}", a1); children = rest; Some(CHC :: PredSyntax(a0, a1))
+}, "new" =>
+{
+    let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
+    let mut rest = children; let mut tmp =
+    (0 ..=
+    children.len()).filter_map(| n |
+    {
+        let a = & children [.. n]; rest = & children [n ..]; < AppliedId > ::
+        from_syntax(a)
+    }).next(); debug! ("tmp = {:?}", tmp); let a0 = tmp ? ; debug!
+    ("fields: {:?}", a0); children = rest; let mut tmp =
+    (0 ..=
+    children.len()).filter_map(| n |
+    {
+        let a = & children [.. n]; rest = & children [n ..]; < AppliedId > ::
+        from_syntax(a)
+    }).next(); debug! ("tmp = {:?}", tmp); let a1 = tmp ? ; debug!
+    ("fields: {:?}", a1); children = rest; let mut tmp =
+    (0 ..=
+    children.len()).filter_map(| n |
+    {
+        let a = & children [.. n]; rest = & children [n ..]; < Vec < AppliedId
+        > > :: from_syntax(a)
+    }).next(); debug! ("tmp = {:?}", tmp); let a2 = tmp ? ; debug!
+    ("fields: {:?}", a2); children = rest; Some(CHC :: New(a0, a1, a2))
+}, "compose" =>
 {
     let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
     let mut rest = children; let mut tmp =
@@ -491,734 +624,131 @@ from_syntax_arms1 = "var" =>
         let a = & children [.. n]; rest = & children [n ..]; < Vec < AppliedId
         > > :: from_syntax(a)
     }).next(); debug! ("tmp = {:?}", tmp); let a0 = tmp ? ; debug!
-    ("fields: {:?}", a0); children = rest; Some(CHC :: And(a0))
+    ("fields: {:?}", a0); children = rest; Some(CHC :: Compose(a0))
+}, "true" =>
+{
+    let mut children = & elems [1 ..]; debug! ("children: {:?}", children);
+    let mut rest = children; Some(CHC :: True())
 }
-warning: ambiguous glob re-exports
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^ the name `get_all_rewrites` in the value namespace is first re-exported here
-...
-26 | pub use chc::*;
-   |         ------ but the name `get_all_rewrites` in the value namespace is also re-exported here
-   |
-   = note: `#[warn(ambiguous_glob_reexports)]` on by default
-
-warning: `get_all_rewrites` is ambiguous
-  --> tests/arith/tst.rs:14:27
-   |
-14 |     assert_reaches(a, b, &get_all_rewrites()[..], 3);
-   |                           ^^^^^^^^^^^^^^^^ ambiguous name
-   |
-   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
-   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
-   = note: ambiguous because of multiple glob imports of a name in the same module
-note: `get_all_rewrites` could refer to the function imported here
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-note: `get_all_rewrites` could also refer to the function imported here
-  --> tests/entry.rs:26:9
-   |
-26 | pub use chc::*;
-   |         ^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-   = note: `#[warn(ambiguous_glob_imports)]` on by default
-
-warning: `get_all_rewrites` is ambiguous
-  --> tests/arith/tst.rs:28:27
-   |
-28 |     assert_reaches(a, b, &get_all_rewrites()[..], 2);
-   |                           ^^^^^^^^^^^^^^^^ ambiguous name
-   |
-   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
-   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
-   = note: ambiguous because of multiple glob imports of a name in the same module
-note: `get_all_rewrites` could refer to the function imported here
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-note: `get_all_rewrites` could also refer to the function imported here
-  --> tests/entry.rs:26:9
-   |
-26 | pub use chc::*;
-   |         ^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-
-warning: `get_all_rewrites` is ambiguous
-  --> tests/arith/tst.rs:42:27
-   |
-42 |     assert_reaches(a, b, &get_all_rewrites()[..], 3);
-   |                           ^^^^^^^^^^^^^^^^ ambiguous name
-   |
-   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
-   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
-   = note: ambiguous because of multiple glob imports of a name in the same module
-note: `get_all_rewrites` could refer to the function imported here
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-note: `get_all_rewrites` could also refer to the function imported here
-  --> tests/entry.rs:26:9
-   |
-26 | pub use chc::*;
-   |         ^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-
-warning: `get_all_rewrites` is ambiguous
-  --> tests/arith/tst.rs:55:27
-   |
-55 |     assert_reaches(a, b, &get_all_rewrites()[..], 10);
-   |                           ^^^^^^^^^^^^^^^^ ambiguous name
-   |
-   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
-   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
-   = note: ambiguous because of multiple glob imports of a name in the same module
-note: `get_all_rewrites` could refer to the function imported here
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-note: `get_all_rewrites` could also refer to the function imported here
-  --> tests/entry.rs:26:9
-   |
-26 | pub use chc::*;
-   |         ^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-
-warning: `get_all_rewrites` is ambiguous
-  --> tests/arith/tst.rs:79:27
-   |
-79 |     assert_reaches(a, b, &get_all_rewrites()[..], 10);
-   |                           ^^^^^^^^^^^^^^^^ ambiguous name
-   |
-   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
-   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
-   = note: ambiguous because of multiple glob imports of a name in the same module
-note: `get_all_rewrites` could refer to the function imported here
-  --> tests/entry.rs:5:9
-   |
-5  | pub use arith::*;
-   |         ^^^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-note: `get_all_rewrites` could also refer to the function imported here
-  --> tests/entry.rs:26:9
-   |
-26 | pub use chc::*;
-   |         ^^^^^^
-   = help: consider adding an explicit import of `get_all_rewrites` to disambiguate
-
-warning: `slotted-egraphs` (test "entry") generated 6 warnings
-warning: `slotted-egraphs` (lib test) generated 20 warnings (20 duplicates)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.15s
-     Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-1fd5cb9b334baebe)
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "var" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "pred" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "new" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "compose" } }), return None
+produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "true" } }), return None
+v: Variant { attrs: [], ident: Ident { ident: "PredName", span: #0 bytes(65909..65917) }, fields: Fields::Unnamed { paren_token: Paren, unnamed: [Field { attrs: [], vis: Visibility::Inherited, mutability: FieldMutability::None, ident: None, colon_token: None, ty: Type::Path { qself: None, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "String", span: #0 bytes(65918..65924) }, arguments: PathArguments::None }] } } }] }, discriminant: None }
+from_syntax_arms2 = if let Some(a) = < String > :: from_syntax(elems)
+{ return Some(CHC :: PredName(a)); }
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.43s
+     Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-f4bcfb6e9993f349)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
 
-     Running tests/entry.rs (target/debug/deps/entry-2536ed5f6f6e1d90)
+     Running tests/entry.rs (target/debug/deps/entry-b7cdb244417a21af)
 
 running 1 test
 [slotted_egraphs::parse] 
-    s = "(and <?1 (and <?2 ?3>)>)"
-[slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, PVar("1"), LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("1"), LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("1"), LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, PVar("1"), LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("1"), LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("1"), LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("1"), LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("1"), LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("1")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "1",
-    ), pat_display = ?1
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("1")), [LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("2"), PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("2")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "2",
-    ), pat_display = ?2
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("2")), [PVar("3"), RVecBracket, RParen, RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("3"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("3")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "3",
-    ), pat_display = ?3
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("3")), [RVecBracket, RParen, RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(PVar("2")), Pattern(PVar("3"))])
-[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+    s = "(and <?a *>)"
+[slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, PVar("a"), Star, RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), Star, RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), Star, RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, PVar("a"), Star, RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("a"), Star, RVecBracket, RParen]
+[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("a"), Star, RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [PVar("a"), Star, RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("a"), Star, RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("a")
+[slotted_egraphs::parse] parse_pattern ret pat_struct = PVar(
+        "a",
+    ), pat_display = ?a
+[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("a")), [Star, RVecBracket, RParen]))
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [Star, RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(PVar("a")), Star])
+[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), Star])]
+[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), Star])]
+[entry::chc] children: [Vec([AppliedId(id0, map-[]), Star])]
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[]]))
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), Star])]
+[entry::chc] tmp = Some([AppliedId(id0, map-[]), Star])
+[entry::chc] fields: [AppliedId(id0, map-[]), Star]
+[entry::chc] from_syntax::ret = Some(And([AppliedId(id0, map-[]), Star]))
+[slotted_egraphs::parse] node1 = Some(And([AppliedId(id0, map-[]), Star]))
+[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), Star])]
+[entry::chc] children: [Vec([AppliedId(id0, map-[]), Star])]
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[]])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(PVar("2")), Pattern(PVar("3"))])]
-[slotted_egraphs::parse] transformed syntax_elems = [PVar("2"), PVar("3")]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [PVar("2"), PVar("3")])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), Star])]
+[entry::chc] tmp = Some([AppliedId(id0, map-[]), Star])
+[entry::chc] fields: [AppliedId(id0, map-[]), Star]
+[entry::chc] from_syntax::ret = Some(And([AppliedId(id0, map-[]), Star]))
+[slotted_egraphs::parse] node = And([AppliedId(id0, map-[]), Star])
+[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(PVar("a")), Star])]
+[slotted_egraphs::parse] transformed syntax_elems = [PVar("a"), Star]
+[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([AppliedId(id0, map-[]), Star]), [PVar("a"), Star])
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         And(
             [
-                id0, map-[],
-                id0, map-[],
-            ],
-        ),
-        [
-            PVar(
-                "2",
-            ),
-            PVar(
-                "3",
-            ),
-        ],
-    ), pat_display = (and ?2 ?3)
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("2"), PVar("3")])), [RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(PVar("1")), Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("2"), PVar("3")]))])
-[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[]]))
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[]])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(PVar("1")), Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("2"), PVar("3")]))])]
-[slotted_egraphs::parse] transformed syntax_elems = [PVar("1"), ENode(And([id0, map-[], id0, map-[]]), [PVar("2"), PVar("3")])]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [PVar("1"), ENode(And([id0, map-[], id0, map-[]]), [PVar("2"), PVar("3")])])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
-        And(
-            [
-                id0, map-[],
-                id0, map-[],
-            ],
-        ),
-        [
-            PVar(
-                "1",
-            ),
-            ENode(
-                And(
-                    [
-                        id0, map-[],
-                        id0, map-[],
-                    ],
+                AppliedId(
+                    id0, map-[],
                 ),
-                [
-                    PVar(
-                        "2",
-                    ),
-                    PVar(
-                        "3",
-                    ),
-                ],
-            ),
-        ],
-    ), pat_display = (and ?1 (and ?2 ?3))
-[slotted_egraphs::parse] 
-    s = "(and <(and <?1 ?2>) ?3>)"
-[slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, LParen, Ident("and"), LVecBracket, PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, LParen, Ident("and"), LVecBracket, PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, LParen, Ident("and"), LVecBracket, PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, LParen, Ident("and"), LVecBracket, PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("and"), LVecBracket, PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [LParen, Ident("and"), LVecBracket, PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("1"), PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("1")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "1",
-    ), pat_display = ?1
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("1")), [PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("2"), RVecBracket, RParen, PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("2")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "2",
-    ), pat_display = ?2
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("2")), [RVecBracket, RParen, PVar("3"), RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(PVar("1")), Pattern(PVar("2"))])
-[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[]]))
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[]])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(PVar("1")), Pattern(PVar("2"))])]
-[slotted_egraphs::parse] transformed syntax_elems = [PVar("1"), PVar("2")]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [PVar("1"), PVar("2")])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
-        And(
-            [
-                id0, map-[],
-                id0, map-[],
-            ],
-        ),
-        [
-            PVar(
-                "1",
-            ),
-            PVar(
-                "2",
-            ),
-        ],
-    ), pat_display = (and ?1 ?2)
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("1"), PVar("2")])), [PVar("3"), RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("3"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("3")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "3",
-    ), pat_display = ?3
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("3")), [RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("1"), PVar("2")])), Pattern(PVar("3"))])
-[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[]]))
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[]])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("1"), PVar("2")])), Pattern(PVar("3"))])]
-[slotted_egraphs::parse] transformed syntax_elems = [ENode(And([id0, map-[], id0, map-[]]), [PVar("1"), PVar("2")]), PVar("3")]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [ENode(And([id0, map-[], id0, map-[]]), [PVar("1"), PVar("2")]), PVar("3")])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
-        And(
-            [
-                id0, map-[],
-                id0, map-[],
-            ],
-        ),
-        [
-            ENode(
-                And(
-                    [
-                        id0, map-[],
-                        id0, map-[],
-                    ],
-                ),
-                [
-                    PVar(
-                        "1",
-                    ),
-                    PVar(
-                        "2",
-                    ),
-                ],
-            ),
-            PVar(
-                "3",
-            ),
-        ],
-    ), pat_display = (and (and ?1 ?2) ?3)
-[slotted_egraphs::parse] 
-    s = "(and <?a ?b>)"
-[slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, PVar("a"), PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, PVar("a"), PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("a"), PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("a"), PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("a"), PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("a"), PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("a")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "a",
-    ), pat_display = ?a
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("a")), [PVar("b"), RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("b"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("b")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "b",
-    ), pat_display = ?b
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("b")), [RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(PVar("a")), Pattern(PVar("b"))])
-[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[]]))
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[]])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(PVar("a")), Pattern(PVar("b"))])]
-[slotted_egraphs::parse] transformed syntax_elems = [PVar("a"), PVar("b")]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [PVar("a"), PVar("b")])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
-        And(
-            [
-                id0, map-[],
-                id0, map-[],
+                Star,
             ],
         ),
         [
             PVar(
                 "a",
             ),
-            PVar(
-                "b",
-            ),
+            Star,
         ],
-    ), pat_display = (and ?a ?b)
+    ), pat_display = (and ?a *)
 [slotted_egraphs::parse] 
-    s = "(and <?b ?a>)"
-[slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, PVar("b"), PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("b"), PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("b"), PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("b"), PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("b"), PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("b")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "b",
-    ), pat_display = ?b
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("b")), [PVar("a"), RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("a"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("a"), RVecBracket, RParen]
+    s = "(and ?a)"
+[slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), PVar("a"), RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), PVar("a"), RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), PVar("a"), RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("a"), RParen]
+[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("a"), RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [PVar("a"), RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("a"), RParen]
 [slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("a")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
+[slotted_egraphs::parse] parse_pattern ret pat_struct = PVar(
         "a",
     ), pat_display = ?a
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("a")), [RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(PVar("b")), Pattern(PVar("a"))])
-[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("a")), [RParen]))
+[slotted_egraphs::parse] syntax_elems_mock = [String("and"), AppliedId(id0, map-[])]
+[entry::chc] from_syntax::elems = [String("and"), AppliedId(id0, map-[])]
+[entry::chc] children: [AppliedId(id0, map-[])]
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[]]))
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = [AppliedId(id0, map-[])]
+[entry::chc] tmp = Some([])
+[entry::chc] fields: []
+[entry::chc] from_syntax::ret = Some(And([]))
+[slotted_egraphs::parse] node1 = Some(And([]))
+[entry::chc] from_syntax::elems = [String("and"), AppliedId(id0, map-[])]
+[entry::chc] children: [AppliedId(id0, map-[])]
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[]])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(PVar("b")), Pattern(PVar("a"))])]
-[slotted_egraphs::parse] transformed syntax_elems = [PVar("b"), PVar("a")]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("a")])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = [AppliedId(id0, map-[])]
+[entry::chc] tmp = Some([])
+[entry::chc] fields: []
+[entry::chc] from_syntax::ret = Some(And([]))
+[slotted_egraphs::parse] node = And([])
+[slotted_egraphs::parse] before syntax_elems = [String("and"), Pattern(PVar("a"))]
+[slotted_egraphs::parse] transformed syntax_elems = [PVar("a")]
+[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([]), [PVar("a")])
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         And(
-            [
-                id0, map-[],
-                id0, map-[],
-            ],
-        ),
-        [
-            PVar(
-                "b",
-            ),
-            PVar(
-                "a",
-            ),
-        ],
-    ), pat_display = (and ?b ?a)
-[slotted_egraphs::parse] 
-    s = "(and <?a (and <?b ?c>)>)"
-[slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("a"), LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("a")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "a",
-    ), pat_display = ?a
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("a")), [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("b"), PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("b")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "b",
-    ), pat_display = ?b
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("b")), [PVar("c"), RVecBracket, RParen, RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("c"), RVecBracket, RParen, RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("c")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "c",
-    ), pat_display = ?c
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("c")), [RVecBracket, RParen, RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(PVar("b")), Pattern(PVar("c"))])
-[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[]]))
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[]])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(PVar("b")), Pattern(PVar("c"))])]
-[slotted_egraphs::parse] transformed syntax_elems = [PVar("b"), PVar("c")]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
-        And(
-            [
-                id0, map-[],
-                id0, map-[],
-            ],
-        ),
-        [
-            PVar(
-                "b",
-            ),
-            PVar(
-                "c",
-            ),
-        ],
-    ), pat_display = (and ?b ?c)
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")])), [RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(PVar("a")), Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")]))])
-[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[]]))
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[]])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(PVar("a")), Pattern(ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")]))])]
-[slotted_egraphs::parse] transformed syntax_elems = [PVar("a"), ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")])]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [PVar("a"), ENode(And([id0, map-[], id0, map-[]]), [PVar("b"), PVar("c")])])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
-        And(
-            [
-                id0, map-[],
-                id0, map-[],
-            ],
+            [],
         ),
         [
             PVar(
                 "a",
             ),
-            ENode(
-                And(
-                    [
-                        id0, map-[],
-                        id0, map-[],
-                    ],
-                ),
-                [
-                    PVar(
-                        "b",
-                    ),
-                    PVar(
-                        "c",
-                    ),
-                ],
-            ),
         ],
-    ), pat_display = (and ?a (and ?b ?c))
-[slotted_egraphs::parse] 
-    s = "(and <?a ?b ?c>)"
-[slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, PVar("a"), PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, PVar("a"), PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("a"), PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("a"), PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("a"), PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("a"), PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("a")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "a",
-    ), pat_display = ?a
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("a")), [PVar("b"), PVar("c"), RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("b"), PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("b")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "b",
-    ), pat_display = ?b
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("b")), [PVar("c"), RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("c"), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("c")
-[slotted_egraphs::parse] parse_pattern pat_struct = PVar(
-        "c",
-    ), pat_display = ?c
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("c")), [RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(PVar("a")), Pattern(PVar("b")), Pattern(PVar("c"))])
-[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[], id0, map-[]]))
-[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[], id0, map-[]])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(PVar("a")), Pattern(PVar("b")), Pattern(PVar("c"))])]
-[slotted_egraphs::parse] transformed syntax_elems = [PVar("a"), PVar("b"), PVar("c")]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[], id0, map-[]]), [PVar("a"), PVar("b"), PVar("c")])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
-        And(
-            [
-                id0, map-[],
-                id0, map-[],
-                id0, map-[],
-            ],
-        ),
-        [
-            PVar(
-                "a",
-            ),
-            PVar(
-                "b",
-            ),
-            PVar(
-                "c",
-            ),
-        ],
-    ), pat_display = (and ?a ?b ?c)
+    ), pat_display = and
 [slotted_egraphs::parse] 
     s = "(and <(and <(var $0) (var $1)>) (var $2)>)"
 [slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, LParen, Ident("and"), LVecBracket, LParen, Ident("var"), Slot($0), RParen, LParen, Ident("var"), Slot($1), RParen, RVecBracket, RParen, LParen, Ident("var"), Slot($2), RParen, RVecBracket, RParen]
@@ -1252,7 +782,7 @@ running 1 test
 [slotted_egraphs::parse] before syntax_elems = [String("var"), Slot($0)]
 [slotted_egraphs::parse] transformed syntax_elems = []
 [slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(Var($0), [])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         Var(
             $0,
         ),
@@ -1281,7 +811,7 @@ running 1 test
 [slotted_egraphs::parse] before syntax_elems = [String("var"), Slot($1)]
 [slotted_egraphs::parse] transformed syntax_elems = []
 [slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(Var($1), [])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         Var(
             $1,
         ),
@@ -1295,27 +825,31 @@ running 1 test
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[]]))
+[entry::chc] tmp = Some([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+[entry::chc] fields: [AppliedId(id0, map-[]), AppliedId(id0, map-[])]
+[entry::chc] from_syntax::ret = Some(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]))
+[slotted_egraphs::parse] node1 = Some(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]))
 [entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 [entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[]])
+[entry::chc] tmp = Some([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+[entry::chc] fields: [AppliedId(id0, map-[]), AppliedId(id0, map-[])]
+[entry::chc] from_syntax::ret = Some(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]))
+[slotted_egraphs::parse] node = And([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
 [slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(ENode(Var($0), [])), Pattern(ENode(Var($1), []))])]
 [slotted_egraphs::parse] transformed syntax_elems = [ENode(Var($0), []), ENode(Var($1), [])]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), [])])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), [])])
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         And(
             [
-                id0, map-[],
-                id0, map-[],
+                AppliedId(
+                    id0, map-[],
+                ),
+                AppliedId(
+                    id0, map-[],
+                ),
             ],
         ),
         [
@@ -1333,7 +867,7 @@ running 1 test
             ),
         ],
     ), pat_display = (and (var $0) (var $1))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(And([id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), [])])), [LParen, Ident("var"), Slot($2), RParen, RVecBracket, RParen]))
+[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), [])])), [LParen, Ident("var"), Slot($2), RParen, RVecBracket, RParen]))
 [slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("var"), Slot($2), RParen, RVecBracket, RParen]
 [slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [LParen, Ident("var"), Slot($2), RParen, RVecBracket, RParen]
 [slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("var"), Slot($2), RParen, RVecBracket, RParen]
@@ -1356,49 +890,57 @@ running 1 test
 [slotted_egraphs::parse] before syntax_elems = [String("var"), Slot($2)]
 [slotted_egraphs::parse] transformed syntax_elems = []
 [slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(Var($2), [])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         Var(
             $2,
         ),
         [],
     ), pat_display = (var $2)
 [slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(ENode(Var($2), [])), [RVecBracket, RParen]))
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(And([id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), [])])), Pattern(ENode(Var($2), []))])
+[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), [])])), Pattern(ENode(Var($2), []))])
 [slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 [entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 [entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[]]))
+[entry::chc] tmp = Some([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+[entry::chc] fields: [AppliedId(id0, map-[]), AppliedId(id0, map-[])]
+[entry::chc] from_syntax::ret = Some(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]))
+[slotted_egraphs::parse] node1 = Some(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]))
 [entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 [entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[]])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(ENode(And([id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), [])])), Pattern(ENode(Var($2), []))])]
-[slotted_egraphs::parse] transformed syntax_elems = [ENode(And([id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), [])]), ENode(Var($2), [])]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[]]), [ENode(And([id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), [])]), ENode(Var($2), [])])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[entry::chc] tmp = Some([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+[entry::chc] fields: [AppliedId(id0, map-[]), AppliedId(id0, map-[])]
+[entry::chc] from_syntax::ret = Some(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]))
+[slotted_egraphs::parse] node = And([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), [])])), Pattern(ENode(Var($2), []))])]
+[slotted_egraphs::parse] transformed syntax_elems = [ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), [])]), ENode(Var($2), [])]
+[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), [])]), ENode(Var($2), [])])
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         And(
             [
-                id0, map-[],
-                id0, map-[],
+                AppliedId(
+                    id0, map-[],
+                ),
+                AppliedId(
+                    id0, map-[],
+                ),
             ],
         ),
         [
             ENode(
                 And(
                     [
-                        id0, map-[],
-                        id0, map-[],
+                        AppliedId(
+                            id0, map-[],
+                        ),
+                        AppliedId(
+                            id0, map-[],
+                        ),
                     ],
                 ),
                 [
@@ -1424,12 +966,12 @@ running 1 test
             ),
         ],
     ), pat_display = (and (and (var $0) (var $1)) (var $2))
-[slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(And([id0, map-[], id0, map-[]]), [ENode(And([id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), [])]), ENode(Var($2), [])])
-[slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(And([id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), [])])
+[slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), [])]), ENode(Var($2), [])])
+[slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), [])])
 [slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(Var($0), [])
 [slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(Var($1), [])
 [slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(Var($2), [])
-[slotted_egraphs::parse] RecExpr::parse: ret = ENode(And([id0, map-[], id0, map-[]]), [ENode(And([id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), [])]), ENode(Var($2), [])])
+[slotted_egraphs::parse] RecExpr::parse: ret = ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), [])]), ENode(Var($2), [])])
 [slotted_egraphs::parse] 
     s = "(and <(var $0) (var $1) (var $2)>)"
 [slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, LParen, Ident("var"), Slot($0), RParen, LParen, Ident("var"), Slot($1), RParen, LParen, Ident("var"), Slot($2), RParen, RVecBracket, RParen]
@@ -1458,7 +1000,7 @@ running 1 test
 [slotted_egraphs::parse] before syntax_elems = [String("var"), Slot($0)]
 [slotted_egraphs::parse] transformed syntax_elems = []
 [slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(Var($0), [])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         Var(
             $0,
         ),
@@ -1487,7 +1029,7 @@ running 1 test
 [slotted_egraphs::parse] before syntax_elems = [String("var"), Slot($1)]
 [slotted_egraphs::parse] transformed syntax_elems = []
 [slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(Var($1), [])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         Var(
             $1,
         ),
@@ -1516,7 +1058,7 @@ running 1 test
 [slotted_egraphs::parse] before syntax_elems = [String("var"), Slot($2)]
 [slotted_egraphs::parse] transformed syntax_elems = []
 [slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(Var($2), [])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         Var(
             $2,
         ),
@@ -1530,28 +1072,34 @@ running 1 test
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node1 = Some(And([id0, map-[], id0, map-[], id0, map-[]]))
+[entry::chc] tmp = Some([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+[entry::chc] fields: [AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
+[entry::chc] from_syntax::ret = Some(And([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]))
+[slotted_egraphs::parse] node1 = Some(And([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]))
 [entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 [entry::chc] children: [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])]
-[entry::chc] tmp = Some([id0, map-[], id0, map-[], id0, map-[]])
-[entry::chc] fields: [id0, map-[], id0, map-[], id0, map-[]]
-[entry::chc] from_syntax::ret = Some(And([id0, map-[], id0, map-[], id0, map-[]]))
-[slotted_egraphs::parse] node = And([id0, map-[], id0, map-[], id0, map-[]])
+[entry::chc] tmp = Some([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+[entry::chc] fields: [AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
+[entry::chc] from_syntax::ret = Some(And([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]))
+[slotted_egraphs::parse] node = And([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])])
 [slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(ENode(Var($0), [])), Pattern(ENode(Var($1), [])), Pattern(ENode(Var($2), []))])]
 [slotted_egraphs::parse] transformed syntax_elems = [ENode(Var($0), []), ENode(Var($1), []), ENode(Var($2), [])]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([id0, map-[], id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), []), ENode(Var($2), [])])
-[slotted_egraphs::parse] parse_pattern pat_struct = ENode(
+[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), []), ENode(Var($2), [])])
+[slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         And(
             [
-                id0, map-[],
-                id0, map-[],
-                id0, map-[],
+                AppliedId(
+                    id0, map-[],
+                ),
+                AppliedId(
+                    id0, map-[],
+                ),
+                AppliedId(
+                    id0, map-[],
+                ),
             ],
         ),
         [
@@ -1575,14 +1123,170 @@ running 1 test
             ),
         ],
     ), pat_display = (and (var $0) (var $1) (var $2))
-[slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(And([id0, map-[], id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), []), ENode(Var($2), [])])
+[slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), []), ENode(Var($2), [])])
 [slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(Var($0), [])
 [slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(Var($1), [])
 [slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(Var($2), [])
-[slotted_egraphs::parse] RecExpr::parse: ret = ENode(And([id0, map-[], id0, map-[], id0, map-[]]), [ENode(Var($0), []), ENode(Var($1), []), ENode(Var($2), [])])
-[tests/entry.rs:124:5] &report.stop_reason = Other(
-    Reached,
-)
+[slotted_egraphs::parse] RecExpr::parse: ret = ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]), [ENode(Var($0), []), ENode(Var($1), []), ENode(Var($2), [])])
+ematch_all pattern = ENode(And([AppliedId(id0, map-[]), Star]), [PVar("a"), Star])
+ematch_impl pattern = ENode(And([AppliedId(id0, map-[]), Star]), [PVar("a"), Star])
+[slotted_egraphs::egraph] enodes_applied i = id0, map-[$f0 -> $f0]
+[slotted_egraphs::egraph] classes = EClass {
+        nodes: {
+            Var(
+                $0,
+            ): ProvenSourceNode {
+                elem: [$0 -> $f0],
+                src_id: id0,
+            },
+        },
+        slots: {
+            $f0,
+        },
+        usages: {
+            And(
+                [
+                    AppliedId(
+                        id1, map-[$f1 -> $0, $f2 -> $1],
+                    ),
+                    AppliedId(
+                        id0, map-[$f0 -> $2],
+                    ),
+                ],
+            ),
+            And(
+                [
+                    AppliedId(
+                        id0, map-[$f0 -> $0],
+                    ),
+                    AppliedId(
+                        id0, map-[$f0 -> $1],
+                    ),
+                ],
+            ),
+        },
+        group: Group {
+            identity: ProvenPerm {
+                elem: [$f0 -> $f0],
+            },
+            next: None,
+        },
+        syn_enode: Var(
+            $f0,
+        ),
+        ..
+    }
+enodes_applied result = [Var($f0)]
+ematch_impl enodes = [Var($f0)]
+ematch_impl continue at Discriminant(1) != Discriminant(0)
+ematch_impl pattern = ENode(And([AppliedId(id0, map-[]), Star]), [PVar("a"), Star])
+[slotted_egraphs::egraph] enodes_applied i = id1, map-[$f1 -> $f1, $f2 -> $f2]
+[slotted_egraphs::egraph] classes = EClass {
+        nodes: {
+            And(
+                [
+                    AppliedId(
+                        id0, map-[$f0 -> $0],
+                    ),
+                    AppliedId(
+                        id0, map-[$f0 -> $1],
+                    ),
+                ],
+            ): ProvenSourceNode {
+                elem: [$0 -> $f1, $1 -> $f2],
+                src_id: id1,
+            },
+        },
+        slots: {
+            $f1,
+            $f2,
+        },
+        usages: {
+            And(
+                [
+                    AppliedId(
+                        id1, map-[$f1 -> $0, $f2 -> $1],
+                    ),
+                    AppliedId(
+                        id0, map-[$f0 -> $2],
+                    ),
+                ],
+            ),
+        },
+        group: Group {
+            identity: ProvenPerm {
+                elem: [$f1 -> $f1, $f2 -> $f2],
+            },
+            next: None,
+        },
+        syn_enode: And(
+            [
+                AppliedId(
+                    id0, map-[$f0 -> $f1],
+                ),
+                AppliedId(
+                    id0, map-[$f0 -> $f2],
+                ),
+            ],
+        ),
+        ..
+    }
+enodes_applied result = [And([AppliedId(id0, map-[$f0 -> $f1]), AppliedId(id0, map-[$f0 -> $f2])])]
+ematch_impl enodes = [And([AppliedId(id0, map-[$f0 -> $f1]), AppliedId(id0, map-[$f0 -> $f2])])]
+clear_n2: And([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+n_sh: And([AppliedId(id0, map-[]), Star])
+clear_n2_sh: And([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+ematch_impl continue at And([AppliedId(id0, map-[]), Star]) != And([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+ematch_impl pattern = ENode(And([AppliedId(id0, map-[]), Star]), [PVar("a"), Star])
+[slotted_egraphs::egraph] enodes_applied i = id2, map-[$f3 -> $f3, $f4 -> $f4, $f5 -> $f5]
+[slotted_egraphs::egraph] classes = EClass {
+        nodes: {
+            And(
+                [
+                    AppliedId(
+                        id1, map-[$f1 -> $0, $f2 -> $1],
+                    ),
+                    AppliedId(
+                        id0, map-[$f0 -> $2],
+                    ),
+                ],
+            ): ProvenSourceNode {
+                elem: [$0 -> $f3, $1 -> $f4, $2 -> $f5],
+                src_id: id2,
+            },
+        },
+        slots: {
+            $f3,
+            $f4,
+            $f5,
+        },
+        usages: {},
+        group: Group {
+            identity: ProvenPerm {
+                elem: [$f3 -> $f3, $f4 -> $f4, $f5 -> $f5],
+            },
+            next: None,
+        },
+        syn_enode: And(
+            [
+                AppliedId(
+                    id1, map-[$f1 -> $f3, $f2 -> $f4],
+                ),
+                AppliedId(
+                    id0, map-[$f0 -> $f5],
+                ),
+            ],
+        ),
+        ..
+    }
+enodes_applied result = [And([AppliedId(id1, map-[$f1 -> $f3, $f2 -> $f4]), AppliedId(id0, map-[$f0 -> $f5])])]
+ematch_impl enodes = [And([AppliedId(id1, map-[$f1 -> $f3, $f2 -> $f4]), AppliedId(id0, map-[$f0 -> $f5])])]
+clear_n2: And([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+n_sh: And([AppliedId(id0, map-[]), Star])
+clear_n2_sh: And([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+ematch_impl continue at And([AppliedId(id0, map-[]), Star]) != And([AppliedId(id0, map-[]), AppliedId(id0, map-[])])
+ematch_all out = []
+[tests/entry.rs:124:5] &report.stop_reason = Saturated
 
 
 id0($f0):
@@ -1590,20 +1294,34 @@ id0($f0):
  - Var($f0)
 
 id1($f1, $f2):
->> And([id0, map-[$f0 -> $f1], id0, map-[$f0 -> $f2]])
- - And([id0, map-[$f0 -> $f1], id0, map-[$f0 -> $f2]])
- -- [$f1 -> $f2, $f2 -> $f1]
+>> And([AppliedId(id0, map-[$f0 -> $f1]), AppliedId(id0, map-[$f0 -> $f2])])
+ - And([AppliedId(id0, map-[$f0 -> $f1]), AppliedId(id0, map-[$f0 -> $f2])])
 
-id3($f11, $f12, $f13):
->> And([id0, map-[$f0 -> $f13], id1, map-[$f1 -> $f12, $f2 -> $f11]])
- - And([id1, map-[$f1 -> $f11, $f2 -> $f12], id0, map-[$f0 -> $f13]])
- - And([id0, map-[$f0 -> $f13], id1, map-[$f1 -> $f11, $f2 -> $f12]])
- - And([id0, map-[$f0 -> $f13], id0, map-[$f0 -> $f12], id0, map-[$f0 -> $f11]])
- -- [$f11 -> $f13, $f12 -> $f11, $f13 -> $f12]
- -- [$f11 -> $f11, $f12 -> $f13, $f13 -> $f12]
- -- [$f11 -> $f12, $f12 -> $f11, $f13 -> $f13]
+id2($f3, $f4, $f5):
+>> And([AppliedId(id1, map-[$f1 -> $f3, $f2 -> $f4]), AppliedId(id0, map-[$f0 -> $f5])])
+ - And([AppliedId(id1, map-[$f1 -> $f3, $f2 -> $f4]), AppliedId(id0, map-[$f0 -> $f5])])
 
-test chc::and ... ok
+thread 'chc::and' panicked at tests/entry.rs:136:5:
+failed to reach goal
+stack backtrace:
+   0: _rust_begin_unwind
+   1: core::panicking::panic_fmt
+   2: entry::assert_reaches
+             at ./tests/entry.rs:136:5
+   3: entry::chc::and
+             at ./tests/chc/mod.rs:62:5
+   4: entry::chc::and::{{closure}}
+             at ./tests/chc/mod.rs:48:9
+   5: core::ops::function::FnOnce::call_once
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+test chc::and ... FAILED
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.03s
+failures:
 
+failures:
+    chc::and
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `--test entry`

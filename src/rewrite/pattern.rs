@@ -9,6 +9,7 @@ use log::debug;
 pub enum Pattern<L: Language> {
     ENode(L, Vec<Pattern<L>>),
     PVar(String),                                             // ?x
+    Star,                                                     // *
     Subst(Box<Pattern<L>>, Box<Pattern<L>>, Box<Pattern<L>>), // Subst(b, x, t) means `b[x := t]`
 }
 
@@ -46,6 +47,9 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(
             let out = method.subst(b, x, t, eg);
             eg.subst_method = Some(method);
             out
+        }
+        Pattern::Star => {
+            panic!()
         }
     }
 }

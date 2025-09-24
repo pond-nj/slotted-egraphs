@@ -18,6 +18,12 @@ pub struct AppliedId {
     pub m: SlotMap,
 }
 
+#[derive(Clone, Hash, PartialEq, Eq, Debug, PartialOrd, Ord)]
+pub enum AppliedIdOrStar {
+    AppliedId(AppliedId),
+    Star,
+}
+
 /// A "term" or "expression" from some given [Language] L.
 // The AppliedIds in `node` are ignored (any typically set to AppliedId::null()). They are replaced by the children RecExpr.
 // A non-fancy version of RecExpr that uses the slots as "names".

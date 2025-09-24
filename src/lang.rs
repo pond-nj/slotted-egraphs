@@ -1,3 +1,5 @@
+use core::panic;
+
 use crate::*;
 
 use log::debug;
@@ -8,6 +10,7 @@ pub enum SyntaxElem {
     AppliedId(AppliedId),
     Slot(Slot),
     Vec(Vec<SyntaxElem>),
+    Star,
 }
 
 pub trait LanguageChildren: Debug + Clone + Hash + Eq {
@@ -147,7 +150,7 @@ macro_rules! bare_language_child {
 
             fn to_syntax(&self) -> Vec<SyntaxElem> { vec![SyntaxElem::String(self.to_string())] }
             fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
-                debug!("L(Bare)::from_syntax with elems = {:?}", elems);
+                println!("L(Bare)::from_syntax with elems = {:?}", elems);
                 match elems {
                     [SyntaxElem::String(x)] => x.parse().ok(),
                     _ => {
@@ -174,6 +177,78 @@ bare_language_child!(
 pub struct Bind<T> {
     pub slot: Slot,
     pub elem: T,
+}
+
+impl LanguageChildren for AppliedIdOrStar {
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        match self {
+            AppliedIdOrStar::AppliedId(x) => x.all_slot_occurrences_iter_mut(),
+            AppliedIdOrStar::Star => todo!(),
+        }
+    }
+
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        match self {
+            AppliedIdOrStar::AppliedId(x) => x.public_slot_occurrences_iter_mut(),
+            AppliedIdOrStar::Star => todo!(),
+        }
+    }
+
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut AppliedId> {
+        match self {
+            AppliedIdOrStar::AppliedId(x) => x.applied_id_occurrences_iter_mut(),
+            AppliedIdOrStar::Star => todo!(),
+        }
+    }
+
+    // immut:
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        match self {
+            AppliedIdOrStar::AppliedId(x) => x.all_slot_occurrences_iter(),
+            AppliedIdOrStar::Star => todo!(),
+        }
+    }
+
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        match self {
+            AppliedIdOrStar::AppliedId(x) => x.public_slot_occurrences_iter(),
+            AppliedIdOrStar::Star => todo!(),
+        }
+    }
+
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item = &AppliedId> {
+        match self {
+            AppliedIdOrStar::AppliedId(x) => x.applied_id_occurrences_iter(),
+            AppliedIdOrStar::Star => todo!(),
+        }
+    }
+
+    // syntax:
+    fn to_syntax(&self) -> Vec<SyntaxElem> {
+        match self {
+            AppliedIdOrStar::AppliedId(x) => x.to_syntax(),
+            AppliedIdOrStar::Star => vec![SyntaxElem::Star],
+        }
+    }
+
+    fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+        match elems {
+            [SyntaxElem::AppliedId(x)] => Some(AppliedIdOrStar::AppliedId(x.clone())),
+            [SyntaxElem::Star] => Some(AppliedIdOrStar::Star),
+            [] => None,
+            _ => {
+                panic!("(Pond) slotted_egraphs::lang::AppliedIdOrStar::from_syntax");
+                None
+            }
+        }
+    }
+
+    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
+        match self {
+            AppliedIdOrStar::AppliedId(x) => x.weak_shape_impl(m),
+            AppliedIdOrStar::Star => {}
+        }
+    }
 }
 
 impl<L: LanguageChildren> LanguageChildren for Bind<L> {
@@ -395,6 +470,8 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     // TODO m.values() might collide with your private slot names.
     // Should we rename our private slots to be safe?
     #[doc(hidden)]
+    // (Pond) change(compose) the mapping of the current Enode
+    // (Pond) a -> b, change with b -> c, to a -> c.
     fn apply_slotmap_partial(&self, m: &SlotMap) -> Self {
         let mut prv = vec![].into();
         if CHECKS {
@@ -448,6 +525,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
         c
     }
 
+    // (Pond) get children ids
     #[doc(hidden)]
     fn ids(&self) -> Vec<Id> {
         self.applied_id_occurrences()

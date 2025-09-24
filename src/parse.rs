@@ -11,7 +11,7 @@ pub enum ParseError {
     ExpectedRBracket(Vec<Token>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Slot(Slot),    // $42
     Ident(String), // map, 15
@@ -23,6 +23,7 @@ pub enum Token {
     RBracket,      // ]
     LVecBracket,   // <
     RVecBracket,   // >
+    Star,          // *
 }
 
 fn ident_char(c: char) -> bool {
@@ -58,7 +59,10 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
             break;
         }
 
-        if s.starts_with('(') {
+        if s.starts_with('*') {
+            tokens.push(Token::Star);
+            s = &s[1..];
+        } else if s.starts_with('(') {
             tokens.push(Token::LParen);
             s = &s[1..];
         } else if s.starts_with(')') {
@@ -148,12 +152,13 @@ fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), P
     }
     let ret = (pat.clone(), tok);
     debug!(
-        "parse_pattern pat_struct = {:#?}, pat_display = {}",
+        "parse_pattern ret pat_struct = {:#?}, pat_display = {}",
         ret.0, pat
     );
     Ok(ret)
 }
 
+// (Pond): Use to create syntax elem mocks, will be pass to L::from_syntax to create Enode
 fn nested_syntax_elem_to_syntax_elem<L: Language>(ne: &NestedSyntaxElem<L>) -> SyntaxElem {
     match ne {
         NestedSyntaxElem::String(s) => SyntaxElem::String(s.clone()),
@@ -164,6 +169,7 @@ fn nested_syntax_elem_to_syntax_elem<L: Language>(ne: &NestedSyntaxElem<L>) -> S
                 .map(nested_syntax_elem_to_syntax_elem)
                 .collect(),
         ),
+        NestedSyntaxElem::Star => SyntaxElem::Star,
     }
 }
 
@@ -176,6 +182,7 @@ fn nested_syntax_elem_to_pattern<L: Language>(ne: NestedSyntaxElem<L>) -> Vec<Pa
             .into_iter()
             .flat_map(nested_syntax_elem_to_pattern)
             .collect(),
+        NestedSyntaxElem::Star => vec![Pattern::Star],
     }
 }
 
@@ -221,8 +228,10 @@ fn parse_pattern_nosubst<L: Language>(
             .collect();
         debug!("syntax_elems_mock = {:?}", syntax_elems_mock);
         debug!("node1 = {:?}", L::from_syntax(&syntax_elems_mock));
-        let node = L::from_syntax(&syntax_elems_mock)
-            .ok_or_else(|| ParseError::FromSyntaxFailed(syntax_elems_mock))?;
+        let node = L::from_syntax(&syntax_elems_mock).ok_or_else(|| {
+            debug!("FromSyntaxFailed: {:?}", syntax_elems_mock);
+            ParseError::FromSyntaxFailed(syntax_elems_mock)
+        })?;
         debug!("node = {:?}", node);
 
         // (Pond) use to create Enode's children
@@ -248,8 +257,10 @@ fn parse_pattern_nosubst<L: Language>(
 
         let elems = [SyntaxElem::String(op.to_string())];
         debug!("node2 = {:?}", L::from_syntax(&elems));
-        let node =
-            L::from_syntax(&elems).ok_or_else(|| ParseError::FromSyntaxFailed(to_vec(&elems)))?;
+        let node = L::from_syntax(&elems).ok_or_else(|| {
+            debug!("FromSyntaxFailed: {:?}", elems);
+            ParseError::FromSyntaxFailed(to_vec(&elems))
+        })?;
         let pat = Pattern::ENode(node, Vec::new());
         debug!("parse_pattern_nosubst ret3 = {:?}", pat);
         Ok((pat, tok))
@@ -263,14 +274,19 @@ enum NestedSyntaxElem<L: Language> {
     Vec(Vec<NestedSyntaxElem<L>>),
     Slot(Slot),
     String(String),
+    Star,
 }
 
 fn parse_nested_syntax_elem<L: Language>(
     tok: &[Token],
 ) -> Result<(NestedSyntaxElem<L>, &[Token]), ParseError> {
     debug!("parse_nested_syntax_elem input tok = {:?}", tok);
+    if let Token::Star = &tok[0] {
+        // (Pond) Can only use it for (op ?a *) or (op <?a *>) or (op <?a *> *)
+        assert!(tok[1] == Token::RParen || tok[1] == Token::RVecBracket);
+        return Ok((NestedSyntaxElem::Star, &tok[1..]));
+    }
     if let Token::LVecBracket = &tok[0] {
-        // TODO(Pond)
         let mut ret: Vec<NestedSyntaxElem<L>> = Vec::new();
         let mut next = &tok[1..];
         loop {

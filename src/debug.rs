@@ -67,6 +67,9 @@ impl<L: Language> std::fmt::Display for Pattern<L> {
                         SyntaxElem::Vec(v) => {
                             todo!()
                         }
+                        SyntaxElem::Star => {
+                            write!(f, "*")?;
+                        }
                     }
                     if i != n - 1 {
                         write!(f, " ")?;
@@ -79,6 +82,9 @@ impl<L: Language> std::fmt::Display for Pattern<L> {
             }
             Pattern::PVar(p) => write!(f, "?{p}"),
             Pattern::Subst(b, x, t) => write!(f, "{b}[{x} := {t}]"),
+            Pattern::Star => {
+                todo!()
+            }
         }
     }
 }
