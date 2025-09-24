@@ -55,7 +55,7 @@ fn ematch_impl<L: Language, N: Analysis<L>>(
         Pattern::ENode(n, children) => {
             let mut out = Vec::new();
             let enodes = eg.enodes_applied(&i);
-            println!("ematch_impl enodes = {enodes:?}");
+            println!("ematch_impl enodes in eclass = {enodes:?}");
             for nn in enodes {
                 // (Pond) n is from a pattern, nn is an enode.
                 // (Pond) find the same type of Enode.

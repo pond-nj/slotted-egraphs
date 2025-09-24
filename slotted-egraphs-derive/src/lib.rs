@@ -80,6 +80,11 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .iter()
         .map(|x| produce_weak_shape_inplace(&name, x))
         .collect();
+    let get_children_type_arms: Vec<TokenStream2> = ie
+        .variants
+        .iter()
+        .map(|x| produce_get_children_type_arms(&name, x))
+        .collect();
 
     let ret = quote! {
         #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)]
@@ -163,11 +168,17 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
 
                 m.0.inverse()
             }
+
+            fn get_children_type(&self) -> Vec<slotted_egraphs::LanguageChildrenType> {
+                match self {
+                    #(#get_children_type_arms),*
+                }
+            }
         }
     }
     .to_token_stream()
     .into();
-    // eprintln!("{}", ret);
+    eprintln!("trait language {}", ret);
     ret
 }
 
@@ -381,6 +392,23 @@ fn produce_weak_shape_inplace(name: &Ident, v: &Variant) -> TokenStream2 {
             #(
                 #fields .weak_shape_impl(m);
             )*
+        }
+    }
+}
+
+fn produce_get_children_type_arms(name: &Ident, v: &Variant) -> TokenStream2 {
+    let variant_name = &v.ident;
+    let n = v.fields.len();
+    let fields: Vec<Ident> = (0..n)
+        .map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site()))
+        .collect();
+    quote! {
+        #name::#variant_name(#(#fields),*) => {
+            let out = std::iter::empty();
+            #(
+                let out = out.chain(#fields .get_type().into_iter());
+            )*
+            out.collect()
         }
     }
 }

@@ -11,6 +11,7 @@ define_language! {
     pub enum And {
         Var(Slot) = "var",
         And(Vec<AppliedIdOrStar>) = "and",
+        // And(AppliedId, AppliedId) = "and",
     }
     // p <- q, r
 }
