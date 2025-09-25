@@ -1,37 +1,37 @@
-   Compiling slotted-egraphs v0.0.36 (/Users/nutdranaijaruthikorn/Downloads/2025/PhD/Project/slotted-egraphs)
+   Compiling slotted-egraphs v0.0.36 (/home/pondnj/chc/project/slotted-egraphs)
 warning: unreachable expression
-  --> src/lang.rs:93:17
-   |
-89 | /                 panic!(
-90 | |                     "(Pond) slotted_egraphs::lang::AppliedId::from_syntax: expected a single applied id, got {:?}",
-91 | |                     elems
-92 | |                 );
-   | |_________________- any code following this expression is unreachable
-93 |                   None
-   |                   ^^^^ unreachable expression
-   |
-   = note: `#[warn(unreachable_code)]` on by default
+   --> src/lang.rs:121:17
+    |
+117 | /                 panic!(
+118 | |                     "(Pond) slotted_egraphs::lang::AppliedId::from_syntax: expected a single applied id, got {:?}",
+119 | |                     elems
+120 | |                 );
+    | |_________________- any code following this expression is unreachable
+121 |                   None
+    |                   ^^^^ unreachable expression
+    |
+    = note: `#[warn(unreachable_code)]` on by default
 
 warning: unreachable expression
-   --> src/lang.rs:141:17
+   --> src/lang.rs:169:17
     |
-137 | /                 panic!(
-138 | |                     "(Pond) slotted_egraphs::slot::Slot::from_syntax: expected a single slot, got {:?}",
-139 | |                     elems
-140 | |                 );
+165 | /                 panic!(
+166 | |                     "(Pond) slotted_egraphs::slot::Slot::from_syntax: expected a single slot, got {:?}",
+167 | |                     elems
+168 | |                 );
     | |_________________- any code following this expression is unreachable
-141 |                   None
+169 |                   None
     |                   ^^^^ unreachable expression
 
 warning: unreachable expression
-   --> src/lang.rs:178:25
+   --> src/lang.rs:206:25
     |
-178 |                           None
+206 |                           None
     |                           ^^^^ unreachable expression
 ...
-192 | / bare_language_child!(
-193 | |     u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol, String
-194 | | );
+220 | / bare_language_child!(
+221 | |     u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol, String
+222 | | );
     | | -
     | | |
     | |_any code following this expression is unreachable
@@ -40,22 +40,22 @@ warning: unreachable expression
     = note: this warning originates in the macro `bare_language_child` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 warning: unreachable expression
-   --> src/lang.rs:262:17
+   --> src/lang.rs:290:17
     |
-261 |                 panic!("(Pond) slotted_egraphs::lang::AppliedIdOrStar::from_syntax");
+289 |                 panic!("(Pond) slotted_egraphs::lang::AppliedIdOrStar::from_syntax");
     |                 -------------------------------------------------------------------- any code following this expression is unreachable
-262 |                 None
+290 |                 None
     |                 ^^^^ unreachable expression
 
 warning: unreachable statement
-   --> src/lang.rs:327:13
+   --> src/lang.rs:355:13
     |
-323 | /             panic!(
-324 | |                 "(Pond) slotted_egraphs::lang::Bind::from_syntax: expected a single slot, got {:?}",
-325 | |                 elems
-326 | |             );
+351 | /             panic!(
+352 | |                 "(Pond) slotted_egraphs::lang::Bind::from_syntax: expected a single slot, got {:?}",
+353 | |                 elems
+354 | |             );
     | |_____________- any code following this expression is unreachable
-327 |               return None;
+355 |               return None;
     |               ^^^^^^^^^^^^ unreachable statement
 
 warning: unused variable: `v`
@@ -684,40 +684,36 @@ trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub
         {
             Arith :: Lam(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, Arith :: App(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, Arith :: Var(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, Arith :: Let(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, Arith :: Add(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, Arith :: Mul(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, Arith :: Number(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, Arith :: Symbol(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }
         }
     }
@@ -1095,22 +1091,20 @@ trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub
         {
             Lambda :: Lam(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, Lambda :: App(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, Lambda :: Var(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, Lambda :: Let(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }
         }
     }
@@ -1562,30 +1556,28 @@ trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub
         {
             Rise :: Lam(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, Rise :: App(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, Rise :: Var(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, Rise :: Let(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, Rise :: Number(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, Rise :: Symbol(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }
         }
     }
@@ -1752,9 +1744,8 @@ trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub
         {
             Var :: F(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }
         }
     }
@@ -2088,19 +2079,16 @@ trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub
         {
             Fgh :: F(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, Fgh :: G(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, Fgh :: H(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }
         }
     }
@@ -2478,22 +2466,20 @@ trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub
         {
             Sdql :: Lam(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, Sdql :: Var(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, Sdql :: Sing(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, Sdql :: Sum(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }
         }
     }
@@ -2970,31 +2956,28 @@ ArrayLang
         {
             ArrayLang :: Lam(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, ArrayLang :: App(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, ArrayLang :: Var(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, ArrayLang :: Let(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, ArrayLang :: Number(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, ArrayLang :: Symbol(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }
         }
     }
@@ -3223,13 +3206,12 @@ trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub
         {
             And :: Var(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, And :: And(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }
         }
     }
@@ -3310,7 +3292,7 @@ produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str {
 produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "new" } }), return None
 produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "compose" } }), return None
 produce_from_syntax2: e.is_some(), e=Some(Expr::Lit { attrs: [], lit: Lit::Str { token: "true" } }), return None
-v: Variant { attrs: [], ident: Ident { ident: "PredName", span: #0 bytes(66170..66178) }, fields: Fields::Unnamed { paren_token: Paren, unnamed: [Field { attrs: [], vis: Visibility::Inherited, mutability: FieldMutability::None, ident: None, colon_token: None, ty: Type::Path { qself: None, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "String", span: #0 bytes(66179..66185) }, arguments: PathArguments::None }] } } }] }, discriminant: None }
+v: Variant { attrs: [], ident: Ident { ident: "PredName", span: #0 bytes(66173..66181) }, fields: Fields::Unnamed { paren_token: Paren, unnamed: [Field { attrs: [], vis: Visibility::Inherited, mutability: FieldMutability::None, ident: None, colon_token: None, ty: Type::Path { qself: None, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "String", span: #0 bytes(66182..66188) }, arguments: PathArguments::None }] } } }] }, discriminant: None }
 from_syntax_arms2 = if let Some(a) = < String > :: from_syntax(elems)
 { return Some(CHC :: PredName(a)); }
 trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub enum CHC
@@ -3700,52 +3682,59 @@ trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub
         {
             CHC :: Var(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, CHC :: PredSyntax(a0, a1) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type()); out
             }, CHC :: New(a0, a1, a2) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); let out =
-                out.chain(a1.get_type().into_iter()); let out =
-                out.chain(a2.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out.push(a1.get_type());
+                out.push(a2.get_type()); out
             }, CHC :: Compose(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }, CHC :: True() =>
-            { let out = std :: iter :: empty(); out.collect() }, CHC ::
-            PredName(a0) =>
+            { let mut out : Vec < LanguageChildrenType > = vec! []; out }, CHC
+            :: PredName(a0) =>
             {
-                let out = std :: iter :: empty(); let out =
-                out.chain(a0.get_type().into_iter()); out.collect()
+                let mut out : Vec < LanguageChildrenType > = vec! [];
+                out.push(a0.get_type()); out
             }
         }
     }
 }
 warning: `slotted-egraphs` (lib test) generated 21 warnings (21 duplicates)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.81s
-     Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-f4bcfb6e9993f349)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.56s
+     Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-f989041158719693)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
 
-     Running tests/entry.rs (target/debug/deps/entry-b7cdb244417a21af)
+     Running tests/entry.rs (target/debug/deps/entry-4ad53240c13203eb)
 
 running 1 test
 [slotted_egraphs::parse] 
-    s = "(and <*> ?b)"
-[slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, Star, RVecBracket, PVar("b"), RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, Star, RVecBracket, PVar("b"), RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, Star, RVecBracket, PVar("b"), RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, Star, RVecBracket, PVar("b"), RParen]
+    s = "(and <?a *> ?b)"
+[slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, PVar("a"), Star, RVecBracket, PVar("b"), RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), Star, RVecBracket, PVar("b"), RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("and"), LVecBracket, PVar("a"), Star, RVecBracket, PVar("b"), RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, PVar("a"), Star, RVecBracket, PVar("b"), RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("a"), Star, RVecBracket, PVar("b"), RParen]
+[slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("a"), Star, RVecBracket, PVar("b"), RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [PVar("a"), Star, RVecBracket, PVar("b"), RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("a"), Star, RVecBracket, PVar("b"), RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst ret1 = PVar("a")
+[slotted_egraphs::parse] parse_pattern ret pat_struct = PVar(
+        "a",
+    ), pat_display = ?a
+[slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("a")), [Star, RVecBracket, PVar("b"), RParen]))
 [slotted_egraphs::parse] parse_nested_syntax_elem input tok = [Star, RVecBracket, PVar("b"), RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Star])
+[slotted_egraphs::parse] parse_nested_syntax_elem ret1 = Vec([Pattern(PVar("a")), Star])
 [slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("b"), RParen]
 [slotted_egraphs::parse] Last case in parse_nested_syntax_elem, tok = [PVar("b"), RParen]
 [slotted_egraphs::parse] parse_pattern input tok = [PVar("b"), RParen]
@@ -3755,48 +3744,56 @@ running 1 test
         "b",
     ), pat_display = ?b
 [slotted_egraphs::parse] parse_nested_syntax_elem ret3 = Ok((Pattern(PVar("b")), [RParen]))
-[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([Star]), AppliedId(id0, map-[])]
-[entry::chc] from_syntax::elems = [String("and"), Vec([Star]), AppliedId(id0, map-[])]
-[entry::chc] children: [Vec([Star]), AppliedId(id0, map-[])]
+[slotted_egraphs::parse] syntax_elems_mock = [String("and"), Vec([AppliedId(id0, map-[]), Star]), AppliedId(id0, map-[])]
+[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), Star]), AppliedId(id0, map-[])]
+[entry::chc] children: [Vec([AppliedId(id0, map-[]), Star]), AppliedId(id0, map-[])]
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([Star])]
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), Star])]
+[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [AppliedId(id0, map-[])]
 [slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [Star]
-[entry::chc] tmp = Some([Star])
-[entry::chc] fields: [Star]
+[entry::chc] tmp = Some([AppliedId(id0, map-[]), Star])
+[entry::chc] fields: [AppliedId(id0, map-[]), Star]
 [entry::chc] tmp = Some(id0, map-[])
 [entry::chc] fields: id0, map-[]
-[entry::chc] from_syntax::ret = Some(And([Star], id0, map-[]))
-[slotted_egraphs::parse] node1 = Some(And([Star], id0, map-[]))
-[entry::chc] from_syntax::elems = [String("and"), Vec([Star]), AppliedId(id0, map-[])]
-[entry::chc] children: [Vec([Star]), AppliedId(id0, map-[])]
+[entry::chc] from_syntax::ret = Some(And([AppliedId(id0, map-[]), Star], id0, map-[]))
+[slotted_egraphs::parse] node1 = Some(And([AppliedId(id0, map-[]), Star], id0, map-[]))
+[entry::chc] from_syntax::elems = [String("and"), Vec([AppliedId(id0, map-[]), Star]), AppliedId(id0, map-[])]
+[entry::chc] children: [Vec([AppliedId(id0, map-[]), Star]), AppliedId(id0, map-[])]
 [slotted_egraphs::lang] vec<L>::from_syntax input elems = []
 [slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([Star])]
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), Star])]
+[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [AppliedId(id0, map-[])]
 [slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [Star]
-[entry::chc] tmp = Some([Star])
-[entry::chc] fields: [Star]
+[entry::chc] tmp = Some([AppliedId(id0, map-[]), Star])
+[entry::chc] fields: [AppliedId(id0, map-[]), Star]
 [entry::chc] tmp = Some(id0, map-[])
 [entry::chc] fields: id0, map-[]
-[entry::chc] from_syntax::ret = Some(And([Star], id0, map-[]))
-[slotted_egraphs::parse] node = And([Star], id0, map-[])
-[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Star]), Pattern(PVar("b"))]
-[slotted_egraphs::parse] transformed syntax_elems = [Star, PVar("b")]
-[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([Star], id0, map-[]), [Star, PVar("b")])
+[entry::chc] from_syntax::ret = Some(And([AppliedId(id0, map-[]), Star], id0, map-[]))
+[slotted_egraphs::parse] node = And([AppliedId(id0, map-[]), Star], id0, map-[])
+[slotted_egraphs::parse] before syntax_elems = [String("and"), Vec([Pattern(PVar("a")), Star]), Pattern(PVar("b"))]
+[slotted_egraphs::parse] transformed syntax_elems = [PVar("a"), Star, PVar("b")]
+[slotted_egraphs::parse] parse_pattern_nosubst ret2 = ENode(And([AppliedId(id0, map-[]), Star], id0, map-[]), [PVar("a"), Star, PVar("b")])
 [slotted_egraphs::parse] parse_pattern ret pat_struct = ENode(
         And(
             [
+                AppliedId(
+                    id0, map-[],
+                ),
                 Star,
             ],
             id0, map-[],
         ),
         [
+            PVar(
+                "a",
+            ),
             Star,
             PVar(
                 "b",
             ),
         ],
-    ), pat_display = (and * *)
+    ), pat_display = (and ?a * *)
 [slotted_egraphs::parse] 
     s = "(and <?a> ?b)"
 [slotted_egraphs::parse] tokenize: ret = [LParen, Ident("and"), LVecBracket, PVar("a"), RVecBracket, PVar("b"), RParen]
@@ -4391,8 +4388,55 @@ running 1 test
 [slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(Var($2), [])
 [slotted_egraphs::rewrite::pattern] pattern_to_re input pat = ENode(Var($3), [])
 [slotted_egraphs::parse] RecExpr::parse: ret = ENode(And([AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])], id0, map-[]), [ENode(Var($0), []), ENode(Var($1), []), ENode(Var($2), []), ENode(Var($3), [])])
-ematch_all pattern = ENode(And([Star], id0, map-[]), [Star, PVar("b")])
-ematch_impl pattern = ENode(And([Star], id0, map-[]), [Star, PVar("b")])
+ematch_all pattern = ENode(And([AppliedId(id0, map-[]), Star], id0, map-[]), [PVar("a"), Star, PVar("b")])
+ematch_impl input pattern = ENode(And([AppliedId(id0, map-[]), Star], id0, map-[]), [PVar("a"), Star, PVar("b")]), st = State { partial_subst: {}, partial_slotmap: [] }, i = id0, map-[$f0 -> $f0]
+i eclass = EClass {
+    nodes: {
+        Var(
+            $0,
+        ): ProvenSourceNode {
+            elem: [$0 -> $f0],
+            src_id: id0,
+        },
+    },
+    slots: {
+        $f0,
+    },
+    usages: {
+        And(
+            [
+                AppliedId(
+                    id0, map-[$f0 -> $0],
+                ),
+                AppliedId(
+                    id0, map-[$f0 -> $1],
+                ),
+            ],
+            id0, map-[$f0 -> $2],
+        ),
+        And(
+            [
+                AppliedId(
+                    id1, map-[$f1 -> $0, $f2 -> $1, $f3 -> $2],
+                ),
+                AppliedId(
+                    id0, map-[$f0 -> $3],
+                ),
+            ],
+            id0, map-[$f0 -> $2],
+        ),
+    },
+    group: Group {
+        identity: ProvenPerm {
+            elem: [$f0 -> $f0],
+        },
+        next: None,
+    },
+    syn_enode: Var(
+        $f0,
+    ),
+    ..
+}
 [slotted_egraphs::egraph] enodes_applied i = id0, map-[$f0 -> $f0]
 [slotted_egraphs::egraph] classes = EClass {
         nodes: {
@@ -4444,7 +4488,61 @@ ematch_impl pattern = ENode(And([Star], id0, map-[]), [Star, PVar("b")])
 enodes_applied result = [Var($f0)]
 ematch_impl enodes in eclass = [Var($f0)]
 ematch_impl continue at Discriminant(1) != Discriminant(0)
-ematch_impl pattern = ENode(And([Star], id0, map-[]), [Star, PVar("b")])
+ematch_impl input pattern = ENode(And([AppliedId(id0, map-[]), Star], id0, map-[]), [PVar("a"), Star, PVar("b")]), st = State { partial_subst: {}, partial_slotmap: [] }, i = id1, map-[$f1 -> $f1, $f2 -> $f2, $f3 -> $f3]
+i eclass = EClass {
+    nodes: {
+        And(
+            [
+                AppliedId(
+                    id0, map-[$f0 -> $0],
+                ),
+                AppliedId(
+                    id0, map-[$f0 -> $1],
+                ),
+            ],
+            id0, map-[$f0 -> $2],
+        ): ProvenSourceNode {
+            elem: [$0 -> $f1, $1 -> $f2, $2 -> $f3],
+            src_id: id1,
+        },
+    },
+    slots: {
+        $f1,
+        $f2,
+        $f3,
+    },
+    usages: {
+        And(
+            [
+                AppliedId(
+                    id1, map-[$f1 -> $0, $f2 -> $1, $f3 -> $2],
+                ),
+                AppliedId(
+                    id0, map-[$f0 -> $3],
+                ),
+            ],
+            id0, map-[$f0 -> $2],
+        ),
+    },
+    group: Group {
+        identity: ProvenPerm {
+            elem: [$f1 -> $f1, $f2 -> $f2, $f3 -> $f3],
+        },
+        next: None,
+    },
+    syn_enode: And(
+        [
+            AppliedId(
+                id0, map-[$f0 -> $f1],
+            ),
+            AppliedId(
+                id0, map-[$f0 -> $f2],
+            ),
+        ],
+        id0, map-[$f0 -> $f3],
+    ),
+    ..
+}
 [slotted_egraphs::egraph] enodes_applied i = id1, map-[$f1 -> $f1, $f2 -> $f2, $f3 -> $f3]
 [slotted_egraphs::egraph] classes = EClass {
         nodes: {
@@ -4503,103 +4601,169 @@ ematch_impl pattern = ENode(And([Star], id0, map-[]), [Star, PVar("b")])
 enodes_applied result = [And([AppliedId(id0, map-[$f0 -> $f1]), AppliedId(id0, map-[$f0 -> $f2])], id0, map-[$f0 -> $f3])]
 ematch_impl enodes in eclass = [And([AppliedId(id0, map-[$f0 -> $f1]), AppliedId(id0, map-[$f0 -> $f2])], id0, map-[$f0 -> $f3])]
 clear_n2: And([AppliedId(id0, map-[]), AppliedId(id0, map-[])], id0, map-[])
-n_sh: And([Star], id0, map-[])
+n_sh: And([AppliedId(id0, map-[]), Star], id0, map-[])
 clear_n2_sh: And([AppliedId(id0, map-[]), AppliedId(id0, map-[])], id0, map-[])
-ematch_impl children_type [Star, AppliedId(id0, map-[])] vs [AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
-thread 'chc::and' panicked at src/lang.rs:228:38:
+ematch_impl children_type [Vec([AppliedId(id0, map-[]), Star]), AppliedId(id0, map-[])] vs [Vec([AppliedId(id0, map-[]), AppliedId(id0, map-[])]), AppliedId(id0, map-[])]
+ematch_impl match_with_star = true
+clear_n2 slots = []
+n slots = []
+updated partial_slotmap = []
+ematch_impl input pattern = PVar("a"), st = State { partial_subst: {}, partial_slotmap: [] }, i = id0, map-[$f0 -> $f1]
+i eclass = EClass {
+    nodes: {
+        Var(
+            $0,
+        ): ProvenSourceNode {
+            elem: [$0 -> $f0],
+            src_id: id0,
+        },
+    },
+    slots: {
+        $f0,
+    },
+    usages: {
+        And(
+            [
+                AppliedId(
+                    id0, map-[$f0 -> $0],
+                ),
+                AppliedId(
+                    id0, map-[$f0 -> $1],
+                ),
+            ],
+            id0, map-[$f0 -> $2],
+        ),
+        And(
+            [
+                AppliedId(
+                    id1, map-[$f1 -> $0, $f2 -> $1, $f3 -> $2],
+                ),
+                AppliedId(
+                    id0, map-[$f0 -> $3],
+                ),
+            ],
+            id0, map-[$f0 -> $2],
+        ),
+    },
+    group: Group {
+        identity: ProvenPerm {
+            elem: [$f0 -> $f0],
+        },
+        next: None,
+    },
+    syn_enode: Var(
+        $f0,
+    ),
+    ..
+}
+ematch_impl input pattern = Star, st = State { partial_subst: {"a": id0, map-[$f0 -> $f1]}, partial_slotmap: [] }, i = id0, map-[$f0 -> $f2]
+i eclass = EClass {
+    nodes: {
+        Var(
+            $0,
+        ): ProvenSourceNode {
+            elem: [$0 -> $f0],
+            src_id: id0,
+        },
+    },
+    slots: {
+        $f0,
+    },
+    usages: {
+        And(
+            [
+                AppliedId(
+                    id0, map-[$f0 -> $0],
+                ),
+                AppliedId(
+                    id0, map-[$f0 -> $1],
+                ),
+            ],
+            id0, map-[$f0 -> $2],
+        ),
+        And(
+            [
+                AppliedId(
+                    id1, map-[$f1 -> $0, $f2 -> $1, $f3 -> $2],
+                ),
+                AppliedId(
+                    id0, map-[$f0 -> $3],
+                ),
+            ],
+            id0, map-[$f0 -> $2],
+        ),
+    },
+    group: Group {
+        identity: ProvenPerm {
+            elem: [$f0 -> $f0],
+        },
+        next: None,
+    },
+    syn_enode: Var(
+        $f0,
+    ),
+    ..
+}
+
+thread 'chc::and' panicked at /home/pondnj/chc/project/slotted-egraphs/src/rewrite/ematch.rs:78:13:
 not yet implemented
 stack backtrace:
-   0: _rust_begin_unwind
+   0: __rustc::rust_begin_unwind
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/panicking.rs:697:5
    1: core::panicking::panic_fmt
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/panicking.rs:75:14
    2: core::panicking::panic
-   3: <slotted_egraphs::types::AppliedIdOrStar as slotted_egraphs::lang::LanguageChildren>::all_slot_occurrences_iter
-             at ./src/lang.rs:228:38
-   4: <alloc::vec::Vec<L> as slotted_egraphs::lang::LanguageChildren>::all_slot_occurrences_iter::{{closure}}
-             at ./src/lang.rs:364:34
-   5: core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &mut F>::call_once
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/ops/function.rs:305:13
-   6: core::option::Option<T>::map
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/option.rs:1105:29
-   7: <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::next
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/map.rs:107:26
-   8: <core::iter::adapters::fuse::Fuse<I> as core::iter::adapters::fuse::FuseImpl<I>>::next
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/fuse.rs:359:9
-   9: <core::iter::adapters::fuse::Fuse<I> as core::iter::traits::iterator::Iterator>::next
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/fuse.rs:50:9
-  10: <core::iter::adapters::flatten::FlattenCompat<I,U> as core::iter::traits::iterator::Iterator>::next
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/flatten.rs:608:29
-  11: <core::iter::adapters::flatten::FlatMap<I,U,F> as core::iter::traits::iterator::Iterator>::next
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/flatten.rs:64:9
-  12: <core::iter::adapters::copied::Copied<I> as core::iter::traits::iterator::Iterator>::next
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/copied.rs:46:9
-  13: <core::iter::adapters::chain::Chain<A,B> as core::iter::traits::iterator::Iterator>::next::{{closure}}
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/chain.rs:84:67
-  14: core::option::Option<T>::or_else
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/option.rs:1545:21
-  15: <core::iter::adapters::chain::Chain<A,B> as core::iter::traits::iterator::Iterator>::next
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/chain.rs:84:9
-  16: core::ops::function::FnOnce::call_once
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/ops/function.rs:250:5
-  17: core::iter::adapters::chain::and_then_or_clear
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/chain.rs:333:13
-  18: <core::iter::adapters::chain::Chain<A,B> as core::iter::traits::iterator::Iterator>::next
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/chain.rs:84:9
-  19: <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/spec_from_iter_nested.rs:24:32
-  20: <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/spec_from_iter.rs:33:9
-  21: <alloc::vec::Vec<T> as core::iter::traits::collect::FromIterator<T>>::from_iter
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/mod.rs:2985:9
-  22: core::iter::traits::iterator::Iterator::collect
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/traits/iterator.rs:2000:9
-  23: <entry::chc::And as slotted_egraphs::lang::Language>::all_slot_occurrences
-             at ./tests/chc/mod.rs:11:1
-  24: slotted_egraphs::rewrite::ematch::ematch_node
-             at ./src/rewrite/ematch.rs:119:18
-  25: slotted_egraphs::rewrite::ematch::ematch_impl
-             at ./src/rewrite/ematch.rs:69:17
-  26: slotted_egraphs::rewrite::ematch::ematch_all
-             at ./src/rewrite/ematch.rs:25:13
-  27: slotted_egraphs::rewrite::Rewrite<L,N>::new_if::{{closure}}
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/panicking.rs:145:5
+   3: slotted_egraphs::rewrite::ematch::ematch_impl
+             at ./src/rewrite/ematch.rs:78:13
+   4: slotted_egraphs::rewrite::ematch::ematch_node
+             at ./src/rewrite/ematch.rs:156:29
+   5: slotted_egraphs::rewrite::ematch::ematch_impl
+             at ./src/rewrite/ematch.rs:72:17
+   6: slotted_egraphs::rewrite::ematch::ematch_all
+             at ./src/rewrite/ematch.rs:27:13
+   7: slotted_egraphs::rewrite::Rewrite<L,N>::new_if::{{closure}}
              at ./src/rewrite/mod.rs:79:42
-  28: slotted_egraphs::rewrite::RewriteT<L,N,T>::into::{{closure}}
+   8: slotted_egraphs::rewrite::RewriteT<L,N,T>::into::{{closure}}
              at ./src/rewrite/mod.rs:35:51
-  29: slotted_egraphs::rewrite::apply_rewrites::{{closure}}
+   9: slotted_egraphs::rewrite::apply_rewrites::{{closure}}
              at ./src/rewrite/mod.rs:53:58
-  30: core::iter::adapters::map::map_fold::{{closure}}
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/map.rs:88:28
-  31: <core::slice::iter::Iter<T> as core::iter::traits::iterator::Iterator>::fold
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/slice/iter/macros.rs:232:27
-  32: <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/map.rs:128:9
-  33: core::iter::traits::iterator::Iterator::for_each
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/traits/iterator.rs:813:9
-  34: alloc::vec::Vec<T,A>::extend_trusted
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/mod.rs:3121:17
-  35: <alloc::vec::Vec<T,A> as alloc::vec::spec_extend::SpecExtend<T,I>>::spec_extend
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/spec_extend.rs:26:9
-  36: <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/spec_from_iter_nested.rs:60:9
-  37: <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/spec_from_iter.rs:33:9
-  38: <alloc::vec::Vec<T> as core::iter::traits::collect::FromIterator<T>>::from_iter
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/mod.rs:2985:9
-  39: core::iter::traits::iterator::Iterator::collect
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/traits/iterator.rs:2000:9
-  40: slotted_egraphs::rewrite::apply_rewrites
-             at ./src/rewrite/mod.rs:53:33
-  41: slotted_egraphs::run::runner::Runner<L,N,IterData,CustomErrorT>::run_one
+  10: core::iter::adapters::map::map_fold::{{closure}}
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/map.rs:88:28
+  11: <core::slice::iter::Iter<T> as core::iter::traits::iterator::Iterator>::fold
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/iter/macros.rs:255:27
+  12: <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/map.rs:128:19
+  13: core::iter::traits::iterator::Iterator::for_each
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/traits/iterator.rs:827:14
+  14: alloc::vec::Vec<T,A>::extend_trusted
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3611:26
+  15: <alloc::vec::Vec<T,A> as alloc::vec::spec_extend::SpecExtend<T,I>>::spec_extend
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/spec_extend.rs:29:14
+  16: <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/spec_from_iter_nested.rs:62:16
+  17: <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/spec_from_iter.rs:34:9
+  18: <alloc::vec::Vec<T> as core::iter::traits::collect::FromIterator<T>>::from_iter
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3470:9
+  19: core::iter::traits::iterator::Iterator::collect
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/traits/iterator.rs:2027:9
+  20: slotted_egraphs::rewrite::apply_rewrites
+             at ./src/rewrite/mod.rs:53:78
+  21: slotted_egraphs::run::runner::Runner<L,N,IterData,CustomErrorT>::run_one
              at ./src/run/runner.rs:181:24
-  42: slotted_egraphs::run::runner::Runner<L,N,IterData,CustomErrorT>::run
-             at ./src/run/runner.rs:153:24
-  43: entry::assert_reaches
-             at ./tests/entry.rs:122:18
-  44: entry::chc::and
+  22: slotted_egraphs::run::runner::Runner<L,N,IterData,CustomErrorT>::run
+             at ./src/run/runner.rs:153:29
+  23: entry::assert_reaches
+             at ./tests/entry.rs:122:25
+  24: entry::chc::and
              at ./tests/chc/mod.rs:67:5
-  45: entry::chc::and::{{closure}}
+  25: entry::chc::and::{{closure}}
              at ./tests/chc/mod.rs:52:9
-  46: core::ops::function::FnOnce::call_once
-             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/ops/function.rs:250:5
+  26: core::ops::function::FnOnce::call_once
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  27: core::ops::function::FnOnce::call_once
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/ops/function.rs:250:5
 note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
 test chc::and ... FAILED
 
@@ -4608,6 +4772,6 @@ failures:
 failures:
     chc::and
 
-test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.07s
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.03s
 
 error: test failed, to rerun pass `--test entry`

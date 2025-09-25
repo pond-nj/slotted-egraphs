@@ -43,7 +43,7 @@ pub fn get_all_and_rewrites() -> Vec<Rewrite<And>> {
 fn and_tmp() -> Rewrite<And> {
     // let pat = "(and <?a *>)";
     // TODO(Pond): (and <?a *> ?b)
-    let pat = "(and <*> ?b)";
+    let pat = "(and <?a *> ?b)";
     let outpat = "(and <?a> ?b)";
     Rewrite::new("and-tmp", pat, outpat)
 }

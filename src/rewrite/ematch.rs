@@ -1,9 +1,11 @@
+use core::panic;
+
 use crate::*;
 use log::info;
 
 pub type Subst = HashMap<String, AppliedId>;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 struct State {
     // uses egraph slots.
     partial_subst: Subst,
@@ -39,7 +41,8 @@ fn ematch_impl<L: Language, N: Analysis<L>>(
     i: AppliedId,
     eg: &EGraph<L, N>,
 ) -> Vec<State> {
-    println!("ematch_impl pattern = {pattern:?}");
+    println!("ematch_impl input pattern = {pattern:?}, st = {st:?}, i = {i:?}");
+    println!("i eclass = {:#?}", eg.classes[&i.id]);
     match &pattern {
         Pattern::PVar(v) => {
             let mut st = st;
@@ -106,12 +109,30 @@ fn ematch_node<L: Language, N: Analysis<L>>(
             clear_n2_sh.get_children_type()
         );
 
-        if n_sh != clear_n2_sh && !(n_sh.children_eq_with_star(&clear_n2_sh)) {
+        let match_with_star = vec_language_children_type_eq_with_star(
+            &n_sh.get_children_type(),
+            &clear_n2_sh.get_children_type(),
+        );
+        println!("ematch_impl match_with_star = {match_with_star}");
+
+        if n_sh != clear_n2_sh && !match_with_star {
             println!("ematch_impl continue at {n_sh:?} != {clear_n2_sh:?}");
             continue 'nodeloop;
         }
 
         let mut st = st.clone();
+
+        println!(
+            "clear_n2 slots = {:?}",
+            clear_n2
+                .all_slot_occurrences()
+                .iter()
+                .collect::<Vec<&Slot>>()
+        );
+        println!(
+            "n slots = {:?}",
+            n.all_slot_occurrences().iter().collect::<Vec<&Slot>>()
+        );
 
         for (x, y) in clear_n2
             .all_slot_occurrences()
@@ -124,6 +145,8 @@ fn ematch_node<L: Language, N: Analysis<L>>(
                 continue 'nodeloop;
             }
         }
+
+        println!("updated partial_slotmap = {:?}", st.partial_slotmap);
 
         let mut acc = vec![st];
         for (sub_id, sub_pat) in n2.applied_id_occurrences().into_iter().zip(children.iter()) {

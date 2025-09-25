@@ -1,6 +1,7 @@
 use core::panic;
 
 use crate::*;
+use either::Either;
 
 use log::debug;
 
@@ -18,9 +19,36 @@ pub enum LanguageChildrenType {
     Slot(Slot),
     AppliedId(AppliedId),
     Star,
+    Vec(Vec<LanguageChildrenType>),
     // TODO(Pond)
     // Bind(Bind<AppliedId>),
     // BindBind(Bind<Bind<AppliedId>>),
+}
+
+pub fn vec_language_children_type_eq_with_star(
+    a: &Vec<LanguageChildrenType>,
+    b: &Vec<LanguageChildrenType>,
+) -> bool {
+    for i in 0..a.len().min(b.len()) {
+        match (&a[i], &b[i]) {
+            (LanguageChildrenType::Vec(a_), LanguageChildrenType::Vec(b_)) => {
+                if !vec_language_children_type_eq_with_star(&a_, &b_) {
+                    return false;
+                }
+            }
+            (LanguageChildrenType::Star, _) | (_, LanguageChildrenType::Star) => {
+                assert!(i == a.len() - 1 || i == b.len() - 1);
+                return true;
+            }
+            _ => {
+                if a[i] != b[i] {
+                    return false;
+                }
+            }
+        }
+    }
+
+    true
 }
 
 pub trait LanguageChildren: Debug + Clone + Hash + Eq {
@@ -35,7 +63,7 @@ pub trait LanguageChildren: Debug + Clone + Hash + Eq {
 
     fn to_syntax(&self) -> Vec<SyntaxElem>;
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
-    fn get_type(&self) -> Vec<LanguageChildrenType>;
+    fn get_type(&self) -> LanguageChildrenType;
 
     fn weak_shape_impl(&mut self, _m: &mut (SlotMap, u32)) {
         todo!()
@@ -94,8 +122,8 @@ impl LanguageChildren for AppliedId {
             }
         }
     }
-    fn get_type(&self) -> Vec<LanguageChildrenType> {
-        vec![LanguageChildrenType::AppliedId(self.clone())]
+    fn get_type(&self) -> LanguageChildrenType {
+        LanguageChildrenType::AppliedId(self.clone())
     }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
@@ -142,8 +170,8 @@ impl LanguageChildren for Slot {
             }
         }
     }
-    fn get_type(&self) -> Vec<LanguageChildrenType> {
-        vec![LanguageChildrenType::Slot(self.clone())]
+    fn get_type(&self) -> LanguageChildrenType {
+        LanguageChildrenType::Slot(self.clone())
     }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
@@ -179,7 +207,7 @@ macro_rules! bare_language_child {
                     },
                 }
             }
-            fn get_type(&self) -> Vec<LanguageChildrenType> {
+            fn get_type(&self) -> LanguageChildrenType {
                 todo!()
             }
 
@@ -224,8 +252,8 @@ impl LanguageChildren for AppliedIdOrStar {
     // immut:
     fn all_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
         match self {
-            AppliedIdOrStar::AppliedId(x) => x.all_slot_occurrences_iter(),
-            AppliedIdOrStar::Star => todo!(),
+            AppliedIdOrStar::AppliedId(x) => Either::Left(x.all_slot_occurrences_iter()),
+            AppliedIdOrStar::Star => Either::Right(std::iter::empty()),
         }
     }
 
@@ -264,10 +292,10 @@ impl LanguageChildren for AppliedIdOrStar {
         }
     }
 
-    fn get_type(&self) -> Vec<LanguageChildrenType> {
+    fn get_type(&self) -> LanguageChildrenType {
         match self {
             AppliedIdOrStar::AppliedId(x) => x.get_type(),
-            AppliedIdOrStar::Star => vec![LanguageChildrenType::Star],
+            AppliedIdOrStar::Star => LanguageChildrenType::Star,
         }
     }
 
@@ -331,7 +359,7 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
         Some(Bind { slot: *slot, elem })
     }
 
-    fn get_type(&self) -> Vec<LanguageChildrenType> {
+    fn get_type(&self) -> LanguageChildrenType {
         todo!()
     }
 
@@ -407,12 +435,12 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
         // Some(out)
     }
 
-    fn get_type(&self) -> Vec<LanguageChildrenType> {
+    fn get_type(&self) -> LanguageChildrenType {
         let mut out = Vec::new();
         for x in self {
-            out.extend(x.get_type());
+            out.push(x.get_type());
         }
-        out
+        LanguageChildrenType::Vec(out)
     }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {

@@ -404,11 +404,11 @@ fn produce_get_children_type_arms(name: &Ident, v: &Variant) -> TokenStream2 {
         .collect();
     quote! {
         #name::#variant_name(#(#fields),*) => {
-            let out = std::iter::empty();
+            let mut out: Vec<LanguageChildrenType> = vec![];
             #(
-                let out = out.chain(#fields .get_type().into_iter());
+                out.push(#fields .get_type());
             )*
-            out.collect()
+            out
         }
     }
 }
