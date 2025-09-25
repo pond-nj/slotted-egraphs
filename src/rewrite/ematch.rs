@@ -105,11 +105,8 @@ fn ematch_node<L: Language, N: Analysis<L>>(
             n_sh.get_children_type(),
             clear_n2_sh.get_children_type()
         );
-        println!(
-            "eq with star = {:?}",
-            n_sh.children_eq_with_star(&clear_n2_sh)
-        );
-        if n_sh != clear_n2_sh {
+
+        if n_sh != clear_n2_sh && !(n_sh.children_eq_with_star(&clear_n2_sh)) {
             println!("ematch_impl continue at {n_sh:?} != {clear_n2_sh:?}");
             continue 'nodeloop;
         }

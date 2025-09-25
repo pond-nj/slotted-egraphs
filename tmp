@@ -3108,7 +3108,6 @@ trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub
             {
                 let out = std :: iter :: empty(); let out =
                 out.chain(a0.public_slot_occurrences_iter().copied());
-warning: `slotted-egraphs` (lib test) generated 21 warnings (21 duplicates)
                 out.collect()
             }, And :: And(a0, a1) =>
             {
@@ -3728,7 +3727,8 @@ trait language #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)] pub
         }
     }
 }
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.48s
+warning: `slotted-egraphs` (lib test) generated 21 warnings (21 duplicates)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.81s
      Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-f4bcfb6e9993f349)
 
 running 0 tests
@@ -4506,89 +4506,99 @@ clear_n2: And([AppliedId(id0, map-[]), AppliedId(id0, map-[])], id0, map-[])
 n_sh: And([Star], id0, map-[])
 clear_n2_sh: And([AppliedId(id0, map-[]), AppliedId(id0, map-[])], id0, map-[])
 ematch_impl children_type [Star, AppliedId(id0, map-[])] vs [AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
-eq with star = true
-ematch_impl continue at And([Star], id0, map-[]) != And([AppliedId(id0, map-[]), AppliedId(id0, map-[])], id0, map-[])
-ematch_impl pattern = ENode(And([Star], id0, map-[]), [Star, PVar("b")])
-[slotted_egraphs::egraph] enodes_applied i = id2, map-[$f4 -> $f4, $f5 -> $f5, $f6 -> $f6, $f7 -> $f7]
-[slotted_egraphs::egraph] classes = EClass {
-        nodes: {
-            And(
-                [
-                    AppliedId(
-                        id1, map-[$f1 -> $0, $f2 -> $1, $f3 -> $2],
-                    ),
-                    AppliedId(
-                        id0, map-[$f0 -> $3],
-                    ),
-                ],
-                id0, map-[$f0 -> $2],
-            ): ProvenSourceNode {
-                elem: [$0 -> $f4, $1 -> $f5, $2 -> $f7, $3 -> $f6],
-                src_id: id2,
-            },
-        },
-        slots: {
-            $f4,
-            $f5,
-            $f6,
-            $f7,
-        },
-        usages: {},
-        group: Group {
-            identity: ProvenPerm {
-                elem: [$f4 -> $f4, $f5 -> $f5, $f6 -> $f6, $f7 -> $f7],
-            },
-            next: None,
-        },
-        syn_enode: And(
-            [
-                AppliedId(
-                    id1, map-[$f1 -> $f4, $f2 -> $f5, $f3 -> $f7],
-                ),
-                AppliedId(
-                    id0, map-[$f0 -> $f6],
-                ),
-            ],
-            id0, map-[$f0 -> $f7],
-        ),
-        ..
-    }
-enodes_applied result = [And([AppliedId(id1, map-[$f1 -> $f4, $f2 -> $f5, $f3 -> $f7]), AppliedId(id0, map-[$f0 -> $f6])], id0, map-[$f0 -> $f7])]
-ematch_impl enodes in eclass = [And([AppliedId(id1, map-[$f1 -> $f4, $f2 -> $f5, $f3 -> $f7]), AppliedId(id0, map-[$f0 -> $f6])], id0, map-[$f0 -> $f7])]
-clear_n2: And([AppliedId(id0, map-[]), AppliedId(id0, map-[])], id0, map-[])
-n_sh: And([Star], id0, map-[])
-clear_n2_sh: And([AppliedId(id0, map-[]), AppliedId(id0, map-[])], id0, map-[])
-ematch_impl children_type [Star, AppliedId(id0, map-[])] vs [AppliedId(id0, map-[]), AppliedId(id0, map-[]), AppliedId(id0, map-[])]
-eq with star = true
-ematch_impl continue at And([Star], id0, map-[]) != And([AppliedId(id0, map-[]), AppliedId(id0, map-[])], id0, map-[])
-ematch_all out = []
-[tests/entry.rs:124:5] &report.stop_reason = Saturated
-
-
-id0($f0):
->> Var($f0)
- - Var($f0)
-
-id1($f1, $f2, $f3):
->> And([AppliedId(id0, map-[$f0 -> $f1]), AppliedId(id0, map-[$f0 -> $f2])], id0, map-[$f0 -> $f3])
- - And([AppliedId(id0, map-[$f0 -> $f1]), AppliedId(id0, map-[$f0 -> $f2])], id0, map-[$f0 -> $f3])
-
-id2($f4, $f5, $f6, $f7):
->> And([AppliedId(id1, map-[$f1 -> $f4, $f2 -> $f5, $f3 -> $f7]), AppliedId(id0, map-[$f0 -> $f6])], id0, map-[$f0 -> $f7])
- - And([AppliedId(id1, map-[$f1 -> $f4, $f2 -> $f5, $f3 -> $f7]), AppliedId(id0, map-[$f0 -> $f6])], id0, map-[$f0 -> $f7])
-
-thread 'chc::and' panicked at tests/entry.rs:136:5:
-failed to reach goal
+thread 'chc::and' panicked at src/lang.rs:228:38:
+not yet implemented
 stack backtrace:
    0: _rust_begin_unwind
    1: core::panicking::panic_fmt
-   2: entry::assert_reaches
-             at ./tests/entry.rs:136:5
-   3: entry::chc::and
+   2: core::panicking::panic
+   3: <slotted_egraphs::types::AppliedIdOrStar as slotted_egraphs::lang::LanguageChildren>::all_slot_occurrences_iter
+             at ./src/lang.rs:228:38
+   4: <alloc::vec::Vec<L> as slotted_egraphs::lang::LanguageChildren>::all_slot_occurrences_iter::{{closure}}
+             at ./src/lang.rs:364:34
+   5: core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &mut F>::call_once
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/ops/function.rs:305:13
+   6: core::option::Option<T>::map
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/option.rs:1105:29
+   7: <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::next
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/map.rs:107:26
+   8: <core::iter::adapters::fuse::Fuse<I> as core::iter::adapters::fuse::FuseImpl<I>>::next
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/fuse.rs:359:9
+   9: <core::iter::adapters::fuse::Fuse<I> as core::iter::traits::iterator::Iterator>::next
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/fuse.rs:50:9
+  10: <core::iter::adapters::flatten::FlattenCompat<I,U> as core::iter::traits::iterator::Iterator>::next
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/flatten.rs:608:29
+  11: <core::iter::adapters::flatten::FlatMap<I,U,F> as core::iter::traits::iterator::Iterator>::next
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/flatten.rs:64:9
+  12: <core::iter::adapters::copied::Copied<I> as core::iter::traits::iterator::Iterator>::next
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/copied.rs:46:9
+  13: <core::iter::adapters::chain::Chain<A,B> as core::iter::traits::iterator::Iterator>::next::{{closure}}
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/chain.rs:84:67
+  14: core::option::Option<T>::or_else
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/option.rs:1545:21
+  15: <core::iter::adapters::chain::Chain<A,B> as core::iter::traits::iterator::Iterator>::next
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/chain.rs:84:9
+  16: core::ops::function::FnOnce::call_once
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/ops/function.rs:250:5
+  17: core::iter::adapters::chain::and_then_or_clear
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/chain.rs:333:13
+  18: <core::iter::adapters::chain::Chain<A,B> as core::iter::traits::iterator::Iterator>::next
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/chain.rs:84:9
+  19: <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/spec_from_iter_nested.rs:24:32
+  20: <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/spec_from_iter.rs:33:9
+  21: <alloc::vec::Vec<T> as core::iter::traits::collect::FromIterator<T>>::from_iter
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/mod.rs:2985:9
+  22: core::iter::traits::iterator::Iterator::collect
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/traits/iterator.rs:2000:9
+  23: <entry::chc::And as slotted_egraphs::lang::Language>::all_slot_occurrences
+             at ./tests/chc/mod.rs:11:1
+  24: slotted_egraphs::rewrite::ematch::ematch_node
+             at ./src/rewrite/ematch.rs:119:18
+  25: slotted_egraphs::rewrite::ematch::ematch_impl
+             at ./src/rewrite/ematch.rs:69:17
+  26: slotted_egraphs::rewrite::ematch::ematch_all
+             at ./src/rewrite/ematch.rs:25:13
+  27: slotted_egraphs::rewrite::Rewrite<L,N>::new_if::{{closure}}
+             at ./src/rewrite/mod.rs:79:42
+  28: slotted_egraphs::rewrite::RewriteT<L,N,T>::into::{{closure}}
+             at ./src/rewrite/mod.rs:35:51
+  29: slotted_egraphs::rewrite::apply_rewrites::{{closure}}
+             at ./src/rewrite/mod.rs:53:58
+  30: core::iter::adapters::map::map_fold::{{closure}}
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/map.rs:88:28
+  31: <core::slice::iter::Iter<T> as core::iter::traits::iterator::Iterator>::fold
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/slice/iter/macros.rs:232:27
+  32: <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::fold
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/adapters/map.rs:128:9
+  33: core::iter::traits::iterator::Iterator::for_each
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/traits/iterator.rs:813:9
+  34: alloc::vec::Vec<T,A>::extend_trusted
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/mod.rs:3121:17
+  35: <alloc::vec::Vec<T,A> as alloc::vec::spec_extend::SpecExtend<T,I>>::spec_extend
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/spec_extend.rs:26:9
+  36: <alloc::vec::Vec<T> as alloc::vec::spec_from_iter_nested::SpecFromIterNested<T,I>>::from_iter
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/spec_from_iter_nested.rs:60:9
+  37: <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/spec_from_iter.rs:33:9
+  38: <alloc::vec::Vec<T> as core::iter::traits::collect::FromIterator<T>>::from_iter
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/alloc/src/vec/mod.rs:2985:9
+  39: core::iter::traits::iterator::Iterator::collect
+             at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/iter/traits/iterator.rs:2000:9
+  40: slotted_egraphs::rewrite::apply_rewrites
+             at ./src/rewrite/mod.rs:53:33
+  41: slotted_egraphs::run::runner::Runner<L,N,IterData,CustomErrorT>::run_one
+             at ./src/run/runner.rs:181:24
+  42: slotted_egraphs::run::runner::Runner<L,N,IterData,CustomErrorT>::run
+             at ./src/run/runner.rs:153:24
+  43: entry::assert_reaches
+             at ./tests/entry.rs:122:18
+  44: entry::chc::and
              at ./tests/chc/mod.rs:67:5
-   4: entry::chc::and::{{closure}}
+  45: entry::chc::and::{{closure}}
              at ./tests/chc/mod.rs:52:9
-   5: core::ops::function::FnOnce::call_once
+  46: core::ops::function::FnOnce::call_once
              at /private/tmp/rust-20241019-8391-fxpxmx/rustc-1.82.0-src/library/core/src/ops/function.rs:250:5
 note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
 test chc::and ... FAILED
@@ -4598,6 +4608,6 @@ failures:
 failures:
     chc::and
 
-test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.05s
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.07s
 
 error: test failed, to rerun pass `--test entry`
