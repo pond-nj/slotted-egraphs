@@ -19,8 +19,9 @@ mod analysis;
 pub use analysis::*;
 use vec_collections::AbstractVecSet;
 
+use core::fmt;
 use derive_more::Debug;
-use std::{cell::RefCell, fmt};
+use std::{cell::RefCell, fmt::*, io};
 
 use log::debug;
 
@@ -259,8 +260,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     /// Prints the contents of the E-Graph. Helpful for debugging.
-    pub fn dump(&self) {
-        println!("");
+    pub fn dump<T: fmt::Write>(&self, f: &mut T) -> Result {
+        write!(f, "")?;
         let mut v: Vec<(&Id, &EClass<L, N>)> = self.classes.iter().collect();
         v.sort_by_key(|(x, _)| *x);
 
@@ -276,24 +277,25 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 .map(|x| x.to_string())
                 .collect::<Vec<_>>()
                 .join(", ");
-            println!("\n{:?}({}):", i, &slot_str);
+            write!(f, "\n{:?}({}):", i, &slot_str)?;
 
-            println!(">> {:?}", &c.syn_enode);
+            write!(f, ">> {:?}", &c.syn_enode)?;
 
             for (sh, psn) in &c.nodes {
                 let n = sh.apply_slotmap(&psn.elem);
 
                 #[cfg(feature = "explanations")]
-                println!(" - {n:?}    [originally {:?}]", psn.src_id);
+                write!(f, " - {n:?}    [originally {:?}]", psn.src_id);
 
                 #[cfg(not(feature = "explanations"))]
-                println!(" - {n:?}");
+                write!(f, " - {n:?}")?;
             }
             for pp in &c.group.generators() {
-                println!(" -- {:?}", pp.elem);
+                write!(f, " -- {:?}", pp.elem)?;
             }
         }
-        println!("");
+        write!(f, "")?;
+        Ok(())
     }
 
     // The resulting e-nodes are written as they exist in the e-class.

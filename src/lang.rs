@@ -118,7 +118,6 @@ impl LanguageChildren for AppliedId {
                     "(Pond) slotted_egraphs::lang::AppliedId::from_syntax: expected a single applied id, got {:?}",
                     elems
                 );
-                None
             }
         }
     }
@@ -166,7 +165,6 @@ impl LanguageChildren for Slot {
                     "(Pond) slotted_egraphs::slot::Slot::from_syntax: expected a single slot, got {:?}",
                     elems
                 );
-                None
             }
         }
     }
@@ -203,7 +201,6 @@ macro_rules! bare_language_child {
                             "(Pond) slotted_egraphs::lang::Bind::from_syntax: expected a single string, got {:?}",
                             elems
                         );
-                        None
                     },
                 }
             }
@@ -287,7 +284,6 @@ impl LanguageChildren for AppliedIdOrStar {
             [] => None,
             _ => {
                 panic!("(Pond) slotted_egraphs::lang::AppliedIdOrStar::from_syntax");
-                None
             }
         }
     }
@@ -352,7 +348,6 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
                 "(Pond) slotted_egraphs::lang::Bind::from_syntax: expected a single slot, got {:?}",
                 elems
             );
-            return None;
         };
         let elem = L::from_syntax(&elems[1..])?;
 

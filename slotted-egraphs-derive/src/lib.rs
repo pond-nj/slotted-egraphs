@@ -16,7 +16,6 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .iter_mut()
         .map(|x| x.discriminant.take().map(|(_, e)| e))
         .collect();
-    eprintln!("str_names = {str_names:?}");
 
     let all_slot_occurrences_mut_arms: Vec<TokenStream2> = ie
         .variants
@@ -62,14 +61,14 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .zip(&str_names)
         .filter_map(|(x, n)| produce_from_syntax1(&name, &n, x))
         .collect();
-    eprintln!("from_syntax_arms1 = {}", quote! {#(#from_syntax_arms1),*});
+    // eprintln!("from_syntax_arms1 = {}", quote! {#(#from_syntax_arms1),*});
     let from_syntax_arms2: Vec<TokenStream2> = ie
         .variants
         .iter()
         .zip(&str_names)
         .filter_map(|(x, n)| produce_from_syntax2(&name, &n, x))
         .collect();
-    eprintln!("from_syntax_arms2 = {}", quote! {#(#from_syntax_arms2),*});
+    // eprintln!("from_syntax_arms2 = {}", quote! {#(#from_syntax_arms2),*});
     let slots_arms: Vec<TokenStream2> = ie
         .variants
         .iter()
@@ -178,7 +177,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
     }
     .to_token_stream()
     .into();
-    eprintln!("trait language {}", ret);
+    // eprintln!("trait language {}", ret);
     ret
 }
 
@@ -350,10 +349,9 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
 
 fn produce_from_syntax2(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<TokenStream2> {
     if e.is_some() {
-        eprintln!("produce_from_syntax2: e.is_some(), e={e:?}, return None");
+        // eprintln!("produce_from_syntax2: e.is_some(), e={e:?}, return None");
         return None;
     }
-    eprintln!("v: {v:?}");
     let variant_name = &v.ident;
 
     let ty = v.fields.iter().map(|x| x.ty.clone()).next().unwrap();

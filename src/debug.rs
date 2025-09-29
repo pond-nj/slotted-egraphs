@@ -35,8 +35,8 @@ impl Debug for AppliedId {
 }
 
 impl<L: Language, N: Analysis<L>> Debug for EGraph<L, N> {
-    fn fmt(&self, _f: &mut Formatter<'_>) -> Result {
-        todo!()
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        self.dump(f)
     }
 }
 
@@ -64,7 +64,7 @@ impl<L: Language> std::fmt::Display for Pattern<L> {
                         SyntaxElem::String(s) => {
                             write!(f, "{}", s)?;
                         }
-                        SyntaxElem::Vec(v) => {
+                        SyntaxElem::Vec(_v) => {
                             todo!()
                         }
                         SyntaxElem::Star => {

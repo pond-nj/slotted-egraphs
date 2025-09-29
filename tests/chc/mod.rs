@@ -1,11 +1,13 @@
 #![allow(unused)]
 #![allow(non_snake_case)]
 
-use std::vec;
-
 use crate::*;
+use env_logger::Builder;
 use log::{debug, LevelFilter};
 use slotted_egraphs::*;
+use std::io::Write;
+use std::vec;
+use tracing_subscriber::{fmt, prelude::*};
 
 // TODO(Pond): Star should only be allowed inside a vector(dynamic length)
 define_language! {
@@ -22,23 +24,25 @@ pub fn get_all_and_rewrites() -> Vec<Rewrite<And>> {
     vec![and_tmp()]
 }
 
-// fn and_assoc() -> Rewrite<And> {
-//     let pat = "(and <?1 (and <?2 ?3>)>)";
-//     let outpat = "(and <(and <?1 ?2>) ?3>)";
-//     Rewrite::new("and-assoc", pat, outpat)
-// }
+/*
+fn and_assoc() -> Rewrite<And> {
+    let pat = "(and <?1 (and <?2 ?3>)>)";
+    let outpat = "(and <(and <?1 ?2>) ?3>)";
+    Rewrite::new("and-assoc", pat, outpat)
+}
 
-// fn and_comm() -> Rewrite<And> {
-//     let pat = "(and <?a ?b>)";
-//     let outpat = "(and <?b ?a>)";
-//     Rewrite::new("and-comm", pat, outpat)
-// }
+fn and_comm() -> Rewrite<And> {
+    let pat = "(and <?a ?b>)";
+    let outpat = "(and <?b ?a>)";
+    Rewrite::new("and-comm", pat, outpat)
+}
 
-// fn and_3() -> Rewrite<And> {
-//     let pat = "(and <?a (and <?b ?c>)>)";
-//     let outpat = "(and <?a ?b ?c>)";
-//     Rewrite::new("and-3", pat, outpat)
-// }
+fn and_3() -> Rewrite<And> {
+    let pat = "(and <?a (and <?b ?c>)>)";
+    let outpat = "(and <?a ?b ?c>)";
+    Rewrite::new("and-3", pat, outpat)
+}
+     */
 
 fn and_tmp() -> Rewrite<And> {
     // let pat = "(and <?a *>)";
@@ -130,7 +134,7 @@ fn tst1() {
     let mut eg = EGraph::<CHC>::default();
     id(&p_compose, &mut eg);
 
-    eg.dump();
+    println!("eg = {eg:?}");
 
     let mut runner: Runner<CHC> = Runner::default().with_egraph(eg).with_iter_limit(60);
     let report = runner.run(&get_all_rewrites());

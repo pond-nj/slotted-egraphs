@@ -1,7 +1,7 @@
-use core::panic;
-
 use crate::*;
-use log::info;
+use core::panic;
+use log::debug;
+use log_derive::logfn_inputs;
 
 pub type Subst = HashMap<String, AppliedId>;
 
@@ -18,7 +18,7 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
     pattern: &Pattern<L>,
 ) -> Vec<Subst> {
-    println!("ematch_all pattern = {:?}", pattern);
+    debug!("ematch_all pattern = {:?}", pattern);
     let mut out = Vec::new();
     // TODO(Pond): this will start matching at every id, which is not efficient.
     for i in eg.ids() {
@@ -29,20 +29,23 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
                 .map(final_subst),
         );
     }
-    println!("ematch_all out = {out:?}");
+    debug!("ematch_all out = {out:?}");
     out
 }
 
 // (Pond) deal with Pattern cases and find Enode with same type
 // `i` uses egraph slots instead of pattern slots.
+#[logfn_inputs(debug)]
 fn ematch_impl<L: Language, N: Analysis<L>>(
     pattern: &Pattern<L>,
     st: State,
     i: AppliedId,
     eg: &EGraph<L, N>,
 ) -> Vec<State> {
-    println!("ematch_impl input pattern = {pattern:?}, st = {st:?}, i = {i:?}");
-    println!("i eclass = {:#?}", eg.classes[&i.id]);
+    // debug!("==== ematch_impl input ====");
+    // debug!("pattern = {pattern:?}");
+    // debug!("st = {st:?}, i = {i:?}");
+    // debug!("i eclass = {:#?}", eg.classes[&i.id]);
     match &pattern {
         Pattern::PVar(v) => {
             let mut st = st;
@@ -58,14 +61,14 @@ fn ematch_impl<L: Language, N: Analysis<L>>(
         Pattern::ENode(n, children) => {
             let mut out = Vec::new();
             let enodes = eg.enodes_applied(&i);
-            println!("ematch_impl enodes in eclass = {enodes:?}");
+            debug!("ematch_impl enodes in eclass = {enodes:?}");
             for nn in enodes {
                 // (Pond) n is from a pattern, nn is an enode.
                 // (Pond) find the same type of Enode.
                 let d = std::mem::discriminant(n);
                 let dd = std::mem::discriminant(&nn);
                 if d != dd {
-                    println!("ematch_impl continue at {d:?} != {dd:?}");
+                    debug!("ematch_impl continue at {d:?} != {dd:?}");
                     continue;
                 };
 
@@ -80,6 +83,7 @@ fn ematch_impl<L: Language, N: Analysis<L>>(
     }
 }
 
+// Try to match an Enode n with a substitue version of another Enode nn
 fn ematch_node<L: Language, N: Analysis<L>>(
     st: &State,
     eg: &EGraph<L, N>,
@@ -89,22 +93,22 @@ fn ematch_node<L: Language, N: Analysis<L>>(
     nn: &L,
 ) {
     // (Pond) for each enode shaped differently from children eclass different permutation
-    'nodeloop: for n2 in eg.get_group_compatible_weak_variants(&nn) {
+    'nodeloop: for enode_shape in eg.get_group_compatible_weak_variants(&nn) {
         if CHECKS {
             assert_eq!(&nullify_app_ids(n), n);
         }
 
-        let clear_n2 = nullify_app_ids(&n2);
-        println!("clear_n2: {:?}", clear_n2);
+        let clear_n2 = nullify_app_ids(&enode_shape);
+        debug!("clear_n2: {:?}", clear_n2);
         // We can use weak_shape here, as the inputs are nullified
         // i.e. they only have id0() without slot args, so there are no permutations possible.
         let (n_sh, _) = n.weak_shape();
-        println!("n_sh: {:?}", n_sh);
+        debug!("n_sh: {:?}", n_sh);
         let (clear_n2_sh, _) = clear_n2.weak_shape();
-        println!("clear_n2_sh: {:?}", clear_n2_sh);
+        debug!("clear_n2_sh: {:?}", clear_n2_sh);
         // (Pond) they check numbers of slots here?
-        println!(
-            "ematch_impl children_type {:?} vs {:?}",
+        debug!(
+            "ematch_node children_type {:?} vs {:?}",
             n_sh.get_children_type(),
             clear_n2_sh.get_children_type()
         );
@@ -113,23 +117,23 @@ fn ematch_node<L: Language, N: Analysis<L>>(
             &n_sh.get_children_type(),
             &clear_n2_sh.get_children_type(),
         );
-        println!("ematch_impl match_with_star = {match_with_star}");
+        debug!("ematch_node match_with_star = {match_with_star}");
 
         if n_sh != clear_n2_sh && !match_with_star {
-            println!("ematch_impl continue at {n_sh:?} != {clear_n2_sh:?}");
+            debug!("ematch_node continue at {n_sh:?} != {clear_n2_sh:?}");
             continue 'nodeloop;
         }
 
         let mut st = st.clone();
 
-        println!(
+        debug!(
             "clear_n2 slots = {:?}",
             clear_n2
                 .all_slot_occurrences()
                 .iter()
                 .collect::<Vec<&Slot>>()
         );
-        println!(
+        debug!(
             "n slots = {:?}",
             n.all_slot_occurrences().iter().collect::<Vec<&Slot>>()
         );
@@ -141,18 +145,25 @@ fn ematch_node<L: Language, N: Analysis<L>>(
         {
             // (Pond) if cannot try map between pattern and enode slots
             if !try_insert_compatible_slotmap_bij(x, y, &mut st.partial_slotmap) {
-                println!("ematch_impl continue at !try_insert_compatible_slotmap_bij");
+                debug!("ematch_node continue at !try_insert_compatible_slotmap_bij");
                 continue 'nodeloop;
             }
         }
 
-        println!("updated partial_slotmap = {:?}", st.partial_slotmap);
+        debug!("updated partial_slotmap = {:?}", st.partial_slotmap);
 
         let mut acc = vec![st];
-        for (sub_id, sub_pat) in n2.applied_id_occurrences().into_iter().zip(children.iter()) {
+        // (Pond) children = list of Enodes children from pattern
+        // (Pond) enode_shape.applied_id_occurrences() = list of AppliedIds (children Eclasses) from enode
+        for (sub_id, sub_pat) in enode_shape
+            .applied_id_occurrences()
+            .into_iter()
+            .zip(children.iter())
+        {
             let mut next = Vec::new();
             for a in acc {
-                // (Pond) Recurse down
+                // (Pond) Recurse down, try to match children from pattern with AppliedIds from enode
+                debug!("recursing down with ematch_impl with sub_pat = {sub_pat:?}, a = {a:?}, sub_id = {sub_id:?}");
                 next.extend(ematch_impl(sub_pat, a, sub_id.clone(), eg));
             }
             acc = next;

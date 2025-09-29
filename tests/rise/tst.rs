@@ -31,7 +31,7 @@ fn small15() {
 
     // Removing this equation, makes it work.
     equate("(app s (app a (var $0)))", "c", eg); // s(a(x)) = c
-    eg.dump();
+    println!("eg = {eg:?}");
     explain("(app s (app a (var $0)))", "(app s (app b (var $0)))", eg); // s(a(x)) = s(b(x))
 }
 
@@ -39,7 +39,7 @@ fn small15() {
 fn small14() {
     let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app (var $0) (var $1))", "(app (var $1) (var $2))", eg);
-    eg.dump();
+    println!("eg = {eg:?}");
     eg.check();
     explain(
         "(app (app (var $0) (var $1)) x)",
@@ -52,7 +52,7 @@ fn small14() {
 fn small13() {
     let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
-    eg.dump();
+    println!("eg = {eg:?}");
     explain(
         "(app (app (var $0) (var $1)) x)",
         "(app (app (var $1) (var $0)) x)",
@@ -64,7 +64,7 @@ fn small13() {
 fn small12() {
     let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(var $0)", "y", eg);
-    eg.dump();
+    println!("eg = {eg:?}");
     explain("(lam $1 (var $1))", "(lam $0 (var $0))", eg);
     explain("(lam $1 (var $1))", "(lam $0 (var $2))", eg);
 }
@@ -75,7 +75,7 @@ fn small11() {
 
     equate("(app (var $0) (var $1))", "(app (var $0) x)", eg);
     equate("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
-    eg.dump();
+    println!("eg = {eg:?}");
     explain("(app (var $0) (var $1))", "(app (var $3) (var $4))", eg);
 }
 
@@ -83,7 +83,7 @@ fn small11() {
 fn small10() {
     let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app (var $0) (var $1))", "x", eg);
-    eg.dump();
+    println!("eg = {eg:?}");
     explain("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
 }
 
@@ -91,7 +91,7 @@ fn small10() {
 fn small9() {
     let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app (var $0) x)", "y", eg);
-    eg.dump();
+    println!("eg = {eg:?}");
     explain("(app (var $0) x)", "(app (var $1) x)", eg);
 }
 
@@ -113,7 +113,7 @@ fn small8() {
         "(app (app (var $0) (var $1)) y)",
         eg,
     );
-    eg.dump();
+    println!("eg = {eg:?}");
     explain(
         "(app (app (var $0) (var $1)) x)",
         "(app (app (var $1) (var $0)) y)",
@@ -134,7 +134,7 @@ fn small7() {
         "(app (app (var $0) (var $2)) (var $1))",
         eg,
     );
-    eg.dump();
+    println!("eg = {eg:?}");
     explain(
         "(app (app (var $0) (var $1)) (var $2))",
         "(app (app (var $0) (var $1)) (var $2))",
@@ -171,7 +171,7 @@ fn small7() {
 fn small6() {
     let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
-    eg.dump();
+    println!("eg = {eg:?}");
     explain("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
 }
 
@@ -180,7 +180,7 @@ fn small5() {
     let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(var $0)", "(app (var $0) x)", eg);
     equate("x", "y", eg);
-    eg.dump();
+    println!("eg = {eg:?}");
     explain("(var $2)", "(app (var $2) y)", eg);
 }
 
@@ -192,7 +192,7 @@ fn small3() {
     let x1x3: RecExpr<Rise> = term("(app x1 x3)");
     let x2x3: RecExpr<Rise> = term("(app x2 x3)");
     eg.union(&x1, &x2);
-    eg.dump();
+    println!("eg = {eg:?}");
     dbg!(&x1x3);
     dbg!(&x2x3);
     #[cfg(feature = "explanations")]

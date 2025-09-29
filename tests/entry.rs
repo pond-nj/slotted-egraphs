@@ -126,12 +126,12 @@ where
         #[cfg(feature = "explanations")]
         runner.egraph.explain_equivalence(start, goal);
 
-        runner.egraph.dump();
+        println!("runner.egraph = {:?}", runner.egraph);
         return;
     }
 
     // `start` did not reach `goal` in `steps` steps.
     // or it saturated before then
-    runner.egraph.dump();
+    println!("runner.egraph = {:?}", runner.egraph);
     panic!("failed to reach goal");
 }
