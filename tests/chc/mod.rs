@@ -13,8 +13,7 @@ use tracing_subscriber::{fmt, prelude::*};
 define_language! {
     pub enum And {
         Var(Slot) = "var",
-        And(Vec<AppliedIdOrStar>, AppliedId) = "and",
-        // And(AppliedId, AppliedId) = "and",
+        And(Vec<AppliedIdOrStar>) = "and",
     }
     // p <- q, r
 }
@@ -24,7 +23,6 @@ pub fn get_all_and_rewrites() -> Vec<Rewrite<And>> {
     vec![and_tmp()]
 }
 
-/*
 fn and_assoc() -> Rewrite<And> {
     let pat = "(and <?1 (and <?2 ?3>)>)";
     let outpat = "(and <(and <?1 ?2>) ?3>)";
@@ -42,7 +40,6 @@ fn and_3() -> Rewrite<And> {
     let outpat = "(and <?a ?b ?c>)";
     Rewrite::new("and-3", pat, outpat)
 }
-     */
 
 fn and_tmp() -> Rewrite<And> {
     // let pat = "(and <?a *>)";
@@ -54,20 +51,20 @@ fn and_tmp() -> Rewrite<And> {
 
 #[test]
 fn and() {
-    env_logger::builder()
-        .format_timestamp(None)
-        .format_level(false)
-        .format_target(true)
-        .filter_level(LevelFilter::Debug)
-        .init();
+    // env_logger::builder()
+    //     .format_timestamp(None)
+    //     .format_level(false)
+    //     .format_target(true)
+    //     .filter_level(LevelFilter::Debug)
+    //     .init();
 
     let x = "$0";
     let y = "$1";
     let z = "$2";
     let tmp = "$3";
 
-    let a = &format!("(and <(and <(var {x}) (var {y})> (var {tmp})) (var {z})> (var {tmp}))");
-    let b = &format!("(and <(var {x}) (var {y}) (var {z})> (var {tmp}))");
+    let a = &format!("(and <(and <(var {x}) (var {y})>) (var {z})>)");
+    let b = &format!("(and <(var {x}) (var {y}) (var {z})>)");
     assert_reaches(a, b, &get_all_and_rewrites()[..], 10);
 }
 

@@ -261,7 +261,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     /// Prints the contents of the E-Graph. Helpful for debugging.
     pub fn dump<T: fmt::Write>(&self, f: &mut T) -> Result {
-        write!(f, "")?;
+        write!(f, "== Egraph ==")?;
         let mut v: Vec<(&Id, &EClass<L, N>)> = self.classes.iter().collect();
         v.sort_by_key(|(x, _)| *x);
 

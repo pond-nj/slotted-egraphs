@@ -20,9 +20,8 @@ pub enum LanguageChildrenType {
     AppliedId(AppliedId),
     Star,
     Vec(Vec<LanguageChildrenType>),
-    // TODO(Pond)
-    // Bind(Bind<AppliedId>),
-    // BindBind(Bind<Bind<AppliedId>>),
+    Bind,
+    Bare,
 }
 
 pub fn vec_language_children_type_eq_with_star(
@@ -205,7 +204,7 @@ macro_rules! bare_language_child {
                 }
             }
             fn get_type(&self) -> LanguageChildrenType {
-                todo!()
+                LanguageChildrenType::Bare
             }
 
             fn weak_shape_impl(&mut self, _m: &mut (SlotMap, u32)) {}
@@ -355,7 +354,7 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
     }
 
     fn get_type(&self) -> LanguageChildrenType {
-        todo!()
+        LanguageChildrenType::Bind
     }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
