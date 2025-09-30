@@ -261,7 +261,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     /// Prints the contents of the E-Graph. Helpful for debugging.
     pub fn dump<T: fmt::Write>(&self, f: &mut T) -> Result {
-        write!(f, "== Egraph ==")?;
+        write!(f, "\n == Egraph ==")?;
         let mut v: Vec<(&Id, &EClass<L, N>)> = self.classes.iter().collect();
         v.sort_by_key(|(x, _)| *x);
 
@@ -279,19 +279,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 .join(", ");
             write!(f, "\n{:?}({}):", i, &slot_str)?;
 
-            write!(f, ">> {:?}", &c.syn_enode)?;
+            write!(f, ">> {:?}\n", &c.syn_enode)?;
 
             for (sh, psn) in &c.nodes {
-                let n = sh.apply_slotmap(&psn.elem);
+                let node = sh.apply_slotmap(&psn.elem);
 
                 #[cfg(feature = "explanations")]
                 write!(f, " - {n:?}    [originally {:?}]", psn.src_id);
 
                 #[cfg(not(feature = "explanations"))]
-                write!(f, " - {n:?}")?;
+                write!(f, " - {node:?}\n")?;
             }
             for pp in &c.group.generators() {
-                write!(f, " -- {:?}", pp.elem)?;
+                write!(f, " -- {:?}\n", pp.elem)?;
             }
         }
         write!(f, "")?;

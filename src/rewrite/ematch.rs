@@ -14,12 +14,12 @@ struct State {
     partial_slotmap: SlotMap,
 }
 
-#[logfn(debug)]
-#[logfn_inputs(debug)]
 pub fn ematch_all<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
     pattern: &Pattern<L>,
 ) -> Vec<Subst> {
+    debug!("=== Call EmatchAll ===");
+    debug!("pattern = {pattern:#?}");
     let mut out = Vec::new();
     // TODO(Pond): this will start matching at every id, which is not efficient.
     let mut counter: usize = 0;
@@ -33,13 +33,12 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
     }
     debug!("ematch_all {eg:#?}");
     debug!("ematch_all {pattern:#?}");
+    debug!("ematch_all result = {out:#?}");
     out
 }
 
 // (Pond) deal with Pattern cases and find Enode with same type
 // `i` uses egraph slots instead of pattern slots.
-#[logfn(debug)]
-#[logfn_inputs(debug)]
 fn ematch_impl<L: Language, N: Analysis<L>>(
     pattern: &Pattern<L>,
     st: State,
@@ -112,7 +111,7 @@ fn ematch_node<L: Language, N: Analysis<L>>(
     st: &State,
     eg: &EGraph<L, N>,
     n: &L,
-    children: &[Pattern<L>],
+    pattern_children: &[Pattern<L>],
     out: &mut Vec<State>,
     nn: &L,
     counter: &mut usize,
@@ -129,28 +128,19 @@ fn ematch_node<L: Language, N: Analysis<L>>(
         let (n_sh, _) = n.weak_shape();
         let (clear_n2_sh, _) = clear_n2.weak_shape();
         // (Pond) they check numbers of slots here?
+
         debug!(
             "ematch_node children_type {:?} vs {:?}",
             n_sh.get_children_type(),
             clear_n2_sh.get_children_type()
         );
 
-        println!("ematch_node before n_sh = {n_sh:?}");
-        println!("ematch_node before clear_n2_sh = {clear_n2_sh:?}");
         let match_with_star = vec_language_children_type_eq_with_star(
             &n_sh.get_children_type(),
             &clear_n2_sh.get_children_type(),
         );
-        println!("ematch_node after n_sh = {n_sh:?}");
-        println!("ematch_node after clear_n2_sh = {clear_n2_sh:?}");
-        // debug!("ematch_node match_with_star = {match_with_star}");
 
-        // if n_sh != clear_n2_sh && !match_with_star {
-        //     debug!("ematch_node continue at {n_sh:?} != {clear_n2_sh:?}");
-        //     continue 'nodeloop;
-        // }
-
-        if n_sh != clear_n2_sh {
+        if n_sh != clear_n2_sh && !match_with_star {
             debug!("ematch_node continue at {n_sh:?} != {clear_n2_sh:?}");
             continue 'nodeloop;
         }
@@ -173,46 +163,47 @@ fn ematch_node<L: Language, N: Analysis<L>>(
         debug!("updated partial_slotmap = {:?}", st.partial_slotmap);
 
         let mut acc = vec![st];
-
-        // (Pond) enode_shape.applied_id_occurrences() = list of AppliedIds (children Eclasses) from enode
         let eclass_children = enode_shape.applied_id_occurrences();
 
-        if eclass_children.len() != children.len() {
-            assert!(children.last().unwrap() == &Pattern::Star);
-            assert!(eclass_children.len() > children.len());
-            for i in 0..children.len() {
-                if children[i] == Pattern::Star {
-                    assert!(i == children.len() - 1);
-                    let mut j = i;
-                    while j < eclass_children.len() {
-                        // TODO(Pond) create new PVar and call the statement inside the for loop with the new PVar
-                        let new_pvar = Pattern::PVar(format!("star_{}", counter));
-                        acc = recurse_down_children_eclass(
-                            acc,
-                            eclass_children[j],
-                            &new_pvar,
-                            eg,
-                            counter,
-                        );
-                        j += 1;
-                        *counter += 1;
-                    }
+        for i in 0..pattern_children.len() {
+            if pattern_children[i] == Pattern::Star {
+                assert!(i == pattern_children.len() - 1);
+                let mut j = i;
+                while j < eclass_children.len() {
+                    let new_pvar = Pattern::PVar(format!("star_{}", counter));
+                    debug!("recurse down1");
+                    acc = recurse_down_children_eclass(
+                        acc,
+                        eclass_children[j],
+                        &new_pvar,
+                        eg,
+                        counter,
+                    );
+                    j += 1;
+                    *counter += 1;
                 }
 
-                let sub_id = eclass_children[i];
-                let sub_pat = &children[i];
-                acc = recurse_down_children_eclass(acc, sub_id, sub_pat, eg, counter);
+                break;
             }
 
-            return;
-        }
+            debug!("eg = {eg:#?}");
+            debug!("eclass_children = {eclass_children:#?}");
+            debug!("pattern_children = {pattern_children:#?}");
+            debug!("n_sh = {n_sh:#?}");
+            debug!("clear_n2_sh = {clear_n2_sh:#?}");
+            debug!(
+                "ematch_node children_type {:?} vs {:?}",
+                n_sh.get_children_type(),
+                clear_n2_sh.get_children_type()
+            );
 
-        // (Pond) children = list of Enodes children from pattern
-        for (sub_id, sub_pat) in eclass_children.into_iter().zip(children.iter()) {
+            let sub_id = eclass_children[i];
+            let sub_pat = &pattern_children[i];
+            debug!("recurse down2");
             acc = recurse_down_children_eclass(acc, sub_id, sub_pat, eg, counter);
         }
-
         out.extend(acc);
+        debug!("ematch_node return out = {out:#?}");
     }
 }
 

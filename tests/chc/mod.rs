@@ -44,26 +44,26 @@ fn and_3() -> Rewrite<And> {
 fn and_tmp() -> Rewrite<And> {
     // let pat = "(and <?a *>)";
     // TODO(Pond): (and <?a *> ?b)
-    let pat = "(and <?a *> ?b)";
-    let outpat = "(and <?a> ?b)";
+    let pat = "(and <(and <?b *>) *>)";
+    let outpat = "(and <?a>)";
     Rewrite::new("and-tmp", pat, outpat)
 }
 
-#[test]
+// #[test]
 fn and() {
-    // env_logger::builder()
-    //     .format_timestamp(None)
-    //     .format_level(false)
-    //     .format_target(true)
-    //     .filter_level(LevelFilter::Debug)
-    //     .init();
+    env_logger::builder()
+        .format_timestamp(None)
+        .format_level(false)
+        .format_target(true)
+        .filter_level(LevelFilter::Debug)
+        .init();
 
     let x = "$0";
     let y = "$1";
     let z = "$2";
-    let tmp = "$3";
+    let w = "$3";
 
-    let a = &format!("(and <(and <(var {x}) (var {y})>) (var {z})>)");
+    let a = &format!("(and <(and <(var {x}) (var {y})>) (and <(var {z}) (var {w})>)>)");
     let b = &format!("(and <(var {x}) (var {y}) (var {z})>)");
     assert_reaches(a, b, &get_all_and_rewrites()[..], 10);
 }
@@ -72,15 +72,29 @@ define_language! {
     pub enum CHC {
         Var(Slot) = "var",
         PredSyntax(AppliedId, Vec<Slot>) = "pred", //(pred P <$1>)
-        New(AppliedId, AppliedId, Vec<AppliedId>) = "new", // (new PredSyntax Constraint <Body>)
-        Compose(Vec<AppliedId>) = "compose",
+        New(AppliedId, AppliedId, Vec<AppliedIdOrStar>) = "new", // (new PredSyntax Constraint <Body>)
+        Compose(Vec<AppliedIdOrStar>) = "compose",
         True() = "true",
         PredName(String),
     }
 }
 
 fn unfold() -> Rewrite<CHC> {
-    // let pat = Pattern::parse("(compose *)").unwrap();
+    let pat = Pattern::parse("(compose <(new ?s (true) <(compose <*>) *>) *>)").unwrap();
+    let rt: RewriteT<CHC> = RewriteT {
+        searcher: Box::new(|_| ()),
+        applier: Box::new(move |(), eg| {
+            let result = ematch_all(eg, &pat);
+            debug!("eg = {eg:#?}");
+            debug!("pat = {pat:#?}");
+            for subst in result {
+                debug!("subst = {subst:#?}");
+                // TODO(Pond): Check if star ordering is BFS or DFS.
+                // TODO(Pond): implement rewriting
+            }
+        }),
+    };
+    rt.into()
 
     // let rt: RewriteT<CHC> = RewriteT {
     //     searcher: Box::new(|_| ()),
@@ -98,15 +112,20 @@ fn unfold() -> Rewrite<CHC> {
     //     }),
     // };
     // rt.into()
-    todo!()
 }
 
 fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
     vec![unfold()]
 }
 
-// #[test]
+#[test]
 fn tst1() {
+    env_logger::builder()
+        .format_timestamp(None)
+        .format_level(false)
+        .format_target(true)
+        .filter_level(LevelFilter::Debug)
+        .init();
     let x = "$0";
     let y = "$1";
 

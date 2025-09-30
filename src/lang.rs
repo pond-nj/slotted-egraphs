@@ -32,21 +32,31 @@ pub fn vec_language_children_type_eq_with_star(
         match (&a[i], &b[i]) {
             (LanguageChildrenType::Vec(a_), LanguageChildrenType::Vec(b_)) => {
                 if !vec_language_children_type_eq_with_star(&a_, &b_) {
+                    debug!("return false");
                     return false;
                 }
             }
             (LanguageChildrenType::Star, _) | (_, LanguageChildrenType::Star) => {
                 assert!(i == a.len() - 1 || i == b.len() - 1);
+                debug!("call vec_language_children_type_eq_with_star");
+                debug!("a = {a:#?}");
+                debug!("b = {b:#?}");
+                debug!("return true 1");
                 return true;
             }
             _ => {
                 if a[i] != b[i] {
+                    debug!("return false");
                     return false;
                 }
             }
         }
     }
 
+    debug!("call vec_language_children_type_eq_with_star");
+    debug!("a = {a:#?}");
+    debug!("b = {b:#?}");
+    debug!("return true 2");
     true
 }
 

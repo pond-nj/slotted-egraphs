@@ -19,13 +19,18 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(
     pattern: &Pattern<L>,
     subst: &Subst,
 ) -> AppliedId {
+    println!("pattern_subst");
+    println!("eg = {eg:#?}");
+    println!("pattern = {pattern:#?}");
+    println!("subst = {subst:?}");
     match &pattern {
         Pattern::ENode(n, children) => {
             let mut n = n.clone();
-            let mut refs: Vec<&mut _> = n.applied_id_occurrences_mut();
+            let mut refs = n.applied_id_occurrences_mut();
             if CHECKS {
                 assert_eq!(children.len(), refs.len());
             }
+            // (Pond): Recursively updat children pointer
             for i in 0..refs.len() {
                 *(refs[i]) = pattern_subst(eg, &children[i], subst);
             }
