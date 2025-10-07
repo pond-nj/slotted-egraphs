@@ -168,7 +168,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                 m.0.inverse()
             }
 
-            fn get_children_type(&self) -> Vec<slotted_egraphs::LanguageChildrenType> {
+            fn getChildrenType(&self) -> Vec<slotted_egraphs::LanguageChildrenType> {
                 match self {
                     #(#get_children_type_arms),*
                 }

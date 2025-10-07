@@ -19,10 +19,6 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(
     pattern: &Pattern<L>,
     subst: &Subst,
 ) -> AppliedId {
-    println!("pattern_subst");
-    println!("eg = {eg:#?}");
-    println!("pattern = {pattern:#?}");
-    println!("subst = {subst:?}");
     match &pattern {
         Pattern::ENode(n, children) => {
             let mut n = n.clone();

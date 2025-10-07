@@ -40,3 +40,6 @@ debug = true
 [[bench]]
 name = "sdql"
 harness = false
+
+[lints]
+rust.non_snake_case = "allow"

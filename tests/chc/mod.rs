@@ -74,6 +74,8 @@ define_language! {
         PredSyntax(AppliedId, Vec<Slot>) = "pred", //(pred P <$1>)
         New(AppliedId, AppliedId, Vec<AppliedIdOrStar>) = "new", // (new PredSyntax Constraint <Body>)
         Compose(Vec<AppliedIdOrStar>) = "compose",
+        // Test1(AppliedId) = "test1",
+        // Test2(AppliedId, AppliedId, AppliedId) = "test2",
         True() = "true",
         PredName(String),
     }
@@ -81,6 +83,8 @@ define_language! {
 
 fn unfold() -> Rewrite<CHC> {
     let pat = Pattern::parse("(compose <(new ?s (true) <(compose <*>) *>) *>)").unwrap();
+    // let pat = Pattern::parse("(test1 (test2 ?s (true) (test1 ?a)))").unwrap();
+    debug!("pat after parse = {pat:#?}");
     let rt: RewriteT<CHC> = RewriteT {
         searcher: Box::new(|_| ()),
         applier: Box::new(move |(), eg| {
@@ -120,12 +124,7 @@ fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
 
 #[test]
 fn tst1() {
-    env_logger::builder()
-        .format_timestamp(None)
-        .format_level(false)
-        .format_target(true)
-        .filter_level(LevelFilter::Debug)
-        .init();
+    initLogger();
     let x = "$0";
     let y = "$1";
 

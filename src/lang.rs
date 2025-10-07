@@ -28,17 +28,27 @@ pub fn vec_language_children_type_eq_with_star(
     a: &Vec<LanguageChildrenType>,
     b: &Vec<LanguageChildrenType>,
 ) -> bool {
+    if a.len() == 0 || b.len() == 0 {
+        if a.len() != 0 || b.len() != 0 {
+            debug!("a = {a:#?}");
+            debug!("b = {b:#?}");
+            debug!("return false 0");
+            return false;
+        }
+    }
+
     for i in 0..a.len().min(b.len()) {
         match (&a[i], &b[i]) {
             (LanguageChildrenType::Vec(a_), LanguageChildrenType::Vec(b_)) => {
                 if !vec_language_children_type_eq_with_star(&a_, &b_) {
-                    debug!("return false");
+                    debug!("a = {a:#?}");
+                    debug!("b = {b:#?}");
+                    debug!("return false 1");
                     return false;
                 }
             }
             (LanguageChildrenType::Star, _) | (_, LanguageChildrenType::Star) => {
                 assert!(i == a.len() - 1 || i == b.len() - 1);
-                debug!("call vec_language_children_type_eq_with_star");
                 debug!("a = {a:#?}");
                 debug!("b = {b:#?}");
                 debug!("return true 1");
@@ -46,14 +56,15 @@ pub fn vec_language_children_type_eq_with_star(
             }
             _ => {
                 if a[i] != b[i] {
-                    debug!("return false");
+                    debug!("a = {a:#?}");
+                    debug!("b = {b:#?}");
+                    debug!("return false 2");
                     return false;
                 }
             }
         }
     }
 
-    debug!("call vec_language_children_type_eq_with_star");
     debug!("a = {a:#?}");
     debug!("b = {b:#?}");
     debug!("return true 2");
@@ -202,7 +213,7 @@ macro_rules! bare_language_child {
 
             fn to_syntax(&self) -> Vec<SyntaxElem> { vec![SyntaxElem::String(self.to_string())] }
             fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
-                println!("L(Bare)::from_syntax with elems = {:?}", elems);
+                debug!("L(Bare)::from_syntax with elems = {:?}", elems);
                 match elems {
                     [SyntaxElem::String(x)] => x.parse().ok(),
                     _ => {
@@ -484,12 +495,12 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     fn slots(&self) -> SmallHashSet<Slot>;
     fn weak_shape_inplace(&mut self) -> Bijection;
 
-    fn get_children_type(&self) -> Vec<LanguageChildrenType>;
+    fn getChildrenType(&self) -> Vec<LanguageChildrenType>;
 
     // TODO(Pond): How does this behave with (and <?a *> ?b)?
     fn children_eq_with_star(&self, other: &Self) -> bool {
-        let c1 = self.get_children_type();
-        let c2 = other.get_children_type();
+        let c1 = self.getChildrenType();
+        let c2 = other.getChildrenType();
         for i in 0..(c1.len()).min(c2.len()) {
             if c1[i] == LanguageChildrenType::Star || c2[i] == LanguageChildrenType::Star {
                 return true;

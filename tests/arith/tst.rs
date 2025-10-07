@@ -45,6 +45,7 @@ fn t3() {
 #[test]
 #[serial]
 fn t4() {
+    initLogger();
     // (x+y)**2 = x**2 + x*y + x*y + y**2
     let a = "(mul (add (var $x) (var $y)) (add (var $x) (var $y)))";
     let b = "(add (mul (var $x) (var $x))

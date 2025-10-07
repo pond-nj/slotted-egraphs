@@ -201,7 +201,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             result.push(x);
         }
 
-        println!("enodes_applied result = {:?}", result);
         result
     }
 
