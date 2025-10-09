@@ -124,7 +124,7 @@ fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
 
 #[test]
 fn tst1() {
-    initLogger();
+    // initLogger();
     let x = "$0";
     let y = "$1";
 
