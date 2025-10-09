@@ -24,10 +24,7 @@ pub enum LanguageChildrenType {
     Bare,
 }
 
-pub fn vec_language_children_type_eq_with_star(
-    a: &Vec<LanguageChildrenType>,
-    b: &Vec<LanguageChildrenType>,
-) -> bool {
+pub fn checkChildrenTypeEq(a: &Vec<LanguageChildrenType>, b: &Vec<LanguageChildrenType>) -> bool {
     if a.len() == 0 || b.len() == 0 {
         if a.len() != 0 || b.len() != 0 {
             debug!("a = {a:#?}");
@@ -40,7 +37,7 @@ pub fn vec_language_children_type_eq_with_star(
     for i in 0..a.len().min(b.len()) {
         match (&a[i], &b[i]) {
             (LanguageChildrenType::Vec(a_), LanguageChildrenType::Vec(b_)) => {
-                if !vec_language_children_type_eq_with_star(&a_, &b_) {
+                if !checkChildrenTypeEq(&a_, &b_) {
                     debug!("a = {a:#?}");
                     debug!("b = {b:#?}");
                     debug!("return false 1");
