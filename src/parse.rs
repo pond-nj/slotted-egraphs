@@ -106,7 +106,6 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
 // parse:
 impl<L: Language> Pattern<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
-        debug!("\ns = {:?}", s);
         let tok = tokenize(s)?;
         let (re, rest) = parse_pattern(&tok)?;
 

@@ -1,4 +1,5 @@
 use crate::*;
+use log::debug;
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn union(&mut self, l: &AppliedId, r: &AppliedId) -> bool {
@@ -23,7 +24,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             for (i, child) in children.iter_mut().enumerate() {
                 match child {
                     Pattern::ENode(..) => self.replaceStarInPatternFromSubst(child, subst),
-                    Pattern::Star(n) => {
+                    Pattern::Star(_) => {
                         assert!(i == children.len() - 1);
                         break;
                     }
@@ -38,14 +39,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 }
             }
 
+            // TODO(Pond): now only suppost one vector as a children
             if let Some(n) = n {
                 let mut counter = 0;
                 children.pop();
+                enode.shrinkChildren();
                 while subst.contains_key(&format!("star_{}_{}", n, counter)) {
                     children.push(Pattern::PVar(format!("star_{}_{}", n, counter)));
+                    enode.expandChildren();
                     counter += 1;
                 }
             }
+
+            return;
         }
 
         panic!();
@@ -62,6 +68,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let newToPat = &mut to_pat.clone();
         self.replaceStarInPatternFromSubst(newFromPat, subst);
         self.replaceStarInPatternFromSubst(newToPat, subst);
+
+        debug!("from_pat = {from_pat}");
+        debug!("subst = {subst:#?}");
+        debug!("newFromPat = {newFromPat:#?}");
 
         let a = pattern_subst(self, &newFromPat, subst);
         let b = pattern_subst(self, &newToPat, subst);

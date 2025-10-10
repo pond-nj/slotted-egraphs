@@ -89,6 +89,11 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .iter()
         .map(|x| produceGetExpandChildrenArms(&name, x))
         .collect();
+    let getShrinkChildrenArms: Vec<TokenStream2> = ie
+        .variants
+        .iter()
+        .map(|x| produceGetShrinkChildrenArms(&name, x))
+        .collect();
 
     let ret = quote! {
         #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)]
@@ -179,9 +184,15 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                 }
             }
 
-            fn expandChildren(&mut self, id: AppliedId) {
+            fn expandChildren(&mut self) {
                 match self{
                     #(#getExpandChildrenArms),*
+                }
+            }
+
+            fn shrinkChildren(&mut self){
+                match self{
+                    #(#getShrinkChildrenArms),*
                 }
             }
         }
@@ -427,11 +438,24 @@ fn produceGetExpandChildrenArms(name: &Ident, v: &Variant) -> TokenStream2 {
         .collect();
     quote! {
         #name::#variant_name(#(#fields),*) => {
-            let mut out: Vec<LanguageChildrenType> = vec![];
             #(
-                out.push(#fields .expandChildren(id));
+                #fields .expandChildren();
             )*
-            out
+        }
+    }
+}
+
+fn produceGetShrinkChildrenArms(name: &Ident, v: &Variant) -> TokenStream2 {
+    let variant_name = &v.ident;
+    let n = v.fields.len();
+    let fields: Vec<Ident> = (0..n)
+        .map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site()))
+        .collect();
+    quote! {
+        #name::#variant_name(#(#fields),*) => {
+            #(
+                #fields .shrinkChildren();
+            )*
         }
     }
 }

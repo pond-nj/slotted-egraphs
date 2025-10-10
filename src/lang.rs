@@ -81,7 +81,9 @@ pub trait LanguageChildren: Debug + Clone + Hash + Eq {
     fn to_syntax(&self) -> Vec<SyntaxElem>;
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
     fn get_type(&self) -> LanguageChildrenType;
-    fn expandChildren(&mut self, id: AppliedId);
+    fn expandChildren(&mut self);
+    fn shrinkChildren(&mut self);
+    fn defaultNull() -> Self;
 
     fn weak_shape_impl(&mut self, _m: &mut (SlotMap, u32)) {
         todo!()
@@ -143,7 +145,12 @@ impl LanguageChildren for AppliedId {
         LanguageChildrenType::AppliedId(self.clone())
     }
 
-    fn expandChildren(&mut self, id: AppliedId) {}
+    fn expandChildren(&mut self) {}
+    fn shrinkChildren(&mut self) {}
+
+    fn defaultNull() -> Self {
+        AppliedId::null()
+    }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         for x in self.m.values_mut() {
@@ -192,7 +199,12 @@ impl LanguageChildren for Slot {
         LanguageChildrenType::Slot(self.clone())
     }
 
-    fn expandChildren(&mut self, id: AppliedId) {}
+    fn expandChildren(&mut self) {}
+    fn shrinkChildren(&mut self) {}
+
+    fn defaultNull() -> Self {
+        Slot::fresh()
+    }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         on_see_slot(self, m);
@@ -230,7 +242,12 @@ macro_rules! bare_language_child {
                 LanguageChildrenType::Bare
             }
 
-            fn expandChildren(&mut self, id: AppliedId) {}
+            fn expandChildren(&mut self) {}
+            fn shrinkChildren(&mut self) {}
+
+            fn defaultNull() -> Self {
+                todo!()
+            }
 
             fn weak_shape_impl(&mut self, _m: &mut (SlotMap, u32)) {}
         }
@@ -319,7 +336,12 @@ impl LanguageChildren for AppliedIdOrStar {
         }
     }
 
-    fn expandChildren(&mut self, id: AppliedId) {}
+    fn expandChildren(&mut self) {}
+    fn shrinkChildren(&mut self) {}
+
+    fn defaultNull() -> Self {
+        AppliedIdOrStar::AppliedId(AppliedId::null())
+    }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         match self {
@@ -384,7 +406,12 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
         LanguageChildrenType::Bind
     }
 
-    fn expandChildren(&mut self, id: AppliedId) {}
+    fn expandChildren(&mut self) {}
+    fn shrinkChildren(&mut self) {}
+
+    fn defaultNull() -> Self {
+        todo!()
+    }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         let s = self.slot;
@@ -466,7 +493,16 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
         LanguageChildrenType::Vec(out)
     }
 
-    fn expandChildren(&mut self, id: AppliedId) {}
+    fn expandChildren(&mut self) {
+        self.push(L::defaultNull());
+    }
+    fn shrinkChildren(&mut self) {
+        self.pop();
+    }
+
+    fn defaultNull() -> Self {
+        vec![]
+    }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         for x in self {
@@ -506,7 +542,8 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     fn weak_shape_inplace(&mut self) -> Bijection;
 
     fn getChildrenType(&self) -> Vec<LanguageChildrenType>;
-    fn expandChildren(&mut self, id: AppliedId);
+    fn expandChildren(&mut self);
+    fn shrinkChildren(&mut self);
 
     #[track_caller]
     #[doc(hidden)]

@@ -69,6 +69,7 @@ fn and() {
 }
 
 define_language! {
+    // TODO(Pond): now children can only have max one vector
     pub enum CHC {
         Var(Slot) = "var",
         PredSyntax(AppliedId, Vec<Slot>) = "pred", //(pred P <$1>)
@@ -81,41 +82,11 @@ define_language! {
     }
 }
 
+// TODO(Pond): next, we need testing here
 fn unfold() -> Rewrite<CHC> {
-    let pat = Pattern::parse("(compose <(new ?s (true) <(compose <*1>) *2>) *3>)").unwrap();
-    // let pat = Pattern::parse("(test1 (test2 ?s (true) (test1 ?a)))").unwrap();
-    debug!("pat after parse = {pat:#?}");
-    let rt: RewriteT<CHC> = RewriteT {
-        searcher: Box::new(|_| ()),
-        applier: Box::new(move |(), eg| {
-            let result = ematch_all(eg, &pat);
-            debug!("eg = {eg:#?}");
-            debug!("pat = {pat:#?}");
-            for subst in result {
-                debug!("subst = {subst:#?}");
-                // TODO(Pond): Check if star ordering is BFS or DFS.
-                // TODO(Pond): implement rewriting
-            }
-        }),
-    };
-    rt.into()
-
-    // let rt: RewriteT<CHC> = RewriteT {
-    //     searcher: Box::new(|_| ()),
-    //     applier: Box::new(move |(), eg| {
-    //         for subst in ematch_all(eg, &pat) {
-    //             if eg
-    //                 .enodes_applied(&subst["c"])
-    //                 .iter()
-    //                 .any(|n| matches!(n, Rise::Symbol(_) | Rise::Number(_)))
-    //             {
-    //                 let orig = pattern_subst(eg, &pat, &subst);
-    //                 eg.union_justified(&orig, &subst["c"], Some("let-const".to_string()));
-    //             }
-    //         }
-    //     }),
-    // };
-    // rt.into()
+    let pat = "(compose <(new ?s (true) <(compose <*1>) *2>) *3>)";
+    let newPat = "(compose <(new ?s (true) <(compose <*1>) *2>) *3>)";
+    Rewrite::new("test", pat, newPat)
 }
 
 fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
