@@ -11,7 +11,7 @@ pub enum SyntaxElem {
     AppliedId(AppliedId),
     Slot(Slot),
     Vec(Vec<SyntaxElem>),
-    Star,
+    Star(u32),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -81,6 +81,7 @@ pub trait LanguageChildren: Debug + Clone + Hash + Eq {
     fn to_syntax(&self) -> Vec<SyntaxElem>;
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
     fn get_type(&self) -> LanguageChildrenType;
+    fn expandChildren(&mut self, id: AppliedId);
 
     fn weak_shape_impl(&mut self, _m: &mut (SlotMap, u32)) {
         todo!()
@@ -142,6 +143,8 @@ impl LanguageChildren for AppliedId {
         LanguageChildrenType::AppliedId(self.clone())
     }
 
+    fn expandChildren(&mut self, id: AppliedId) {}
+
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         for x in self.m.values_mut() {
             on_see_slot(x, m);
@@ -189,6 +192,8 @@ impl LanguageChildren for Slot {
         LanguageChildrenType::Slot(self.clone())
     }
 
+    fn expandChildren(&mut self, id: AppliedId) {}
+
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         on_see_slot(self, m);
     }
@@ -225,6 +230,8 @@ macro_rules! bare_language_child {
                 LanguageChildrenType::Bare
             }
 
+            fn expandChildren(&mut self, id: AppliedId) {}
+
             fn weak_shape_impl(&mut self, _m: &mut (SlotMap, u32)) {}
         }
         )*
@@ -245,21 +252,21 @@ impl LanguageChildren for AppliedIdOrStar {
     fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
         match self {
             AppliedIdOrStar::AppliedId(x) => x.all_slot_occurrences_iter_mut(),
-            AppliedIdOrStar::Star => todo!(),
+            AppliedIdOrStar::Star(_) => todo!(),
         }
     }
 
     fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
         match self {
             AppliedIdOrStar::AppliedId(x) => x.public_slot_occurrences_iter_mut(),
-            AppliedIdOrStar::Star => todo!(),
+            AppliedIdOrStar::Star(_) => todo!(),
         }
     }
 
     fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut AppliedId> {
         match self {
             AppliedIdOrStar::AppliedId(x) => x.applied_id_occurrences_iter_mut(),
-            AppliedIdOrStar::Star => todo!(),
+            AppliedIdOrStar::Star(_) => todo!(),
         }
     }
 
@@ -267,21 +274,21 @@ impl LanguageChildren for AppliedIdOrStar {
     fn all_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
         match self {
             AppliedIdOrStar::AppliedId(x) => Either::Left(x.all_slot_occurrences_iter()),
-            AppliedIdOrStar::Star => Either::Right(std::iter::empty()),
+            AppliedIdOrStar::Star(_) => Either::Right(std::iter::empty()),
         }
     }
 
     fn public_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
         match self {
             AppliedIdOrStar::AppliedId(x) => x.public_slot_occurrences_iter(),
-            AppliedIdOrStar::Star => todo!(),
+            AppliedIdOrStar::Star(_) => todo!(),
         }
     }
 
     fn applied_id_occurrences_iter(&self) -> impl Iterator<Item = &AppliedId> {
         match self {
             AppliedIdOrStar::AppliedId(x) => x.applied_id_occurrences_iter(),
-            AppliedIdOrStar::Star => todo!(),
+            AppliedIdOrStar::Star(_) => todo!(),
         }
     }
 
@@ -289,7 +296,7 @@ impl LanguageChildren for AppliedIdOrStar {
     fn to_syntax(&self) -> Vec<SyntaxElem> {
         match self {
             AppliedIdOrStar::AppliedId(x) => x.to_syntax(),
-            AppliedIdOrStar::Star => vec![SyntaxElem::Star],
+            AppliedIdOrStar::Star(n) => vec![SyntaxElem::Star(*n)],
         }
     }
 
@@ -297,7 +304,7 @@ impl LanguageChildren for AppliedIdOrStar {
         debug!("AppliedIdOrStar::from_syntax, elems: {:?}", elems);
         match elems {
             [SyntaxElem::AppliedId(x)] => Some(AppliedIdOrStar::AppliedId(x.clone())),
-            [SyntaxElem::Star] => Some(AppliedIdOrStar::Star),
+            [SyntaxElem::Star(n)] => Some(AppliedIdOrStar::Star(*n)),
             [] => None,
             _ => {
                 panic!("(Pond) slotted_egraphs::lang::AppliedIdOrStar::from_syntax");
@@ -308,14 +315,16 @@ impl LanguageChildren for AppliedIdOrStar {
     fn get_type(&self) -> LanguageChildrenType {
         match self {
             AppliedIdOrStar::AppliedId(x) => x.get_type(),
-            AppliedIdOrStar::Star => LanguageChildrenType::Star,
+            AppliedIdOrStar::Star(_) => LanguageChildrenType::Star,
         }
     }
+
+    fn expandChildren(&mut self, id: AppliedId) {}
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         match self {
             AppliedIdOrStar::AppliedId(x) => x.weak_shape_impl(m),
-            AppliedIdOrStar::Star => {}
+            AppliedIdOrStar::Star(_) => {}
         }
     }
 }
@@ -374,6 +383,8 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
     fn get_type(&self) -> LanguageChildrenType {
         LanguageChildrenType::Bind
     }
+
+    fn expandChildren(&mut self, id: AppliedId) {}
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         let s = self.slot;
@@ -455,6 +466,8 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
         LanguageChildrenType::Vec(out)
     }
 
+    fn expandChildren(&mut self, id: AppliedId) {}
+
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         for x in self {
             x.weak_shape_impl(m);
@@ -493,27 +506,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     fn weak_shape_inplace(&mut self) -> Bijection;
 
     fn getChildrenType(&self) -> Vec<LanguageChildrenType>;
-
-    // TODO(Pond): How does this behave with (and <?a *> ?b)?
-    fn children_eq_with_star(&self, other: &Self) -> bool {
-        let c1 = self.getChildrenType();
-        let c2 = other.getChildrenType();
-        for i in 0..(c1.len()).min(c2.len()) {
-            if c1[i] == LanguageChildrenType::Star || c2[i] == LanguageChildrenType::Star {
-                return true;
-            }
-
-            if c1[i] != c2[i] {
-                return false;
-            }
-        }
-
-        if c1.len() != c2.len() {
-            return false;
-        }
-
-        return true;
-    }
+    fn expandChildren(&mut self, id: AppliedId);
 
     #[track_caller]
     #[doc(hidden)]

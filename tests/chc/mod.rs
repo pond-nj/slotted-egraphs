@@ -82,7 +82,7 @@ define_language! {
 }
 
 fn unfold() -> Rewrite<CHC> {
-    let pat = Pattern::parse("(compose <(new ?s (true) <(compose <*>) *>) *>)").unwrap();
+    let pat = Pattern::parse("(compose <(new ?s (true) <(compose <*1>) *2>) *3>)").unwrap();
     // let pat = Pattern::parse("(test1 (test2 ?s (true) (test1 ?a)))").unwrap();
     debug!("pat after parse = {pat:#?}");
     let rt: RewriteT<CHC> = RewriteT {

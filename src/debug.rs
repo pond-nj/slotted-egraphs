@@ -70,7 +70,7 @@ impl<L: Language> std::fmt::Display for Pattern<L> {
                         SyntaxElem::Vec(_v) => {
                             todo!()
                         }
-                        SyntaxElem::Star => {
+                        SyntaxElem::Star(_) => {
                             write!(f, "{}", &syntax_elems[se_idx])?;
                             assert!(se_idx == syntax_elems.len() - 1);
                         }

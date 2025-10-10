@@ -18,6 +18,39 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.union_instantiations(&a, &b, &subst, j)
     }
 
+    pub fn replaceStarInPatternFromSubst(&self, pattern: &mut Pattern<L>, subst: &Subst) {
+        if let Pattern::ENode(enode, children) = pattern {
+            for (i, child) in children.iter_mut().enumerate() {
+                match child {
+                    Pattern::ENode(..) => self.replaceStarInPatternFromSubst(child, subst),
+                    Pattern::Star(n) => {
+                        assert!(i == children.len() - 1);
+                        break;
+                    }
+                    _ => {}
+                }
+            }
+
+            let mut n: Option<u32> = None;
+            {
+                if let Some(Pattern::Star(nth)) = children.last() {
+                    n = Some(*nth);
+                }
+            }
+
+            if let Some(n) = n {
+                let mut counter = 0;
+                children.pop();
+                while subst.contains_key(&format!("star_{}_{}", n, counter)) {
+                    children.push(Pattern::PVar(format!("star_{}_{}", n, counter)));
+                    counter += 1;
+                }
+            }
+        }
+
+        panic!();
+    }
+
     pub fn union_instantiations(
         &mut self,
         from_pat: &Pattern<L>,
@@ -25,8 +58,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         subst: &Subst,
         #[allow(unused)] justification: Option<String>,
     ) -> bool {
-        let a = pattern_subst(self, from_pat, subst);
-        let b = pattern_subst(self, to_pat, subst);
+        let newFromPat = &mut from_pat.clone();
+        let newToPat = &mut to_pat.clone();
+        self.replaceStarInPatternFromSubst(newFromPat, subst);
+        self.replaceStarInPatternFromSubst(newToPat, subst);
+
+        let a = pattern_subst(self, &newFromPat, subst);
+        let b = pattern_subst(self, &newToPat, subst);
 
         #[allow(unused)]
         let syn_a = self.synify_app_id(a.clone());

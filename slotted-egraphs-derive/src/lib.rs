@@ -84,6 +84,11 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .iter()
         .map(|x| produce_get_children_type_arms(&name, x))
         .collect();
+    let getExpandChildrenArms: Vec<TokenStream2> = ie
+        .variants
+        .iter()
+        .map(|x| produceGetExpandChildrenArms(&name, x))
+        .collect();
 
     let ret = quote! {
         #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)]
@@ -171,6 +176,12 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
             fn getChildrenType(&self) -> Vec<slotted_egraphs::LanguageChildrenType> {
                 match self {
                     #(#get_children_type_arms),*
+                }
+            }
+
+            fn expandChildren(&mut self, id: AppliedId) {
+                match self{
+                    #(#getExpandChildrenArms),*
                 }
             }
         }
@@ -326,7 +337,6 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
     let ret = Some(quote! {
         #e => {
             let mut children = &elems[1..];
-            debug!("children: {:?}", children);
             let mut rest = children;
             #(
                 let mut tmp = (0..=children.len()).filter_map(|n| {
@@ -335,9 +345,7 @@ fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
 
                     <#types>::from_syntax(a)
                 }).next();
-                debug!("tmp = {:?}", tmp);
                 let #fields = tmp?;
-                debug!("fields: {:?}", #fields);
                 children = rest;
                 // eprintln!("children2: {:?}", children);
             )*
@@ -405,6 +413,23 @@ fn produce_get_children_type_arms(name: &Ident, v: &Variant) -> TokenStream2 {
             let mut out: Vec<LanguageChildrenType> = vec![];
             #(
                 out.push(#fields .get_type());
+            )*
+            out
+        }
+    }
+}
+
+fn produceGetExpandChildrenArms(name: &Ident, v: &Variant) -> TokenStream2 {
+    let variant_name = &v.ident;
+    let n = v.fields.len();
+    let fields: Vec<Ident> = (0..n)
+        .map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site()))
+        .collect();
+    quote! {
+        #name::#variant_name(#(#fields),*) => {
+            let mut out: Vec<LanguageChildrenType> = vec![];
+            #(
+                out.push(#fields .expandChildren(id));
             )*
             out
         }

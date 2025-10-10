@@ -21,7 +21,7 @@ pub struct AppliedId {
 #[derive(Clone, Hash, PartialEq, Eq, Debug, PartialOrd, Ord)]
 pub enum AppliedIdOrStar {
     AppliedId(AppliedId),
-    Star,
+    Star(u32),
 }
 
 /// A "term" or "expression" from some given [Language] L.

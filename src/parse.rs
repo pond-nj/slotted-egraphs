@@ -23,7 +23,7 @@ pub enum Token {
     RBracket,      // ]
     LVecBracket,   // <
     RVecBracket,   // >
-    Star,          // *
+    Star(u32),     // *n
 }
 
 fn ident_char(c: char) -> bool {
@@ -60,8 +60,9 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
         }
 
         if s.starts_with('*') {
-            tokens.push(Token::Star);
-            s = &s[1..];
+            let (op, rst) = crop_ident(&s[1..])?;
+            tokens.push(Token::Star(op.parse::<u32>().unwrap()));
+            s = rst;
         } else if s.starts_with('(') {
             tokens.push(Token::LParen);
             s = &s[1..];
@@ -85,6 +86,7 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
             s = &s[2..];
         } else if s.starts_with('?') {
             let (op, rst) = crop_ident(&s[1..])?;
+            assert!(!op.starts_with("star"));
             tokens.push(Token::PVar(op.to_string()));
             s = rst;
         } else if s.starts_with('$') {
@@ -106,8 +108,7 @@ impl<L: Language> Pattern<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
         debug!("\ns = {:?}", s);
         let tok = tokenize(s)?;
-        let mut starCount: u32 = 0;
-        let (re, rest) = parse_pattern(&tok, &mut starCount)?;
+        let (re, rest) = parse_pattern(&tok)?;
 
         if !rest.is_empty() {
             return Err(ParseError::RemainingRest(to_vec(rest)));
@@ -127,14 +128,13 @@ impl<L: Language> RecExpr<L> {
 
 fn parse_pattern<'a, L: Language>(
     tok: &'a [Token],
-    starCount: &mut u32,
 ) -> Result<(Pattern<L>, &'a [Token]), ParseError> {
     debug!("parse_pattern input tok = {:?}", tok);
-    let (mut pat, mut tok) = parse_pattern_nosubst(tok, starCount)?;
+    let (mut pat, mut tok) = parse_pattern_nosubst(tok)?;
     // Case [:=]?
     while let Some(Token::LBracket) = tok.get(0) {
         tok = &tok[1..];
-        let (l, tok2) = parse_pattern(tok, starCount)?;
+        let (l, tok2) = parse_pattern(tok)?;
         tok = tok2;
 
         let Token::ColonEquals = &tok[0] else {
@@ -142,7 +142,7 @@ fn parse_pattern<'a, L: Language>(
         };
         tok = &tok[1..];
 
-        let (r, tok2) = parse_pattern(tok, starCount)?;
+        let (r, tok2) = parse_pattern(tok)?;
         tok = tok2;
 
         let Token::RBracket = &tok[0] else {
@@ -167,25 +167,21 @@ fn nested_syntax_elem_to_syntax_elem<L: Language>(ne: &NestedSyntaxElem<L>) -> S
                 .map(nested_syntax_elem_to_syntax_elem)
                 .collect(),
         ),
-        NestedSyntaxElem::Star => SyntaxElem::Star,
+        NestedSyntaxElem::Star(n) => SyntaxElem::Star(*n),
     }
 }
 
-fn nested_syntax_elem_to_pattern<L: Language>(
-    ne: NestedSyntaxElem<L>,
-    starCount: &mut u32,
-) -> Vec<Pattern<L>> {
+fn nested_syntax_elem_to_pattern<L: Language>(ne: NestedSyntaxElem<L>) -> Vec<Pattern<L>> {
     match ne {
         NestedSyntaxElem::Pattern(pat) => Vec::from([pat]),
         NestedSyntaxElem::String(_) => Vec::new(),
         NestedSyntaxElem::Slot(_) => Vec::new(),
         NestedSyntaxElem::Vec(v) => v
             .into_iter()
-            .flat_map(|nse| nested_syntax_elem_to_pattern(nse, starCount))
+            .flat_map(nested_syntax_elem_to_pattern)
             .collect(),
-        NestedSyntaxElem::Star => {
-            let ret = Pattern::Star(*starCount);
-            *starCount += 1;
+        NestedSyntaxElem::Star(n) => {
+            let ret = Pattern::Star(n);
             vec![ret]
         }
     }
@@ -194,7 +190,6 @@ fn nested_syntax_elem_to_pattern<L: Language>(
 // no substitutions. = dont deal with [:=]
 fn parse_pattern_nosubst<'a, L: Language>(
     mut tok: &'a [Token],
-    starCount: &mut u32,
 ) -> Result<(Pattern<L>, &'a [Token]), ParseError> {
     debug!("parse_pattern_nosubst input tok = {:?}", tok);
     if let Token::PVar(p) = &tok[0] {
@@ -220,7 +215,7 @@ fn parse_pattern_nosubst<'a, L: Language>(
                 break;
             };
 
-            let (se, tok2) = parse_nested_syntax_elem(tok, starCount)?;
+            let (se, tok2) = parse_nested_syntax_elem(tok)?;
             tok = tok2;
             syntax_elems.push(se);
         }
@@ -239,7 +234,7 @@ fn parse_pattern_nosubst<'a, L: Language>(
         // (Pond) use to create Enode's children
         let syntax_elems = syntax_elems
             .into_iter()
-            .flat_map(|nse| nested_syntax_elem_to_pattern(nse, starCount))
+            .flat_map(nested_syntax_elem_to_pattern)
             .collect();
         let re = Pattern::ENode(node, syntax_elems);
         Ok((re, tok))
@@ -270,18 +265,17 @@ enum NestedSyntaxElem<L: Language> {
     Vec(Vec<NestedSyntaxElem<L>>),
     Slot(Slot),
     String(String),
-    Star,
+    Star(u32),
 }
 
 fn parse_nested_syntax_elem<'a, L: Language>(
     tok: &'a [Token],
-    starCount: &mut u32,
 ) -> Result<(NestedSyntaxElem<L>, &'a [Token]), ParseError> {
     debug!("parse_nested_syntax_elem input tok = {:?}", tok);
-    if let Token::Star = &tok[0] {
+    if let Token::Star(n) = &tok[0] {
         // (Pond) Can only use it for (op ?a *) or (op <?a *>) or (op <?a *> *)
         assert!(tok[1] == Token::RParen || tok[1] == Token::RVecBracket);
-        return Ok((NestedSyntaxElem::Star, &tok[1..]));
+        return Ok((NestedSyntaxElem::Star(*n), &tok[1..]));
     }
     if let Token::LVecBracket = &tok[0] {
         let mut ret: Vec<NestedSyntaxElem<L>> = Vec::new();
@@ -290,7 +284,7 @@ fn parse_nested_syntax_elem<'a, L: Language>(
             if let Token::RVecBracket = next[0] {
                 break;
             }
-            let (x, next2) = parse_nested_syntax_elem::<L>(next, starCount)?;
+            let (x, next2) = parse_nested_syntax_elem::<L>(next)?;
             next = next2;
 
             ret.push(x);
@@ -302,7 +296,7 @@ fn parse_nested_syntax_elem<'a, L: Language>(
         return Ok((NestedSyntaxElem::Slot(*slot), &tok[1..]));
     }
 
-    let recur_parse_result = parse_pattern::<L>(tok, starCount);
+    let recur_parse_result = parse_pattern::<L>(tok);
     let ret: Result<(NestedSyntaxElem<L>, &[Token]), ParseError> =
         recur_parse_result.map(|(x, rest)| (NestedSyntaxElem::Pattern(x), rest));
     ret
