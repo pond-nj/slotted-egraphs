@@ -98,7 +98,6 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
         }
     }
 
-    debug!("tokenize: ret = {:?}", tokens);
     Ok(tokens)
 }
 
@@ -107,7 +106,8 @@ impl<L: Language> Pattern<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
         debug!("\ns = {:?}", s);
         let tok = tokenize(s)?;
-        let (re, rest) = parse_pattern(&tok)?;
+        let mut starCount: u32 = 0;
+        let (re, rest) = parse_pattern(&tok, &mut starCount)?;
 
         if !rest.is_empty() {
             return Err(ParseError::RemainingRest(to_vec(rest)));
@@ -121,18 +121,20 @@ impl<L: Language> RecExpr<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
         let pat = Pattern::parse(s)?;
         let ret = pattern_to_re(&pat);
-        debug!("RecExpr::parse: ret = {:?}", ret);
         Ok(ret)
     }
 }
 
-fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), ParseError> {
+fn parse_pattern<'a, L: Language>(
+    tok: &'a [Token],
+    starCount: &mut u32,
+) -> Result<(Pattern<L>, &'a [Token]), ParseError> {
     debug!("parse_pattern input tok = {:?}", tok);
-    let (mut pat, mut tok) = parse_pattern_nosubst(tok)?;
+    let (mut pat, mut tok) = parse_pattern_nosubst(tok, starCount)?;
     // Case [:=]?
     while let Some(Token::LBracket) = tok.get(0) {
         tok = &tok[1..];
-        let (l, tok2) = parse_pattern(tok)?;
+        let (l, tok2) = parse_pattern(tok, starCount)?;
         tok = tok2;
 
         let Token::ColonEquals = &tok[0] else {
@@ -140,7 +142,7 @@ fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), P
         };
         tok = &tok[1..];
 
-        let (r, tok2) = parse_pattern(tok)?;
+        let (r, tok2) = parse_pattern(tok, starCount)?;
         tok = tok2;
 
         let Token::RBracket = &tok[0] else {
@@ -151,10 +153,6 @@ fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), P
         pat = Pattern::Subst(Box::new(pat), Box::new(l), Box::new(r));
     }
     let ret = (pat.clone(), tok);
-    debug!(
-        "parse_pattern ret pat_struct = {:#?}, pat_display = {}",
-        ret.0, pat
-    );
     Ok(ret)
 }
 
@@ -173,27 +171,34 @@ fn nested_syntax_elem_to_syntax_elem<L: Language>(ne: &NestedSyntaxElem<L>) -> S
     }
 }
 
-fn nested_syntax_elem_to_pattern<L: Language>(ne: NestedSyntaxElem<L>) -> Vec<Pattern<L>> {
+fn nested_syntax_elem_to_pattern<L: Language>(
+    ne: NestedSyntaxElem<L>,
+    starCount: &mut u32,
+) -> Vec<Pattern<L>> {
     match ne {
         NestedSyntaxElem::Pattern(pat) => Vec::from([pat]),
         NestedSyntaxElem::String(_) => Vec::new(),
         NestedSyntaxElem::Slot(_) => Vec::new(),
         NestedSyntaxElem::Vec(v) => v
             .into_iter()
-            .flat_map(nested_syntax_elem_to_pattern)
+            .flat_map(|nse| nested_syntax_elem_to_pattern(nse, starCount))
             .collect(),
-        NestedSyntaxElem::Star => vec![Pattern::Star],
+        NestedSyntaxElem::Star => {
+            let ret = Pattern::Star(*starCount);
+            *starCount += 1;
+            vec![ret]
+        }
     }
 }
 
 // no substitutions. = dont deal with [:=]
-fn parse_pattern_nosubst<L: Language>(
-    mut tok: &[Token],
-) -> Result<(Pattern<L>, &[Token]), ParseError> {
+fn parse_pattern_nosubst<'a, L: Language>(
+    mut tok: &'a [Token],
+    starCount: &mut u32,
+) -> Result<(Pattern<L>, &'a [Token]), ParseError> {
     debug!("parse_pattern_nosubst input tok = {:?}", tok);
     if let Token::PVar(p) = &tok[0] {
         let pat = Pattern::PVar(p.to_string());
-        debug!("parse_pattern_nosubst ret1 = {:?}", pat);
         return Ok((pat, &tok[1..]));
     }
 
@@ -215,7 +220,7 @@ fn parse_pattern_nosubst<L: Language>(
                 break;
             };
 
-            let (se, tok2) = parse_nested_syntax_elem(tok)?;
+            let (se, tok2) = parse_nested_syntax_elem(tok, starCount)?;
             tok = tok2;
             syntax_elems.push(se);
         }
@@ -226,26 +231,19 @@ fn parse_pattern_nosubst<L: Language>(
             .iter()
             .map(nested_syntax_elem_to_syntax_elem)
             .collect();
-        debug!("syntax_elems_mock = {:?}", syntax_elems_mock);
-        debug!("node1 = {:?}", L::from_syntax(&syntax_elems_mock));
         let node = L::from_syntax(&syntax_elems_mock).ok_or_else(|| {
-            debug!("FromSyntaxFailed: {:?}", syntax_elems_mock);
+            debug!("FromSyntaxFailed 1: {:?}", syntax_elems_mock);
             ParseError::FromSyntaxFailed(syntax_elems_mock)
         })?;
-        debug!("node = {:?}", node);
 
         // (Pond) use to create Enode's children
-        debug!("before syntax_elems = {:?}", syntax_elems);
         let syntax_elems = syntax_elems
             .into_iter()
-            .flat_map(nested_syntax_elem_to_pattern)
+            .flat_map(|nse| nested_syntax_elem_to_pattern(nse, starCount))
             .collect();
-        debug!("transformed syntax_elems = {:?}", syntax_elems);
         let re = Pattern::ENode(node, syntax_elems);
-        debug!("parse_pattern_nosubst ret2 = {:?}", re);
         Ok((re, tok))
     } else {
-        debug!("second case");
         let Token::Ident(op) = &tok[0] else {
             debug!(
                 "Error: parse_pattern_nosubst: expected Ident2, got {:?}",
@@ -256,13 +254,11 @@ fn parse_pattern_nosubst<L: Language>(
         tok = &tok[1..];
 
         let elems = [SyntaxElem::String(op.to_string())];
-        debug!("node2 = {:?}", L::from_syntax(&elems));
         let node = L::from_syntax(&elems).ok_or_else(|| {
-            debug!("FromSyntaxFailed: {:?}", elems);
+            debug!("FromSyntaxFailed 2: {:?}", elems);
             ParseError::FromSyntaxFailed(to_vec(&elems))
         })?;
         let pat = Pattern::ENode(node, Vec::new());
-        debug!("parse_pattern_nosubst ret3 = {:?}", pat);
         Ok((pat, tok))
     }
 }
@@ -277,9 +273,10 @@ enum NestedSyntaxElem<L: Language> {
     Star,
 }
 
-fn parse_nested_syntax_elem<L: Language>(
-    tok: &[Token],
-) -> Result<(NestedSyntaxElem<L>, &[Token]), ParseError> {
+fn parse_nested_syntax_elem<'a, L: Language>(
+    tok: &'a [Token],
+    starCount: &mut u32,
+) -> Result<(NestedSyntaxElem<L>, &'a [Token]), ParseError> {
     debug!("parse_nested_syntax_elem input tok = {:?}", tok);
     if let Token::Star = &tok[0] {
         // (Pond) Can only use it for (op ?a *) or (op <?a *>) or (op <?a *> *)
@@ -293,32 +290,21 @@ fn parse_nested_syntax_elem<L: Language>(
             if let Token::RVecBracket = next[0] {
                 break;
             }
-            let (x, next2) = parse_nested_syntax_elem::<L>(next)?;
+            let (x, next2) = parse_nested_syntax_elem::<L>(next, starCount)?;
             next = next2;
 
             ret.push(x);
         }
-        debug!(
-            "parse_nested_syntax_elem ret1 = {:?}",
-            NestedSyntaxElem::Vec(ret.clone())
-        );
         return Ok((NestedSyntaxElem::Vec(ret), &next[1..]));
     }
 
     if let Token::Slot(slot) = &tok[0] {
-        debug!(
-            "parse_nested_syntax_elem ret2 = {:?}",
-            NestedSyntaxElem::<L>::Slot(*slot)
-        );
         return Ok((NestedSyntaxElem::Slot(*slot), &tok[1..]));
     }
 
-    debug!("Last case in parse_nested_syntax_elem, tok = {:?}", tok);
-
-    let recur_parse_result = parse_pattern::<L>(tok);
+    let recur_parse_result = parse_pattern::<L>(tok, starCount);
     let ret: Result<(NestedSyntaxElem<L>, &[Token]), ParseError> =
         recur_parse_result.map(|(x, rest)| (NestedSyntaxElem::Pattern(x), rest));
-    debug!("parse_nested_syntax_elem ret3 = {:?}", ret.clone());
     ret
 }
 

@@ -9,7 +9,7 @@ use log::debug;
 pub enum Pattern<L: Language> {
     ENode(L, Vec<Pattern<L>>),
     PVar(String),                                             // ?x
-    Star,                                                     // *
+    Star(u32),                                                // *
     Subst(Box<Pattern<L>>, Box<Pattern<L>>, Box<Pattern<L>>), // Subst(b, x, t) means `b[x := t]`
 }
 
@@ -49,7 +49,7 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(
             eg.subst_method = Some(method);
             out
         }
-        Pattern::Star => {
+        Pattern::Star(_) => {
             panic!()
         }
     }
@@ -72,7 +72,6 @@ pub fn lookup_rec_expr<L: Language, N: Analysis<L>>(
 }
 
 pub fn pattern_to_re<L: Language>(pat: &Pattern<L>) -> RecExpr<L> {
-    debug!("pattern_to_re input pat = {:?}", pat);
     let Pattern::ENode(n, children) = &pat else {
         panic!()
     };

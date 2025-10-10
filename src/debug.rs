@@ -71,7 +71,8 @@ impl<L: Language> std::fmt::Display for Pattern<L> {
                             todo!()
                         }
                         SyntaxElem::Star => {
-                            write!(f, "*")?;
+                            write!(f, "{}", &syntax_elems[se_idx])?;
+                            assert!(se_idx == syntax_elems.len() - 1);
                         }
                     }
                     if i != n - 1 {
@@ -85,7 +86,7 @@ impl<L: Language> std::fmt::Display for Pattern<L> {
             }
             Pattern::PVar(p) => write!(f, "?{p}"),
             Pattern::Subst(b, x, t) => write!(f, "{b}[{x} := {t}]"),
-            Pattern::Star => write!(f, "*"),
+            Pattern::Star(n) => write!(f, "*{}", n),
         }
     }
 }

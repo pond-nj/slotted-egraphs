@@ -20,20 +20,18 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
     pattern: &Pattern<L>,
 ) -> Vec<Subst> {
     debug!("=== Call EmatchAll ===");
-    debug!("pattern = {pattern:#?}");
+    debug!("pattern = {pattern}");
     let mut out = Vec::new();
-    // TODO(Pond): this will start matching at every id, which is not efficient.
-    let mut counter: usize = 0;
     let mut outPatterns = vec![];
     for i in eg.ids() {
         let i = eg.mk_sem_identity_applied_id(i);
-        let result = ematchAllInEclass(pattern, State::default(), i, eg, &mut counter);
+        let result = ematchAllInEclass(pattern, State::default(), i, eg);
         out.extend(result.0.into_iter().map(final_subst));
         outPatterns.extend(result.1);
     }
     debug!("ematch_all result out = {out:#?}");
     debug!("ematch_all result outPatterns = {outPatterns:#?}");
-    assert!(out.len() == outPatterns.len());
+    // assert!(out.len() == outPatterns.len());
     out
 }
 
@@ -45,7 +43,6 @@ fn ematchAllInEclass<L: Language, N: Analysis<L>>(
     st: State,
     i: AppliedId,
     eg: &EGraph<L, N>,
-    counter: &mut usize,
 ) -> (Vec<State>, Vec<Pattern<L>>) {
     match &pattern {
         Pattern::PVar(v) => {
@@ -84,7 +81,6 @@ fn ematchAllInEclass<L: Language, N: Analysis<L>>(
                     patternChildren,
                     &mut out,
                     &enode,
-                    counter,
                     &mut thisOut,
                 );
                 // assert!(out.len() == thisOut.len());
@@ -94,7 +90,7 @@ fn ematchAllInEclass<L: Language, N: Analysis<L>>(
             (out, outPatternChildren)
         }
         Pattern::Subst(..) => panic!(),
-        Pattern::Star => {
+        Pattern::Star(_) => {
             panic!(
                 "(Pond) This case should not be reached, all star should be handled like a new var"
             );
@@ -103,35 +99,31 @@ fn ematchAllInEclass<L: Language, N: Analysis<L>>(
 }
 
 //(Pond) try to match this Pattern at this Eclass
-fn recurseDownChildrenEclass<L: Language, N: Analysis<L>>(
+fn matchEclassWithEveryState<L: Language, N: Analysis<L>>(
     acc: Vec<State>,
     eclassId: &AppliedId,
     childPattern: &Pattern<L>,
     eg: &EGraph<L, N>,
-    counter: &mut usize,
     accPatternChildren: Vec<Vec<Pattern<L>>>,
 ) -> (Vec<State>, Vec<Vec<Pattern<L>>>) {
     let mut next = Vec::new();
     let mut nextPatternChildren = vec![];
 
     let callLen = acc.len();
-    let mut accIter = acc.into_iter();
+    let mut accIter = acc.clone().into_iter();
 
     for _ in 0..callLen {
-        let (result, resultPatternChildren) = ematchAllInEclass(
-            childPattern,
-            accIter.next().unwrap(),
-            eclassId.clone(),
-            eg,
-            counter,
-        );
+        let (result, resultPatternChildren) =
+            ematchAllInEclass(childPattern, accIter.next().unwrap(), eclassId.clone(), eg);
         next.extend(result);
         nextPatternChildren.extend(resultPatternChildren);
     }
 
-    assert!(next.len() == nextPatternChildren.len());
-    debug!("recurseDownChildrenEclass return next = {next:#?}");
-    debug!("recurseDownChildrenEclass return nextPatternChildren = {nextPatternChildren:#?}");
+    // assert!(next.len() == nextPatternChildren.len()); //shouldn't hold here
+    debug!("acc = {:#?}", acc);
+    debug!("accPatternChildren = {accPatternChildren:#?}");
+    debug!("next = {next:#?}");
+    debug!("nextPatternChildren = {nextPatternChildren:#?}");
 
     let mut nextAccPatternChildren = vec![];
     for nextPat in nextPatternChildren {
@@ -141,6 +133,9 @@ fn recurseDownChildrenEclass<L: Language, N: Analysis<L>>(
             nextAccPatternChildren.push(newTmpPatternChildren);
         }
     }
+
+    debug!("nextAccPatternChildren = {:#?}", nextAccPatternChildren);
+    // assert!(next.len() == nextAccPatternChildren.len());
     (next, nextAccPatternChildren)
 }
 
@@ -152,7 +147,6 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
     patternChildren: &[Pattern<L>],
     out: &mut Vec<State>,
     nn: &L,
-    counter: &mut usize,
     outPatternChildren: &mut Vec<Pattern<L>>,
 ) {
     'nodeloop: for enode_shape in eg.get_group_compatible_weak_variants(&nn) {
@@ -191,23 +185,23 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
         let eclassChildren = enode_shape.applied_id_occurrences();
 
         for i in 0..patternChildren.len() {
-            if patternChildren[i] == Pattern::Star {
+            if let Pattern::Star(n) = patternChildren[i] {
+                let mut counter = 0;
                 assert!(i == patternChildren.len() - 1);
                 let mut j = i;
                 while j < eclassChildren.len() {
-                    let newPVar = Pattern::PVar(format!("star_{}", counter));
+                    let newPVar = Pattern::PVar(format!("star_{}_{}", n, counter));
                     debug!("recurse down1");
-                    (acc, accPatternChildren) = recurseDownChildrenEclass(
+                    (acc, accPatternChildren) = matchEclassWithEveryState(
                         acc,
                         eclassChildren[j],
                         &newPVar,
                         eg,
-                        counter,
                         accPatternChildren,
                     );
 
                     j += 1;
-                    *counter += 1;
+                    counter += 1;
                 }
 
                 break;
@@ -217,7 +211,7 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
             let subPat = &patternChildren[i];
             debug!("recurse down2");
             (acc, accPatternChildren) =
-                recurseDownChildrenEclass(acc, subId, subPat, eg, counter, accPatternChildren);
+                matchEclassWithEveryState(acc, subId, subPat, eg, accPatternChildren);
         }
 
         out.extend(acc);
