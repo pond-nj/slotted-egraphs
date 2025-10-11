@@ -35,6 +35,16 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
     out
 }
 
+fn ematchAllInEclass<L: Language, N: Analysis<L>>(
+    pattern: &Pattern<L>,
+    i: Id,
+    eg: &EGraph<L, N>,
+) -> (Vec<State>, Vec<Pattern<L>>) {
+    let i = eg.mk_sem_identity_applied_id(i);
+    let result = ematchAllInEclass(pattern, State::default(), i, eg);
+    (result.0.into_iter().map(final_subst), vec![])
+}
+
 // (Pond) deal with Pattern cases and find Enode with same type
 // `i` uses egraph slots instead of pattern slots.
 // (Pond) Find pattern of that type in the eclass

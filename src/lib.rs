@@ -74,3 +74,6 @@ pub use run::*;
 
 mod logger;
 pub use logger::*;
+
+mod permute;
+pub use permute::*;

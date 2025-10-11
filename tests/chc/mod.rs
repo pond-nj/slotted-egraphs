@@ -84,9 +84,38 @@ define_language! {
 
 // TODO(Pond): next, we need testing here
 fn unfold() -> Rewrite<CHC> {
-    let pat = "(compose <(new ?s (true) <(compose <*1>) *2>) *3>)";
-    let newPat = "(compose <(new ?s (true) <(compose <*1>) *2>) *3>)";
-    Rewrite::new("test", pat, newPat)
+    let pat = Pattern::parse("(compose <(new ?syntax1 (true) <(compose <*1>) *2>) *3>)").unwrap();
+
+    let searcher = Box::new(move |eg: &EGraph<CHC>| -> Vec<Subst> { ematch_all(eg, &pat) });
+    let applier = Box::new(
+        // (compose <[(new ?syntax2 (true) <*4>) \dot (#matches of *1)] *3>)
+        |substs: Vec<Subst>, eg: &mut EGraph<CHC>| {
+            for st in substs {
+                let mut star1Max = 0;
+                while st.contains_key(&format!("star_1_{}", star1Max)) {
+                    star1Max += 1;
+                }
+                let mut matches: Vec<Vec<Subst>> = vec![];
+                for star1 in 0..star1Max {
+                    let usePat = Pattern::parse("(new ?syntax2 (true) <*4>)").unwrap();
+                    // TODO: have to match in *1 class
+                    matches.push(ematchAllInEclass(usePat, State::default(), st[&format!("star_1_{}", star1)], eg));
+                }
+
+                let matchesCombination: Vec<Vec<Subst>> = permute(matches);
+
+                for m in matchesCombination {
+                    // Create array of AppliedId for one combination
+                    for 
+                }
+            }
+        },
+    );
+    RewriteT {
+        searcher: searcher,
+        applier: applier,
+    }
+    .into()
 }
 
 fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
