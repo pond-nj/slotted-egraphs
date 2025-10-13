@@ -266,10 +266,10 @@ fn tst1() {
     let s_chc1 = &format!("(new {s_syntax} (true) <>)");
     let s_compose = &format!("(compose <{s_chc1}>)");
 
-    // P(x, y) <- Q(x, y), S(x).
-    // P(x, y) <- .
     let p_syntax = &format!("(pred P <{x} {y}>)");
+    // P(x, y) <- Q(x, y), S(x).
     let p_chc1 = &format!("(new {p_syntax} (true) <{q_compose} {s_compose}>)");
+    // P(x, y) <- .
     let p_chc2 = &format!("(new {p_syntax} (true) <>)");
     let p_compose = &format!("(compose <{p_chc1} {p_chc2}>)");
 
@@ -281,6 +281,7 @@ fn tst1() {
     let mut runner: Runner<CHC> = Runner::default().with_egraph(eg).with_iter_limit(60);
     let report = runner.run(&get_all_rewrites());
     debug!("report = {report:?}");
+    debug!("eg after rewrite = {:?}", runner.egraph);
 
     // unfold result
     // P(x, y) <- r1(x), r2(y), S(x).

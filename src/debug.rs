@@ -33,7 +33,7 @@ impl Debug for SlotMap {
 
 impl Debug for AppliedId {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{:?}, map-{:?}", self.id, self.m)
+        write!(f, "{:?}: map-{:?}", self.id, self.m)
     }
 }
 

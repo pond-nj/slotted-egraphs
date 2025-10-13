@@ -1,0 +1,103 @@
+[entry::chc] eg after rewrite = 
+     == Egraph ==
+    id0():>> PredName("P")
+     - PredName("P")
+    
+    // P(x, y)
+    id1($f0, $f1):>> PredSyntax(id0: map-[], [$f0, $f1])
+     - PredSyntax(id0: map-[], [$f0, $f1])
+    
+    id2():>> True
+     - True
+    
+    id3():>> PredName("Q")
+     - PredName("Q")
+    
+    // Q(x, y)
+    id4($f2, $f3):>> PredSyntax(id3: map-[], [$f2, $f3])
+     - PredSyntax(id3: map-[], [$f2, $f3])
+    
+    id5():>> PredName("R1")
+     - PredName("R1")
+    
+    // R1(x)
+    id6($f4):>> PredSyntax(id5: map-[], [$f4])
+     - PredSyntax(id5: map-[], [$f4])
+    
+    //R1(x).
+    id7($f5):>> New(id6: map-[$f4 -> $f5], id2: map-[], [])
+     - New(id6: map-[$f4 -> $f5], id2: map-[], [])
+    
+    //R1(x).
+    id8($f6):>> Compose([AppliedId(id7: map-[$f5 -> $f6])])
+     - Compose([AppliedId(id7: map-[$f5 -> $f6])])
+    
+    id9():>> PredName("R2")
+     - PredName("R2")
+    
+    //R2(y)
+    id10($f7):>> PredSyntax(id9: map-[], [$f7])
+     - PredSyntax(id9: map-[], [$f7])
+    
+    //R2(y).
+    id11($f8):>> New(id10: map-[$f7 -> $f8], id2: map-[], [])
+     - New(id10: map-[$f7 -> $f8], id2: map-[], [])
+    
+    //R2(y)
+    id12($f9):>> Compose([AppliedId(id11: map-[$f8 -> $f9])])
+     - Compose([AppliedId(id11: map-[$f8 -> $f9])])
+    
+    //Q(x, y) <- R1(x), R2(y)
+    //Q(x, y) <- R2(y), R1(x)
+    id13($f10, $f11):>> New(id4: map-[$f2 -> $f10, $f3 -> $f11], id2: map-[], [AppliedId(id8: map-[$f6 -> $f10]), AppliedId(id12: map-[$f9 -> $f11])])
+     - New(id4: map-[$f2 -> $f10, $f3 -> $f11], id2: map-[], [AppliedId(id8: map-[$f6 -> $f10]), AppliedId(id12: map-[$f9 -> $f11])])
+     - New(id4: map-[$f2 -> $f10, $f3 -> $f11], id2: map-[], [AppliedId(id12: map-[$f9 -> $f11]), AppliedId(id8: map-[$f6 -> $f10])])
+    
+    //Compose Q(x, y)
+    id14($f12, $f13):>> Compose([AppliedId(id13: map-[$f10 -> $f12, $f11 -> $f13])])
+     - Compose([AppliedId(id13: map-[$f10 -> $f12, $f11 -> $f13])])
+    
+    id15():>> PredName("S")
+     - PredName("S")
+    
+    //S(x)
+    id16($f14):>> PredSyntax(id15: map-[], [$f14])
+     - PredSyntax(id15: map-[], [$f14])
+    
+    //S(x).
+    id17($f15):>> New(id16: map-[$f14 -> $f15], id2: map-[], [])
+     - New(id16: map-[$f14 -> $f15], id2: map-[], [])
+    
+    //S(x).
+    id18($f16):>> Compose([AppliedId(id17: map-[$f15 -> $f16])])
+     - Compose([AppliedId(id17: map-[$f15 -> $f16])])
+    
+    //P(x, y) <- Q(x, y), S(x)
+    //P(x, y) <- S(x), Q(x, y)
+    id19($f17, $f18):>> New(id1: map-[$f0 -> $f17, $f1 -> $f18], id2: map-[], [AppliedId(id14: map-[$f12 -> $f17, $f13 -> $f18]), AppliedId(id18: map-[$f16 -> $f17])])
+     - New(id1: map-[$f0 -> $f17, $f1 -> $f18], id2: map-[], [AppliedId(id14: map-[$f12 -> $f17, $f13 -> $f18]), AppliedId(id18: map-[$f16 -> $f17])])
+     - New(id1: map-[$f0 -> $f17, $f1 -> $f18], id2: map-[], [AppliedId(id18: map-[$f16 -> $f17]), AppliedId(id14: map-[$f12 -> $f17, $f13 -> $f18])])
+    
+    //P(x, y).
+    id20($f19, $f20):>> New(id1: map-[$f0 -> $f19, $f1 -> $f20], id2: map-[], [])
+     - New(id1: map-[$f0 -> $f19, $f1 -> $f20], id2: map-[], [])
+    
+     //P(x, y) <- S(x), Q(x, y)
+     //P(x, y).
+     // and 
+     //P(x, y) <- R1(x), S(x), R2(y)
+     //P(x, y).
+    id21($f21, $f22):>> Compose([AppliedId(id19: map-[$f17 -> $f21, $f18 -> $f22]), AppliedId(id20: map-[$f19 -> $f21, $f20 -> $f22])])
+     - Compose([AppliedId(id20: map-[$f19 -> $f21, $f20 -> $f22]), AppliedId(id22: map-[$f38 -> $f21, $f39 -> $f22, $f40 -> $f48, $f41 -> $f49])])
+     - Compose([AppliedId(id22: map-[$f38 -> $f21, $f39 -> $f22, $f40 -> $f135, $f41 -> $f136]), AppliedId(id20: map-[$f19 -> $f21, $f20 -> $f22])])
+     - Compose([AppliedId(id19: map-[$f17 -> $f21, $f18 -> $f22]), AppliedId(id20: map-[$f19 -> $f21, $f20 -> $f22])])
+     - Compose([AppliedId(id20: map-[$f19 -> $f21, $f20 -> $f22]), AppliedId(id19: map-[$f17 -> $f21, $f18 -> $f22])])
+    
+    //P(x, y) <- R1(x), S(x), R2(y)
+    id22($f38, $f39, $f40, $f41):>> New(id1: map-[$f0 -> $f38, $f1 -> $f39], id2: map-[], [AppliedId(id18: map-[$f16 -> $f38]), AppliedId(id8: map-[$f6 -> $f41]), AppliedId(id12: map-[$f9 -> $f40])])
+     - New(id1: map-[$f0 -> $f38, $f1 -> $f39], id2: map-[], [AppliedId(id18: map-[$f16 -> $f38]), AppliedId(id8: map-[$f6 -> $f41]), AppliedId(id12: map-[$f9 -> $f40])])
+     - New(id1: map-[$f0 -> $f38, $f1 -> $f39], id2: map-[], [AppliedId(id8: map-[$f6 -> $f41]), AppliedId(id18: map-[$f16 -> $f38]), AppliedId(id12: map-[$f9 -> $f40])])
+     - New(id1: map-[$f0 -> $f38, $f1 -> $f39], id2: map-[], [AppliedId(id18: map-[$f16 -> $f38]), AppliedId(id12: map-[$f9 -> $f40]), AppliedId(id8: map-[$f6 -> $f41])])
+     - New(id1: map-[$f0 -> $f38, $f1 -> $f39], id2: map-[], [AppliedId(id8: map-[$f6 -> $f41]), AppliedId(id12: map-[$f9 -> $f40]), AppliedId(id18: map-[$f16 -> $f38])])
+     - New(id1: map-[$f0 -> $f38, $f1 -> $f39], id2: map-[], [AppliedId(id12: map-[$f9 -> $f40]), AppliedId(id18: map-[$f16 -> $f38]), AppliedId(id8: map-[$f6 -> $f41])])
+     - New(id1: map-[$f0 -> $f38, $f1 -> $f39], id2: map-[], [AppliedId(id12: map-[$f9 -> $f40]), AppliedId(id8: map-[$f6 -> $f41]), AppliedId(id18: map-[$f16 -> $f38])])
