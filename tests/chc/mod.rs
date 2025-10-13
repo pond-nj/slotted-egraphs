@@ -153,6 +153,7 @@ fn unfold() -> Rewrite<CHC> {
     .into()
 }
 
+// TODO: add rule for rearrangement in compose and new children?
 fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
     vec![unfold()]
 }
@@ -163,31 +164,49 @@ fn tst1() {
     let x = "$0";
     let y = "$1";
 
+    // r1(x) <- .
     let r1_syntax = &format!("(pred R1 <{x}>)");
     let r1_chc1 = &format!("(new {r1_syntax} (true) <>)");
     let r1_compose = &format!("(compose <{r1_chc1}>)");
 
+    // r2(y) <- .
     let r2_syntax = &format!("(pred R2 <{y}>)");
     let r2_chc1 = &format!("(new {r2_syntax} (true) <>)");
     let r2_compose = &format!("(compose <{r2_chc1}>)");
 
+    // Q(x, y) <- r1(x), r2(y).
     let q_syntax = &format!("(pred Q <{x} {y}>)");
     let q_chc1 = &format!("(new {q_syntax} (true) <{r1_compose} {r2_compose}>)");
     let q_compose = &format!("(compose <{q_chc1}>)");
 
-    let p_syntax = &format!("(pred P <{x} {y}>)");
-    let p_chc1 = &format!("(new {p_syntax} (true) <{q_compose}>)");
-    let p_compose = &format!("(compose <{p_chc1}>)");
+    // S(x) <- .
+    let s_syntax = &format!("(pred S <{x}>)");
+    let s_chc1 = &format!("(new {s_syntax} (true) <>)");
+    let s_compose = &format!("(compose <{s_chc1}>)");
 
-    println!("p_compose = {p_compose}");
+    // P(x, y) <- Q(x, y), S(x).
+    // P(x, y) <- .
+    let p_syntax = &format!("(pred P <{x} {y}>)");
+    let p_chc1 = &format!("(new {p_syntax} (true) <{q_compose} {s_compose}>)");
+    let p_chc2 = &format!("(new {p_syntax} (true) <>)");
+    let p_compose = &format!("(compose <{p_chc1} {p_chc2}>)");
+
+    debug!("p_compose = {p_compose}");
 
     let mut eg = EGraph::<CHC>::default();
     id(&p_compose, &mut eg);
 
-    println!("eg = {eg:?}");
-
     let mut runner: Runner<CHC> = Runner::default().with_egraph(eg).with_iter_limit(60);
     let report = runner.run(&get_all_rewrites());
+    debug!("report = {report:?}");
 
-    println!("report = {report:?}");
+    // unfold result
+    // P(x, y) <- r1(x), r2(y), S(x).
+    // P(x, y) <- .
+    let unfolded_p_chc1 =
+        &format!("(new {p_syntax} (true) <{r1_compose} {r2_compose} {s_compose}>)");
+    let unfolded_p_compose = &format!("(compose <{unfolded_p_chc1} {p_chc2}>)");
+
+    let result = ematch_all(&runner.egraph, &Pattern::parse(unfolded_p_compose).unwrap());
+    debug!("match unfold result1 = {result:?}");
 }
