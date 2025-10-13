@@ -54,6 +54,16 @@ pub fn starPVar(starIndex: u32, starCount: u32) -> String {
     format!("star_{}_{}", starIndex, starCount)
 }
 
+pub fn starPStr(starIndex: u32, subst: &Subst) -> String {
+    let mut countStar = 0;
+    let mut allStarStr: String = "".to_string();
+    while subst.contains_key(&starPVar(starIndex, countStar)) {
+        allStarStr += &(format!("?{} ", starPVar(starIndex, countStar)));
+        countStar += 1;
+    }
+    allStarStr
+}
+
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
     debug!("tokenizing s = {s}");
     let mut tokens = Vec::new();

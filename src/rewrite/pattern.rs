@@ -47,8 +47,6 @@ pub fn replaceStarInPatternFromSubst<L: Language>(pattern: &mut Pattern<L>, subs
 
         return;
     }
-
-    panic!();
 }
 
 // Subst variable in the pattern and add the pattern to Egraph

@@ -15,6 +15,14 @@ struct State {
     partial_slotmap: SlotMap,
 }
 
+pub fn mergeSubst(subst1: &mut Subst, subst2: &Subst) {
+    // let mut newSubst = subst1.clone();
+    for s in subst2 {
+        assert!(!subst1.contains_key(s.0));
+        subst1.insert(s.0.clone(), s.1.clone());
+    }
+}
+
 pub fn ematch_all<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
     pattern: &Pattern<L>,

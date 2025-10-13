@@ -99,16 +99,23 @@ fn unfold() -> Rewrite<CHC> {
                 while subst.contains_key(&starPVar(1, star1Max)) {
                     star1Max += 1;
                 }
+
                 let mut matches: Vec<Vec<AppliedId>> = vec![];
                 // match in star1 Eclass
-                // TODO: syntax2 has to be the same? But it will always be the same?
                 for star1Count in 0..star1Max {
                     let subPat = Pattern::parse("(new ?syntax2 (true) <*4>)").unwrap();
                     let result: Vec<Subst> =
                         ematchAllInEclass(eg, &subPat, subst[&starPVar(1, star1Count)].id);
                     let mut thisNewIds: Vec<AppliedId> = vec![];
-                    for r in result {
-                        let toPat = Pattern::parse("(new ?syntax1 (true) <*4>)").unwrap();
+
+                    let toPat = Pattern::parse(&format!(
+                        "(new ?syntax1 (true) <{} *4>)",
+                        starPStr(2, &subst)
+                    ))
+                    .unwrap();
+
+                    for mut r in result {
+                        mergeSubst(&mut r, &subst);
                         let newId = pattern_subst(eg, &toPat, &r);
                         thisNewIds.push(newId);
                     }
@@ -116,14 +123,8 @@ fn unfold() -> Rewrite<CHC> {
                 }
 
                 let matchesCombination: Vec<Vec<AppliedId>> = permute(matches);
-                // TODO: will this give an Error some where?
-                let mut countStar3 = 0;
-                let mut allStar3: String = "".to_string();
-                while subst.contains_key(&starPVar(3, countStar3)) {
-                    allStar3 += &(format!("?{} ", starPVar(3, countStar3)));
-                    countStar3 += 1;
-                }
-                let newEnode = Pattern::parse(&format!("(compose <{} *4>)", allStar3)).unwrap();
+                let newEnode =
+                    Pattern::parse(&format!("(compose <{} *4>)", starPStr(3, &subst))).unwrap();
                 for m in matchesCombination {
                     // Create a new compose Enode whose children is the vector of AppliedId and union it with the original Compose
                     let mut newSubst = subst.clone();
