@@ -1,6 +1,7 @@
 use vec_collections::AbstractVecSet;
 
 use crate::*;
+use log::debug;
 
 // syntactic add:
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {

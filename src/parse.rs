@@ -50,7 +50,12 @@ fn crop_ident(s: &str) -> Result<(/*ident*/ &str, /*rest*/ &str), ParseError> {
     Ok(out)
 }
 
+pub fn starPVar(starIndex: u32, starCount: u32) -> String {
+    format!("star_{}_{}", starIndex, starCount)
+}
+
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
+    debug!("tokenizing s = {s}");
     let mut tokens = Vec::new();
 
     loop {
@@ -86,7 +91,7 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
             s = &s[2..];
         } else if s.starts_with('?') {
             let (op, rst) = crop_ident(&s[1..])?;
-            assert!(!op.starts_with("star"));
+            // assert!(!op.starts_with("star"));
             tokens.push(Token::PVar(op.to_string()));
             s = rst;
         } else if s.starts_with('$') {

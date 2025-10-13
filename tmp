@@ -38,7 +38,7 @@ warning: function `produceGetShrinkChildrenArms` should have a snake case name
 
 warning: `slotted-egraphs-derive` (lib) generated 6 warnings
    Compiling slotted-egraphs v0.0.36 (/home/pondnj/chc/project/slotted-egraphs)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.87s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.69s
      Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-6d92e85151c62515)
 
 running 0 tests
@@ -49,6 +49,7 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; fini
 
 running 1 test
 p_compose = (compose <(new (pred P <$0 $1>) (true) <(compose <(new (pred Q <$0 $1>) (true) <(compose <(new (pred R1 <$0>) (true) <>)>) (compose <(new (pred R2 <$1>) (true) <>)>)>)>)>)>)
+[slotted_egraphs::parse] tokenizing s = (compose <(new (pred P <$0 $1>) (true) <(compose <(new (pred Q <$0 $1>) (true) <(compose <(new (pred R1 <$0>) (true) <>)>) (compose <(new (pred R2 <$1>) (true) <>)>)>)>)>)>)
 [slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("P"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("Q"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 [slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("P"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("Q"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
 [slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("P"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("Q"), LVecBracket, Slot($0), Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R1"), LVecBracket, Slot($0), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), LParen, Ident("pred"), Ident("R2"), LVecBracket, Slot($1), RVecBracket, RParen, LParen, Ident("true"), RParen, LVecBracket, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen, RVecBracket, RParen]
@@ -266,57 +267,16 @@ id15($f14, $f15):>> New(id1, map-[$f0 -> $f14, $f1 -> $f15], id2, map-[], [Appli
 id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
  - Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[entry::chc] from_syntax::elems = [String("true")]
-[entry::chc] from_syntax::ret = Some(True)
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[entry::chc] from_syntax::elems = [String("compose"), Vec([Star(1)])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([Star(1)])]
-[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [Star(1)]
-[entry::chc] from_syntax::ret = Some(Compose([Star(1)]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[entry::chc] from_syntax::elems = [String("new"), AppliedId(id0, map-[]), AppliedId(id0, map-[]), Vec([AppliedId(id0, map-[]), Star(2)])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), Star(2)])]
-[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [AppliedId(id0, map-[])]
-[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [Star(2)]
-[entry::chc] from_syntax::ret = Some(New(id0, map-[], id0, map-[], [AppliedId(id0, map-[]), Star(2)]))
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [Star(3), RVecBracket, RParen]
-[entry::chc] from_syntax::elems = [String("compose"), Vec([AppliedId(id0, map-[]), Star(3)])]
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
-[slotted_egraphs::lang] vec<L>::from_syntax return None1
-[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([AppliedId(id0, map-[]), Star(3)])]
-[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [AppliedId(id0, map-[])]
-[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [Star(3)]
-[entry::chc] from_syntax::ret = Some(Compose([AppliedId(id0, map-[]), Star(3)]))
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("new"), PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern input tok = [PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
-[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("s"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
+[slotted_egraphs::parse] tokenizing s = (compose <(new ?syntax1 (true) <(compose <*1>) *2>) *3>)
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("compose"), LVecBracket, LParen, Ident("new"), PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, LParen, Ident("new"), PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("new"), PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("new"), PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("new"), PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
 [slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
 [slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
 [slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("true"), RParen, LVecBracket, LParen, Ident("compose"), LVecBracket, Star(1), RVecBracket, RParen, Star(2), RVecBracket, RParen, Star(3), RVecBracket, RParen]
@@ -351,7 +311,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [Star(3)]
 [entry::chc] from_syntax::ret = Some(Compose([AppliedId(id0, map-[]), Star(3)]))
 [slotted_egraphs::rewrite::ematch] === Call EmatchAll ===
-[slotted_egraphs::rewrite::ematch] pattern = (compose (new ?s true (compose *1) *2) *3)
+[slotted_egraphs::rewrite::ematch] pattern = (compose (new ?syntax1 true (compose *1) *2) *3)
 [slotted_egraphs::egraph] enodes_applied i = id0, map-[]
 [slotted_egraphs::egraph] classes = EClass {
         nodes: {
@@ -1358,20 +1318,20 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
             },
             partial_slotmap: [],
         },
     ]
 [slotted_egraphs::rewrite::ematch] nextPatternChildren = [
         PVar(
-            "s",
+            "syntax1",
         ),
     ]
 [slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
         ],
     ]
@@ -1433,7 +1393,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] out = [
         State {
             partial_subst: {
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
             },
             partial_slotmap: [],
         },
@@ -1447,7 +1407,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] acc = [
         State {
             partial_subst: {
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
             },
             partial_slotmap: [],
         },
@@ -1455,14 +1415,14 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] accPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
         ],
     ]
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
             },
             partial_slotmap: [],
         },
@@ -1476,7 +1436,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
             ENode(
                 True,
@@ -1561,7 +1521,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] acc = [
         State {
             partial_subst: {
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
             },
             partial_slotmap: [],
         },
@@ -1572,8 +1532,8 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
                 "star_1_0": id7, map-[$f5 -> $f12],
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
             },
             partial_slotmap: [],
         },
@@ -1593,8 +1553,8 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] out = [
         State {
             partial_subst: {
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
                 "star_1_0": id7, map-[$f5 -> $f12],
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
             },
             partial_slotmap: [],
         },
@@ -1618,7 +1578,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] acc = [
         State {
             partial_subst: {
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
             },
             partial_slotmap: [],
         },
@@ -1626,7 +1586,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] accPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
             ENode(
                 True,
@@ -1637,8 +1597,8 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
                 "star_1_0": id7, map-[$f5 -> $f12],
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
             },
             partial_slotmap: [],
         },
@@ -1662,7 +1622,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
             ENode(
                 True,
@@ -1688,8 +1648,8 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] acc = [
         State {
             partial_subst: {
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
                 "star_1_0": id7, map-[$f5 -> $f12],
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
             },
             partial_slotmap: [],
         },
@@ -1697,7 +1657,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] accPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
             ENode(
                 True,
@@ -1722,9 +1682,9 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
-                "star_1_0": id7, map-[$f5 -> $f12],
                 "star_2_0": id12, map-[$f9 -> $f13],
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "star_1_0": id7, map-[$f5 -> $f12],
             },
             partial_slotmap: [],
         },
@@ -1737,7 +1697,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
             ENode(
                 True,
@@ -1765,9 +1725,9 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] out = [
         State {
             partial_subst: {
-                "star_1_0": id7, map-[$f5 -> $f12],
                 "star_2_0": id12, map-[$f9 -> $f13],
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "star_1_0": id7, map-[$f5 -> $f12],
             },
             partial_slotmap: [],
         },
@@ -1788,7 +1748,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
             ),
             [
                 PVar(
-                    "s",
+                    "syntax1",
                 ),
                 ENode(
                     True,
@@ -1826,9 +1786,9 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
-                "star_1_0": id7, map-[$f5 -> $f12],
                 "star_2_0": id12, map-[$f9 -> $f13],
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "star_1_0": id7, map-[$f5 -> $f12],
             },
             partial_slotmap: [],
         },
@@ -1849,7 +1809,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
             ),
             [
                 PVar(
-                    "s",
+                    "syntax1",
                 ),
                 ENode(
                     True,
@@ -1892,7 +1852,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
                 ),
                 [
                     PVar(
-                        "s",
+                        "syntax1",
                     ),
                     ENode(
                         True,
@@ -1922,9 +1882,9 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] out = [
         State {
             partial_subst: {
-                "star_1_0": id7, map-[$f5 -> $f12],
                 "star_2_0": id12, map-[$f9 -> $f13],
-                "s": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "syntax1": id4, map-[$f2 -> $f12, $f3 -> $f13],
+                "star_1_0": id7, map-[$f5 -> $f12],
             },
             partial_slotmap: [],
         },
@@ -1957,7 +1917,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
                     ),
                     [
                         PVar(
-                            "s",
+                            "syntax1",
                         ),
                         ENode(
                             True,
@@ -2202,20 +2162,20 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
     ]
 [slotted_egraphs::rewrite::ematch] nextPatternChildren = [
         PVar(
-            "s",
+            "syntax1",
         ),
     ]
 [slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
         ],
     ]
@@ -2277,7 +2237,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] out = [
         State {
             partial_subst: {
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2291,7 +2251,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] acc = [
         State {
             partial_subst: {
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2299,14 +2259,14 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] accPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
         ],
     ]
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2320,7 +2280,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
             ENode(
                 True,
@@ -2403,7 +2363,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] acc = [
         State {
             partial_subst: {
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2414,8 +2374,8 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
                 "star_1_0": id13, map-[$f10 -> $f16, $f11 -> $f17],
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2435,8 +2395,8 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] out = [
         State {
             partial_subst: {
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
                 "star_1_0": id13, map-[$f10 -> $f16, $f11 -> $f17],
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2460,7 +2420,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] acc = [
         State {
             partial_subst: {
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2468,7 +2428,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] accPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
             ENode(
                 True,
@@ -2479,8 +2439,8 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
                 "star_1_0": id13, map-[$f10 -> $f16, $f11 -> $f17],
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2504,7 +2464,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
         [
             PVar(
-                "s",
+                "syntax1",
             ),
             ENode(
                 True,
@@ -2529,8 +2489,8 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] out = [
         State {
             partial_subst: {
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
                 "star_1_0": id13, map-[$f10 -> $f16, $f11 -> $f17],
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2551,7 +2511,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
             ),
             [
                 PVar(
-                    "s",
+                    "syntax1",
                 ),
                 ENode(
                     True,
@@ -2586,8 +2546,8 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] next = [
         State {
             partial_subst: {
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
                 "star_1_0": id13, map-[$f10 -> $f16, $f11 -> $f17],
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2608,7 +2568,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
             ),
             [
                 PVar(
-                    "s",
+                    "syntax1",
                 ),
                 ENode(
                     True,
@@ -2648,7 +2608,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
                 ),
                 [
                     PVar(
-                        "s",
+                        "syntax1",
                     ),
                     ENode(
                         True,
@@ -2675,8 +2635,8 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
 [slotted_egraphs::rewrite::ematch] out = [
         State {
             partial_subst: {
+                "syntax1": id1, map-[$f0 -> $f16, $f1 -> $f17],
                 "star_1_0": id13, map-[$f10 -> $f16, $f11 -> $f17],
-                "s": id1, map-[$f0 -> $f16, $f1 -> $f17],
             },
             partial_slotmap: [],
         },
@@ -2709,7 +2669,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
                     ),
                     [
                         PVar(
-                            "s",
+                            "syntax1",
                         ),
                         ENode(
                             True,
@@ -2736,13 +2696,13 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
     ]
 [slotted_egraphs::rewrite::ematch] ematch_all result out = [
         {
-            "star_1_0": id7, map-[$f5 -> $f18],
-            "star_2_0": id12, map-[$f9 -> $f19],
-            "s": id4, map-[$f2 -> $f18, $f3 -> $f19],
+            "star_2_0": id12, map-[$f9 -> $f18],
+            "syntax1": id4, map-[$f2 -> $f19, $f3 -> $f18],
+            "star_1_0": id7, map-[$f5 -> $f19],
         },
         {
+            "syntax1": id1, map-[$f0 -> $f20, $f1 -> $f21],
             "star_1_0": id13, map-[$f10 -> $f20, $f11 -> $f21],
-            "s": id1, map-[$f0 -> $f20, $f1 -> $f21],
         },
     ]
 [slotted_egraphs::rewrite::ematch] ematch_all result outPatterns = [
@@ -2773,7 +2733,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
                     ),
                     [
                         PVar(
-                            "s",
+                            "syntax1",
                         ),
                         ENode(
                             True,
@@ -2827,7 +2787,7 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
                     ),
                     [
                         PVar(
-                            "s",
+                            "syntax1",
                         ),
                         ENode(
                             True,
@@ -2852,115 +2812,608 @@ id16($f16, $f17):>> Compose([AppliedId(id15, map-[$f14 -> $f16, $f15 -> $f17])])
             ],
         ),
     ]
-[slotted_egraphs::egraph::union] from_pat = (compose (new ?s true (compose *1) *2) *3)
-[slotted_egraphs::egraph::union] subst = {
-        "star_1_0": id7, map-[$f5 -> $f18],
-        "star_2_0": id12, map-[$f9 -> $f19],
-        "s": id4, map-[$f2 -> $f18, $f3 -> $f19],
+[slotted_egraphs::parse] tokenizing s = (new ?syntax2 (true) <*4>)
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("new"), PVar("syntax2"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("new"), PVar("syntax2"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("syntax2"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [PVar("syntax2"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("syntax2"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[entry::chc] from_syntax::elems = [String("true")]
+[entry::chc] from_syntax::ret = Some(True)
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [Star(4), RVecBracket, RParen]
+[entry::chc] from_syntax::elems = [String("new"), AppliedId(id0, map-[]), AppliedId(id0, map-[]), Vec([Star(4)])]
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
+[slotted_egraphs::lang] vec<L>::from_syntax return None1
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([Star(4)])]
+[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [Star(4)]
+[entry::chc] from_syntax::ret = Some(New(id0, map-[], id0, map-[], [Star(4)]))
+[slotted_egraphs::egraph] enodes_applied i = id7, map-[$f5 -> $f5]
+[slotted_egraphs::egraph] classes = EClass {
+        nodes: {
+            New(
+                id6, map-[$f4 -> $0],
+                id2, map-[],
+                [],
+            ): ProvenSourceNode {
+                elem: [$0 -> $f5],
+                src_id: id7,
+            },
+        },
+        slots: {
+            $f5,
+        },
+        usages: {
+            Compose(
+                [
+                    AppliedId(
+                        id7, map-[$f5 -> $0],
+                    ),
+                ],
+            ),
+        },
+        group: Group {
+            identity: ProvenPerm {
+                elem: [$f5 -> $f5],
+            },
+            next: None,
+        },
+        syn_enode: New(
+            id6, map-[$f4 -> $f5],
+            id2, map-[],
+            [],
+        ),
+        ..
     }
-[slotted_egraphs::egraph::union] newFromPat = ENode(
-        Compose(
+[slotted_egraphs::lang] a = [
+        Star,
+    ]
+[slotted_egraphs::lang] b = []
+[slotted_egraphs::lang] return false 0
+[slotted_egraphs::lang] a = [
+        AppliedId(
+            id0, map-[],
+        ),
+        AppliedId(
+            id0, map-[],
+        ),
+        Vec(
             [
+                Star,
+            ],
+        ),
+    ]
+[slotted_egraphs::lang] b = [
+        AppliedId(
+            id0, map-[],
+        ),
+        AppliedId(
+            id0, map-[],
+        ),
+        Vec(
+            [],
+        ),
+    ]
+[slotted_egraphs::lang] return false 1
+[slotted_egraphs::rewrite::ematch] continue at New(id0, map-[], id0, map-[], [Star(4)]) != New(id0, map-[], id0, map-[], [])
+[slotted_egraphs::rewrite::ematch] out = []
+[slotted_egraphs::rewrite::ematch] outPatternChildren = []
+[slotted_egraphs::parse] tokenizing s = (compose < *4>)
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("compose"), LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("compose"), LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [Star(4), RVecBracket, RParen]
+[entry::chc] from_syntax::elems = [String("compose"), Vec([Star(4)])]
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
+[slotted_egraphs::lang] vec<L>::from_syntax return None1
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([Star(4)])]
+[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [Star(4)]
+[entry::chc] from_syntax::ret = Some(Compose([Star(4)]))
+[slotted_egraphs::parse] tokenizing s = (new ?syntax2 (true) <*4>)
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("new"), PVar("syntax2"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("new"), PVar("syntax2"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("syntax2"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [PVar("syntax2"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("syntax2"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[entry::chc] from_syntax::elems = [String("true")]
+[entry::chc] from_syntax::ret = Some(True)
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [Star(4), RVecBracket, RParen]
+[entry::chc] from_syntax::elems = [String("new"), AppliedId(id0, map-[]), AppliedId(id0, map-[]), Vec([Star(4)])]
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
+[slotted_egraphs::lang] vec<L>::from_syntax return None1
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([Star(4)])]
+[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [Star(4)]
+[entry::chc] from_syntax::ret = Some(New(id0, map-[], id0, map-[], [Star(4)]))
+[slotted_egraphs::egraph] enodes_applied i = id13, map-[$f10 -> $f10, $f11 -> $f11]
+[slotted_egraphs::egraph] classes = EClass {
+        nodes: {
+            New(
+                id4, map-[$f2 -> $0, $f3 -> $1],
+                id2, map-[],
+                [
+                    AppliedId(
+                        id8, map-[$f6 -> $0],
+                    ),
+                    AppliedId(
+                        id12, map-[$f9 -> $1],
+                    ),
+                ],
+            ): ProvenSourceNode {
+                elem: [$0 -> $f10, $1 -> $f11],
+                src_id: id13,
+            },
+        },
+        slots: {
+            $f10,
+            $f11,
+        },
+        usages: {
+            Compose(
+                [
+                    AppliedId(
+                        id13, map-[$f10 -> $0, $f11 -> $1],
+                    ),
+                ],
+            ),
+        },
+        group: Group {
+            identity: ProvenPerm {
+                elem: [$f10 -> $f10, $f11 -> $f11],
+            },
+            next: None,
+        },
+        syn_enode: New(
+            id4, map-[$f2 -> $f10, $f3 -> $f11],
+            id2, map-[],
+            [
+                AppliedId(
+                    id8, map-[$f6 -> $f10],
+                ),
+                AppliedId(
+                    id12, map-[$f9 -> $f11],
+                ),
+            ],
+        ),
+        ..
+    }
+[slotted_egraphs::lang] a = [
+        Star,
+    ]
+[slotted_egraphs::lang] b = [
+        AppliedId(
+            id0, map-[],
+        ),
+        AppliedId(
+            id0, map-[],
+        ),
+    ]
+[slotted_egraphs::lang] return true 1
+[slotted_egraphs::lang] a = [
+        AppliedId(
+            id0, map-[],
+        ),
+        AppliedId(
+            id0, map-[],
+        ),
+        Vec(
+            [
+                Star,
+            ],
+        ),
+    ]
+[slotted_egraphs::lang] b = [
+        AppliedId(
+            id0, map-[],
+        ),
+        AppliedId(
+            id0, map-[],
+        ),
+        Vec(
+            [
+                AppliedId(
+                    id0, map-[],
+                ),
+                AppliedId(
+                    id0, map-[],
+                ),
+            ],
+        ),
+    ]
+[slotted_egraphs::lang] return true 2
+[slotted_egraphs::rewrite::ematch] recurse down2
+[slotted_egraphs::rewrite::ematch] acc = [
+        State {
+            partial_subst: {},
+            partial_slotmap: [],
+        },
+    ]
+[slotted_egraphs::rewrite::ematch] accPatternChildren = [
+        [],
+    ]
+[slotted_egraphs::rewrite::ematch] next = [
+        State {
+            partial_subst: {
+                "syntax2": id4, map-[$f2 -> $f10, $f3 -> $f11],
+            },
+            partial_slotmap: [],
+        },
+    ]
+[slotted_egraphs::rewrite::ematch] nextPatternChildren = [
+        PVar(
+            "syntax2",
+        ),
+    ]
+[slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
+        [
+            PVar(
+                "syntax2",
+            ),
+        ],
+    ]
+[slotted_egraphs::rewrite::ematch] recurse down2
+[slotted_egraphs::egraph] enodes_applied i = id2, map-[]
+[slotted_egraphs::egraph] classes = EClass {
+        nodes: {
+            True: ProvenSourceNode {
+                elem: [],
+                src_id: id2,
+            },
+        },
+        slots: {},
+        usages: {
+            New(
+                id4, map-[$f2 -> $0, $f3 -> $1],
+                id2, map-[],
+                [
+                    AppliedId(
+                        id8, map-[$f6 -> $0],
+                    ),
+                    AppliedId(
+                        id12, map-[$f9 -> $1],
+                    ),
+                ],
+            ),
+            New(
+                id10, map-[$f7 -> $0],
+                id2, map-[],
+                [],
+            ),
+            New(
+                id1, map-[$f0 -> $0, $f1 -> $1],
+                id2, map-[],
+                [
+                    AppliedId(
+                        id14, map-[$f12 -> $0, $f13 -> $1],
+                    ),
+                ],
+            ),
+            New(
+                id6, map-[$f4 -> $0],
+                id2, map-[],
+                [],
+            ),
+        },
+        group: Group {
+            identity: ProvenPerm {
+                elem: [],
+            },
+            next: None,
+        },
+        syn_enode: True,
+        ..
+    }
+[slotted_egraphs::lang] a = []
+[slotted_egraphs::lang] b = []
+[slotted_egraphs::lang] return true 2
+[slotted_egraphs::rewrite::ematch] out = [
+        State {
+            partial_subst: {
+                "syntax2": id4, map-[$f2 -> $f10, $f3 -> $f11],
+            },
+            partial_slotmap: [],
+        },
+    ]
+[slotted_egraphs::rewrite::ematch] outPatternChildren = [
+        ENode(
+            True,
+            [],
+        ),
+    ]
+[slotted_egraphs::rewrite::ematch] acc = [
+        State {
+            partial_subst: {
+                "syntax2": id4, map-[$f2 -> $f10, $f3 -> $f11],
+            },
+            partial_slotmap: [],
+        },
+    ]
+[slotted_egraphs::rewrite::ematch] accPatternChildren = [
+        [
+            PVar(
+                "syntax2",
+            ),
+        ],
+    ]
+[slotted_egraphs::rewrite::ematch] next = [
+        State {
+            partial_subst: {
+                "syntax2": id4, map-[$f2 -> $f10, $f3 -> $f11],
+            },
+            partial_slotmap: [],
+        },
+    ]
+[slotted_egraphs::rewrite::ematch] nextPatternChildren = [
+        ENode(
+            True,
+            [],
+        ),
+    ]
+[slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
+        [
+            PVar(
+                "syntax2",
+            ),
+            ENode(
+                True,
+                [],
+            ),
+        ],
+    ]
+[slotted_egraphs::rewrite::ematch] recurse down1
+[slotted_egraphs::rewrite::ematch] acc = [
+        State {
+            partial_subst: {
+                "syntax2": id4, map-[$f2 -> $f10, $f3 -> $f11],
+            },
+            partial_slotmap: [],
+        },
+    ]
+[slotted_egraphs::rewrite::ematch] accPatternChildren = [
+        [
+            PVar(
+                "syntax2",
+            ),
+            ENode(
+                True,
+                [],
+            ),
+        ],
+    ]
+[slotted_egraphs::rewrite::ematch] next = [
+        State {
+            partial_subst: {
+                "syntax2": id4, map-[$f2 -> $f10, $f3 -> $f11],
+                "star_4_0": id8, map-[$f6 -> $f10],
+            },
+            partial_slotmap: [],
+        },
+    ]
+[slotted_egraphs::rewrite::ematch] nextPatternChildren = [
+        PVar(
+            "star_4_0",
+        ),
+    ]
+[slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
+        [
+            PVar(
+                "syntax2",
+            ),
+            ENode(
+                True,
+                [],
+            ),
+            PVar(
+                "star_4_0",
+            ),
+        ],
+    ]
+[slotted_egraphs::rewrite::ematch] recurse down1
+[slotted_egraphs::rewrite::ematch] acc = [
+        State {
+            partial_subst: {
+                "syntax2": id4, map-[$f2 -> $f10, $f3 -> $f11],
+                "star_4_0": id8, map-[$f6 -> $f10],
+            },
+            partial_slotmap: [],
+        },
+    ]
+[slotted_egraphs::rewrite::ematch] accPatternChildren = [
+        [
+            PVar(
+                "syntax2",
+            ),
+            ENode(
+                True,
+                [],
+            ),
+            PVar(
+                "star_4_0",
+            ),
+        ],
+    ]
+[slotted_egraphs::rewrite::ematch] next = [
+        State {
+            partial_subst: {
+                "star_4_1": id12, map-[$f9 -> $f11],
+                "syntax2": id4, map-[$f2 -> $f10, $f3 -> $f11],
+                "star_4_0": id8, map-[$f6 -> $f10],
+            },
+            partial_slotmap: [],
+        },
+    ]
+[slotted_egraphs::rewrite::ematch] nextPatternChildren = [
+        PVar(
+            "star_4_1",
+        ),
+    ]
+[slotted_egraphs::rewrite::ematch] nextAccPatternChildren = [
+        [
+            PVar(
+                "syntax2",
+            ),
+            ENode(
+                True,
+                [],
+            ),
+            PVar(
+                "star_4_0",
+            ),
+            PVar(
+                "star_4_1",
+            ),
+        ],
+    ]
+[slotted_egraphs::rewrite::ematch] out = [
+        State {
+            partial_subst: {
+                "star_4_1": id12, map-[$f9 -> $f11],
+                "syntax2": id4, map-[$f2 -> $f10, $f3 -> $f11],
+                "star_4_0": id8, map-[$f6 -> $f10],
+            },
+            partial_slotmap: [],
+        },
+    ]
+[slotted_egraphs::rewrite::ematch] outPatternChildren = [
+        ENode(
+            New(
+                id0, map-[],
+                id0, map-[],
+                [
+                    Star(
+                        4,
+                    ),
+                ],
+            ),
+            [
+                PVar(
+                    "syntax2",
+                ),
+                ENode(
+                    True,
+                    [],
+                ),
+                PVar(
+                    "star_4_0",
+                ),
+                PVar(
+                    "star_4_1",
+                ),
+            ],
+        ),
+    ]
+[slotted_egraphs::parse] tokenizing s = (new ?syntax1 (true) <*4>)
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("new"), PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("new"), PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [PVar("syntax1"), LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern input tok = [LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_pattern_nosubst input tok = [LParen, Ident("true"), RParen, LVecBracket, Star(4), RVecBracket, RParen]
+[entry::chc] from_syntax::elems = [String("true")]
+[entry::chc] from_syntax::ret = Some(True)
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [LVecBracket, Star(4), RVecBracket, RParen]
+[slotted_egraphs::parse] parse_nested_syntax_elem input tok = [Star(4), RVecBracket, RParen]
+[entry::chc] from_syntax::elems = [String("new"), AppliedId(id0, map-[]), AppliedId(id0, map-[]), Vec([Star(4)])]
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = []
+[slotted_egraphs::lang] vec<L>::from_syntax return None1
+[slotted_egraphs::lang] vec<L>::from_syntax input elems = [Vec([Star(4)])]
+[slotted_egraphs::lang] AppliedIdOrStar::from_syntax, elems: [Star(4)]
+[entry::chc] from_syntax::ret = Some(New(id0, map-[], id0, map-[], [Star(4)]))
+[slotted_egraphs::rewrite::pattern] pattern = (new ?syntax1 true *4)
+[slotted_egraphs::rewrite::pattern] subst = {
+        "star_4_1": id12, map-[$f9 -> $f22],
+        "syntax2": id4, map-[$f2 -> $f23, $f3 -> $f22],
+        "star_4_0": id8, map-[$f6 -> $f23],
+    }
+[slotted_egraphs::rewrite::pattern] newPat = ENode(
+        New(
+            id0, map-[],
+            id0, map-[],
+            [
+                AppliedId(
+                    id0, map-[],
+                ),
                 AppliedId(
                     id0, map-[],
                 ),
             ],
         ),
         [
+            PVar(
+                "syntax1",
+            ),
             ENode(
-                New(
-                    id0, map-[],
-                    id0, map-[],
-                    [
-                        AppliedId(
-                            id0, map-[],
-                        ),
-                        AppliedId(
-                            id0, map-[],
-                        ),
-                    ],
-                ),
-                [
-                    PVar(
-                        "s",
-                    ),
-                    ENode(
-                        True,
-                        [],
-                    ),
-                    ENode(
-                        Compose(
-                            [
-                                AppliedId(
-                                    id0, map-[],
-                                ),
-                            ],
-                        ),
-                        [
-                            PVar(
-                                "star_1_0",
-                            ),
-                        ],
-                    ),
-                    PVar(
-                        "star_2_0",
-                    ),
-                ],
+                True,
+                [],
+            ),
+            PVar(
+                "star_4_0",
+            ),
+            PVar(
+                "star_4_1",
             ),
         ],
     )
-[slotted_egraphs::egraph::union] from_pat = (compose (new ?s true (compose *1) *2) *3)
-[slotted_egraphs::egraph::union] subst = {
-        "star_1_0": id13, map-[$f10 -> $f20, $f11 -> $f21],
-        "s": id1, map-[$f0 -> $f20, $f1 -> $f21],
+[slotted_egraphs::rewrite::pattern] pattern = ?syntax1
+[slotted_egraphs::rewrite::pattern] subst = {
+        "star_4_1": id12, map-[$f9 -> $f22],
+        "syntax2": id4, map-[$f2 -> $f23, $f3 -> $f22],
+        "star_4_0": id8, map-[$f6 -> $f23],
     }
-[slotted_egraphs::egraph::union] newFromPat = ENode(
-        Compose(
-            [
-                AppliedId(
-                    id0, map-[],
-                ),
-            ],
-        ),
-        [
-            ENode(
-                New(
-                    id0, map-[],
-                    id0, map-[],
-                    [
-                        AppliedId(
-                            id0, map-[],
-                        ),
-                    ],
-                ),
-                [
-                    PVar(
-                        "s",
-                    ),
-                    ENode(
-                        True,
-                        [],
-                    ),
-                    ENode(
-                        Compose(
-                            [
-                                AppliedId(
-                                    id0, map-[],
-                                ),
-                            ],
-                        ),
-                        [
-                            PVar(
-                                "star_1_0",
-                            ),
-                        ],
-                    ),
-                ],
-            ),
-        ],
-    )
-report = Report { iterations: 1, stop_reason: Saturated, egraph_nodes: 17, egraph_classes: 17, total_time: 0.010913971 }
-test chc::tst1 ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.02s
+thread 'chc::tst1' panicked at /home/pondnj/chc/project/slotted-egraphs/src/rewrite/pattern.rs:51:5:
+explicit panic
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/panicking.rs:697:5
+   1: core::panicking::panic_fmt
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/panicking.rs:75:14
+   2: core::panicking::panic_display
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/panicking.rs:268:5
+   3: core::panicking::panic_explicit
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/panicking.rs:241:5
+   4: slotted_egraphs::rewrite::pattern::replaceStarInPatternFromSubst::panic_cold_explicit
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic.rs:88:13
+   5: slotted_egraphs::rewrite::pattern::replaceStarInPatternFromSubst
+             at ./src/rewrite/pattern.rs:51:5
+   6: slotted_egraphs::rewrite::pattern::pattern_subst
+             at ./src/rewrite/pattern.rs:64:5
+   7: slotted_egraphs::rewrite::pattern::pattern_subst
+             at ./src/rewrite/pattern.rs:76:30
+   8: entry::chc::unfold::{{closure}}
+             at ./tests/chc/mod.rs:112:37
+   9: slotted_egraphs::rewrite::RewriteT<L,N,T>::into::{{closure}}
+             at ./src/rewrite/mod.rs:36:44
+  10: slotted_egraphs::rewrite::apply_rewrites
+             at ./src/rewrite/mod.rs:55:9
+  11: slotted_egraphs::run::runner::Runner<L,N,IterData,CustomErrorT>::run_one
+             at ./src/run/runner.rs:181:24
+  12: slotted_egraphs::run::runner::Runner<L,N,IterData,CustomErrorT>::run
+             at ./src/run/runner.rs:153:29
+  13: entry::chc::tst1
+             at ./tests/chc/mod.rs:189:25
+  14: entry::chc::tst1::{{closure}}
+             at ./tests/chc/mod.rs:160:10
+  15: core::ops::function::FnOnce::call_once
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  16: core::ops::function::FnOnce::call_once
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+test chc::tst1 ... FAILED
 
+failures:
+
+failures:
+    chc::tst1
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `--test entry`

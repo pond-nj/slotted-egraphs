@@ -6,6 +6,7 @@ use env_logger::Builder;
 use log::{debug, LevelFilter};
 use slotted_egraphs::*;
 use std::io::Write;
+use std::rc::Rc;
 use std::vec;
 use tracing_subscriber::{fmt, prelude::*};
 
@@ -84,29 +85,62 @@ define_language! {
 
 // TODO(Pond): next, we need testing here
 fn unfold() -> Rewrite<CHC> {
-    let pat = Pattern::parse("(compose <(new ?syntax1 (true) <(compose <*1>) *2>) *3>)").unwrap();
+    let rootPatRaw =
+        Pattern::parse("(compose <(new ?syntax1 (true) <(compose <*1>) *2>) *3>)").unwrap();
+    let rootPat: Rc<Pattern<CHC>> = Rc::new(rootPatRaw);
+    let rootPat2 = Rc::clone(&rootPat);
 
-    let searcher = Box::new(move |eg: &EGraph<CHC>| -> Vec<Subst> { ematch_all(eg, &pat) });
+    let searcher = Box::new(move |eg: &EGraph<CHC>| -> Vec<Subst> { ematch_all(eg, &rootPat) });
     let applier = Box::new(
         // (compose <[(new ?syntax2 (true) <*4>) \dot (#matches of *1)] *3>)
-        |substs: Vec<Subst>, eg: &mut EGraph<CHC>| {
-            for st in substs {
+        move |substs: Vec<Subst>, eg: &mut EGraph<CHC>| {
+            for subst in substs {
                 let mut star1Max = 0;
-                while st.contains_key(&format!("star_1_{}", star1Max)) {
+                while subst.contains_key(&starPVar(1, star1Max)) {
                     star1Max += 1;
                 }
-                let mut matches: Vec<Vec<Subst>> = vec![];
-                for star1 in 0..star1Max {
-                    let usePat = Pattern::parse("(new ?syntax2 (true) <*4>)").unwrap();
-                    // TODO: have to match in *1 class
-                    matches.push(ematchAllInEclass(usePat, State::default(), st[&format!("star_1_{}", star1)], eg));
+                let mut matches: Vec<Vec<AppliedId>> = vec![];
+                // match in star1 Eclass
+                // TODO: syntax2 has to be the same? But it will always be the same?
+                for star1Count in 0..star1Max {
+                    let subPat = Pattern::parse("(new ?syntax2 (true) <*4>)").unwrap();
+                    let result: Vec<Subst> =
+                        ematchAllInEclass(eg, &subPat, subst[&starPVar(1, star1Count)].id);
+                    let mut thisNewIds: Vec<AppliedId> = vec![];
+                    for r in result {
+                        let toPat = Pattern::parse("(new ?syntax1 (true) <*4>)").unwrap();
+                        let newId = pattern_subst(eg, &toPat, &r);
+                        thisNewIds.push(newId);
+                    }
+                    matches.push(thisNewIds);
                 }
 
-                let matchesCombination: Vec<Vec<Subst>> = permute(matches);
-
+                let matchesCombination: Vec<Vec<AppliedId>> = permute(matches);
+                // TODO: will this give an Error some where?
+                let mut countStar3 = 0;
+                let mut allStar3: String = "".to_string();
+                while subst.contains_key(&starPVar(3, countStar3)) {
+                    allStar3 += &(format!("?{} ", starPVar(3, countStar3)));
+                    countStar3 += 1;
+                }
+                let newEnode = Pattern::parse(&format!("(compose <{} *4>)", allStar3)).unwrap();
                 for m in matchesCombination {
-                    // Create array of AppliedId for one combination
-                    for 
+                    // Create a new compose Enode whose children is the vector of AppliedId and union it with the original Compose
+                    let mut newSubst = subst.clone();
+                    let mut star4Count = 0;
+                    for id in m {
+                        let key = starPVar(4, star4Count);
+                        assert!(!newSubst.contains_key(&key));
+                        newSubst.insert(key, id);
+                        star4Count += 1;
+                    }
+
+                    eg.union_instantiations(
+                        &*rootPat2,
+                        &newEnode,
+                        &newSubst,
+                        Some("Unfold".to_string()),
+                    );
                 }
             }
         },

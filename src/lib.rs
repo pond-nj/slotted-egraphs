@@ -44,7 +44,7 @@ mod types;
 pub use types::*;
 
 mod parse;
-pub(crate) use parse::*;
+pub use parse::*;
 
 mod lang;
 pub use lang::*;

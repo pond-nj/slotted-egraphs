@@ -13,12 +13,57 @@ pub enum Pattern<L: Language> {
     Subst(Box<Pattern<L>>, Box<Pattern<L>>, Box<Pattern<L>>), // Subst(b, x, t) means `b[x := t]`
 }
 
+pub fn replaceStarInPatternFromSubst<L: Language>(pattern: &mut Pattern<L>, subst: &Subst) {
+    if let Pattern::ENode(enode, children) = pattern {
+        for (i, child) in children.iter_mut().enumerate() {
+            match child {
+                Pattern::ENode(..) => replaceStarInPatternFromSubst(child, subst),
+                Pattern::Star(_) => {
+                    assert!(i == children.len() - 1);
+                    break;
+                }
+                _ => {}
+            }
+        }
+
+        let mut n: Option<u32> = None;
+        {
+            if let Some(Pattern::Star(nth)) = children.last() {
+                n = Some(*nth);
+            }
+        }
+
+        // TODO(Pond): now only suppost one vector as a children
+        if let Some(n) = n {
+            let mut counter = 0;
+            children.pop();
+            enode.shrinkChildren();
+            while subst.contains_key(&format!("star_{}_{}", n, counter)) {
+                children.push(Pattern::PVar(format!("star_{}_{}", n, counter)));
+                enode.expandChildren();
+                counter += 1;
+            }
+        }
+
+        return;
+    }
+
+    panic!();
+}
+
+// Subst variable in the pattern and add the pattern to Egraph
 // We write this as pattern[subst] for short.
 pub fn pattern_subst<L: Language, N: Analysis<L>>(
     eg: &mut EGraph<L, N>,
     pattern: &Pattern<L>,
     subst: &Subst,
 ) -> AppliedId {
+    debug!("pattern = {pattern}");
+    debug!("subst = {subst:#?}");
+    let pattern = &mut pattern.clone();
+    replaceStarInPatternFromSubst(pattern, subst);
+    debug!("newPat = {pattern:#?}");
+
     match &pattern {
         Pattern::ENode(n, children) => {
             let mut n = n.clone();

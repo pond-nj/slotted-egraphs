@@ -21,11 +21,11 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
 ) -> Vec<Subst> {
     debug!("=== Call EmatchAll ===");
     debug!("pattern = {pattern}");
-    let mut out = Vec::new();
+    let mut out: Vec<Subst> = Vec::new();
     let mut outPatterns = vec![];
     for i in eg.ids() {
         let i = eg.mk_sem_identity_applied_id(i);
-        let result = ematchAllInEclass(pattern, State::default(), i, eg);
+        let result = ematchAllInEclassInternal(pattern, State::default(), i, eg);
         out.extend(result.0.into_iter().map(final_subst));
         outPatterns.extend(result.1);
     }
@@ -35,20 +35,22 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
     out
 }
 
-fn ematchAllInEclass<L: Language, N: Analysis<L>>(
-    pattern: &Pattern<L>,
-    i: Id,
+pub fn ematchAllInEclass<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
-) -> (Vec<State>, Vec<Pattern<L>>) {
-    let i = eg.mk_sem_identity_applied_id(i);
-    let result = ematchAllInEclass(pattern, State::default(), i, eg);
-    (result.0.into_iter().map(final_subst), vec![])
+    pattern: &Pattern<L>,
+    id: Id,
+) -> Vec<Subst> {
+    let mut out: Vec<Subst> = Vec::new();
+    let i = eg.mk_sem_identity_applied_id(id);
+    let result = ematchAllInEclassInternal(pattern, State::default(), i, eg);
+    out.extend(result.0.into_iter().map(final_subst));
+    out
 }
 
 // (Pond) deal with Pattern cases and find Enode with same type
 // `i` uses egraph slots instead of pattern slots.
 // (Pond) Find pattern of that type in the eclass
-fn ematchAllInEclass<L: Language, N: Analysis<L>>(
+fn ematchAllInEclassInternal<L: Language, N: Analysis<L>>(
     pattern: &Pattern<L>,
     st: State,
     i: AppliedId,
@@ -124,7 +126,7 @@ fn matchEclassWithEveryState<L: Language, N: Analysis<L>>(
 
     for _ in 0..callLen {
         let (result, resultPatternChildren) =
-            ematchAllInEclass(childPattern, accIter.next().unwrap(), eclassId.clone(), eg);
+            ematchAllInEclassInternal(childPattern, accIter.next().unwrap(), eclassId.clone(), eg);
         next.extend(result);
         nextPatternChildren.extend(resultPatternChildren);
     }
