@@ -5,9 +5,10 @@ use crate::*;
 use env_logger::Builder;
 use log::{debug, LevelFilter};
 use slotted_egraphs::*;
-use std::io::Write;
+use std::collections::BTreeSet;
 use std::rc::Rc;
 use std::vec;
+use std::{default, io::Write};
 use tracing_subscriber::{fmt, prelude::*};
 
 // TODO(Pond): Star should only be allowed inside a vector(dynamic length)
@@ -122,7 +123,7 @@ fn unfold() -> Rewrite<CHC> {
                     matches.push(thisNewIds);
                 }
 
-                let matchesCombination: Vec<Vec<AppliedId>> = permute(matches);
+                let matchesCombination: Vec<Vec<AppliedId>> = combination(matches);
                 let newEnode =
                     Pattern::parse(&format!("(compose <{} *4>)", starPStr(3, &subst))).unwrap();
                 for m in matchesCombination {
@@ -153,9 +154,90 @@ fn unfold() -> Rewrite<CHC> {
     .into()
 }
 
+fn newChildrenPermute() -> Rewrite<CHC> {
+    let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
+    let patClone = pat.clone();
+    let searcher = Box::new(move |eg: &EGraph<CHC>| -> Vec<Subst> { ematch_all(eg, &patClone) });
+    let applier = Box::new(move |substs: Vec<Subst>, eg: &mut EGraph<CHC>| {
+        // TODO: is there a different between using AppliedId and Id
+        let mut did = HashSet::<(AppliedId, AppliedId, BTreeSet<AppliedId>)>::default();
+        let newPat = Pattern::parse("(new ?syntax ?cond <*2>)").unwrap();
+        for subst in substs {
+            let mut thisDid = BTreeSet::<AppliedId>::default();
+            for (var, id) in subst.iter() {
+                thisDid.insert(id.clone());
+            }
+
+            let mut this = (subst["syntax"].clone(), subst["cond"].clone(), thisDid);
+            if did.contains(&this) {
+                continue;
+            }
+
+            did.insert(this);
+
+            let ids = starIds(1, &subst);
+            let idsPermuts = permute(&ids);
+            let mut newSubst = subst.clone();
+            for permut in idsPermuts {
+                let mut newSubstTmp = newSubst.clone();
+                for (i, id) in permut.iter().enumerate() {
+                    newSubstTmp.insert(starPVar(2, i.try_into().unwrap()), id.clone());
+                }
+                eg.union_instantiations(
+                    &pat,
+                    &newPat,
+                    &newSubstTmp,
+                    Some("newChildrenPermute".to_string()),
+                );
+            }
+        }
+    });
+    RewriteT { searcher, applier }.into()
+}
+
+fn composeChildrenPermute() -> Rewrite<CHC> {
+    let pat = Pattern::parse("(compose <*1>)").unwrap();
+    let patClone = pat.clone();
+    let searcher = Box::new(move |eg: &EGraph<CHC>| -> Vec<Subst> { ematch_all(eg, &patClone) });
+    let applier = Box::new(move |substs: Vec<Subst>, eg: &mut EGraph<CHC>| {
+        // TODO: is there a different between using AppliedId and Id
+        let mut did = HashSet::<BTreeSet<AppliedId>>::default();
+        let newPat = Pattern::parse("(compose <*2>)").unwrap();
+        for subst in substs {
+            let mut thisDid = BTreeSet::<AppliedId>::default();
+            for (var, id) in subst.iter() {
+                thisDid.insert(id.clone());
+            }
+
+            if did.contains(&thisDid) {
+                continue;
+            }
+
+            did.insert(thisDid);
+
+            let ids = starIds(1, &subst);
+            let idsPermuts = permute(&ids);
+            let mut newSubst = subst.clone();
+            for permut in idsPermuts {
+                let mut newSubstTmp = newSubst.clone();
+                for (i, id) in permut.iter().enumerate() {
+                    newSubstTmp.insert(starPVar(2, i.try_into().unwrap()), id.clone());
+                }
+                eg.union_instantiations(
+                    &pat,
+                    &newPat,
+                    &newSubstTmp,
+                    Some("composeChildrenPermute".to_string()),
+                );
+            }
+        }
+    });
+    RewriteT { searcher, applier }.into()
+}
+
 // TODO: add rule for rearrangement in compose and new children?
 fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
-    vec![unfold()]
+    vec![unfold(), newChildrenPermute(), composeChildrenPermute()]
 }
 
 #[test]

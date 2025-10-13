@@ -62,7 +62,7 @@ pub fn checkChildrenTypeEq(a: &Vec<LanguageChildrenType>, b: &Vec<LanguageChildr
         }
     }
 
-    if (a.len() != b.len()) {
+    if a.len() != b.len() {
         return false;
     }
 

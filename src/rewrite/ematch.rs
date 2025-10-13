@@ -226,19 +226,6 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
                 break;
             }
 
-            debug!("n_sh != clear_n2_sh result = {}", n_sh != clear_n2_sh);
-            debug!("n_sh childrenType = {:?}", n_sh.getChildrenType());
-            debug!(
-                "clear_sh childrenType = {:?}",
-                clear_n2_sh.getChildrenType()
-            );
-            debug!(
-                "matchWithStar = {}",
-                checkChildrenTypeEq(&n_sh.getChildrenType(), &clear_n2_sh.getChildrenType())
-            );
-            debug!("patternChildren = {patternChildren:#?}");
-            debug!("eclassChildren = {eclassChildren:?}");
-
             let subId = eclassChildren[i];
             let subPat = &patternChildren[i];
             debug!("recurse down2");
