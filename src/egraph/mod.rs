@@ -161,15 +161,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // Generates fresh slots for redundant slots.
     pub fn enodes_applied(&self, i: &AppliedId) -> Vec<L> {
-        debug!("enodes_applied i = {:?}", i);
-        debug!("classes = {:#?}", self.classes[&i.id]);
+        // debug!("enodes_applied");
         let class = &self.classes[&i.id];
         let class_slots = &class.slots;
 
         let mut result = Vec::with_capacity(class.nodes.len());
 
+        // debug!("class.nodes {:?}", class.nodes);
         for (x, psn) in &class.nodes {
-            // (Pond) They said this is the actual enode. why?
+            // debug!("x {:?}", x);
+            // debug!("psn {:?}", psn);
             let mut x = x.apply_slotmap(&psn.elem);
 
             // (Pond) Create a mapping of unfound slots (of this enode) in eclass slots to fresh slots.
@@ -185,7 +186,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     }
                 }
             }
+            // debug!("x after mapping {:?}", x);
 
+            // m contains unmapped slot from x
             let mut m = SlotMap::new();
             for slot in x.slots() {
                 if !i.m.contains_key(slot) {
@@ -193,6 +196,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 }
             }
 
+            // m contains mapping from i
+            // now m can completely map slots in x
             for (x, y) in i.m.iter() {
                 m.insert(x, y);
             }

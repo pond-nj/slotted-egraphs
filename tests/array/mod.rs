@@ -1,6 +1,4 @@
 use crate::*;
-use log::debug;
-
 
 define_language! {
     pub enum ArrayLang {

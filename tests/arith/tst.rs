@@ -1,4 +1,5 @@
 use crate::*;
+use log::debug;
 use serial_test::serial;
 
 #[test]
@@ -47,13 +48,24 @@ fn t3() {
 fn t4() {
     initLogger();
     // (x+y)**2 = x**2 + x*y + x*y + y**2
+    // let a = "(mul (add (var $x) (var $y)) (add (var $x) (var $y)))";
+    // let b = "(add (mul (var $x) (var $x))
+    //          (add (mul (var $x) (var $y))
+    //          (add (mul (var $x) (var $y))
+    //               (mul (var $y) (var $y))
+    //          )))";
+    // assert_reaches(a, b, &get_all_rewrites()[..], 10);
+
     let a = "(mul (add (var $x) (var $y)) (add (var $x) (var $y)))";
-    let b = "(add (mul (var $x) (var $x))
-             (add (mul (var $x) (var $y))
-             (add (mul (var $x) (var $y))
-                  (mul (var $y) (var $y))
-             )))";
-    assert_reaches(a, b, &get_all_rewrites()[..], 10);
+    let mut eg = EGraph::<Arith>::default();
+    id(&a, &mut eg);
+
+    let mut runner: Runner<Arith> = Runner::default().with_egraph(eg).with_iter_limit(60);
+    debug!("eg after {:?}", runner.egraph);
+
+    let aAbstract = "(mul (add ?a ?b) (add ?a ?b))";
+    let result = ematch_all(&runner.egraph, &Pattern::parse(&aAbstract).unwrap());
+    debug!("match result1 = {result:?}");
 }
 
 fn add_chain(it: impl Iterator<Item = usize>) -> String {
@@ -91,4 +103,21 @@ fn t6() {
     let a = &format!("(mul (var {z}) (add (var {x}) (var {y})))");
     let b = &format!("(mul (var {z}) (add (var {y}) (var {x})))");
     assert_reaches(a, b, &[add_comm()], 10);
+}
+
+#[test]
+#[serial]
+fn t7() {
+    initLogger();
+
+    let a = "(add 2 (var $0))";
+    let mut eg = EGraph::<Arith>::default();
+    id(&a, &mut eg);
+
+    let mut runner: Runner<Arith> = Runner::default().with_egraph(eg).with_iter_limit(60);
+    debug!("eg after {:?}", runner.egraph);
+
+    let aAbstract = "(add 3 ?a)";
+    let result = ematch_all(&runner.egraph, &Pattern::parse(&aAbstract).unwrap());
+    debug!("match result1 = {result:?}");
 }

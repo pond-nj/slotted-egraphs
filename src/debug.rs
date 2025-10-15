@@ -19,7 +19,7 @@ impl Debug for Equation {
 
 impl Debug for SlotMap {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "[")?;
+        write!(f, "(")?;
         let n = self.len();
         for (i, (x, y)) in self.iter().enumerate() {
             write!(f, "{x:?} -> {y:?}")?;
@@ -27,13 +27,19 @@ impl Debug for SlotMap {
                 write!(f, ", ")?;
             }
         }
-        write!(f, "]")
+        write!(f, ")")
     }
 }
 
 impl Debug for AppliedId {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{:?}: map-{:?}", self.id, self.m)
+        write!(f, "{:?}: {:?}", self.id, self.m)
+    }
+}
+
+impl Display for AppliedId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{:?}", self.id)
     }
 }
 

@@ -76,7 +76,6 @@ pub fn starIds(starIndex: u32, subst: &Subst) -> Vec<AppliedId> {
 }
 
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
-    debug!("tokenizing s = {s}");
     let mut tokens = Vec::new();
 
     loop {
@@ -154,7 +153,6 @@ impl<L: Language> RecExpr<L> {
 fn parse_pattern<'a, L: Language>(
     tok: &'a [Token],
 ) -> Result<(Pattern<L>, &'a [Token]), ParseError> {
-    debug!("parse_pattern input tok = {:?}", tok);
     let (mut pat, mut tok) = parse_pattern_nosubst(tok)?;
     // Case [:=]?
     while let Some(Token::LBracket) = tok.get(0) {
@@ -216,7 +214,6 @@ fn nested_syntax_elem_to_pattern<L: Language>(ne: NestedSyntaxElem<L>) -> Vec<Pa
 fn parse_pattern_nosubst<'a, L: Language>(
     mut tok: &'a [Token],
 ) -> Result<(Pattern<L>, &'a [Token]), ParseError> {
-    debug!("parse_pattern_nosubst input tok = {:?}", tok);
     if let Token::PVar(p) = &tok[0] {
         let pat = Pattern::PVar(p.to_string());
         return Ok((pat, &tok[1..]));
@@ -296,7 +293,6 @@ enum NestedSyntaxElem<L: Language> {
 fn parse_nested_syntax_elem<'a, L: Language>(
     tok: &'a [Token],
 ) -> Result<(NestedSyntaxElem<L>, &'a [Token]), ParseError> {
-    debug!("parse_nested_syntax_elem input tok = {:?}", tok);
     if let Token::Star(n) = &tok[0] {
         // (Pond) Can only use it for (op ?a *) or (op <?a *>) or (op <?a *> *)
         assert!(tok[1] == Token::RParen || tok[1] == Token::RVecBracket);

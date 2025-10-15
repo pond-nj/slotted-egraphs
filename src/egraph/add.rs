@@ -6,15 +6,17 @@ use log::debug;
 // syntactic add:
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn add_syn_expr(&mut self, re: RecExpr<L>) -> AppliedId {
-        let mut n = re.node;
+        let mut n = re.node.clone();
         let mut refs: Vec<&mut AppliedId> = n.applied_id_occurrences_mut();
         if CHECKS {
             assert_eq!(re.children.len(), refs.len());
         }
-        for (i, child) in re.children.into_iter().enumerate() {
+        for (i, child) in (re.children.clone()).into_iter().enumerate() {
             *(refs[i]) = self.add_syn_expr(child);
         }
-        self.add_syn(n)
+        let ret = self.add_syn(n);
+        debug!("add_syn_expr: {} <-> {}", ret, re);
+        ret
     }
 
     pub fn add_syn(&mut self, enode: L) -> AppliedId {

@@ -56,11 +56,8 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(
     pattern: &Pattern<L>,
     subst: &Subst,
 ) -> AppliedId {
-    debug!("pattern = {pattern}");
-    debug!("subst = {subst:#?}");
     let pattern = &mut pattern.clone();
     replaceStarInPatternFromSubst(pattern, subst);
-    debug!("newPat = {pattern:#?}");
 
     match &pattern {
         Pattern::ENode(n, children) => {

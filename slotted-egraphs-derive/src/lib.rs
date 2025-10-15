@@ -147,19 +147,14 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
             }
 
             fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
-                debug!("from_syntax::elems = {:?}", elems);
                 let SyntaxElem::String(op) = elems.get(0)? else { return None };
                 let ret = match &**op {
                     #(#from_syntax_arms1),*
                     _ => {
-                        debug!("Calling from_syntax_arms2");
                         #(#from_syntax_arms2)*
-
-                        debug!("L::from_syntax(&elems) = None");
                         None
                     },
                 };
-                debug!("from_syntax::ret = {:?}", ret);
                 ret
             }
 
@@ -199,7 +194,6 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
     }
     .to_token_stream()
     .into();
-    // eprintln!("trait language {}", ret);
     ret
 }
 

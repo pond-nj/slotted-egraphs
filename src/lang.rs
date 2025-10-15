@@ -1,4 +1,5 @@
 use core::panic;
+use std::hash::{DefaultHasher, Hash, Hasher};
 
 use crate::*;
 use either::Either;
@@ -21,15 +22,12 @@ pub enum LanguageChildrenType {
     Star,
     Vec(Vec<LanguageChildrenType>),
     Bind,
-    Bare,
+    Bare(u64),
 }
 
 pub fn checkChildrenTypeEq(a: &Vec<LanguageChildrenType>, b: &Vec<LanguageChildrenType>) -> bool {
     if a.len() == 0 || b.len() == 0 {
         if a.len() != 0 || b.len() != 0 {
-            debug!("a = {a:#?}");
-            debug!("b = {b:#?}");
-            debug!("return false 0");
             return false;
         }
     }
@@ -38,24 +36,15 @@ pub fn checkChildrenTypeEq(a: &Vec<LanguageChildrenType>, b: &Vec<LanguageChildr
         match (&a[i], &b[i]) {
             (LanguageChildrenType::Vec(a_), LanguageChildrenType::Vec(b_)) => {
                 if !checkChildrenTypeEq(&a_, &b_) {
-                    debug!("a = {a:#?}");
-                    debug!("b = {b:#?}");
-                    debug!("return false 1");
                     return false;
                 }
             }
             (LanguageChildrenType::Star, _) | (_, LanguageChildrenType::Star) => {
                 assert!(i == a.len() - 1 || i == b.len() - 1);
-                debug!("a = {a:#?}");
-                debug!("b = {b:#?}");
-                debug!("return true 1");
                 return true;
             }
             _ => {
                 if a[i] != b[i] {
-                    debug!("a = {a:#?}");
-                    debug!("b = {b:#?}");
-                    debug!("return false 2");
                     return false;
                 }
             }
@@ -66,9 +55,6 @@ pub fn checkChildrenTypeEq(a: &Vec<LanguageChildrenType>, b: &Vec<LanguageChildr
         return false;
     }
 
-    debug!("a = {a:#?}");
-    debug!("b = {b:#?}");
-    debug!("return true 2");
     true
 }
 
@@ -215,6 +201,12 @@ impl LanguageChildren for Slot {
     }
 }
 
+fn calculateHash<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
+}
+
 /// Implements [LanguageChildren] for payload types that are independent of Slots. For example u32, String etc.
 #[macro_export]
 macro_rules! bare_language_child {
@@ -231,7 +223,6 @@ macro_rules! bare_language_child {
 
             fn to_syntax(&self) -> Vec<SyntaxElem> { vec![SyntaxElem::String(self.to_string())] }
             fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
-                debug!("L(Bare)::from_syntax with elems = {:?}", elems);
                 match elems {
                     [SyntaxElem::String(x)] => x.parse().ok(),
                     _ => {
@@ -243,7 +234,9 @@ macro_rules! bare_language_child {
                 }
             }
             fn get_type(&self) -> LanguageChildrenType {
-                LanguageChildrenType::Bare
+                let mut hasher = DefaultHasher::new();
+                self.hash(&mut hasher);
+                LanguageChildrenType::Bare(hasher.finish())
             }
 
             fn expandChildren(&mut self) {}
@@ -322,7 +315,6 @@ impl LanguageChildren for AppliedIdOrStar {
     }
 
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
-        debug!("AppliedIdOrStar::from_syntax, elems: {:?}", elems);
         match elems {
             [SyntaxElem::AppliedId(x)] => Some(AppliedIdOrStar::AppliedId(x.clone())),
             [SyntaxElem::Star(n)] => Some(AppliedIdOrStar::Star(*n)),
@@ -460,10 +452,8 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
     }
 
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
-        debug!("vec<L>::from_syntax input elems = {:?}", elems);
         let mut out = Vec::new();
         if elems.is_empty() {
-            debug!("vec<L>::from_syntax return None1");
             return None;
         }
 
@@ -474,7 +464,6 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
                     if let Some(y) = L::from_syntax(&arr) {
                         out.push(y);
                     } else {
-                        debug!("vec<L>::from_syntax return None2");
                         return None;
                     }
                 }
@@ -614,8 +603,8 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     // TODO m.values() might collide with your private slot names.
     // Should we rename our private slots to be safe?
     #[doc(hidden)]
-    // (Pond) change(compose) the mapping of the current Enode
-    // (Pond) a -> b, change with b -> c, to a -> c.
+    // change(compose) the mapping of the current Enode
+    // a -> b, change with b -> c, to a -> c.
     fn apply_slotmap_partial(&self, m: &SlotMap) -> Self {
         let mut prv = vec![].into();
         if CHECKS {
