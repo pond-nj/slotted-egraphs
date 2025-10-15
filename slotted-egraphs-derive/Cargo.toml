@@ -14,3 +14,6 @@ proc-macro2 = "1.0"
 
 [lib]
 proc-macro = true
+
+[lints]
+rust.non_snake_case = "allow"

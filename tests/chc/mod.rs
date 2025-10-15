@@ -74,7 +74,7 @@ define_language! {
     // TODO(Pond): now children can only have max one vector
     pub enum CHC {
         Var(Slot) = "var",
-        PredSyntax(AppliedId, Vec<Slot>) = "pred", //(pred P <$1>)
+        PredSyntax(AppliedId, Vec<AppliedId>) = "pred", //(pred P <$1>)
         New(AppliedId, AppliedId, Vec<AppliedIdOrStar>) = "new", // (new PredSyntax Constraint <Body>)
         Compose(Vec<AppliedIdOrStar>) = "compose",
         // Test1(AppliedId) = "test1",
@@ -240,56 +240,68 @@ fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
     vec![unfold(), newChildrenPermute(), composeChildrenPermute()]
 }
 
+fn r1CHC(x: &str, y: &str) -> String {
+    let r1_syntax = &format!("(pred R1 <{x}>)");
+    let r1_chc1 = &format!("(new {r1_syntax} (true) <>)");
+    format!("(compose <{r1_chc1}>)")
+}
+
+fn r2CHC(x: &str, y: &str) -> String {
+    let r2_syntax = &format!("(pred R2 <{y}>)");
+    let r2_chc1 = &format!("(new {r2_syntax} (true) <>)");
+    format!("(compose <{r2_chc1}>)")
+}
+
+fn qCHC(x: &str, y: &str) -> String {
+    let q_syntax = &format!("(pred Q <{x} {y}>)");
+    let q_chc1 = &format!("(new {q_syntax} (true) <{} {}>)", r1CHC(x, y), r2CHC(x, y));
+    format!("(compose <{q_chc1}>)")
+}
+
+fn sCHC(x: &str, y: &str) -> String {
+    let s_syntax = &format!("(pred S <{x}>)");
+    let s_chc1 = &format!("(new {s_syntax} (true) <>)");
+    format!("(compose <{s_chc1}>)")
+}
+
+fn pCHC(x: &str, y: &str) -> String {
+    let p_syntax = &format!("(pred P <{x} {y}>)");
+    // P(x, y) <- Q(x, y), S(x).
+    let p_chc1 = &format!("(new {p_syntax} (true) <{} {}>)", qCHC(x, y), sCHC(x, y));
+    // P(x, y) <- .
+    let p_chc2 = &format!("(new {p_syntax} (true) <>)");
+    format!("(compose <{p_chc1} {p_chc2}>)")
+}
+
+fn pUnfoldedCHC(x: &str, y: &str) -> String {
+    // unfold result
+    // P(x, y) <- r1(x), r2(y), S(x).
+    // P(x, y) <- .
+    let p_syntax = &format!("(pred P <{x} {y}>)");
+    let p_chc2 = &format!("(new {p_syntax} (true) <>)");
+    let unfolded_p_chc1 = &format!(
+        "(new {p_syntax} (true) <{} {} {}>)",
+        r1CHC(x, y),
+        r2CHC(x, y),
+        sCHC(x, y)
+    );
+    format!("(compose <{unfolded_p_chc1} {p_chc2}>)")
+}
+
 #[test]
 fn tst1() {
     initLogger();
-    let x = "$0";
-    let y = "$1";
-
-    // r1(x) <- .
-    let r1_syntax = &format!("(pred R1 <{x}>)");
-    let r1_chc1 = &format!("(new {r1_syntax} (true) <>)");
-    let r1_compose = &format!("(compose <{r1_chc1}>)");
-
-    // r2(y) <- .
-    let r2_syntax = &format!("(pred R2 <{y}>)");
-    let r2_chc1 = &format!("(new {r2_syntax} (true) <>)");
-    let r2_compose = &format!("(compose <{r2_chc1}>)");
-
-    // Q(x, y) <- r1(x), r2(y).
-    let q_syntax = &format!("(pred Q <{x} {y}>)");
-    let q_chc1 = &format!("(new {q_syntax} (true) <{r1_compose} {r2_compose}>)");
-    let q_compose = &format!("(compose <{q_chc1}>)");
-
-    // S(x) <- .
-    let s_syntax = &format!("(pred S <{x}>)");
-    let s_chc1 = &format!("(new {s_syntax} (true) <>)");
-    let s_compose = &format!("(compose <{s_chc1}>)");
-
-    let p_syntax = &format!("(pred P <{x} {y}>)");
-    // P(x, y) <- Q(x, y), S(x).
-    let p_chc1 = &format!("(new {p_syntax} (true) <{q_compose} {s_compose}>)");
-    // P(x, y) <- .
-    let p_chc2 = &format!("(new {p_syntax} (true) <>)");
-    let p_compose = &format!("(compose <{p_chc1} {p_chc2}>)");
-
-    debug!("p_compose = {p_compose}");
+    let pCompose = pCHC("(var $0)", "(var $1)");
+    debug!("p_compose = {}", pCompose);
 
     let mut eg = EGraph::<CHC>::default();
-    id(&p_compose, &mut eg);
+    id(&pCompose, &mut eg);
 
     let mut runner: Runner<CHC> = Runner::default().with_egraph(eg).with_iter_limit(60);
     let report = runner.run(&get_all_rewrites());
     debug!("report = {report:?}");
     debug!("eg after rewrite = {:?}", runner.egraph);
 
-    // unfold result
-    // P(x, y) <- r1(x), r2(y), S(x).
-    // P(x, y) <- .
-    let unfolded_p_chc1 =
-        &format!("(new {p_syntax} (true) <{r1_compose} {r2_compose} {s_compose}>)");
-    let unfolded_p_compose = &format!("(compose <{unfolded_p_chc1} {p_chc2}>)");
-
-    let result = ematch_all(&runner.egraph, &Pattern::parse(unfolded_p_compose).unwrap());
+    let result = ematch_all(&runner.egraph, &Pattern::parse(&pCHC("?a", "?b")).unwrap());
     debug!("match unfold result1 = {result:?}");
 }
