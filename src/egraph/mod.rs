@@ -132,6 +132,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.classes[&id].slots.clone()
     }
 
+    // slot of syn_enode
     pub(crate) fn syn_slots(&self, id: Id) -> SmallHashSet<Slot> {
         self.classes[&id].syn_enode.slots()
     }
@@ -161,7 +162,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // Generates fresh slots for redundant slots.
     pub fn enodes_applied(&self, i: &AppliedId) -> Vec<L> {
-        // debug!("enodes_applied");
+        debug!("input enodes_applied {:?}", i);
         let class = &self.classes[&i.id];
         let class_slots = &class.slots;
 
@@ -176,6 +177,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // (Pond) Create a mapping of unfound slots (of this enode) in eclass slots to fresh slots.
             let mut map: SmallHashMap<Slot, Slot> = SmallHashMap::default();
             for slot in x.all_slot_occurrences_mut() {
+                // when does this happen?
                 if !class_slots.contains(&slot) {
                     if let Some(v) = map.get(slot) {
                         *slot = *v;
@@ -206,6 +208,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             result.push(x);
         }
 
+        debug!("enodes_applied res {:?}", result);
         result
     }
 
@@ -424,9 +427,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
+    // add mapping for slots from syn_enode
     pub(crate) fn synify_app_id(&self, app: AppliedId) -> AppliedId {
         let mut app = app;
+        // get slot of syn_enode
         for s in self.syn_slots(app.id) {
+            // app must contains mapping for slots of syn_enode
             if !app.m.contains_key(s) {
                 app.m.insert(s, Slot::fresh());
             }
@@ -434,6 +440,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         app
     }
 
+    // make sure the pointer appliedId contains mapping for syn_enode in the children eclass
     pub(crate) fn synify_enode(&self, enode: L) -> L {
         enode.map_applied_ids(|app| self.synify_app_id(app))
     }

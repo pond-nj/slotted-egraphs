@@ -77,7 +77,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if CHECKS {
             assert_eq!(re.children.len(), refs.len());
         }
-        // (Pond) update AppliedId under this enode
+        // recursively add children
         for (i, child) in re.children.into_iter().enumerate() {
             *(refs[i]) = self.add_expr(child);
         }
@@ -88,8 +88,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.add_internal(self.shape_called_from_add(enode))
     }
 
+    // create a duplicate Enode with reset mapped slot in AppliedId,
+    // the information of mapping to old one is in the returned Bijection
     fn shape_called_from_add(&self, enode: L) -> (L, Bijection) {
-        self.shape(&enode)
+        debug!("shape_called_from_add input {:?}", enode);
+        let ret = self.shape(&enode);
+        debug!("ret {ret:?}");
+        ret
     }
 
     // self.add(x) = y implies that x.slots() is a superset of y.slots().
@@ -101,6 +106,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // TODO this code is kinda exactly what add_syn is supposed to do anyways. There's probably a way to write this more concisely.
         // We convert the enode to "syn" so that semantic_add will compute the necessary redundancy proofs.
+        // change private slot, apply slot map to Enode
         let enode = t.0.refresh_private().apply_slotmap(&t.1);
         let enode = self.synify_enode(enode);
 
@@ -152,7 +158,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // allocate new class & slot set.
         let fresh_slots = old_to_fresh.values();
+        // now the variables input to syn_enode are fresh slots
         let syn_enode_fresh = syn_enode.apply_slotmap_fresh(&old_to_fresh);
+
+        // debug!("syn_enode_flesh {}", syn_enode_fresh);
+
+        // create Eclass?
         let i = self.alloc_eclass(&fresh_slots, syn_enode_fresh.clone());
 
         // we use semantic_add so that the redundancy, symmetry and congruence checks run on it.
@@ -242,13 +253,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         {
             // add syn_enode to the hashcons.
+            // bij will map shapeEnode to oldSlot
             let (sh, bij) = syn_enode.weak_shape();
 
             if CHECKS {
                 assert!(!self.syn_hashcons.contains_key(&sh));
             }
 
+            // make new apply id
             let app_id = self.mk_syn_applied_id(c_id, bij.inverse());
+            // by applying app_id to this Eclass, there will be one Enode in the eclass that matches shape
+            // because this appliedId is created from inverse of bijection
             self.syn_hashcons.insert(sh, app_id);
         }
 

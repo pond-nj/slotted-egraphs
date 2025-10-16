@@ -43,10 +43,16 @@ pub fn ematchAllInEclass<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
     pattern: &Pattern<L>,
     id: Id,
+    slotMap: &SlotMap,
 ) -> Vec<Subst> {
     let mut out: Vec<Subst> = Vec::new();
     let i = eg.mk_sem_identity_applied_id(id);
-    let result = ematchAllInEclassInternal(pattern, State::default(), i, eg);
+    let mut result = ematchAllInEclassInternal(pattern, State::default(), i, eg);
+    for r in result.iter_mut() {
+        for s in &slotMap.map {
+            r.partial_slotmap.insert(s.0, s.1);
+        }
+    }
     out.extend(result.into_iter().map(final_subst));
     out
 }
@@ -66,6 +72,7 @@ fn ematchAllInEclassInternal<L: Language, N: Analysis<L>>(
             if let Some(j) = st.partial_subst.get(v) {
                 if !eg.eq(&i, j) {
                     debug!("continue because mismatch mapped var {:?} != {:?}", i, j);
+                    debug!("dropping {:#?}", st);
                     return Vec::new();
                 } else {
                     debug!("check existing var {:?}, pass", i);
@@ -134,7 +141,7 @@ fn matchEclassWithEveryState<L: Language, N: Analysis<L>>(
 
     let callLen = acc.len();
     let mut accIter = acc.clone().into_iter();
-    debug!("matchEnode");
+    debug!("matchEnode with acc {:#?}", acc);
     debug!("eclassId {:?}", eclassId);
     debug!("childPattern {} or {:?}", childPattern, childPattern);
     for _ in 0..callLen {
@@ -198,7 +205,7 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
 
         let mut acc = vec![st.clone()];
         let eclassChildren = enode_shape.applied_id_occurrences();
-        debug!("matchChildren");
+        debug!("matchChildren with {:#?}", st);
         debug!("patternChildren {:?}", patternChildren);
         debug!("eclassChildren {:?}", eclassChildren);
         for i in 0..patternChildren.len() {
@@ -255,6 +262,7 @@ fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> boo
 }
 
 fn final_subst(s: State) -> Subst {
+    debug!("final_subst s {:#?}", s);
     let State {
         partial_subst: mut subst,
         partial_slotmap: mut slotmap,

@@ -80,11 +80,12 @@ pub trait LanguageChildren: Debug + Clone + Hash + Eq {
     }
 }
 
-fn on_see_slot(s: &mut Slot, m: &mut (SlotMap, u32)) {
-    if let Some(s2) = m.0.get(*s) {
+// get mapped slot from s or insert mapping from s to map.1
+fn getOrAddSlot(s: &mut Slot, map: &mut (SlotMap, u32)) {
+    if let Some(s2) = map.0.get(*s) {
         *s = s2;
     } else {
-        add_slot(s, m);
+        add_slot(s, map);
     }
 }
 
@@ -142,9 +143,10 @@ impl LanguageChildren for AppliedId {
         AppliedId::null()
     }
 
-    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
-        for x in self.m.values_mut() {
-            on_see_slot(x, m);
+    // apply map to self mapping if applicable, otherwise create new slots to map to
+    fn weak_shape_impl(&mut self, map: &mut (SlotMap, u32)) {
+        for toSlot in self.m.values_mut() {
+            getOrAddSlot(toSlot, map);
         }
     }
 }
@@ -197,14 +199,8 @@ impl LanguageChildren for Slot {
     }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
-        on_see_slot(self, m);
+        getOrAddSlot(self, m);
     }
-}
-
-fn calculateHash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
-    t.hash(&mut s);
-    s.finish()
 }
 
 /// Implements [LanguageChildren] for payload types that are independent of Slots. For example u32, String etc.
@@ -411,6 +407,7 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         let s = self.slot;
+        // add mapping from self.slot to a new slot in m
         add_slot(&mut self.slot, m);
         self.elem.weak_shape_impl(m);
         m.0.remove(s);
@@ -671,6 +668,8 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     // - sh.apply_slotmap(bij) is equivalent to n (excluding lambda variable renames)
     // - bij.slots() == n.slots(). Note that these would also include redundant slots.
     // - sh is the lexicographically lowest equivalent version of n, reachable by bijective renaming of slots (including redundant ones).
+
+    // reset the slots name to canonical one
     #[doc(hidden)]
     fn weak_shape(&self) -> (Self, Bijection) {
         let mut c = self.clone();
@@ -678,17 +677,22 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
         (c, bij)
     }
 
+    // returned new Enode with replaced private slot
     #[doc(hidden)]
     fn refresh_private(&self) -> Self {
         let mut c = self.clone();
+        // get private slots
         let prv: SmallHashSet<Slot> = c.private_slot_occurrences().into_iter().collect();
+        // create mapping to private and inverse it
         let fresh = SlotMap::bijection_from_fresh_to(&prv).inverse();
+        // replace private slots with new fresh slot
         for x in c.private_slot_occurrences_mut() {
             *x = fresh[*x];
         }
         c
     }
 
+    // replace specified slots in the Enode
     #[doc(hidden)]
     fn refresh_slots(&self, set: SmallHashSet<Slot>) -> Self {
         let mut c = self.clone();

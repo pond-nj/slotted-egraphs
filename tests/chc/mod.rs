@@ -95,18 +95,18 @@ fn unfold() -> Rewrite<CHC> {
     let applier = Box::new(
         // (compose <[(new ?syntax2 (true) <*4>) \dot (#matches of *1)] *3>)
         move |substs: Vec<Subst>, eg: &mut EGraph<CHC>| {
+            debug!("unfold rule, found {:#?}", substs);
             for subst in substs {
-                let mut star1Max = 0;
-                while subst.contains_key(&starPVar(1, star1Max)) {
-                    star1Max += 1;
-                }
+                let star1Max = getMaxStarCount(1, &subst);
 
                 let mut matches: Vec<Vec<AppliedId>> = vec![];
                 // match in star1 Eclass
                 for star1Count in 0..star1Max {
                     let subPat = Pattern::parse("(new ?syntax2 (true) <*4>)").unwrap();
+                    let var = &starPVar(1, star1Count);
+                    debug!("use this? {:?}", var);
                     let result: Vec<Subst> =
-                        ematchAllInEclass(eg, &subPat, subst[&starPVar(1, star1Count)].id);
+                        ematchAllInEclass(eg, &subPat, subst[var].id, &subst[var].m);
                     let mut thisNewIds: Vec<AppliedId> = vec![];
 
                     let toPat = Pattern::parse(&format!(
@@ -117,6 +117,8 @@ fn unfold() -> Rewrite<CHC> {
 
                     for mut r in result {
                         mergeSubst(&mut r, &subst);
+                        debug!("toPat {:#?}", toPat);
+                        debug!("r {:#?}", r);
                         let newId = pattern_subst(eg, &toPat, &r);
                         thisNewIds.push(newId);
                     }
@@ -274,21 +276,15 @@ fn pCHC(x: &str, y: &str) -> String {
 }
 
 fn pUnfoldedCHC(x: &str, y: &str) -> String {
-    // unfold result
-    // P(x, y) <- r1(x), r2(y), S(x).
-    // P(x, y) <- .
-
     let p_syntax = &format!("(pred P <{x} {y}>)");
-    // let p_chc2 = &format!("(new {p_syntax} (true) <>)");
-    // let unfolded_p_chc1 = &format!(
-    //     "(new {p_syntax} (true) <{} {} {}>)",
-    //     r1CHC(x, y),
-    //     r2CHC(x, y),
-    //     sCHC(x, y)
-    // );
-    // format!("(compose <{unfolded_p_chc1} {p_chc2}>)")
-
-    format!("(new {p_syntax} (true) <{} ?v2 ?v3>)", r1CHC(x, y))
+    let p_chc2 = &format!("(new {p_syntax} (true) <>)");
+    let unfolded_p_chc1 = &format!(
+        "(new {p_syntax} (true) <{} {} {}>)",
+        r1CHC(x, y),
+        r2CHC(x, y),
+        sCHC(x, y)
+    );
+    format!("(compose <{unfolded_p_chc1} {p_chc2}>)")
 }
 
 #[test]
@@ -305,10 +301,9 @@ fn tst1() {
     debug!("report = {report:?}");
     debug!("eg after rewrite = {:?}", runner.egraph);
 
-    let result = ematchAllInEclass(
+    let result = ematch_all(
         &runner.egraph,
         &Pattern::parse(&pUnfoldedCHC("?a", "?b")).unwrap(),
-        Id(23),
     );
     debug!("match unfold result1 = {result:#?}");
 }

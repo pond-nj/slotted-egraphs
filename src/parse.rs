@@ -75,6 +75,15 @@ pub fn starIds(starIndex: u32, subst: &Subst) -> Vec<AppliedId> {
     allIds
 }
 
+pub fn getMaxStarCount(starIndex: u32, subst: &Subst) -> u32 {
+    let mut starMax = 0;
+    while subst.contains_key(&starPVar(starIndex, starMax)) {
+        starMax += 1;
+    }
+
+    starMax
+}
+
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
     let mut tokens = Vec::new();
 

@@ -17,7 +17,7 @@ pub(crate) type Bijection = SlotMap;
 pub struct SlotMap {
     // if (l, r) in map, then there is no (l, r') in map. Each key is uniquely contained.
     // Also: map is sorted by their keys.
-    map: SmallVec<[(Slot, Slot); 10]>,
+    pub map: SmallVec<[(Slot, Slot); 10]>,
 }
 
 impl SlotMap {
