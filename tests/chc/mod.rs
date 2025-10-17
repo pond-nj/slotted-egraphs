@@ -11,80 +11,19 @@ use std::vec;
 use std::{default, io::Write};
 use tracing_subscriber::{fmt, prelude::*};
 
-// TODO(Pond): Star should only be allowed inside a vector(dynamic length)
-define_language! {
-    pub enum And {
-        Var(Slot) = "var",
-        And(Vec<AppliedIdOrStar>) = "and",
-    }
-    // p <- q, r
-}
-
-pub fn get_all_and_rewrites() -> Vec<Rewrite<And>> {
-    // vec![and_assoc(), and_comm(), and_3()]
-    vec![and_tmp()]
-}
-
-fn and_assoc() -> Rewrite<And> {
-    let pat = "(and <?1 (and <?2 ?3>)>)";
-    let outpat = "(and <(and <?1 ?2>) ?3>)";
-    Rewrite::new("and-assoc", pat, outpat)
-}
-
-fn and_comm() -> Rewrite<And> {
-    let pat = "(and <?a ?b>)";
-    let outpat = "(and <?b ?a>)";
-    Rewrite::new("and-comm", pat, outpat)
-}
-
-fn and_3() -> Rewrite<And> {
-    let pat = "(and <?a (and <?b ?c>)>)";
-    let outpat = "(and <?a ?b ?c>)";
-    Rewrite::new("and-3", pat, outpat)
-}
-
-fn and_tmp() -> Rewrite<And> {
-    // let pat = "(and <?a *>)";
-    // TODO(Pond): (and <?a *> ?b)
-    let pat = "(and <(and <?b *>) *>)";
-    let outpat = "(and <?a>)";
-    Rewrite::new("and-tmp", pat, outpat)
-}
-
-// #[test]
-fn and() {
-    env_logger::builder()
-        .format_timestamp(None)
-        .format_level(false)
-        .format_target(true)
-        .filter_level(LevelFilter::Debug)
-        .init();
-
-    let x = "$0";
-    let y = "$1";
-    let z = "$2";
-    let w = "$3";
-
-    let a = &format!("(and <(and <(var {x}) (var {y})>) (and <(var {z}) (var {w})>)>)");
-    let b = &format!("(and <(var {x}) (var {y}) (var {z})>)");
-    assert_reaches(a, b, &get_all_and_rewrites()[..], 10);
-}
-
 define_language! {
     // TODO(Pond): now children can only have max one vector
     pub enum CHC {
         Var(Slot) = "var",
-        PredSyntax(AppliedId, Vec<AppliedId>) = "pred", //(pred P <$1>)
-        New(AppliedId, AppliedId, Vec<AppliedIdOrStar>) = "new", // (new PredSyntax Constraint <Body>)
+        // PredSyntax(AppliedId, Vec<AppliedId>) = "pred",
+        PredSyntax(Vec<AppliedId>) = "pred",
+        New(AppliedId, AppliedId, Vec<AppliedIdOrStar>) = "new",
         Compose(Vec<AppliedIdOrStar>) = "compose",
-        // Test1(AppliedId) = "test1",
-        // Test2(AppliedId, AppliedId, AppliedId) = "test2",
         True() = "true",
-        PredName(String),
+        // PredName(String),
     }
 }
 
-// TODO(Pond): next, we need testing here
 fn unfold() -> Rewrite<CHC> {
     let rootPatRaw =
         Pattern::parse("(compose <(new ?syntax1 (true) <(compose <*1>) *2>) *3>)").unwrap();
@@ -104,7 +43,6 @@ fn unfold() -> Rewrite<CHC> {
                 for star1Count in 0..star1Max {
                     let subPat = Pattern::parse("(new ?syntax2 (true) <*4>)").unwrap();
                     let var = &starPVar(1, star1Count);
-                    debug!("use this? {:?}", var);
                     let result: Vec<Subst> =
                         ematchAllInEclass(eg, &subPat, subst[var].id, &subst[var].m);
                     let mut thisNewIds: Vec<AppliedId> = vec![];
@@ -117,8 +55,6 @@ fn unfold() -> Rewrite<CHC> {
 
                     for mut r in result {
                         mergeSubst(&mut r, &subst);
-                        debug!("toPat {:#?}", toPat);
-                        debug!("r {:#?}", r);
                         let newId = pattern_subst(eg, &toPat, &r);
                         thisNewIds.push(newId);
                     }
@@ -242,32 +178,35 @@ fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
     vec![unfold(), newChildrenPermute(), composeChildrenPermute()]
 }
 
+// TODO: remove syntax enode -> where to put this instead?
+// even if we remove syntax from here, we still have to maintain the var some where.
+// maybe just remove the predname?, no need to remove all syntax
 fn r1CHC(x: &str, y: &str) -> String {
-    let r1_syntax = &format!("(pred R1 <{x}>)");
+    let r1_syntax = &format!("(pred <{x}>)");
     let r1_chc1 = &format!("(new {r1_syntax} (true) <>)");
     format!("(compose <{r1_chc1}>)")
 }
 
 fn r2CHC(x: &str, y: &str) -> String {
-    let r2_syntax = &format!("(pred R2 <{y}>)");
+    let r2_syntax = &format!("(pred <{y}>)");
     let r2_chc1 = &format!("(new {r2_syntax} (true) <>)");
     format!("(compose <{r2_chc1}>)")
 }
 
 fn qCHC(x: &str, y: &str) -> String {
-    let q_syntax = &format!("(pred Q <{x} {y}>)");
+    let q_syntax = &format!("(pred <{x} {y}>)");
     let q_chc1 = &format!("(new {q_syntax} (true) <{} {}>)", r1CHC(x, y), r2CHC(x, y));
     format!("(compose <{q_chc1}>)")
 }
 
 fn sCHC(x: &str, y: &str) -> String {
-    let s_syntax = &format!("(pred S <{x}>)");
+    let s_syntax = &format!("(pred <{x}>)");
     let s_chc1 = &format!("(new {s_syntax} (true) <>)");
     format!("(compose <{s_chc1}>)")
 }
 
 fn pCHC(x: &str, y: &str) -> String {
-    let p_syntax = &format!("(pred P <{x} {y}>)");
+    let p_syntax = &format!("(pred <{x} {y}>)");
     // P(x, y) <- Q(x, y), S(x).
     let p_chc1 = &format!("(new {p_syntax} (true) <{} {}>)", qCHC(x, y), sCHC(x, y));
     // P(x, y) <- .
@@ -276,7 +215,7 @@ fn pCHC(x: &str, y: &str) -> String {
 }
 
 fn pUnfoldedCHC(x: &str, y: &str) -> String {
-    let p_syntax = &format!("(pred P <{x} {y}>)");
+    let p_syntax = &format!("(pred <{x} {y}>)");
     let p_chc2 = &format!("(new {p_syntax} (true) <>)");
     let unfolded_p_chc1 = &format!(
         "(new {p_syntax} (true) <{} {} {}>)",
