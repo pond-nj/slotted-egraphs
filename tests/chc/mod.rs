@@ -178,9 +178,6 @@ fn get_all_rewrites() -> Vec<Rewrite<CHC>> {
     vec![unfold(), newChildrenPermute(), composeChildrenPermute()]
 }
 
-// TODO: remove syntax enode -> where to put this instead?
-// even if we remove syntax from here, we still have to maintain the var some where.
-// maybe just remove the predname?, no need to remove all syntax
 fn r1CHC(x: &str, y: &str) -> String {
     let r1_syntax = &format!("(pred <{x}>)");
     let r1_chc1 = &format!("(new {r1_syntax} (true) <>)");
@@ -214,18 +211,6 @@ fn pCHC(x: &str, y: &str) -> String {
     format!("(compose <{p_chc1} {p_chc2}>)")
 }
 
-fn pUnfoldedCHC(x: &str, y: &str) -> String {
-    let p_syntax = &format!("(pred <{x} {y}>)");
-    let p_chc2 = &format!("(new {p_syntax} (true) <>)");
-    let unfolded_p_chc1 = &format!(
-        "(new {p_syntax} (true) <{} {} {}>)",
-        r1CHC(x, y),
-        r2CHC(x, y),
-        sCHC(x, y)
-    );
-    format!("(compose <{unfolded_p_chc1} {p_chc2}>)")
-}
-
 #[test]
 fn tst1() {
     initLogger();
@@ -237,12 +222,19 @@ fn tst1() {
 
     let mut runner: Runner<CHC> = Runner::default().with_egraph(eg).with_iter_limit(60);
     let report = runner.run(&get_all_rewrites());
-    debug!("report = {report:?}");
-    debug!("eg after rewrite = {:?}", runner.egraph);
 
-    let result = ematch_all(
-        &runner.egraph,
-        &Pattern::parse(&pUnfoldedCHC("?a", "?b")).unwrap(),
-    );
-    debug!("match unfold result1 = {result:#?}");
+    let x = "?a";
+    let y = "?b";
+    let p_syntax = &format!("(pred <{x} {y}>)");
+    let p_chc2 = &format!("(new {p_syntax} (true) <>)");
+    let children = vec![r1CHC(x, y), r2CHC(x, y), sCHC(x, y)];
+
+    let permutation = permute(&children);
+    assert!(permutation.len() == 6);
+    for p in permutation {
+        let unfolded_p_chc1 = &format!("(new {p_syntax} (true) <{} {} {}>)", p[0], p[1], p[2]);
+        let newRoot = format!("(compose <{unfolded_p_chc1} {p_chc2}>)");
+        let resultLen = ematch_all(&runner.egraph, &Pattern::parse(&newRoot).unwrap()).len();
+        assert!(resultLen > 0);
+    }
 }
