@@ -87,6 +87,8 @@ pub fn getMaxStarCount(starIndex: u32, subst: &Subst) -> u32 {
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
     let mut tokens = Vec::new();
 
+    debug!("from {}", s);
+
     loop {
         s = s.trim_start();
         if s.is_empty() {
@@ -134,6 +136,7 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
         }
     }
 
+    debug!("to tokens {:?}", tokens);
     Ok(tokens)
 }
 
@@ -257,6 +260,7 @@ fn parse_pattern_nosubst<'a, L: Language>(
             .iter()
             .map(nested_syntax_elem_to_syntax_elem)
             .collect();
+        debug!("syntax_elems_mock = {:?}", syntax_elems_mock);
         let node = L::from_syntax(&syntax_elems_mock).ok_or_else(|| {
             debug!("FromSyntaxFailed 1: {:?}", syntax_elems_mock);
             ParseError::FromSyntaxFailed(syntax_elems_mock)
@@ -268,6 +272,8 @@ fn parse_pattern_nosubst<'a, L: Language>(
             .flat_map(nested_syntax_elem_to_pattern)
             .collect();
         let re = Pattern::ENode(node, syntax_elems);
+        debug!("parse_pattern_nosubst return1 {}", re);
+        debug!("left tokens {:?}", tok);
         Ok((re, tok))
     } else {
         let Token::Ident(op) = &tok[0] else {
@@ -285,6 +291,8 @@ fn parse_pattern_nosubst<'a, L: Language>(
             ParseError::FromSyntaxFailed(to_vec(&elems))
         })?;
         let pat = Pattern::ENode(node, Vec::new());
+        debug!("parse_pattern_nosubst return2 {}", pat);
+        debug!("left tokens {:?}", tok);
         Ok((pat, tok))
     }
 }

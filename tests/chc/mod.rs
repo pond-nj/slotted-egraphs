@@ -15,12 +15,34 @@ define_language! {
     // TODO(Pond): now children can only have max one vector
     pub enum CHC {
         Var(Slot) = "var",
-        // PredSyntax(AppliedId, Vec<AppliedId>) = "pred",
+
         PredSyntax(Vec<AppliedId>) = "pred",
         New(AppliedId, AppliedId, Vec<AppliedIdOrStar>) = "new",
         Compose(Vec<AppliedIdOrStar>) = "compose",
         True() = "true",
-        // PredName(String),
+
+        // node(x, l, r) has subtree l and r and element x at this node
+        Node(AppliedId, AppliedId, AppliedId) = "node",
+        Leaf() = "leaf",
+
+        // Boolean
+        And(Vec<AppliedId>) = "and",
+
+        // Arithmetic
+        Geq(AppliedId, AppliedId) = "geq",
+        Leq(AppliedId, AppliedId) = "leq",
+        Less(AppliedId, AppliedId) = "lt",
+        Greater(AppliedId, AppliedId) = "gt",
+        Eq(AppliedId, AppliedId) = "eq",
+        Add(AppliedId, AppliedId) = "+",
+        Minus(AppliedId, AppliedId) = "-",
+
+        Number(u32),
+
+        // (init predName syntax)
+        // use to create empty compose eclass for recursive definition
+        Init(AppliedId, AppliedId) = "init",
+        PredName(String),
     }
 }
 
@@ -237,4 +259,122 @@ fn tst1() {
         let resultLen = ematch_all(&runner.egraph, &Pattern::parse(&newRoot).unwrap()).len();
         assert!(resultLen > 0);
     }
+}
+
+fn minCHC(x: &str, y: &str, z: &str) -> String {
+    let syntax = format!("(pred <{x} {y} {z}>)");
+    // min(X,Y,Z) <- X< Y, Z=X
+    let cond1 = format!("(and <(lt {x} {y}) (eq {z} {x})>)");
+    let chc1 = format!("(new {syntax} {cond1} <>)");
+
+    // min(X,Y,Z) <- X >= Y, Z=Y
+    let cond2 = format!("(and <(geq {x} {y}) (eq {z} {y})>)");
+    let chc2 = format!("(new {syntax} {cond2} <>)");
+
+    format!("(compose <{chc1} {chc2}>)")
+}
+
+fn minLeafDummy(x: &str, y: &str) -> String {
+    let syntax = format!("(pred <{x} {y}>)");
+    format!("(init minLeaf {syntax})")
+}
+
+fn minLeafCHC(x: &str, y: &str, count: &mut u32) -> String {
+    let a = generateInternalVar(count);
+    let l = generateInternalVar(count);
+    let r = generateInternalVar(count);
+    let m1 = generateInternalVar(count);
+    let m2 = generateInternalVar(count);
+    let m3 = generateInternalVar(count);
+
+    let syntax = format!("(pred <{x} {y}>)");
+
+    // min-leaf(X,Y) <- X=leaf, Y=0
+    let cond1 = format!("(and <(eq {y} 0) (eq {x} (leaf))>)");
+    let chc1 = format!("(new {syntax} {cond1} <>)");
+
+    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
+    let cond2 = format!("(and <(eq {x} (node {a} {l} {r})) (eq {y} (+ {m3} 1))>)");
+    let chc2 = format!(
+        "(new {syntax} {cond2} <{} {} {}>)",
+        minLeafDummy(&l, &m1),
+        minLeafDummy(&r, &m2),
+        minCHC(&m1, &m2, &m3)
+    );
+
+    format!("(compose <{chc1} {chc2}>)")
+}
+
+fn leafDropDummy(x: &str, y: &str, z: &str) -> String {
+    let syntax = format!("(pred <{x} {y} {z}>)");
+    format!("(init leafDrop {syntax})")
+}
+
+fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32) -> String {
+    let syntax = format!("(pred <{x} {y} {z}>)");
+
+    // left-drop(x,y,z) ← y=leaf, z=leaf
+    let cond1 = format!("(and <(eq {y} (leaf)) (eq {z} (leaf))>)");
+    let chc1 = format!("(new {syntax} {cond1} <>)");
+
+    // todo: will these internal variables appear in the expose api for the eclass?
+    // can it not appear?
+
+    let l = generateInternalVar(count);
+    let r = generateInternalVar(count);
+    let a = generateInternalVar(count);
+    // left-drop(x, y ,z) ← x ≤0, y = node(a,L,R), z = node(a,L,R)
+    let cond2 =
+        format!("(and <(leq {x} 0) (eq {y} (node {a} {l} {r})) (eq {z} (node {a} {l} {r}))>)");
+    let chc2 = format!("(new {syntax} {cond2} <>)");
+
+    let l1 = generateInternalVar(count);
+    let r1 = generateInternalVar(count);
+    let a1 = generateInternalVar(count);
+    let n1 = generateInternalVar(count);
+
+    // left-drop(x,y,z) ← y= node(a,L,R), x ≥1,N1=x−1, left-drop(N1,L,z)
+    let cond3 = format!("(and <(eq {y} (node {a1} {l1} {r1})) (geq {x} 1) (eq {n1} (- {x} 1))>)");
+    let chc3 = format!("(new {syntax} {cond3} <{}>)", leafDropDummy(x, y, z));
+
+    format!("(compose <{chc1} {chc2} {chc3}>)")
+}
+
+#[test]
+fn tst2() {
+    initLogger();
+    let mut count = 0;
+    let n = generateInternalVar(&mut count);
+    let t = generateInternalVar(&mut count);
+    let u = generateInternalVar(&mut count);
+    let m = generateInternalVar(&mut count);
+    let k = generateInternalVar(&mut count);
+
+    //  false ← N≥0,M+N<K, left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
+    let syntax = "(pred <>)";
+    let cond = format!("(and <(geq {n} 0) (lt (+ {m} {n}) {k})>)");
+    let rootCHC = format!(
+        "(new {syntax} {cond} <{} {} {}>)",
+        leafDropDummy(&n, &t, &u),
+        minLeafDummy(&u, &m),
+        minLeafDummy(&t, &k)
+    );
+    let composeRoot = "(compose <{rootCHC}>)";
+
+    let mut eg = EGraph::<CHC>::default();
+    id(&rootCHC, &mut eg);
+
+    let x = "(var $0)";
+    let y = "(var $1)";
+    let z = "(var $2)";
+
+    let leafDropDummyId = id(&leafDropDummy(x, y, z), &mut eg);
+    let leafDropId = id(&leafDropCHC(x, y, z, &mut count), &mut eg);
+    eg.union(&leafDropDummyId, &leafDropId);
+
+    let minLeafDummyId = id(&minLeafDummy(x, y), &mut eg);
+    let minLeafId = id(&minLeafCHC(x, y, &mut count), &mut eg);
+    eg.union(&minLeafDummyId, &minLeafId);
+
+    debug!("egraph after {}", eg);
 }

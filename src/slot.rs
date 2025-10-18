@@ -27,6 +27,12 @@ thread_local! {
     });
 }
 
+pub fn generateInternalVar(count: &mut u32) -> String {
+    let ret: String = format!("(var $i{})", count);
+    *count = *count + 1;
+    ret
+}
+
 impl Slot {
     /// Generates a fresh slot.
     ///

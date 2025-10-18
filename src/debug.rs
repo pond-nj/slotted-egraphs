@@ -49,6 +49,12 @@ impl<L: Language, N: Analysis<L>> Debug for EGraph<L, N> {
     }
 }
 
+impl<L: Language, N: Analysis<L>> Display for EGraph<L, N> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        self.dump(f)
+    }
+}
+
 // print:
 impl<L: Language> std::fmt::Display for Pattern<L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
