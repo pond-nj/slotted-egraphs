@@ -250,6 +250,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             syn_enode: syn_enode.clone(),
             analysis_data: N::make(&self, &syn_enode),
         };
+        debug!("classes insert {:?}", c_id);
         self.classes.insert(c_id, c);
 
         {

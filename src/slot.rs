@@ -27,10 +27,33 @@ thread_local! {
     });
 }
 
-pub fn generateInternalVar(count: &mut u32) -> String {
+#[derive(Eq, PartialEq, Clone, Debug)]
+pub enum VarType {
+    Unknown,
+    Int,
+    Node,
+}
+
+pub fn generateVar(count: &mut u32) -> String {
     let ret: String = format!("(var $i{})", count);
     *count = *count + 1;
     ret
+}
+
+pub fn generateIntVar(count: &mut u32) -> String {
+    let ret: String = format!("(int $i{})", count);
+    *count = *count + 1;
+    ret
+}
+
+pub fn generateNodeVar(count: &mut u32) -> String {
+    let ret: String = format!("(node $i{})", count);
+    *count = *count + 1;
+    ret
+}
+
+pub fn wrapInternal(s: &str) -> String {
+    format!("(Internal {s})")
 }
 
 impl Slot {

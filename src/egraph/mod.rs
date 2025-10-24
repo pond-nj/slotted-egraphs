@@ -78,10 +78,9 @@ pub(crate) enum PendingType {
 /// - semantically means that it respects the equations already in the e-graph, and hence doesn't differentiate between equal things.
 /// - syntactically means that it only talks about the single representative term associated to each E-Class, recursively obtainable using syn_enode.
 #[derive(Clone, Debug)]
-pub(crate) struct EClass<L: Language, N: Analysis<L>> {
+pub struct EClass<L: Language, N: Analysis<L>> {
     // The set of equivalent ENodes that make up this eclass.
     // for (sh, bij) in nodes; sh.apply_slotmap(bij) represents the actual ENode.
-    // (Pond) sh is probably the shape of the enode.
     nodes: HashMap<L, ProvenSourceNode>,
 
     // All other slots are considered "redundant" (or they have to be qualified by a ENode::Lam).
@@ -97,7 +96,6 @@ pub(crate) struct EClass<L: Language, N: Analysis<L>> {
     // TODO remove this if explanations are disabled.
     syn_enode: L,
 
-    #[debug(skip)]
     analysis_data: N::Data,
 }
 
@@ -147,6 +145,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .get_mut(&self.find_id(i))
             .unwrap()
             .analysis_data
+    }
+
+    pub fn eclass(&self, i: Id) -> Option<&EClass<L, N>> {
+        self.classes.get(&self.find_id(i))
     }
 
     pub fn enodes(&self, i: Id) -> HashSet<L> {
@@ -269,10 +271,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     /// Prints the contents of the E-Graph. Helpful for debugging.
     pub fn dump<T: fmt::Write>(&self, f: &mut T) -> Result {
         write!(f, "\n == Egraph ==")?;
-        let mut v: Vec<(&Id, &EClass<L, N>)> = self.classes.iter().collect();
-        v.sort_by_key(|(x, _)| *x);
+        let mut eclasses: Vec<(&Id, &EClass<L, N>)> = self.classes.iter().collect();
+        eclasses.sort_by_key(|(x, _)| *x);
 
-        for (i, c) in v {
+        for (i, c) in eclasses {
             if c.nodes.len() == 0 {
                 continue;
             }
@@ -284,6 +286,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 .map(|x| x.to_string())
                 .collect::<Vec<_>>()
                 .join(", ");
+            write!(f, "\n{:?}", c.analysis_data)?;
             write!(f, "\n{:?}({}):", i, &slot_str)?;
 
             write!(f, ">> {:?}\n", &c.syn_enode)?;
@@ -482,6 +485,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn get_syn_node(&self, i: &AppliedId) -> L {
         let syn = &self.classes[&i.id].syn_enode;
         syn.apply_slotmap(&i.m)
+    }
+
+    pub fn getSynNodeNoSubst(&self, i: &Id) -> &L {
+        &self.classes[i].syn_enode
+    }
+
+    pub fn getSlotPermutation(&self, i: &Id) -> Vec<SlotMap> {
+        let c = self.eclass(*i).unwrap();
+        c.group.generators().into_iter().map(|x| x.elem).collect()
     }
 }
 

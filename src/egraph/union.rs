@@ -173,6 +173,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // moves everything from `from` to `to`.
     fn move_to(&mut self, from: &AppliedId, to: &AppliedId, #[allow(unused)] proof: ProvenEq) {
+        debug!("Call move_to {:?}, {:?}", from, to);
         if CHECKS {
             assert_eq!(from.slots(), to.slots());
             #[cfg(feature = "explanations")]
@@ -185,11 +186,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let analysis_from = self.analysis_data(from.id).clone();
             let analysis_to = self.analysis_data_mut(to.id);
             let old_analysis_to = analysis_to.clone();
+            debug!("analysis_from {:?}", analysis_from);
             let new_analysis_to = N::merge(analysis_from, analysis_to.clone());
+            debug!("old_analysis_to {:?}", old_analysis_to);
+            debug!("new_analysis_to {:?}", new_analysis_to);
             let changed = old_analysis_to != new_analysis_to;
             *analysis_to = new_analysis_to;
 
             if changed {
+                // TODO: why modify only run on these classes?
                 self.modify_queue.push(to.id);
                 self.touched_class(to.id, PendingType::OnlyAnalysis);
             }

@@ -31,7 +31,7 @@ pub fn singleton_set<T: Eq + Hash + Ord>(t: T) -> SmallHashSet<T> {
     [t].into_iter().collect()
 }
 
-pub fn id<L: Language>(s: &str, eg: &mut EGraph<L>) -> AppliedId {
+pub fn id<L: Language, N: Analysis<L>>(s: &str, eg: &mut EGraph<L, N>) -> AppliedId {
     eg.check();
     let re = RecExpr::parse(s).unwrap();
     let out = eg.add_syn_expr(re.clone());

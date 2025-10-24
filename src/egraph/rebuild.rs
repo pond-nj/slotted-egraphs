@@ -1,4 +1,5 @@
 use crate::*;
+use log::debug;
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // proof.l should be i.
@@ -213,6 +214,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     fn update_analysis(&mut self, sh: &L, i: Id) {
+        debug!("from update_analysis");
         let v = N::make(self, sh);
 
         let c = self.classes.get_mut(&i).unwrap();
