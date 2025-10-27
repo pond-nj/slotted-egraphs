@@ -139,7 +139,12 @@ mod sdql {
             out
         }
 
-        fn merge(a: SdqlKind, b: SdqlKind) -> SdqlKind {
+        fn merge(
+            a: SdqlKind,
+            b: SdqlKind,
+            _id: Id,
+            _eg: &slotted_egraphs::EGraph<Sdql, Self>,
+        ) -> SdqlKind {
             SdqlKind {
                 might_be_vector: a.might_be_vector || b.might_be_vector,
                 might_be_dict: a.might_be_dict || b.might_be_dict,

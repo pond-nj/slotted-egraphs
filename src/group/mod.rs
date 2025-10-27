@@ -198,11 +198,13 @@ fn schreiers_lemma<P: Permutation>(
 }
 
 // finds the lowest Slot that's not stabilized in at least one of the generators.
+// finds the lowest Slot that's not stabilized in all of the generators.
 fn find_lowest_nonstab<P: Permutation>(generators: &HashSet<P>) -> Option<Slot> {
     let mut min = None;
     for gen in generators {
         for (x, y) in gen.iter() {
             if x != y {
+                // what is min.iter()?
                 min = min.iter().copied().chain(std::iter::once(x)).min();
             }
         }

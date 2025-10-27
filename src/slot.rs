@@ -34,26 +34,15 @@ pub enum VarType {
     Node,
 }
 
-pub fn generateVar(count: &mut u32) -> String {
-    let ret: String = format!("(var $i{})", count);
+pub fn generateVar(count: &mut u32, varType: VarType) -> String {
+    let x = match varType {
+        VarType::Int => "int",
+        VarType::Node => "node",
+        VarType::Unknown => "var",
+    };
+    let ret: String = format!("({x} ${})", count);
     *count = *count + 1;
     ret
-}
-
-pub fn generateIntVar(count: &mut u32) -> String {
-    let ret: String = format!("(int $i{})", count);
-    *count = *count + 1;
-    ret
-}
-
-pub fn generateNodeVar(count: &mut u32) -> String {
-    let ret: String = format!("(node $i{})", count);
-    *count = *count + 1;
-    ret
-}
-
-pub fn wrapInternal(s: &str) -> String {
-    format!("(Internal {s})")
 }
 
 impl Slot {

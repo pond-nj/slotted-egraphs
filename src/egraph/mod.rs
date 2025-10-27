@@ -77,7 +77,7 @@ pub(crate) enum PendingType {
 /// Each E-Class can be understood "semantically" or "syntactically":
 /// - semantically means that it respects the equations already in the e-graph, and hence doesn't differentiate between equal things.
 /// - syntactically means that it only talks about the single representative term associated to each E-Class, recursively obtainable using syn_enode.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct EClass<L: Language, N: Analysis<L>> {
     // The set of equivalent ENodes that make up this eclass.
     // for (sh, bij) in nodes; sh.apply_slotmap(bij) represents the actual ENode.
@@ -97,6 +97,41 @@ pub struct EClass<L: Language, N: Analysis<L>> {
     syn_enode: L,
 
     analysis_data: N::Data,
+}
+
+impl<L: Language, N: Analysis<L>> EClass<L, N> {
+    pub fn dumpEClass<T: fmt::Write>(&self, f: &mut T) -> Result {
+        if self.nodes.len() == 0 {
+            return Ok(());
+        }
+
+        let mut slot_order: Vec<Slot> = self.slots.iter().cloned().collect();
+        slot_order.sort();
+        let slot_str = slot_order
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+        write!(f, "\n{:?}", self.analysis_data)?;
+        write!(f, "\n({}):", &slot_str)?;
+
+        write!(f, ">> {:?}\n", &self.syn_enode)?;
+
+        for (sh, psn) in &self.nodes {
+            let node = sh.apply_slotmap(&psn.elem);
+
+            #[cfg(feature = "explanations")]
+            write!(f, " - {n:?}    [originally {:?}]", psn.src_id);
+
+            #[cfg(not(feature = "explanations"))]
+            write!(f, " - {node:?}\n")?;
+        }
+        for pp in &self.group.generators() {
+            write!(f, " -- {:?}\n", pp.elem)?;
+        }
+
+        Ok(())
+    }
 }
 
 impl<L: Language, N: Analysis<L> + Default> Default for EGraph<L, N> {
@@ -275,34 +310,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         eclasses.sort_by_key(|(x, _)| *x);
 
         for (i, c) in eclasses {
-            if c.nodes.len() == 0 {
-                continue;
-            }
-
-            let mut slot_order: Vec<Slot> = c.slots.iter().cloned().collect();
-            slot_order.sort();
-            let slot_str = slot_order
-                .iter()
-                .map(|x| x.to_string())
-                .collect::<Vec<_>>()
-                .join(", ");
-            write!(f, "\n{:?}", c.analysis_data)?;
-            write!(f, "\n{:?}({}):", i, &slot_str)?;
-
-            write!(f, ">> {:?}\n", &c.syn_enode)?;
-
-            for (sh, psn) in &c.nodes {
-                let node = sh.apply_slotmap(&psn.elem);
-
-                #[cfg(feature = "explanations")]
-                write!(f, " - {n:?}    [originally {:?}]", psn.src_id);
-
-                #[cfg(not(feature = "explanations"))]
-                write!(f, " - {node:?}\n")?;
-            }
-            for pp in &c.group.generators() {
-                write!(f, " -- {:?}\n", pp.elem)?;
-            }
+            write!(f, "\n{:?}", i);
+            c.dumpEClass(f);
         }
         write!(f, "")?;
         Ok(())

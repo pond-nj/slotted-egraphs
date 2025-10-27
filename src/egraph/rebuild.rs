@@ -62,7 +62,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(from.id, proof.l.id);
         }
 
+        debug!("Call shrink slots");
+        debug!("from {:?}", from);
+        debug!("cap {:?}", cap);
         let origcap = cap.iter().map(|x| from.m.inverse()[*x]).collect();
+        debug!("origcap {:?}", origcap);
         self.record_redundancy_witness(from.id, &origcap, proof);
 
         let (id, cap) = {
@@ -75,8 +79,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // cap :: set slots(from.id)
             let new_cap: SmallHashSet<Slot> = cap.iter().map(|x| m_inv[*x]).collect();
 
+            // Pond:
+            assert!(new_cap == origcap);
+
             (from.id, new_cap)
         };
+
+        debug!("new cap {:?}", cap);
 
         // cap :: set slots(id)
 
@@ -92,6 +101,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             final_cap = &final_cap - &grp.orbit(d);
         }
 
+        // update Eclass slots
         c.slots = cap.clone();
         let generators = c.group.generators();
         let _ = c;
@@ -164,6 +174,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
         */
 
+        debug!("handle_pending");
+        debug!("Eclass {:?}", self.eclass(i).unwrap());
         self.update_analysis(&sh, i);
 
         if let PendingType::OnlyAnalysis = pending_ty {
@@ -214,15 +226,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     fn update_analysis(&mut self, sh: &L, i: Id) {
-        debug!("from update_analysis");
+        debug!("from update_analysis {:?}", sh);
         let v = N::make(self, sh);
 
-        let c = self.classes.get_mut(&i).unwrap();
-        let old = c.analysis_data.clone();
-        let new = N::merge(old.clone(), v);
-        c.analysis_data = new.clone();
+        // let c = self.classes.get_mut(&i).unwrap();
+        // let old = c.analysis_data.clone();
+        let oldData = self.analysis_data(i).clone();
+        let new = N::merge(oldData.clone(), v, i, self);
+        let updateData = self.analysis_data_mut(i);
+        // c.analysis_data = new.clone();
+        let changed = (new != oldData);
+        *updateData = new;
 
-        if new != old {
+        if changed {
             self.modify_queue.push(i);
             self.touched_class(i, PendingType::OnlyAnalysis);
         }

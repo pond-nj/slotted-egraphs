@@ -223,7 +223,7 @@ macro_rules! bare_language_child {
                     [SyntaxElem::String(x)] => x.parse().ok(),
                     _ => {
                         panic!(
-                            "(Pond) slotted_egraphs::lang::Bind::from_syntax: expected a single string, got {:?}",
+                            "expected a single string, got {:?}",
                             elems
                         );
                     },
@@ -384,10 +384,7 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
 
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
         let SyntaxElem::Slot(slot) = elems.get(0)? else {
-            panic!(
-                "(Pond) slotted_egraphs::lang::Bind::from_syntax: expected a single slot, got {:?}",
-                elems
-            );
+            panic!("expected a single slot, got {:?}", elems);
         };
         let elem = L::from_syntax(&elems[1..])?;
 

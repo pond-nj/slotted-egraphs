@@ -24,7 +24,6 @@ define_language! {
         // to specify types
         Int(Slot) = "int",
         Node(Slot) = "node",
-        Internal(Bind<Slot>) = "internal",
 
         PredSyntax(Vec<AppliedId>) = "pred",
         New(AppliedId, AppliedId, Vec<AppliedIdOrStar>) = "new",
@@ -52,6 +51,9 @@ define_language! {
         // (init predName syntax)
         // use to create empty compose eclass for recursive definition
         Init(AppliedId, AppliedId) = "init",
+        // (interface predName syntax u32)
+        // use for new predicate
+        Interface(AppliedId, AppliedId, AppliedId) = "interface",
         PredName(String),
     }
 }
@@ -79,6 +81,7 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
                 let childEclass = eg.analysis_data(app.id);
                 debug!("childId : {:?}, mapToS : {:?}", app.id, mapToS);
                 let childSlotType = childEclass.varTypes.get(&mapToS).unwrap();
+                debug!("adding {:?} to varTypes", s);
                 varTypes
                     .entry(s)
                     .and_modify(|vt: &mut VarType| assert!(vt == childSlotType))
@@ -96,12 +99,10 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
 // TODO bug (crash) lookup return mismatch slots number with this enode
 // guess it's case where eclass interface slots is less than the enode slot
 fn transformToEgraphNameSpace(sh: &CHC, eg: &CHCEGraph) -> CHC {
-    // debug!("original Enode {:?}", sh);
-    // if let Some(appId) = eg.lookup(sh) {
-    //     debug!("appId {:?}", appId);
-    //     let newSh = sh.apply_slotmap(&appId.m.inverse());
-    //     return newSh;
-    // }
+    if let Some(appId) = eg.lookup(sh) {
+        debug!("exists in egraph");
+        return eg.getExactEnodeInEGraph(sh);
+    }
 
     sh.clone()
 }
@@ -121,7 +122,7 @@ fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCD
 impl Analysis<CHC> for CHCAnalysis {
     type Data = CHCData;
 
-    fn merge(x: CHCData, y: CHCData) -> CHCData {
+    fn merge(x: CHCData, y: CHCData, _i: Id, _eg: &CHCEGraph) -> CHCData {
         let mut newPredNames = HashSet::<String>::default();
         let xLen = x.predNames.len();
         let yLen = y.predNames.len();
@@ -146,7 +147,7 @@ impl Analysis<CHC> for CHCAnalysis {
     fn make(eg: &CHCEGraph, sh: &CHC) -> CHCData {
         debug!("calling make on {:?}", sh);
         match sh {
-            CHC::Init(predNameId, predSyntaxId) => {
+            CHC::Init(predNameId, predSyntaxId) | CHC::Interface(predNameId, predSyntaxId, _) => {
                 let stringEnodes = eg.enodes(predNameId.id);
                 assert!(stringEnodes.len() == 1);
                 let stringEnode = stringEnodes.iter().next().unwrap();
@@ -171,82 +172,76 @@ impl Analysis<CHC> for CHCAnalysis {
         }
     }
 
-    fn modify(eg: &mut EGraph<CHC, Self>, i: Id) {
-        let enodes = eg.enodes(i);
-        for enode in enodes {
-            if let CHC::Compose(appIds) = enode {
-                let predNames = eg.analysis_data(i).predNames.clone();
-                // assert!(predNames.len() > 0, "i = {:?}", i);
-                appIds.iter().for_each(|appIdOrStar| match appIdOrStar {
-                    AppliedIdOrStar::AppliedId(appId) => {
-                        let childData = eg.analysis_data_mut(i);
-                        childData.predNames.extend(predNames.clone());
-                    }
-                    AppliedIdOrStar::Star(_) => {
-                        panic!()
-                    }
-                });
-            }
-        }
+    fn modify(eg: &mut EGraph<CHC, Self>, i: Id) {}
+}
+
+pub fn dumpCHCEClass(i: Id, eg: &CHCEGraph) {
+    let nodes = eg.enodes(i);
+    if nodes.len() == 0 {
+        return;
+    }
+
+    let mut slot_order: Vec<Slot> = eg.slots(i).into();
+    slot_order.sort();
+    let slot_str = slot_order
+        .iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<_>>()
+        .join(", ");
+    // print!("\n{:?}", idToPredName.get(&i).unwrap());
+    print!("\n{:?}", eg.analysis_data(i));
+    print!("\n{:?}({}):", i, &slot_str);
+    print!(">> {:?}\n", eg.getSynNodeNoSubst(&i));
+
+    for node in eg.enodes(i) {
+        print!(" - {node:?}\n");
+    }
+    let permute = eg.getSlotPermutation(&i);
+    for p in permute {
+        print!(" -- {:?}\n", p);
     }
 }
 
-pub fn dumpCHCEgraph(eg: &CHCEGraph) {
+pub fn dumpCHCEGraph(eg: &CHCEGraph) {
     print!("\n == Egraph ==");
     let mut eclasses = eg.ids();
     eclasses.sort();
 
-    let mut idToPredName = HashMap::<Id, HashSet<String>>::new();
-    for i in &eclasses {
-        let data = eg.analysis_data(*i);
-        let thisPredName = &data.predNames;
-        idToPredName.insert(*i, thisPredName.clone());
-    }
+    // TODO: idToPredName is not used
+    // let mut idToPredName = HashMap::<Id, HashSet<String>>::new();
+    // for i in &eclasses {
+    //     let data = eg.analysis_data(*i);
+    //     let thisPredName = &data.predNames;
+    //     idToPredName.insert(*i, thisPredName.clone());
+    // }
 
-    for i in &eclasses {
-        if let Some(thisPredName) = idToPredName.get(i) {
-            let thisPredName = thisPredName.clone();
-            for node in eg.enodes(*i) {
-                if let CHC::Compose(appIds) = node {
-                    for appIdOrStar in appIds {
-                        if let AppliedIdOrStar::AppliedId(appId) = appIdOrStar {
-                            let res = idToPredName
-                                .entry(appId.id)
-                                .and_modify(|r| r.extend(thisPredName.clone()));
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // for i in &eclasses {
+    //     if let Some(thisPredName) = idToPredName.get(i) {
+    //         let thisPredName = thisPredName.clone();
+    //         for node in eg.enodes(*i) {
+    //             if let CHC::Compose(appIds) = node {
+    //                 for appIdOrStar in appIds {
+    //                     if let AppliedIdOrStar::AppliedId(appId) = appIdOrStar {
+    //                         let res = idToPredName
+    //                             .entry(appId.id)
+    //                             .and_modify(|r| r.extend(thisPredName.clone()));
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     for i in eclasses {
-        let nodes = eg.enodes(i);
-        if nodes.len() == 0 {
-            continue;
-        }
-
-        let mut slot_order: Vec<Slot> = eg.slots(i).into();
-        slot_order.sort();
-        let slot_str = slot_order
-            .iter()
-            .map(|x| x.to_string())
-            .collect::<Vec<_>>()
-            .join(", ");
-        print!("\n{:?}", idToPredName.get(&i).unwrap());
-        print!("\n{:?}", eg.analysis_data(i));
-        print!("\n{:?}({}):", i, &slot_str);
-        print!(">> {:?}\n", eg.getSynNodeNoSubst(&i));
-
-        for node in eg.enodes(i) {
-            print!(" - {node:?}\n");
-        }
-        let permute = eg.getSlotPermutation(&i);
-        for p in permute {
-            print!(" -- {:?}\n", p);
-        }
+        dumpCHCEClass(i, eg);
     }
     print!("");
+}
+
+pub fn merge(s1: &str, s2: &str, eg: &mut CHCEGraph) {
+    let id1 = &id(&s1, eg);
+    let id2 = &id(&s2, eg);
+    eg.union(id1, id2);
 }
 
 type CHCEGraph = EGraph<CHC, CHCAnalysis>;

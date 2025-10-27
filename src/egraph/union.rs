@@ -74,6 +74,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     fn union_leaders(&mut self, l: AppliedId, r: AppliedId, proof: ProvenEq) -> bool {
+        debug!("Call union_leaders");
+        debug!("l: {:?}", l);
+        debug!("{}", self.eclass(l.id).unwrap());
+        debug!("r: {:?}", r);
+        debug!("{}", self.eclass(r.id).unwrap());
         // early return, if union should not be made.
         if self.eq(&l, &r) {
             return false;
@@ -184,14 +189,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         {
             let analysis_from = self.analysis_data(from.id).clone();
-            let analysis_to = self.analysis_data_mut(to.id);
-            let old_analysis_to = analysis_to.clone();
+            // let analysis_to = self.analysis_data_mut(to.id);
+            let old_analysis_to = self.analysis_data(to.id);
             debug!("analysis_from {:?}", analysis_from);
-            let new_analysis_to = N::merge(analysis_from, analysis_to.clone());
+            let new_analysis_to = N::merge(analysis_from, old_analysis_to.clone(), to.id, self);
             debug!("old_analysis_to {:?}", old_analysis_to);
             debug!("new_analysis_to {:?}", new_analysis_to);
-            let changed = old_analysis_to != new_analysis_to;
-            *analysis_to = new_analysis_to;
+            let changed = *old_analysis_to != new_analysis_to;
+            let updateAnalysis = self.analysis_data_mut(to.id);
+            *updateAnalysis = new_analysis_to;
 
             if changed {
                 // TODO: why modify only run on these classes?
