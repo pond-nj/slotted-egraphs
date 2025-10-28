@@ -102,7 +102,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         // update Eclass slots
+        debug!("before change c.slots {c:?}");
         c.slots = cap.clone();
+        debug!("after change c.slots {c:?}");
         let generators = c.group.generators();
         let _ = c;
 
@@ -165,6 +167,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     fn handle_pending(&mut self, sh: L, pending_ty: PendingType) {
         let i = self.hashcons[&sh];
+        debug!("begin of handle_pending {i:?}");
+        debug!("{:?}", self.eclass(i).unwrap());
 
         /*
         let t = self.shape(&sh);
@@ -174,13 +178,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
         */
 
-        debug!("handle_pending");
-        debug!("Eclass {:?}", self.eclass(i).unwrap());
-        self.update_analysis(&sh, i);
+        // (Pond) update analysis first but then might remove this node later?????, why???
+        // debug!("Eclass {:?}", self.eclass(i).unwrap());
+        // self.update_analysis(&sh, i);
 
-        if let PendingType::OnlyAnalysis = pending_ty {
-            return;
-        }
+        // if let PendingType::OnlyAnalysis = pending_ty {
+        //     debug!("end handling pending at OnlyAnalysis");
+        //     return;
+        // }
 
         let psn = self.classes[&i].nodes[&sh].clone();
         let node = sh.apply_slotmap(&psn.elem);
@@ -205,8 +210,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let t = self.shape(&enode);
 
         // upwards merging found a match!
+        // if there's another Enode in Egraph already
         if self.lookup_internal(&t).is_some() {
             self.handle_congruence(self.pc_from_src_id(src_id));
+            debug!("end handling pending at 1");
             return;
         }
 
@@ -219,23 +226,33 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         }
         let bij = bij.compose(&m);
-        let t = (sh, bij);
+        let t = (sh.clone(), bij);
         self.raw_add_to_class(i.id, t.clone(), src_id);
 
+        debug!("Eclass {:?}", self.eclass(i_orig.id).unwrap());
+        self.update_analysis(&sh, i_orig.id);
+
         self.determine_self_symmetries(src_id);
+
+        debug!("end of handle_pending {i:?}");
+        debug!("{:?}", self.eclass(i.id).unwrap());
     }
 
     fn update_analysis(&mut self, sh: &L, i: Id) {
-        debug!("from update_analysis {:?}", sh);
+        debug!("from update_analysis {i:?} {:?}", sh);
+        debug!("{:?}", self.eclass(i).unwrap());
+
+        // call make on this Enode
         let v = N::make(self, sh);
 
         // let c = self.classes.get_mut(&i).unwrap();
         // let old = c.analysis_data.clone();
         let oldData = self.analysis_data(i).clone();
+        // merge with old data
         let new = N::merge(oldData.clone(), v, i, self);
         let updateData = self.analysis_data_mut(i);
         // c.analysis_data = new.clone();
-        let changed = (new != oldData);
+        let changed = new != oldData;
         *updateData = new;
 
         if changed {
@@ -310,9 +327,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let pc2 = self.pc_from_shape(&sh);
 
         let (a, b, prf) = self.pc_congruence(&pc1, &pc2);
+        if a.id != b.id {
+            debug!("handle_congruence, union a {a:?}, b {b:?}");
+        }
         self.union_internal(&a, &b, prf);
     }
 
+    // add parent to pending
     // upon touching an e-class, you need to update all usages of it.
     pub(crate) fn touched_class(&mut self, i: Id, pending_ty: PendingType) {
         for sh in &self.classes[&i].usages {

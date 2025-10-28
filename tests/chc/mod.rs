@@ -69,6 +69,7 @@ pub struct CHCData {
 }
 
 pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
+    debug!("aggregateVarType");
     let sh = transformToEgraphNameSpace(sh, eg);
     let mut slots = sh.slots();
     let appIds = sh.applied_id_occurrences();
@@ -80,6 +81,7 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
             if let Some(mapToS) = appInverse.get(s) {
                 let childEclass = eg.analysis_data(app.id);
                 debug!("childId : {:?}, mapToS : {:?}", app.id, mapToS);
+                debug!("childEclass : {:?}", eg.eclass(app.id).unwrap());
                 let childSlotType = childEclass.varTypes.get(&mapToS).unwrap();
                 debug!("adding {:?} to varTypes", s);
                 varTypes
@@ -111,6 +113,7 @@ fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCD
     let sh = transformToEgraphNameSpace(sh, eg);
     let mut hm = HashMap::default();
     hm.insert(*sh.slots().iter().next().unwrap(), returnType);
+    debug!("result {hm:?}");
     CHCData {
         predNames: HashSet::default(),
         varTypes: hm,
@@ -122,7 +125,14 @@ fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCD
 impl Analysis<CHC> for CHCAnalysis {
     type Data = CHCData;
 
-    fn merge(x: CHCData, y: CHCData, _i: Id, _eg: &CHCEGraph) -> CHCData {
+    fn merge(x: CHCData, y: CHCData, i: Id, eg: &CHCEGraph) -> CHCData {
+        let c = eg.eclass(i).unwrap();
+        debug!("calling merge to {:?}", i);
+        debug!("dump from merge c {}", c);
+        debug!("x {x:?}");
+        debug!("y {y:?}");
+        debug!("eclass {:?}", eg.eclass(i).unwrap());
+
         let mut newPredNames = HashSet::<String>::default();
         let xLen = x.predNames.len();
         let yLen = y.predNames.len();
@@ -137,6 +147,15 @@ impl Analysis<CHC> for CHCAnalysis {
                 newVarTypes.insert(var, yVarType);
             }
         }
+
+        let eclassSlots = eg.allSlots(i);
+        debug!("eclassSlots {:?}", eclassSlots);
+        let newVarTypes = newVarTypes
+            .into_iter()
+            .filter(|(s, vt)| eclassSlots.contains(&s))
+            .collect();
+
+        debug!("result varTypes {:?}", newVarTypes);
 
         CHCData {
             predNames: newPredNames,

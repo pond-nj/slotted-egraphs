@@ -5,6 +5,7 @@ use serial_test::serial;
 #[test]
 #[serial]
 fn t1() {
+    initLogger();
     // x+y = y+x
     let x = "$0";
     let y = "$1";
@@ -18,6 +19,7 @@ fn t1() {
 #[test]
 #[serial]
 fn t2() {
+    initLogger();
     // (x+y) * (x+y) = (x+y) * (y+x)
     let x = "$0";
     let y = "$1";
@@ -32,6 +34,7 @@ fn t2() {
 #[test]
 #[serial]
 fn t3() {
+    initLogger();
     // (x+y) * (y+z) = (z+y) * (y+x)
     let x = "$0";
     let y = "$1";
@@ -81,6 +84,7 @@ fn add_chain(it: impl Iterator<Item = usize>) -> String {
 #[serial]
 #[cfg_attr(feature = "explanations", ignore = "TODO: fails")]
 fn t5() {
+    initLogger();
     // x0+...+xN = xN+...+x0
     // This times out for larger N!
     // TODO reset N to 7.
@@ -95,6 +99,7 @@ fn t5() {
 #[test]
 #[serial]
 fn t6() {
+    initLogger();
     // z*(x+y) = z*(y+x)
     let x = "$0";
     let y = "$1";

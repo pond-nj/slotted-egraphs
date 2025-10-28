@@ -46,6 +46,8 @@ fn tst1() {
 
     let mut runner: CHCRunner = Runner::default().with_egraph(eg).with_iter_limit(60);
     let report = runner.run(&getAllRewrites());
+    debug!("egraph after");
+    dumpCHCEGraph(&runner.egraph);
 
     let x = "?a";
     let y = "?b";

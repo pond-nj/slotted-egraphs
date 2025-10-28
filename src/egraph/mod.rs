@@ -102,6 +102,7 @@ pub struct EClass<L: Language, N: Analysis<L>> {
 impl<L: Language, N: Analysis<L>> EClass<L, N> {
     pub fn dumpEClass<T: fmt::Write>(&self, f: &mut T) -> Result {
         if self.nodes.len() == 0 {
+            write!(f, "\n Empty Eclass")?;
             return Ok(());
         }
 
@@ -161,6 +162,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    pub fn allSlots(&self, id: Id) -> HashSet<Slot> {
+        let c = self.eclass(id).unwrap();
+        let mut totalSlots = HashSet::default();
+        for (sh, psn) in &c.nodes {
+            let node = sh.apply_slotmap(&psn.elem);
+            totalSlots.extend(node.slots().into_iter());
+        }
+
+        totalSlots
+    }
+
     pub fn slots(&self, id: Id) -> SmallHashSet<Slot> {
         self.classes[&id].slots.clone()
     }
@@ -175,6 +187,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn analysis_data_mut(&mut self, i: Id) -> &mut N::Data {
+        debug!("updating data for {:?}", i);
         &mut self
             .classes
             .get_mut(&self.find_id(i))
@@ -310,8 +323,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         eclasses.sort_by_key(|(x, _)| *x);
 
         for (i, c) in eclasses {
-            write!(f, "\n{:?}", i);
-            c.dumpEClass(f);
+            write!(f, "\n{:?}", i)?;
+            c.dumpEClass(f)?;
         }
         write!(f, "")?;
         Ok(())

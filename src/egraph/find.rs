@@ -1,7 +1,10 @@
 use crate::*;
+use log::debug;
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
+    // map is vector inside union_find
     fn unionfind_get_impl(&self, i: Id, map: &mut [ProvenAppliedId]) -> ProvenAppliedId {
+        // entry is like calling find on i?
         let entry = &mut map[i.0];
 
         if entry.elem.id == i {
@@ -12,9 +15,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // entry.0.m :: slots(entry.0.id) -> slots(i)
         // entry_to_leader.0.m :: slots(leader) -> slots(entry.0.id)
+        // recursive call to find leader
         let entry_to_leader = self.unionfind_get_impl(entry.elem.id, map);
         let new = self.chain_pai(&entry, &entry_to_leader);
 
+        // update leader for faster jump
         map[i.0] = new.clone();
         new
     }
@@ -76,6 +81,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.proven_proven_find_enode(&pn)
     }
 
+    // make canonical
     pub(crate) fn proven_proven_find_enode(&self, enode: &ProvenNode<L>) -> ProvenNode<L> {
         self.chain_pn_map(enode, |_, pai| self.proven_proven_find_applied_id(&pai))
     }
@@ -91,12 +97,22 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         #[cfg(feature = "explanations")]
         let i = &self.synify_app_id(i.clone());
 
-        self.proven_find_applied_id(i).elem
+        let ret = self.proven_find_applied_id(i).elem;
+        if *i != ret {
+            debug!("call find_applied_id {i:?}");
+            debug!("ret {ret:?}");
+        }
+        ret
     }
 
     pub(crate) fn proven_find_applied_id(&self, i: &AppliedId) -> ProvenAppliedId {
         let pai = self.refl_pai(i);
-        self.proven_proven_find_applied_id(&pai)
+        let ret = self.proven_proven_find_applied_id(&pai);
+        if *i != pai.elem {
+            debug!("call proven_find_applied_id {i:?}");
+            debug!("ret {ret:?}");
+        }
+        ret
     }
 
     pub(crate) fn proven_proven_find_applied_id(&self, pai: &ProvenAppliedId) -> ProvenAppliedId {
