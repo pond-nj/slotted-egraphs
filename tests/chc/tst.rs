@@ -93,12 +93,12 @@ fn minLeafDummy(x: &str, y: &str) -> String {
 }
 
 fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {
-    let a = generateVar(count, VarType::Int);
-    let l = generateVar(count, VarType::Node);
-    let r = generateVar(count, VarType::Node);
-    let m1 = generateVar(count, VarType::Int);
-    let m2 = generateVar(count, VarType::Int);
-    let m3 = generateVar(count, VarType::Int);
+    let a = generateVarFromCount(count, VarType::Int);
+    let l = generateVarFromCount(count, VarType::Node);
+    let r = generateVarFromCount(count, VarType::Node);
+    let m1 = generateVarFromCount(count, VarType::Int);
+    let m2 = generateVarFromCount(count, VarType::Int);
+    let m3 = generateVarFromCount(count, VarType::Int);
 
     let syntax = format!("(pred <{x} {y}>)");
 
@@ -137,9 +137,9 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     merge(&chc1, &itf1, eg);
 
     // left-drop(x, y ,z) ← x ≤0, y = node(a,L,R), z = node(a,L,R)
-    let l = generateVar(count, VarType::Node);
-    let r = generateVar(count, VarType::Node);
-    let a = generateVar(count, VarType::Int);
+    let l = generateVarFromCount(count, VarType::Node);
+    let r = generateVarFromCount(count, VarType::Node);
+    let a = generateVarFromCount(count, VarType::Int);
     let cond2 =
         format!("(and <(leq {x} 0) (eq {y} (binode {a} {l} {r})) (eq {z} (binode {a} {l} {r}))>)");
     let chc2 = format!("(new {syntax} {cond2} <>)");
@@ -147,10 +147,10 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     merge(&chc2, &itf2, eg);
 
     // left-drop(x,y,z) ← y= node(a,L,R), x ≥1,N1=x−1, left-drop(N1,L,z)
-    let l1 = generateVar(count, VarType::Node);
-    let r1 = generateVar(count, VarType::Node);
-    let a1 = generateVar(count, VarType::Int);
-    let n1 = generateVar(count, VarType::Int);
+    let l1 = generateVarFromCount(count, VarType::Node);
+    let r1 = generateVarFromCount(count, VarType::Node);
+    let a1 = generateVarFromCount(count, VarType::Int);
+    let n1 = generateVarFromCount(count, VarType::Int);
     let cond3 = format!("(and <(eq {y} (binode {a1} {l1} {r1})) (geq {x} 1) (eq {n1} (- {x} 1))>)");
     let chc3 = format!("(new {syntax} {cond3} <{}>)", leafDropDummy(x, y, z));
     let itf3 = format!("(interface leafDrop {syntax} 3)");
@@ -174,11 +174,11 @@ fn tst2() {
     // TODO: how to determine slot type?
     initLogger();
     let mut count = 0;
-    let n = &generateVar(&mut count, VarType::Int);
-    let t = &generateVar(&mut count, VarType::Node);
-    let u = &generateVar(&mut count, VarType::Node);
-    let m = &generateVar(&mut count, VarType::Int);
-    let k = &generateVar(&mut count, VarType::Int);
+    let n = &generateVarFromCount(&mut count, VarType::Int);
+    let t = &generateVarFromCount(&mut count, VarType::Node);
+    let u = &generateVarFromCount(&mut count, VarType::Node);
+    let m = &generateVarFromCount(&mut count, VarType::Int);
+    let k = &generateVarFromCount(&mut count, VarType::Int);
 
     //  false ← N≥0,M+N<K, left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
     let syntax = "(pred <>)";
@@ -197,24 +197,24 @@ fn tst2() {
     let rootId = id(&composeRoot, eg);
     eg.union(&rootId, &rootDummyId);
 
-    let x = &generateVar(&mut count, VarType::Int);
-    let y = &generateVar(&mut count, VarType::Int);
-    let z = &generateVar(&mut count, VarType::Int);
+    let x = &generateVarFromCount(&mut count, VarType::Int);
+    let y = &generateVarFromCount(&mut count, VarType::Int);
+    let z = &generateVarFromCount(&mut count, VarType::Int);
 
     let minDummyId = id(&minDummy(x, y, z), eg);
     let minId = minCHC(x, y, z, eg);
     eg.union(&minDummyId, &minId);
 
-    let x = &generateVar(&mut count, VarType::Int);
-    let y = &generateVar(&mut count, VarType::Node);
-    let z = &generateVar(&mut count, VarType::Node);
+    let x = &generateVarFromCount(&mut count, VarType::Int);
+    let y = &generateVarFromCount(&mut count, VarType::Node);
+    let z = &generateVarFromCount(&mut count, VarType::Node);
 
     let leafDropDummyId = id(&leafDropDummy(x, y, z), eg);
     let leafDropId = leafDropCHC(x, y, z, &mut count, eg);
     eg.union(&leafDropDummyId, &leafDropId);
 
-    let x = &generateVar(&mut count, VarType::Node);
-    let y = &generateVar(&mut count, VarType::Int);
+    let x = &generateVarFromCount(&mut count, VarType::Node);
+    let y = &generateVarFromCount(&mut count, VarType::Int);
 
     let minLeafDummyId = id(&minLeafDummy(x, y), eg);
     let minLeafId = minLeafCHC(x, y, &mut count, eg);
@@ -222,8 +222,6 @@ fn tst2() {
 
     debug!("egraph after");
     dumpCHCEGraph(&eg);
-
-    // TODO: add data to eclass and print data when print egraph
 }
 
 #[test]
@@ -231,13 +229,17 @@ fn tst3() {
     // TODO: how to determine slot type?
     initLogger();
 
-    let eg = &mut CHCEGraph::default();
+    let mut eg = CHCEGraph::default();
     let mut count = 0;
-    let x = generateVar(&mut count, VarType::Int);
-    let y = generateVar(&mut count, VarType::Int);
-    let minLeaf = minLeafCHC(&x, &y, &mut count, eg);
+    let x = generateVarFromCount(&mut count, VarType::Int);
+    let y = generateVarFromCount(&mut count, VarType::Int);
+    let minLeaf = minLeafCHC(&x, &y, &mut count, &mut eg);
 
+    debug!("egraph before run");
     dumpCHCEGraph(&eg);
 
-    // TODO: add data to eclass and print data when print egraph
+    let mut runner: CHCRunner = Runner::default().with_egraph(eg).with_iter_limit(60);
+    let report = runner.run(&getAllRewrites());
+    debug!("egraph after run");
+    dumpCHCEGraph(&runner.egraph);
 }

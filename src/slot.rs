@@ -34,13 +34,17 @@ pub enum VarType {
     Node,
 }
 
-pub fn generateVar(count: &mut u32, varType: VarType) -> String {
+pub fn generateVar(s: &str, varType: VarType) -> String {
     let x = match varType {
         VarType::Int => "int",
         VarType::Node => "node",
         VarType::Unknown => "var",
     };
-    let ret: String = format!("({x} ${})", count);
+    format!("({x} {})", s)
+}
+
+pub fn generateVarFromCount(count: &mut u32, varType: VarType) -> String {
+    let ret = generateVar(&format!("${}", count), varType);
     *count = *count + 1;
     ret
 }

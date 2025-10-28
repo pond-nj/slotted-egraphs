@@ -153,7 +153,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let c = &self.classes[i];
         let cn_bij = &c.nodes[&shape].elem;
         let out = cn_bij.inverse().compose(&n_bij);
-        let app_id = self.mk_sem_applied_id(*i, out.inverse());
+        let app_id = AppliedId::new(*i, out.inverse());
         n.apply_slotmap(&app_id.m)
     }
 }

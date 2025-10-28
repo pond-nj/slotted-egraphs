@@ -23,6 +23,7 @@ pub fn mergeSubst(subst1: &mut Subst, subst2: &Subst) {
     }
 }
 
+// todo: returning rootEclassId with pattern will help in rewriting
 pub fn ematch_all<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
     pattern: &Pattern<L>,
@@ -245,6 +246,7 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
 
 pub(crate) fn nullify_app_ids<L: Language>(l: &L) -> L {
     let mut l = l.clone();
+    debug!("nullify_app_ids on {:?}", l);
     for x in l.applied_id_occurrences_mut() {
         *x = AppliedId::null();
     }

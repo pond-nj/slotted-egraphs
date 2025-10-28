@@ -160,35 +160,51 @@ fn defineFromSharingBlock() -> CHCRewrite {
     let patClone = pat.clone();
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &patClone) });
     let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
+        debug!("define found {:?}", substs);
         for subst in substs {
             let rootAppId = pattern_subst(eg, &pat, &subst);
-            let rootData: Option<&CHCData> = None;
-            {
-                let rootData = eg.analysis_data(rootAppId.id);
-            }
-            let rootData = rootData.unwrap();
+            debug!("root eclass {:?}", eg.eclass(rootAppId.id).unwrap());
+            // TODO: can we not do cloning here?
+            let mut rootData = eg.analysis_data(rootAppId.id).clone();
             let star1Max = getMaxStarCount(1, &subst);
             let mut varToStarIndex: HashMap<Slot, Vec<usize>> = HashMap::default();
-            for (var, vt) in &rootData.varTypes {
-                for star1Count in 0..star1Max {
-                    let appId = subst.get(&starPVar(1, star1Count)).unwrap();
-                    if appId.slots().contains(&var) {
-                        varToStarIndex
-                            .entry(*var)
-                            .or_insert(vec![])
-                            .push(star1Count.try_into().unwrap());
-                    }
+
+            debug!("subst = {subst:#?}");
+            debug!("rootData = {rootData:?}");
+
+            let mut mergeVarTypes: HashMap<Slot, VarType> = HashMap::default();
+            for star1Count in 0..star1Max {
+                let appId = subst.get(&starPVar(1, star1Count)).unwrap();
+                debug!("appId.slots {:?}", appId.slots());
+                for s in appId.slots() {
+                    varToStarIndex
+                        .entry(s)
+                        .or_insert(vec![])
+                        .push(star1Count.try_into().unwrap());
                 }
+
+                let varTypes = &eg.analysis_data(appId.id).varTypes;
+                mergeVarTypes.extend(varTypes.clone().into_iter().map(|(s, vt)| (appId.m[s], vt)));
             }
+
+            debug!("mergeVarTypes = {mergeVarTypes:#?}");
+            debug!("varToStarIndex = {varToStarIndex:#?}");
 
             let mut unionfind: QuickUnionUf<UnionBySize> =
                 QuickUnionUf::<UnionBySize>::new(star1Max as usize);
             let mut hasNonBasicVar = vec![false; star1Max as usize];
 
-            for (var, vt) in &rootData.varTypes {
-                if isNonBasicVar(vt) {
-                    let leader = varToStarIndex.get(var).unwrap().first().unwrap();
-                    for next in varToStarIndex.get(var).unwrap() {
+            // TODO: why rootData does not contain some var?
+
+            for (var, star1Counts) in &varToStarIndex {
+                debug!("var = {var:?}");
+                let appId = subst
+                    .get(&starPVar(1, *star1Counts.first().unwrap() as u32))
+                    .unwrap();
+                debug!("children eclass {:?} {:?}", appId.id, eg.eclass(appId.id));
+                if isNonBasicVar(&mergeVarTypes[var]) {
+                    let leader = varToStarIndex.get(&var).unwrap().first().unwrap();
+                    for next in varToStarIndex.get(&var).unwrap() {
                         unionfind.union(*leader, *next);
                         hasNonBasicVar[*next] = true;
                     }
@@ -221,17 +237,24 @@ fn defineFromSharingBlock() -> CHCRewrite {
                 for star1Count in group {
                     let appId = subst.get(&starPVar(1, star1Count as u32)).unwrap();
                     for var in appId.slots() {
-                        if isNonBasicVar(rootData.varTypes.get(&var).unwrap()) {
+                        if isNonBasicVar(&mergeVarTypes[&var]) {
                             nonBasicVars.insert(var);
                         }
                     }
                 }
 
-                let mut nonBasicVarStr = 
+                let nonBasicVarStr = nonBasicVars
+                    .into_iter()
+                    .map(|s| generateVar(&s.to_string(), mergeVarTypes[&s].clone()))
+                    .collect::<Vec<_>>()
+                    .join(" ");
+
+                debug!("nonBasicVarStr {nonBasicVarStr:?}");
 
                 let newAppId = pattern_subst(
                     eg,
-                    &Pattern::parse("(new (pred <>) (true) <*2>)").unwrap(),
+                    &Pattern::parse(&format!("(new (pred <{}>) (true) <*2>)", nonBasicVarStr))
+                        .unwrap(),
                     &newSubst,
                 );
 

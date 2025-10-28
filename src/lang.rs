@@ -275,8 +275,8 @@ impl LanguageChildren for AppliedIdOrStar {
 
     fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut AppliedId> {
         match self {
-            AppliedIdOrStar::AppliedId(x) => x.applied_id_occurrences_iter_mut(),
-            AppliedIdOrStar::Star(_) => todo!(),
+            AppliedIdOrStar::AppliedId(x) => Either::Left(x.applied_id_occurrences_iter_mut()),
+            AppliedIdOrStar::Star(_) => Either::Right(std::iter::empty()),
         }
     }
 
