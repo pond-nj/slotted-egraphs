@@ -45,6 +45,13 @@ pub fn generateVar(count: &mut u32, varType: VarType) -> String {
     ret
 }
 
+pub fn isNonBasicVar(varType: &VarType) -> bool {
+    match varType {
+        VarType::Node => true,
+        _ => false,
+    }
+}
+
 impl Slot {
     /// Generates a fresh slot.
     ///

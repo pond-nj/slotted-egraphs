@@ -3,6 +3,7 @@ use crate::*;
 use log::debug;
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
+use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 
 use std::collections::HashSet;
 fn unfold() -> CHCRewrite {
@@ -154,7 +155,102 @@ fn composeChildrenPermute() -> CHCRewrite {
     RewriteT { searcher, applier }.into()
 }
 
+fn defineFromSharingBlock() -> CHCRewrite {
+    let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
+    let patClone = pat.clone();
+    let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &patClone) });
+    let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
+        for subst in substs {
+            let rootAppId = pattern_subst(eg, &pat, &subst);
+            let rootData: Option<&CHCData> = None;
+            {
+                let rootData = eg.analysis_data(rootAppId.id);
+            }
+            let rootData = rootData.unwrap();
+            let star1Max = getMaxStarCount(1, &subst);
+            let mut varToStarIndex: HashMap<Slot, Vec<usize>> = HashMap::default();
+            for (var, vt) in &rootData.varTypes {
+                for star1Count in 0..star1Max {
+                    let appId = subst.get(&starPVar(1, star1Count)).unwrap();
+                    if appId.slots().contains(&var) {
+                        varToStarIndex
+                            .entry(*var)
+                            .or_insert(vec![])
+                            .push(star1Count.try_into().unwrap());
+                    }
+                }
+            }
+
+            let mut unionfind: QuickUnionUf<UnionBySize> =
+                QuickUnionUf::<UnionBySize>::new(star1Max as usize);
+            let mut hasNonBasicVar = vec![false; star1Max as usize];
+
+            for (var, vt) in &rootData.varTypes {
+                if isNonBasicVar(vt) {
+                    let leader = varToStarIndex.get(var).unwrap().first().unwrap();
+                    for next in varToStarIndex.get(var).unwrap() {
+                        unionfind.union(*leader, *next);
+                        hasNonBasicVar[*next] = true;
+                    }
+                }
+            }
+
+            let mut groupMap = HashMap::<usize, Vec<usize>>::default();
+            for star1Count in 0..star1Max {
+                if hasNonBasicVar[star1Count as usize] {
+                    let groupId = unionfind.find(star1Count.try_into().unwrap());
+                    groupMap
+                        .entry(groupId)
+                        .or_insert(vec![])
+                        .push(star1Count as usize);
+                }
+            }
+
+            for (_, group) in groupMap {
+                let mut newSubst = Subst::default();
+                let mut count = 0;
+                for star1Count in &group {
+                    newSubst.insert(
+                        starPVar(2, count),
+                        subst.get(&starPVar(1, *star1Count as u32)).unwrap().clone(),
+                    );
+                    count += 1;
+                }
+
+                let mut nonBasicVars: HashSet<Slot> = HashSet::default();
+                for star1Count in group {
+                    let appId = subst.get(&starPVar(1, star1Count as u32)).unwrap();
+                    for var in appId.slots() {
+                        if isNonBasicVar(rootData.varTypes.get(&var).unwrap()) {
+                            nonBasicVars.insert(var);
+                        }
+                    }
+                }
+
+                let mut nonBasicVarStr = 
+
+                let newAppId = pattern_subst(
+                    eg,
+                    &Pattern::parse("(new (pred <>) (true) <*2>)").unwrap(),
+                    &newSubst,
+                );
+
+                let composeEnode = CHC::Compose(vec![AppliedIdOrStar::AppliedId(newAppId)]);
+                let composeAppId = eg.add(composeEnode);
+                debug!("define new {:?}", composeAppId);
+            }
+        }
+    });
+
+    RewriteT { searcher, applier }.into()
+}
+
 // TODO: add rule for rearrangement in compose and new children?
 pub fn getAllRewrites() -> Vec<CHCRewrite> {
-    vec![unfold(), newChildrenPermute(), composeChildrenPermute()]
+    vec![
+        unfold(),
+        newChildrenPermute(),
+        composeChildrenPermute(),
+        defineFromSharingBlock(),
+    ]
 }

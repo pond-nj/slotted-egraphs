@@ -165,7 +165,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    fn handle_pending(&mut self, sh: L, pending_ty: PendingType) {
+    fn handle_pending(&mut self, sh: L, _pending_ty: PendingType) {
         let i = self.hashcons[&sh];
         debug!("begin of handle_pending {i:?}");
         debug!("{:?}", self.eclass(i).unwrap());
