@@ -145,8 +145,8 @@ impl LanguageChildren for AppliedId {
 
     // apply map to self mapping if applicable, otherwise create new slots to map to
     fn weak_shape_impl(&mut self, map: &mut (SlotMap, u32)) {
-        for toSlot in self.m.values_mut() {
-            getOrAddSlot(toSlot, map);
+        for s in self.m.values_mut() {
+            getOrAddSlot(s, map);
         }
     }
 }

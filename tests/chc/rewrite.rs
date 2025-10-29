@@ -3,7 +3,10 @@ use crate::*;
 use log::debug;
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
+
+static gCounter: AtomicUsize = AtomicUsize::new(0);
 
 use std::collections::HashSet;
 fn unfold() -> CHCRewrite {
@@ -115,6 +118,7 @@ fn newChildrenPermute() -> CHCRewrite {
     RewriteT { searcher, applier }.into()
 }
 
+// TODO: can use marking to determine that we already permute this Enode
 fn composeChildrenPermute() -> CHCRewrite {
     let pat = Pattern::parse("(compose <*1>)").unwrap();
     let patClone = pat.clone();
@@ -163,24 +167,26 @@ fn defineFromSharingBlock() -> CHCRewrite {
         debug!("define found {:?}", substs);
         for subst in substs {
             let rootAppId = pattern_subst(eg, &pat, &subst);
-            debug!("root eclass {:?}", eg.eclass(rootAppId.id).unwrap());
-            // TODO: can we not do cloning here?
-            let mut rootData = eg.analysis_data(rootAppId.id).clone();
-            let star1Max = getMaxStarCount(1, &subst);
-            let mut varToStarIndex: HashMap<Slot, Vec<usize>> = HashMap::default();
+            debug!(
+                "root eclass {:?} {:?}",
+                rootAppId.id,
+                eg.eclass(rootAppId.id).unwrap()
+            );
 
-            debug!("subst = {subst:#?}");
-            debug!("rootData = {rootData:?}");
+            let origENode = eg
+                .getExactEnodeInEGraph(&constructENodefromPatternSubst(eg, &pat, &subst).unwrap());
 
+            // TODO: try change to rootData instead of mergeVarTypes
+            let mut rootData = eg.analysis_data(rootAppId.id).varTypes.clone();
+            let mut varToChildIndx: HashMap<Slot, Vec<usize>> = HashMap::default();
             let mut mergeVarTypes: HashMap<Slot, VarType> = HashMap::default();
-            for star1Count in 0..star1Max {
-                let appId = subst.get(&starPVar(1, star1Count)).unwrap();
+            let childAppIds = &origENode.applied_id_occurrences()[2..];
+            debug!("childAppIds {childAppIds:#?}");
+            for indx in 0..childAppIds.len() {
+                let appId = childAppIds[indx];
                 debug!("appId.slots {:?}", appId.slots());
                 for s in appId.slots() {
-                    varToStarIndex
-                        .entry(s)
-                        .or_insert(vec![])
-                        .push(star1Count.try_into().unwrap());
+                    varToChildIndx.entry(s).or_insert(vec![]).push(indx);
                 }
 
                 let varTypes = &eg.analysis_data(appId.id).varTypes;
@@ -188,77 +194,114 @@ fn defineFromSharingBlock() -> CHCRewrite {
             }
 
             debug!("mergeVarTypes = {mergeVarTypes:#?}");
-            debug!("varToStarIndex = {varToStarIndex:#?}");
+            debug!("varToChildIndx = {varToChildIndx:#?}");
 
             let mut unionfind: QuickUnionUf<UnionBySize> =
-                QuickUnionUf::<UnionBySize>::new(star1Max as usize);
-            let mut hasNonBasicVar = vec![false; star1Max as usize];
+                QuickUnionUf::<UnionBySize>::new(childAppIds.len());
+            let mut hasNonBasicVar = vec![false; childAppIds.len()];
 
-            // TODO: why rootData does not contain some var?
-
-            for (var, star1Counts) in &varToStarIndex {
+            for (var, childrenIndx) in &varToChildIndx {
                 debug!("var = {var:?}");
-                let appId = subst
-                    .get(&starPVar(1, *star1Counts.first().unwrap() as u32))
-                    .unwrap();
-                debug!("children eclass {:?} {:?}", appId.id, eg.eclass(appId.id));
                 if isNonBasicVar(&mergeVarTypes[var]) {
-                    let leader = varToStarIndex.get(&var).unwrap().first().unwrap();
-                    for next in varToStarIndex.get(&var).unwrap() {
+                    let leader = childrenIndx.first().unwrap();
+                    for next in childrenIndx {
                         unionfind.union(*leader, *next);
                         hasNonBasicVar[*next] = true;
                     }
                 }
             }
 
+            // parition into groups, only get the one that contains non-basic var
             let mut groupMap = HashMap::<usize, Vec<usize>>::default();
-            for star1Count in 0..star1Max {
-                if hasNonBasicVar[star1Count as usize] {
-                    let groupId = unionfind.find(star1Count.try_into().unwrap());
-                    groupMap
-                        .entry(groupId)
-                        .or_insert(vec![])
-                        .push(star1Count as usize);
+            for i in 0..unionfind.size() {
+                if hasNonBasicVar[i] {
+                    let leader = unionfind.find(i);
+                    groupMap.entry(leader).or_insert(vec![]).push(i);
                 }
             }
 
+            // for each group, define new chc
             for (_, group) in groupMap {
-                let mut newSubst = Subst::default();
-                let mut count = 0;
-                for star1Count in &group {
-                    newSubst.insert(
-                        starPVar(2, count),
-                        subst.get(&starPVar(1, *star1Count as u32)).unwrap().clone(),
-                    );
-                    count += 1;
-                }
-
-                let mut nonBasicVars: HashSet<Slot> = HashSet::default();
-                for star1Count in group {
-                    let appId = subst.get(&starPVar(1, star1Count as u32)).unwrap();
+                let mut basicVars: HashSet<Slot> = HashSet::default();
+                for i in &group {
+                    let appId = childAppIds[*i];
                     for var in appId.slots() {
-                        if isNonBasicVar(&mergeVarTypes[&var]) {
-                            nonBasicVars.insert(var);
+                        if !isNonBasicVar(&mergeVarTypes[&var]) {
+                            basicVars.insert(var);
                         }
                     }
                 }
 
-                let nonBasicVarStr = nonBasicVars
+                let mut children: Vec<_> =
+                    group.clone().into_iter().map(|i| childAppIds[i]).collect();
+                children.sort();
+                debug!("from {:?} children after sort {:?}", rootAppId.id, children);
+
+                let dummyEnode = CHC::New(
+                    id("(pred <>)", eg),
+                    id("(true)", eg),
+                    children
+                        .clone()
+                        .into_iter()
+                        .map(|a| AppliedIdOrStar::AppliedId(a.clone()))
+                        .collect(),
+                );
+                let (dummyEnodeSh, map) = dummyEnode.weak_shape();
+                let mut basicVars: Vec<_> =
+                    basicVars.into_iter().map(|s| map.inverse()[s]).collect();
+
+                debug!("dummyEnode root {:?} shape {:#?}", rootAppId.id, dummyEnode);
+
+                basicVars.sort();
+
+                debug!("mergeVarTypes {mergeVarTypes:?}");
+                debug!("map {:?}", map);
+
+                debug!("sorted basicVars {basicVars:?}");
+                let basicVarsStr = basicVars
                     .into_iter()
-                    .map(|s| generateVar(&s.to_string(), mergeVarTypes[&s].clone()))
+                    .map(|s| generateVar(&s.to_string(), mergeVarTypes[&map[s]].clone()))
                     .collect::<Vec<_>>()
                     .join(" ");
+                let syntax = format!("(pred <{basicVarsStr}>)");
 
-                debug!("nonBasicVarStr {nonBasicVarStr:?}");
+                let oldLen = eg.total_number_of_nodes();
+                let counter = gCounter.load(Ordering::SeqCst);
 
-                let newAppId = pattern_subst(
+                let mut childrenStr = "".to_string();
+                let mut newSubst = Subst::default();
+                for i in 0..children.len() {
+                    newSubst.insert(
+                        format!("x{}", i),
+                        children[i].clone().apply_slotmap(&map.inverse()),
+                    );
+                    childrenStr += &format!("?x{} ", i);
+                }
+                let newENodeStr = format!("(new {syntax} (true) <{childrenStr}>)");
+
+                debug!("define_from_{}_{}", rootAppId.id, counter);
+                debug!("newENodeStr {newENodeStr:?}");
+                debug!("newSubst {newSubst:#?}");
+
+                let newENodeAppId =
+                    pattern_subst(eg, &Pattern::parse(&newENodeStr).unwrap(), &newSubst);
+
+                if eg.total_number_of_nodes() == oldLen {
+                    continue;
+                }
+                // TODO: does the use of global load & store hurt performance?
+
+                let itf = id(
+                    &format!(
+                        "(interface define_from_{}_{} {syntax} 2)",
+                        rootAppId.id, counter
+                    ),
                     eg,
-                    &Pattern::parse(&format!("(new (pred <{}>) (true) <*2>)", nonBasicVarStr))
-                        .unwrap(),
-                    &newSubst,
                 );
+                eg.union(&newENodeAppId, &itf);
+                gCounter.store(counter + 1, Ordering::SeqCst);
 
-                let composeEnode = CHC::Compose(vec![AppliedIdOrStar::AppliedId(newAppId)]);
+                let composeEnode = CHC::Compose(vec![AppliedIdOrStar::AppliedId(newENodeAppId)]);
                 let composeAppId = eg.add(composeEnode);
                 debug!("define new {:?}", composeAppId);
             }

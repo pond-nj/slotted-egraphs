@@ -81,7 +81,7 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
             if let Some(mapToS) = appInverse.get(s) {
                 let childEclass = eg.analysis_data(app.id);
                 debug!("childId : {:?}, mapToS : {:?}", app.id, mapToS);
-                debug!("childEclass : {:?}", eg.eclass(app.id).unwrap());
+                // debug!("childEclass : {:?}", eg.eclass(app.id).unwrap());
                 let childSlotType = childEclass.varTypes.get(&mapToS).unwrap();
                 debug!("adding {:?} to varTypes", s);
                 varTypes
@@ -128,10 +128,10 @@ impl Analysis<CHC> for CHCAnalysis {
     fn merge(x: CHCData, y: CHCData, i: Id, eg: &CHCEGraph) -> CHCData {
         let c = eg.eclass(i).unwrap();
         debug!("calling merge to {:?}", i);
-        debug!("dump from merge c {}", c);
-        debug!("x {x:?}");
-        debug!("y {y:?}");
-        debug!("eclass {:?}", eg.eclass(i).unwrap());
+        // debug!("dump from merge c {}", c);
+        // debug!("x {x:?}");
+        // debug!("y {y:?}");
+        // debug!("eclass {:?}", eg.eclass(i).unwrap());
 
         let mut newPredNames = HashSet::<String>::default();
         let xLen = x.predNames.len();
@@ -225,31 +225,6 @@ pub fn dumpCHCEGraph(eg: &CHCEGraph) {
     print!("\n == Egraph ==");
     let mut eclasses = eg.ids();
     eclasses.sort();
-
-    // TODO: idToPredName is not used
-    // let mut idToPredName = HashMap::<Id, HashSet<String>>::new();
-    // for i in &eclasses {
-    //     let data = eg.analysis_data(*i);
-    //     let thisPredName = &data.predNames;
-    //     idToPredName.insert(*i, thisPredName.clone());
-    // }
-
-    // for i in &eclasses {
-    //     if let Some(thisPredName) = idToPredName.get(i) {
-    //         let thisPredName = thisPredName.clone();
-    //         for node in eg.enodes(*i) {
-    //             if let CHC::Compose(appIds) = node {
-    //                 for appIdOrStar in appIds {
-    //                     if let AppliedIdOrStar::AppliedId(appId) = appIdOrStar {
-    //                         let res = idToPredName
-    //                             .entry(appId.id)
-    //                             .and_modify(|r| r.extend(thisPredName.clone()));
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 
     for i in eclasses {
         dumpCHCEClass(i, eg);

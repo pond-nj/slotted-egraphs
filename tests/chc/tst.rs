@@ -173,73 +173,64 @@ fn addPredName(id: Id, predName: String, eg: &mut CHCEGraph) {
 fn tst2() {
     // TODO: how to determine slot type?
     initLogger();
-    let mut count = 0;
-    let n = &generateVarFromCount(&mut count, VarType::Int);
-    let t = &generateVarFromCount(&mut count, VarType::Node);
-    let u = &generateVarFromCount(&mut count, VarType::Node);
-    let m = &generateVarFromCount(&mut count, VarType::Int);
-    let k = &generateVarFromCount(&mut count, VarType::Int);
+    let mut egOrig = CHCEGraph::default();
+    {
+        let eg = &mut egOrig;
 
-    //  false ← N≥0,M+N<K, left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
-    let syntax = "(pred <>)";
-    let cond = format!("(and <(geq {n} 0) (lt (+ {m} {n}) {k})>)");
-    let rootCHC: String = format!(
-        "(new {syntax} {cond} <{} {} {}>)",
-        leafDropDummy(n, t, u),
-        minLeafDummy(u, m),
-        minLeafDummy(t, k)
-    );
-    let composeRoot = format!("(compose <{rootCHC}>)");
+        let mut count = 0;
+        let n = &generateVarFromCount(&mut count, VarType::Int);
+        let t = &generateVarFromCount(&mut count, VarType::Node);
+        let u = &generateVarFromCount(&mut count, VarType::Node);
+        let m = &generateVarFromCount(&mut count, VarType::Int);
+        let k = &generateVarFromCount(&mut count, VarType::Int);
 
-    let eg = &mut CHCEGraph::default();
+        //  false ← N≥0,M+N<K, left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
+        let syntax = "(pred <>)";
+        let cond = format!("(and <(geq {n} 0) (lt (+ {m} {n}) {k})>)");
+        let rootCHC: String = format!(
+            "(new {syntax} {cond} <{} {} {}>)",
+            leafDropDummy(n, t, u),
+            minLeafDummy(u, m),
+            minLeafDummy(t, k)
+        );
+        let composeRoot = format!("(compose <{rootCHC}>)");
 
-    let rootDummyId = id(&rootDummy(n, t, u, m, k), eg);
-    let rootId = id(&composeRoot, eg);
-    eg.union(&rootId, &rootDummyId);
+        let rootDummyId = id(&rootDummy(n, t, u, m, k), eg);
+        let rootId = id(&composeRoot, eg);
+        eg.union(&rootId, &rootDummyId);
 
-    let x = &generateVarFromCount(&mut count, VarType::Int);
-    let y = &generateVarFromCount(&mut count, VarType::Int);
-    let z = &generateVarFromCount(&mut count, VarType::Int);
+        let x = &generateVarFromCount(&mut count, VarType::Int);
+        let y = &generateVarFromCount(&mut count, VarType::Int);
+        let z = &generateVarFromCount(&mut count, VarType::Int);
 
-    let minDummyId = id(&minDummy(x, y, z), eg);
-    let minId = minCHC(x, y, z, eg);
-    eg.union(&minDummyId, &minId);
+        let minDummyId = id(&minDummy(x, y, z), eg);
+        let minId = minCHC(x, y, z, eg);
+        eg.union(&minDummyId, &minId);
 
-    let x = &generateVarFromCount(&mut count, VarType::Int);
-    let y = &generateVarFromCount(&mut count, VarType::Node);
-    let z = &generateVarFromCount(&mut count, VarType::Node);
+        let x = &generateVarFromCount(&mut count, VarType::Int);
+        let y = &generateVarFromCount(&mut count, VarType::Node);
+        let z = &generateVarFromCount(&mut count, VarType::Node);
 
-    let leafDropDummyId = id(&leafDropDummy(x, y, z), eg);
-    let leafDropId = leafDropCHC(x, y, z, &mut count, eg);
-    eg.union(&leafDropDummyId, &leafDropId);
+        let leafDropDummyId = id(&leafDropDummy(x, y, z), eg);
+        let leafDropId = leafDropCHC(x, y, z, &mut count, eg);
+        eg.union(&leafDropDummyId, &leafDropId);
 
-    let x = &generateVarFromCount(&mut count, VarType::Node);
-    let y = &generateVarFromCount(&mut count, VarType::Int);
+        let x = &generateVarFromCount(&mut count, VarType::Node);
+        let y = &generateVarFromCount(&mut count, VarType::Int);
 
-    let minLeafDummyId = id(&minLeafDummy(x, y), eg);
-    let minLeafId = minLeafCHC(x, y, &mut count, eg);
-    eg.union(&minLeafDummyId, &minLeafId);
+        let minLeafDummyId = id(&minLeafDummy(x, y), eg);
+        let minLeafId = minLeafCHC(x, y, &mut count, eg);
+        eg.union(&minLeafDummyId, &minLeafId);
 
-    debug!("egraph after");
-    dumpCHCEGraph(&eg);
-}
+        debug!("egraph before run");
+        dumpCHCEGraph(&eg);
+    }
 
-#[test]
-fn tst3() {
-    // TODO: how to determine slot type?
-    initLogger();
-
-    let mut eg = CHCEGraph::default();
-    let mut count = 0;
-    let x = generateVarFromCount(&mut count, VarType::Int);
-    let y = generateVarFromCount(&mut count, VarType::Int);
-    let minLeaf = minLeafCHC(&x, &y, &mut count, &mut eg);
-
-    debug!("egraph before run");
-    dumpCHCEGraph(&eg);
-
-    let mut runner: CHCRunner = Runner::default().with_egraph(eg).with_iter_limit(60);
+    // TODO: can we not use mem::take here?
+    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(60);
     let report = runner.run(&getAllRewrites());
+    debug!("report {report:?}");
+
     debug!("egraph after run");
     dumpCHCEGraph(&runner.egraph);
 }

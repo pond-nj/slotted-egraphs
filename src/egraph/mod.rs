@@ -187,7 +187,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn analysis_data_mut(&mut self, i: Id) -> &mut N::Data {
-        debug!("updating data for {:?}", i);
         &mut self
             .classes
             .get_mut(&self.find_id(i))
@@ -212,16 +211,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // Generates fresh slots for redundant slots.
     pub fn enodes_applied(&self, i: &AppliedId) -> Vec<L> {
-        debug!("input enodes_applied {:?}", i);
         let class = &self.classes[&i.id];
         let class_slots = &class.slots;
 
         let mut result = Vec::with_capacity(class.nodes.len());
 
-        // debug!("class.nodes {:?}", class.nodes);
         for (x, psn) in &class.nodes {
-            // debug!("x {:?}", x);
-            // debug!("psn {:?}", psn);
             let mut x = x.apply_slotmap(&psn.elem);
 
             // (Pond) Create a mapping of unfound slots (of this enode) in eclass slots to fresh slots.
@@ -238,7 +233,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     }
                 }
             }
-            // debug!("x after mapping {:?}", x);
 
             // m contains unmapped slot from x
             let mut m = SlotMap::new();
@@ -258,7 +252,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             result.push(x);
         }
 
-        debug!("enodes_applied res {:?}", result);
         result
     }
 

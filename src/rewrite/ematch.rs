@@ -72,35 +72,33 @@ fn ematchAllInEclassInternal<L: Language, N: Analysis<L>>(
             let mut st = st;
             if let Some(j) = st.partial_subst.get(v) {
                 if !eg.eq(&i, j) {
-                    debug!("continue because mismatch mapped var {:?} != {:?}", i, j);
-                    debug!("dropping {:#?}", st);
                     return Vec::new();
                 } else {
-                    debug!("check existing var {:?}, pass", i);
+                    // debug!("check existing var {:?}, pass", i);
                 }
             } else {
                 debug!("insert {} -> {:?} to subst", v, i);
                 st.partial_subst.insert(v.clone(), i.clone());
             }
             let ret = vec![st];
-            debug!("Search {} in {}", pattern, i);
-            debug!("Search pattern {:?}", pattern);
-            debug!("ret {:?}", ret);
+            // debug!("Search {} in {}", pattern, i);
+            // debug!("Search pattern {:?}", pattern);
+            // debug!("ret {:?}", ret);
             ret
         }
         Pattern::ENode(patternEnode, patternChildren) => {
             let mut out = Vec::new();
             let enodesInEclass = eg.enodes_applied(&i);
-            debug!("Search {} in {:?}", pattern, i);
-            debug!("Search pattern {:?}", pattern);
-            debug!("enodesInEclass at {}, {:?}", i, enodesInEclass);
+            // debug!("Search {} in {:?}", pattern, i);
+            // debug!("Search pattern {:?}", pattern);
+            // debug!("enodesInEclass at {}, {:?}", i, enodesInEclass);
             for enode in enodesInEclass.clone() {
                 // (Pond) n is from a pattern, nn is an enode.
                 // (Pond) find the same type of Enode.
                 let d = std::mem::discriminant(patternEnode);
                 let dd = std::mem::discriminant(&enode);
                 if d != dd {
-                    debug!("continue because of discriminant mismatch");
+                    // debug!("continue because of discriminant mismatch");
                     continue;
                 };
 
@@ -117,8 +115,8 @@ fn ematchAllInEclassInternal<L: Language, N: Analysis<L>>(
             }
             let ret = out;
             if ret.len() > 0 {
-                debug!("At return, Search {} in {:?}", pattern, i);
-                debug!("ret {:?}", ret);
+                // debug!("At return, Search {} in {:?}", pattern, i);
+                // debug!("ret {:?}", ret);
             }
             ret
         }
@@ -142,9 +140,9 @@ fn matchEclassWithEveryState<L: Language, N: Analysis<L>>(
 
     let callLen = acc.len();
     let mut accIter = acc.clone().into_iter();
-    debug!("matchEnode with acc {:#?}", acc);
-    debug!("eclassId {:?}", eclassId);
-    debug!("childPattern {} or {:?}", childPattern, childPattern);
+    // debug!("matchEnode with acc {:#?}", acc);
+    // debug!("eclassId {:?}", eclassId);
+    // debug!("childPattern {} or {:?}", childPattern, childPattern);
     for _ in 0..callLen {
         let result =
             ematchAllInEclassInternal(childPattern, accIter.next().unwrap(), eclassId.clone(), eg);
@@ -179,7 +177,7 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
             checkChildrenTypeEq(&n_sh.getChildrenType(), &clear_n2_sh.getChildrenType());
 
         if n_sh != clear_n2_sh && !matchWithStar {
-            debug!("continue at shape diff {n_sh:?} != {clear_n2_sh:?}");
+            // debug!("continue at shape diff {n_sh:?} != {clear_n2_sh:?}");
             continue 'nodeloop;
         }
 
@@ -198,7 +196,7 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
         {
             // (Pond) if cannot try map between pattern and enode slots
             if !try_insert_compatible_slotmap_bij(x, y, &mut st.partial_slotmap) {
-                debug!("continue at !try_insert_compatible_slotmap_bij");
+                // debug!("continue at !try_insert_compatible_slotmap_bij");
                 continue 'nodeloop;
             }
         }
@@ -206,9 +204,9 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
 
         let mut acc = vec![st.clone()];
         let eclassChildren = enode_shape.applied_id_occurrences();
-        debug!("matchChildren with {:#?}", st);
-        debug!("patternChildren {:?}", patternChildren);
-        debug!("eclassChildren {:?}", eclassChildren);
+        // debug!("matchChildren with {:#?}", st);
+        // debug!("patternChildren {:?}", patternChildren);
+        // debug!("eclassChildren {:?}", eclassChildren);
         for i in 0..patternChildren.len() {
             if let Pattern::Star(n) = patternChildren[i] {
                 let mut counter = 0;
@@ -230,16 +228,16 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
             (acc) = matchEclassWithEveryState(acc, subId, subPat, eg);
         }
 
-        debug!("matchChildren Result");
-        debug!("patternChildren");
-        for (i, p) in patternChildren.iter().enumerate() {
-            debug!("\t {}) {}", i, p);
-        }
-        debug!("eclassChildren");
-        for (i, e) in eclassChildren.iter().enumerate() {
-            debug!("\t {}) {}", i, e);
-        }
-        debug!("acc {:#?}", acc);
+        // debug!("matchChildren Result");
+        // debug!("patternChildren");
+        // for (i, p) in patternChildren.iter().enumerate() {
+        //     debug!("\t {}) {}", i, p);
+        // }
+        // debug!("eclassChildren");
+        // for (i, e) in eclassChildren.iter().enumerate() {
+        //     debug!("\t {}) {}", i, e);
+        // }
+        // debug!("acc {:#?}", acc);
         out.extend(acc);
     }
 }
@@ -264,7 +262,7 @@ fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> boo
 }
 
 fn final_subst(s: State) -> Subst {
-    debug!("final_subst s {:#?}", s);
+    // debug!("final_subst s {:#?}", s);
     let State {
         partial_subst: mut subst,
         partial_slotmap: mut slotmap,

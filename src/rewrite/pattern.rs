@@ -1,3 +1,5 @@
+use core::panic;
+
 use crate::*;
 use log::debug;
 
@@ -49,16 +51,68 @@ pub fn replaceStarInPatternFromSubst<L: Language>(pattern: &mut Pattern<L>, subs
     }
 }
 
-// Subst variable in the pattern and add the pattern to Egraph
-// We write this as pattern[subst] for short.
-pub fn pattern_subst<L: Language, N: Analysis<L>>(
+pub fn constructENodefromPatternSubstInternal<L: Language, N: Analysis<L>>(
+    eg: &EGraph<L, N>,
+    pattern: &Pattern<L>,
+    subst: &Subst,
+) -> Option<(AppliedId, Option<L>)> {
+    match &pattern {
+        Pattern::ENode(n, children) => {
+            let mut n = n.clone();
+            let mut refs = n.applied_id_occurrences_mut();
+            if CHECKS {
+                assert_eq!(children.len(), refs.len());
+            }
+            // (Pond): Recursively updat children pointer
+            for i in 0..refs.len() {
+                let Some((childAppId, _)) =
+                    constructENodefromPatternSubstInternal(eg, &children[i], subst)
+                else {
+                    return None;
+                };
+                *(refs[i]) = childAppId;
+            }
+            let Some(resAppId) = eg.lookup(&n) else {
+                return None;
+            };
+            Some((resAppId, Some(n)))
+        }
+        Pattern::PVar(v) => Some((
+            subst
+                .get(v)
+                .unwrap_or_else(|| {
+                    panic!("encountered `?{v}` in pattern, but it is missing in the `subst`")
+                })
+                .clone(),
+            None,
+        )),
+        Pattern::Subst(..) | Pattern::Star(_) => {
+            panic!()
+        }
+    }
+}
+
+pub fn constructENodefromPatternSubst<L: Language, N: Analysis<L>>(
+    eg: &EGraph<L, N>,
+    pattern: &Pattern<L>,
+    subst: &Subst,
+) -> Option<L> {
+    let pattern = &mut pattern.clone();
+    replaceStarInPatternFromSubst(pattern, subst);
+
+    let Some((appId, someNode)) = constructENodefromPatternSubstInternal(eg, pattern, subst) else {
+        return None;
+    };
+
+    // if return something, the node must exists
+    Some(someNode.unwrap())
+}
+
+fn pattern_substInternal<L: Language, N: Analysis<L>>(
     eg: &mut EGraph<L, N>,
     pattern: &Pattern<L>,
     subst: &Subst,
 ) -> AppliedId {
-    let pattern = &mut pattern.clone();
-    replaceStarInPatternFromSubst(pattern, subst);
-
     match &pattern {
         Pattern::ENode(n, children) => {
             let mut n = n.clone();
@@ -93,6 +147,19 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(
             panic!()
         }
     }
+}
+
+// Subst variable in the pattern and add the pattern to Egraph
+// We write this as pattern[subst] for short.
+pub fn pattern_subst<L: Language, N: Analysis<L>>(
+    eg: &mut EGraph<L, N>,
+    pattern: &Pattern<L>,
+    subst: &Subst,
+) -> AppliedId {
+    let pattern = &mut pattern.clone();
+    replaceStarInPatternFromSubst(pattern, subst);
+
+    pattern_substInternal(eg, &pattern, subst)
 }
 
 // TODO maybe move into EGraph API?

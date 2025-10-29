@@ -10,6 +10,12 @@ impl Debug for Id {
     }
 }
 
+impl Display for Id {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "id{}", self.0)
+    }
+}
+
 #[cfg(feature = "explanations")]
 impl Debug for Equation {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {

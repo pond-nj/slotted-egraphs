@@ -62,11 +62,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(from.id, proof.l.id);
         }
 
-        debug!("Call shrink slots");
-        debug!("from {:?}", from);
-        debug!("cap {:?}", cap);
         let origcap = cap.iter().map(|x| from.m.inverse()[*x]).collect();
-        debug!("origcap {:?}", origcap);
         self.record_redundancy_witness(from.id, &origcap, proof);
 
         let (id, cap) = {
@@ -85,8 +81,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             (from.id, new_cap)
         };
 
-        debug!("new cap {:?}", cap);
-
         // cap :: set slots(id)
 
         let syn_slots = &self.syn_slots(id);
@@ -101,10 +95,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             final_cap = &final_cap - &grp.orbit(d);
         }
 
-        // update Eclass slots
-        debug!("before change c.slots {c:?}");
         c.slots = cap.clone();
-        debug!("after change c.slots {c:?}");
         let generators = c.group.generators();
         let _ = c;
 
@@ -167,8 +158,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     fn handle_pending(&mut self, sh: L, _pending_ty: PendingType) {
         let i = self.hashcons[&sh];
-        debug!("begin of handle_pending {i:?}");
-        debug!("{:?}", self.eclass(i).unwrap());
 
         /*
         let t = self.shape(&sh);
@@ -229,19 +218,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let t = (sh.clone(), bij);
         self.raw_add_to_class(i.id, t.clone(), src_id);
 
-        debug!("Eclass {:?}", self.eclass(i_orig.id).unwrap());
         self.update_analysis(&sh, i_orig.id);
 
         self.determine_self_symmetries(src_id);
-
-        debug!("end of handle_pending {i:?}");
-        debug!("{:?}", self.eclass(i.id).unwrap());
     }
 
     fn update_analysis(&mut self, sh: &L, i: Id) {
-        debug!("from update_analysis {i:?} {:?}", sh);
-        debug!("{:?}", self.eclass(i).unwrap());
-
         // call make on this Enode
         let v = N::make(self, sh);
 

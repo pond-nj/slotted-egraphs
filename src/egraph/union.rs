@@ -74,11 +74,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     fn union_leaders(&mut self, l: AppliedId, r: AppliedId, proof: ProvenEq) -> bool {
-        debug!("Call union_leaders");
-        debug!("l: {:?}", l);
-        debug!("{}", self.eclass(l.id).unwrap());
-        debug!("r: {:?}", r);
-        debug!("{}", self.eclass(r.id).unwrap());
         // early return, if union should not be made.
         if self.eq(&l, &r) {
             return false;
@@ -191,10 +186,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let analysis_from = self.analysis_data(from.id).clone();
             // let analysis_to = self.analysis_data_mut(to.id);
             let old_analysis_to = self.analysis_data(to.id);
-            debug!("analysis_from {:?}", analysis_from);
             let new_analysis_to = N::merge(analysis_from, old_analysis_to.clone(), to.id, self);
-            debug!("old_analysis_to {:?}", old_analysis_to);
-            debug!("new_analysis_to {:?}", new_analysis_to);
             let changed = *old_analysis_to != new_analysis_to;
             let updateAnalysis = self.analysis_data_mut(to.id);
             *updateAnalysis = new_analysis_to;
@@ -224,15 +216,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // who updates the usages? raw_add_to_class & raw_remove_from_class do that.
 
-        debug!(
-            "before compose fresh from {:?}",
-            self.classes.get(&from.id).unwrap()
-        );
+        // debug!(
+        //     "before compose fresh from {:?}",
+        //     self.classes.get(&from.id).unwrap()
+        // );
 
-        debug!(
-            "before compose fresh to {:?}",
-            self.classes.get(&to.id).unwrap()
-        );
+        // debug!(
+        //     "before compose fresh to {:?}",
+        //     self.classes.get(&to.id).unwrap()
+        // );
         let from_nodes = self.classes.get(&from.id).unwrap().nodes.clone();
         for (sh, psn) in from_nodes {
             self.raw_remove_from_class(from.id, sh.clone());
@@ -246,15 +238,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             debug!("adding {sh:?} to self.pending");
             self.pending.insert(sh, PendingType::Full);
         }
-        debug!(
-            "after compose fresh from {:?}",
-            self.classes.get(&from.id).unwrap()
-        );
+        // debug!(
+        //     "after compose fresh from {:?}",
+        //     self.classes.get(&from.id).unwrap()
+        // );
 
-        debug!(
-            "after compose fresh to {:?}",
-            self.classes.get(&to.id).unwrap()
-        );
+        // debug!(
+        //     "after compose fresh to {:?}",
+        //     self.classes.get(&to.id).unwrap()
+        // );
 
         // {
         //     let analysis_from = self.analysis_data(from.id).clone();

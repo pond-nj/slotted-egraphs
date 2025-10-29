@@ -91,9 +91,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // create a duplicate Enode with reset mapped slot in AppliedId,
     // the information of mapping to old one is in the returned Bijection
     fn shape_called_from_add(&self, enode: L) -> (L, Bijection) {
-        debug!("shape_called_from_add input {:?}", enode);
+        // debug!("shape_called_from_add input {:?}", enode);
         let ret = self.shape(&enode);
-        debug!("ret {ret:?}");
+        // debug!("ret {ret:?}");
         ret
     }
 
@@ -170,8 +170,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let fresh_slots = old_to_fresh.values();
         // now the variables input to syn_enode are fresh slots
         let syn_enode_fresh = syn_enode.apply_slotmap_fresh(&old_to_fresh);
-
-        // debug!("syn_enode_flesh {}", syn_enode_fresh);
 
         // create Eclass?
         let i = self.alloc_eclass(&fresh_slots, syn_enode_fresh.clone());

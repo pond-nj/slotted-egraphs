@@ -64,10 +64,6 @@ impl Slot {
         SLOT_TABLE.with_borrow_mut(|tab| {
             let old_val = tab.fresh_idx;
             tab.fresh_idx += 4;
-            // if old_val == 153 {
-            //     debug!("Slot(old_val) = {:#?}", Slot(old_val));
-            //     panic!();
-            // }
             Slot(old_val)
         })
     }
