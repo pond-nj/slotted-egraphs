@@ -24,6 +24,9 @@ pub fn combination<T: Clone>(toBeCombine: Vec<Vec<T>>) -> Vec<Vec<T>> {
 }
 
 pub fn permute<T: Clone + std::fmt::Debug>(toBePermute: &[T]) -> Vec<Vec<T>> {
+    if toBePermute.len() == 0 {
+        return vec![];
+    }
     if toBePermute.len() == 1 {
         return vec![toBePermute.to_vec()];
     }

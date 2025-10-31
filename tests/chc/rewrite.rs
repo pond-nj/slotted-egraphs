@@ -9,7 +9,8 @@ use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 static G_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 use std::collections::HashSet;
-// TODO: change unfold condition from true to actual condition
+
+// TODO: test unfold and star can match >= 0 number of children
 fn unfold() -> CHCRewrite {
     let rootPatRaw =
         Pattern::parse("(compose <(new ?syntax1 (and <*0>) <(compose <*1>) *2> ) *3>)").unwrap();
@@ -317,11 +318,18 @@ fn defineFromSharingBlock() -> CHCRewrite {
     RewriteT { searcher, applier }.into()
 }
 
+fn trueToAnd() -> CHCRewrite {
+    let pat = "(true)";
+    let outPat = "(and <>)";
+    Rewrite::new("trueToAnd", pat, outPat)
+}
+
 pub fn getAllRewrites() -> Vec<CHCRewrite> {
     vec![
         unfold(),
         newChildrenPermute(),
         composeChildrenPermute(),
         defineFromSharingBlock(),
+        trueToAnd(),
     ]
 }
