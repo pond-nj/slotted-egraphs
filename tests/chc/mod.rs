@@ -35,7 +35,7 @@ define_language! {
         Leaf() = "leaf",
 
         // Boolean
-        And(Vec<AppliedId>) = "and",
+        And(Vec<AppliedIdOrStar>) = "and",
 
         // Arithmetic
         Geq(AppliedId, AppliedId) = "geq",
@@ -194,7 +194,11 @@ impl Analysis<CHC> for CHCAnalysis {
     fn modify(eg: &mut EGraph<CHC, Self>, i: Id) {}
 }
 
-pub fn dumpCHCEClass(i: Id, eg: &CHCEGraph) {
+pub fn dumpCHCEClass(
+    i: Id,
+    map: &mut HashMap<AppliedId, RecExpr<CHC>, rustc_hash::FxBuildHasher>,
+    eg: &CHCEGraph,
+) {
     let nodes = eg.enodes(i);
     if nodes.len() == 0 {
         return;
@@ -207,7 +211,9 @@ pub fn dumpCHCEClass(i: Id, eg: &CHCEGraph) {
         .map(|x| x.to_string())
         .collect::<Vec<_>>()
         .join(", ");
-    // print!("\n{:?}", idToPredName.get(&i).unwrap());
+
+    let synExpr = eg.getSynExpr(&i, map);
+    print!("\n{}", synExpr);
     print!("\n{:?}", eg.analysis_data(i));
     print!("\n{:?}({}):", i, &slot_str);
     print!(">> {:?}\n", eg.getSynNodeNoSubst(&i));
@@ -226,8 +232,9 @@ pub fn dumpCHCEGraph(eg: &CHCEGraph) {
     let mut eclasses = eg.ids();
     eclasses.sort();
 
+    let mut map = HashMap::<AppliedId, RecExpr<CHC>, rustc_hash::FxBuildHasher>::default();
     for i in eclasses {
-        dumpCHCEClass(i, eg);
+        dumpCHCEClass(i, &mut map, eg);
     }
     print!("");
 }

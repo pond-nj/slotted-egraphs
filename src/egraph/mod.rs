@@ -480,6 +480,40 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         enode.map_applied_ids(|app| self.semify_app_id(app))
     }
 
+    fn getSynExprRecur<'a>(
+        self: &'a Self,
+        i: &AppliedId,
+        map: &'a mut HashMap<AppliedId, RecExpr<L>>,
+    ) -> &'a RecExpr<L> {
+        if map.contains_key(i) {
+            return map.get(i).unwrap();
+        }
+        let enode = self.get_syn_node(i);
+        let cs = enode
+            .applied_id_occurrences()
+            .iter()
+            .map(|x| self.get_syn_expr(x))
+            .collect();
+
+        let ret = RecExpr {
+            node: nullify_app_ids(&enode),
+            children: cs,
+        };
+
+        map.insert(i.clone(), ret);
+
+        map.get(i).unwrap()
+    }
+
+    pub fn getSynExpr<'a>(
+        self: &'a Self,
+        i: &Id,
+        map: &'a mut HashMap<AppliedId, RecExpr<L>>,
+    ) -> &'a RecExpr<L> {
+        let appId = self.mk_sem_identity_applied_id(i.clone());
+        self.getSynExprRecur(&appId, map)
+    }
+
     /// Returns the canonical term corresponding to `i`.
     ///
     /// This function will use [EGraph::get_syn_node] repeatedly to build up this term.

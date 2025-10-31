@@ -100,7 +100,8 @@ pub fn constructENodefromPatternSubst<L: Language, N: Analysis<L>>(
     let pattern = &mut pattern.clone();
     replaceStarInPatternFromSubst(pattern, subst);
 
-    let Some((appId, someNode)) = constructENodefromPatternSubstInternal(eg, pattern, subst) else {
+    let Some((_appId, someNode)) = constructENodefromPatternSubstInternal(eg, pattern, subst)
+    else {
         return None;
     };
 

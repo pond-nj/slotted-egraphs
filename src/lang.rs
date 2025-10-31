@@ -442,7 +442,9 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
 
     // syntax:
     fn to_syntax(&self) -> Vec<SyntaxElem> {
-        self.iter().flat_map(|x| x.to_syntax()).collect()
+        vec![SyntaxElem::Vec(
+            self.iter().flat_map(|x| x.to_syntax()).collect(),
+        )]
     }
 
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
@@ -464,7 +466,7 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
 
                 Some(out)
             }
-            _ => panic!(""),
+            _ => panic!("expect vec but get something else : {elems:?}"),
         }
 
         // (Pond): If you want to use * for vec, please use it like this: <*>

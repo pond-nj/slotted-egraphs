@@ -73,43 +73,62 @@ impl<L: Language, N: Analysis<L>> Display for EClass<L, N> {
     }
 }
 
+fn writeSyntaxElem<L: Language>(
+    r: SyntaxElem,
+    children: &Vec<Pattern<L>>,
+    se_idx: &mut usize,
+    f: &mut std::fmt::Formatter<'_>,
+) -> std::fmt::Result {
+    match r {
+        SyntaxElem::AppliedId(_) => {
+            write!(f, "{}", &children[*se_idx])?;
+            *se_idx += 1;
+        }
+        SyntaxElem::Slot(slot) => {
+            write!(f, "{}", slot.to_string())?;
+        }
+        SyntaxElem::String(s) => {
+            write!(f, "{}", s)?;
+        }
+        SyntaxElem::Vec(v) => {
+            write!(f, "<")?;
+            let n = v.len();
+            for (i, s) in v.into_iter().enumerate() {
+                writeSyntaxElem(s, children, se_idx, f)?;
+                if i != n - 1 {
+                    write!(f, " ")?;
+                }
+            }
+            write!(f, ">")?;
+        }
+        SyntaxElem::Star(_) => {
+            write!(f, "{}", &children[*se_idx])?;
+            assert!(*se_idx == children.len() - 1);
+        }
+    }
+
+    Ok(())
+}
+
 // print:
 impl<L: Language> std::fmt::Display for Pattern<L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Pattern::ENode(node, syntax_elems) => {
+            Pattern::ENode(node, children) => {
                 let l = node.to_syntax();
                 let n = l.len();
 
-                if n != 1 {
+                if n != 1 || matches!(l[0], SyntaxElem::String(_)) {
                     write!(f, "(")?;
                 }
                 let mut se_idx = 0;
-                for (i, r) in l.into_iter().enumerate() {
-                    match r {
-                        SyntaxElem::AppliedId(_) => {
-                            write!(f, "{}", &syntax_elems[se_idx])?;
-                            se_idx += 1;
-                        }
-                        SyntaxElem::Slot(slot) => {
-                            write!(f, "{}", slot.to_string())?;
-                        }
-                        SyntaxElem::String(s) => {
-                            write!(f, "{}", s)?;
-                        }
-                        SyntaxElem::Vec(_v) => {
-                            todo!()
-                        }
-                        SyntaxElem::Star(_) => {
-                            write!(f, "{}", &syntax_elems[se_idx])?;
-                            assert!(se_idx == syntax_elems.len() - 1);
-                        }
-                    }
+                for (i, r) in l.clone().into_iter().enumerate() {
+                    writeSyntaxElem(r, children, &mut se_idx, f)?;
                     if i != n - 1 {
                         write!(f, " ")?;
                     }
                 }
-                if n != 1 {
+                if n != 1 || matches!(l[0], SyntaxElem::String(_)) {
                     write!(f, ")")?;
                 }
                 Ok(())

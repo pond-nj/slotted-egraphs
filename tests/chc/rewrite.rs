@@ -6,12 +6,13 @@ use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 
-static gCounter: AtomicUsize = AtomicUsize::new(0);
+static G_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 use std::collections::HashSet;
+// TODO: change unfold condition from true to actual condition
 fn unfold() -> CHCRewrite {
     let rootPatRaw =
-        Pattern::parse("(compose <(new ?syntax1 (true) <(compose <*1>) *2>) *3>)").unwrap();
+        Pattern::parse("(compose <(new ?syntax1 (and <*0>) <(compose <*1>) *2> ) *3>)").unwrap();
     let rootPat: Rc<Pattern<CHC>> = Rc::new(rootPatRaw);
     let rootPat2 = Rc::clone(&rootPat);
 
@@ -25,15 +26,17 @@ fn unfold() -> CHCRewrite {
 
                 let mut matches: Vec<Vec<AppliedId>> = vec![];
                 // match in star1 Eclass
+                // TODO: change compose appliedId on *4?
                 for star1Count in 0..star1Max {
-                    let subPat = Pattern::parse("(new ?syntax2 (true) <*4>)").unwrap();
+                    let subPat = Pattern::parse("(new ?syntax2 (and <*6>) <*4>)").unwrap();
                     let var = &starPVar(1, star1Count);
                     let result: Vec<Subst> =
                         ematchAllInEclass(eg, &subPat, subst[var].id, &subst[var].m);
                     let mut thisNewIds: Vec<AppliedId> = vec![];
 
                     let toPat = Pattern::parse(&format!(
-                        "(new ?syntax1 (true) <{} *4>)",
+                        "(new ?syntax1 (and <{} *6>) <{} *4>)",
+                        starPStr(0, &subst),
                         starPStr(2, &subst)
                     ))
                     .unwrap();
@@ -47,14 +50,16 @@ fn unfold() -> CHCRewrite {
                 }
 
                 let matchesCombination: Vec<Vec<AppliedId>> = combination(matches);
+                // TODO: why is there *4 here?
                 let newEnode =
-                    Pattern::parse(&format!("(compose <{} *4>)", starPStr(3, &subst))).unwrap();
+                    Pattern::parse(&format!("(compose <{} *5>)", starPStr(3, &subst))).unwrap();
                 for m in matchesCombination {
+                    assert!(m.len() == star1Max as usize);
                     // Create a new compose Enode whose children is the vector of AppliedId and union it with the original Compose
                     let mut newSubst = subst.clone();
                     let mut star4Count = 0;
                     for id in m {
-                        let key = starPVar(4, star4Count);
+                        let key = starPVar(5, star4Count);
                         assert!(!newSubst.contains_key(&key));
                         newSubst.insert(key, id);
                         star4Count += 1;
@@ -98,6 +103,7 @@ fn newChildrenPermute() -> CHCRewrite {
 
             did.insert(this);
 
+            // TODO: make new children follow old vars?
             let ids = starIds(1, &subst);
             let idsPermuts = permute(&ids);
             let mut newSubst = subst.clone();
@@ -266,7 +272,7 @@ fn defineFromSharingBlock() -> CHCRewrite {
                 let syntax = format!("(pred <{basicVarsStr}>)");
 
                 let oldLen = eg.total_number_of_nodes();
-                let counter = gCounter.load(Ordering::SeqCst);
+                let counter = G_COUNTER.load(Ordering::SeqCst);
 
                 let mut childrenStr = "".to_string();
                 let mut newSubst = Subst::default();
@@ -299,7 +305,7 @@ fn defineFromSharingBlock() -> CHCRewrite {
                     eg,
                 );
                 eg.union(&newENodeAppId, &itf);
-                gCounter.store(counter + 1, Ordering::SeqCst);
+                G_COUNTER.store(counter + 1, Ordering::SeqCst);
 
                 let composeEnode = CHC::Compose(vec![AppliedIdOrStar::AppliedId(newENodeAppId)]);
                 let composeAppId = eg.add(composeEnode);
@@ -311,7 +317,6 @@ fn defineFromSharingBlock() -> CHCRewrite {
     RewriteT { searcher, applier }.into()
 }
 
-// TODO: add rule for rearrangement in compose and new children?
 pub fn getAllRewrites() -> Vec<CHCRewrite> {
     vec![
         unfold(),

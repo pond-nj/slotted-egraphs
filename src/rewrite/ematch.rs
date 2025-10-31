@@ -244,7 +244,6 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
 
 pub(crate) fn nullify_app_ids<L: Language>(l: &L) -> L {
     let mut l = l.clone();
-    debug!("nullify_app_ids on {:?}", l);
     for x in l.applied_id_occurrences_mut() {
         *x = AppliedId::null();
     }
