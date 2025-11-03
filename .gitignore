@@ -3,3 +3,4 @@ Cargo.lock
 .envrc
 run.sh
 runArith.sh
+tmp

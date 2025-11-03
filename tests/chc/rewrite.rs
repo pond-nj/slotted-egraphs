@@ -183,7 +183,7 @@ fn defineFromSharingBlock() -> CHCRewrite {
             let origENode = eg
                 .getExactEnodeInEGraph(&constructENodefromPatternSubst(eg, &pat, &subst).unwrap());
 
-            // TODO: try change to rootData instead of mergeVarTypes
+            // TODO0: try change to rootData instead of mergeVarTypes
             let mut rootData = eg.analysis_data(rootAppId.id).varTypes.clone();
             let mut varToChildIndx: HashMap<Slot, Vec<usize>> = HashMap::default();
             let mut mergeVarTypes: HashMap<Slot, VarType> = HashMap::default();
@@ -196,8 +196,15 @@ fn defineFromSharingBlock() -> CHCRewrite {
                     varToChildIndx.entry(s).or_insert(vec![]).push(indx);
                 }
 
-                let varTypes = &eg.analysis_data(appId.id).varTypes;
-                mergeVarTypes.extend(varTypes.clone().into_iter().map(|(s, vt)| (appId.m[s], vt)));
+                let childrenVarTypes = &eg.analysis_data(appId.id).varTypes;
+                debug!("childrenVarTypes = {childrenVarTypes:#?}");
+                mergeVarTypes.extend(
+                    appId
+                        .m
+                        .clone()
+                        .into_iter()
+                        .map(|(from, to)| (to, *childrenVarTypes.get(&from).unwrap())),
+                );
             }
 
             debug!("mergeVarTypes = {mergeVarTypes:#?}");

@@ -27,7 +27,7 @@ thread_local! {
     });
 }
 
-#[derive(Eq, PartialEq, Clone, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug, Copy)]
 pub enum VarType {
     Unknown,
     Int,

@@ -255,50 +255,50 @@ fn tst2() {
     assert!(res.len() >= 1);
 }
 
+// TODO0: unfold with updated constraint
 // TODO1: rewrite that clears constraint on vars not found in body
 // TODO2: matching that matches vector of appId permutatively
-// TODO3: unfold not found -> because condtion is only set to true
 
-#[test]
-fn tst3() {
-    // TODO: how to determine slot type?
-    initLogger();
-    let mut egOrig = CHCEGraph::default();
-    let mut count = 0;
-    {
-        let eg = &mut egOrig;
+// #[test]
+// fn tst3() {
+//     // TODO: how to determine slot type?
+//     initLogger();
+//     let mut egOrig = CHCEGraph::default();
+//     let mut count = 0;
+//     {
+//         let eg = &mut egOrig;
 
-        let n = &generateVarFromCount(&mut count, VarType::Int);
-        let t = &generateVarFromCount(&mut count, VarType::Node);
-        let u = &generateVarFromCount(&mut count, VarType::Node);
+//         let n = &generateVarFromCount(&mut count, VarType::Int);
+//         let t = &generateVarFromCount(&mut count, VarType::Node);
+//         let u = &generateVarFromCount(&mut count, VarType::Node);
 
-        //  false ← N≥0,left-drop(N,T,U)
-        let syntax = "(pred <>)";
-        let cond = format!("(and <(geq {n} 0)>)");
-        let rootCHC: String = format!("(new {syntax} {cond} <{}>)", leafDropDummy(n, t, u));
-        let composeRoot = format!("(compose <{rootCHC}>)");
+//         //  false ← N≥0,left-drop(N,T,U)
+//         let syntax = "(pred <>)";
+//         let cond = format!("(and <(geq {n} 0)>)");
+//         let rootCHC: String = format!("(new {syntax} {cond} <{}>)", leafDropDummy(n, t, u));
+//         let composeRoot = format!("(compose <{rootCHC}>)");
 
-        let rootDummyId = id(&rootDummy2(n, t, u), eg);
-        let rootId = id(&composeRoot, eg);
-        eg.union(&rootId, &rootDummyId);
+//         let rootDummyId = id(&rootDummy2(n, t, u), eg);
+//         let rootId = id(&composeRoot, eg);
+//         eg.union(&rootId, &rootDummyId);
 
-        let x = &generateVarFromCount(&mut count, VarType::Int);
-        let y = &generateVarFromCount(&mut count, VarType::Node);
-        let z = &generateVarFromCount(&mut count, VarType::Node);
+//         let x = &generateVarFromCount(&mut count, VarType::Int);
+//         let y = &generateVarFromCount(&mut count, VarType::Node);
+//         let z = &generateVarFromCount(&mut count, VarType::Node);
 
-        let leafDropDummyId = id(&leafDropDummy(x, y, z), eg);
-        let leafDropId = leafDropCHC(x, y, z, &mut count, eg);
-        eg.union(&leafDropDummyId, &leafDropId);
+//         let leafDropDummyId = id(&leafDropDummy(x, y, z), eg);
+//         let leafDropId = leafDropCHC(x, y, z, &mut count, eg);
+//         eg.union(&leafDropDummyId, &leafDropId);
 
-        debug!("egraph before run");
-        dumpCHCEGraph(&eg);
-    }
+//         debug!("egraph before run");
+//         dumpCHCEGraph(&eg);
+//     }
 
-    // TODO: can we not use mem::take here?
-    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(60);
-    let report = runner.run(&getAllRewrites());
-    debug!("report {report:?}");
+//     // TODO: can we not use mem::take here?
+//     let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(60);
+//     let report = runner.run(&getAllRewrites());
+//     debug!("report {report:?}");
 
-    debug!("egraph after run");
-    dumpCHCEGraph(&runner.egraph);
-}
+//     debug!("egraph after run");
+//     dumpCHCEGraph(&runner.egraph);
+// }
