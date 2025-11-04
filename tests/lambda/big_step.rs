@@ -52,6 +52,7 @@ pub fn rewrite_big_step() -> Vec<Rewrite<Lambda>> {
         }
     });
     vec![RewriteT {
+        name: "big_step".to_owned(),
         searcher: searcher,
         applier: applier,
     }

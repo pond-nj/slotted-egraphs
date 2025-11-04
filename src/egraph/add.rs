@@ -147,14 +147,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         Some(app_id)
     }
 
-    pub fn getExactEnodeInEGraph(&self, n: &L) -> L {
-        let (shape, n_bij) = &self.shape(n);
+    pub fn getExactENodeInEGraph(&self, n: &L) -> L {
+        let (shape, _) = &self.shape(n);
         let i = self.hashcons.get(&shape).unwrap();
         let c = &self.classes[i];
         let cn_bij = &c.nodes[&shape].elem;
-        let out = cn_bij.inverse().compose(&n_bij);
-        let app_id = AppliedId::new(*i, out.inverse());
-        n.apply_slotmap(&app_id.m)
+        shape.apply_slotmap(cn_bij)
     }
 }
 

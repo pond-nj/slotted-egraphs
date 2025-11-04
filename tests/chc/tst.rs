@@ -232,7 +232,7 @@ fn tst2() {
     }
 
     // TODO: can we not use mem::take here?
-    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(60);
+    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(1);
     let report = runner.run(&getAllRewrites());
     debug!("report {report:?}");
 
@@ -254,10 +254,6 @@ fn tst2() {
     let res = ematch_all(&runner.egraph, &Pattern::parse(&cond).unwrap());
     assert!(res.len() >= 1);
 }
-
-// TODO0: unfold with updated constraint
-// TODO1: rewrite that clears constraint on vars not found in body
-// TODO2: matching that matches vector of appId permutatively
 
 // #[test]
 // fn tst3() {

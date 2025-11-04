@@ -61,6 +61,7 @@ pub fn rewrite_small_step() -> Vec<Rewrite<Lambda>> {
         },
     );
     vec![RewriteT {
+        name: "small_step".to_owned(),
         searcher: searcher,
         applier: applier,
     }

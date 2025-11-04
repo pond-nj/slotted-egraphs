@@ -99,8 +99,7 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
 // guess it's case where eclass interface slots is less than the enode slot
 fn transformToEgraphNameSpace(sh: &CHC, eg: &CHCEGraph) -> CHC {
     if let Some(appId) = eg.lookup(sh) {
-        debug!("exists in egraph");
-        return eg.getExactEnodeInEGraph(sh);
+        return eg.getExactENodeInEGraph(sh);
     }
 
     sh.clone()
@@ -146,13 +145,13 @@ impl Analysis<CHC> for CHCAnalysis {
         }
 
         let eclassSlots = eg.allSlots(i);
-        debug!("eclassSlots {:?}", eclassSlots);
+        // debug!("eclassSlots {:?}", eclassSlots);
         let newVarTypes = newVarTypes
             .into_iter()
             .filter(|(s, vt)| eclassSlots.contains(&s))
             .collect();
 
-        debug!("result varTypes {:?}", newVarTypes);
+        // debug!("result varTypes {:?}", newVarTypes);
 
         CHCData {
             predNames: newPredNames,
@@ -161,7 +160,7 @@ impl Analysis<CHC> for CHCAnalysis {
     }
 
     fn make(eg: &CHCEGraph, sh: &CHC) -> CHCData {
-        debug!("calling make on {:?}", sh);
+        // debug!("calling make on {:?}", sh);
         match sh {
             CHC::Init(predNameId, predSyntaxId) | CHC::Interface(predNameId, predSyntaxId, _) => {
                 let stringEnodes = eg.enodes(predNameId.id);
@@ -217,6 +216,8 @@ pub fn dumpCHCEClass(
 
     for node in eg.enodes(i) {
         print!(" - {node:?}\n");
+        let (sh, m) = node.weak_shape();
+        print!(" -   {sh:?}\n");
     }
     let permute = eg.getSlotPermutation(&i);
     for p in permute {
@@ -240,6 +241,62 @@ pub fn merge(s1: &str, s2: &str, eg: &mut CHCEGraph) {
     let id1 = &id(&s1, eg);
     let id2 = &id(&s2, eg);
     eg.union(id1, id2);
+}
+
+pub fn starPVar(starIndex: u32, starCount: u32) -> String {
+    format!("star_{}_{}", starIndex, starCount)
+}
+
+// get a string of star_i_j from the subst
+pub fn starPStr(starIndex: u32, subst: &Subst) -> String {
+    let mut res: Vec<String> = starPVecStr(starIndex, subst);
+    for s in &mut res {
+        s.insert_str(0, "?");
+    }
+    res.join(" ")
+}
+
+// get a vector of string of star_i_j from the subst
+fn starPVecStr(starIndex: u32, subst: &Subst) -> Vec<String> {
+    let mut countStar = 0;
+    let mut allStarStr: Vec<String> = vec![];
+    while subst.contains_key(&starPVar(starIndex, countStar)) {
+        allStarStr.push((format!("{}", starPVar(starIndex, countStar))));
+        countStar += 1;
+    }
+    allStarStr
+}
+
+// get all appliedId that is
+pub fn starIds(starIndex: u32, subst: &Subst) -> Vec<AppliedId> {
+    let mut allIds = vec![];
+    let mut starCount = 0;
+    // cannot merge this into one call because starCount gets updated
+    while subst.contains_key(&starPVar(starIndex, starCount)) {
+        allIds.push(subst[&starPVar(starIndex, starCount)].clone());
+        starCount += 1;
+    }
+
+    allIds
+}
+
+pub fn starStrSortedByAppIds(starIndices: &[u32], subst: &Subst) -> String {
+    let mut starStrs = vec![];
+    for i in starIndices {
+        starStrs.extend(starPVecStr(*i, subst));
+    }
+    starStrs.sort_by(|si, sj| subst[si].cmp(&subst[sj]));
+    starStrs.iter_mut().for_each(|s| s.insert_str(0, "?"));
+    starStrs.join(" ")
+}
+
+pub fn getMaxStarCount(starIndex: u32, subst: &Subst) -> u32 {
+    let mut starMax = 0;
+    while subst.contains_key(&starPVar(starIndex, starMax)) {
+        starMax += 1;
+    }
+
+    starMax
 }
 
 type CHCEGraph = EGraph<CHC, CHCAnalysis>;

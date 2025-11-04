@@ -10,12 +10,10 @@ static G_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 use std::collections::HashSet;
 
-// TODO: test unfold and star can match >= 0 number of children
 fn unfold() -> CHCRewrite {
-    let rootPatRaw =
+    let rootPat =
         Pattern::parse("(compose <(new ?syntax1 (and <*0>) <(compose <*1>) *2> ) *3>)").unwrap();
-    let rootPat: Rc<Pattern<CHC>> = Rc::new(rootPatRaw);
-    let rootPat2 = Rc::clone(&rootPat);
+    let rootPat2 = rootPat.clone();
 
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &rootPat) });
     let applier = Box::new(
@@ -26,32 +24,61 @@ fn unfold() -> CHCRewrite {
                 let star1Max = getMaxStarCount(1, &subst);
 
                 let mut matches: Vec<Vec<AppliedId>> = vec![];
-                // match in star1 Eclass
-                // TODO: change compose appliedId on *4?
+                let subPat = Pattern::parse("(new ?syntax2 (and <*6>) <*4>)").unwrap();
+
+                let rootUnfoldPattern =
+                    Pattern::parse("(new ?syntax1 (and <*0>) <(compose <*1>) *2> )").unwrap();
+                let rootClause = pattern_subst(eg, &rootUnfoldPattern, &subst);
+                let rootUnfold =
+                    pattern_subst(eg, &Pattern::parse("(compose <*1>)").unwrap(), &subst);
+
+                let rootUnfoldEnode: &CHC =
+                    &constructENodefromPatternSubst(eg, &rootUnfoldPattern, &subst).unwrap();
+
                 for star1Count in 0..star1Max {
-                    let subPat = Pattern::parse("(new ?syntax2 (and <*6>) <*4>)").unwrap();
                     let var = &starPVar(1, star1Count);
                     let result: Vec<Subst> =
                         ematchAllInEclass(eg, &subPat, subst[var].id, &subst[var].m);
+                    debug!("subPat = {subPat:?}");
+                    debug!("subEclass match result {result:#?}");
                     let mut thisNewIds: Vec<AppliedId> = vec![];
-
-                    let toPat = Pattern::parse(&format!(
-                        "(new ?syntax1 (and <{} *6>) <{} *4>)",
-                        starPStr(0, &subst),
-                        starPStr(2, &subst)
-                    ))
-                    .unwrap();
 
                     for mut r in result {
                         mergeSubst(&mut r, &subst);
-                        let newId = pattern_subst(eg, &toPat, &r);
+
+                        // TODO: add interface for these new Enode
+                        let newENodePat = &format!(
+                            "(new ?syntax1 (and <{}>) <{}>)",
+                            starStrSortedByAppIds(&[0, 6], &subst),
+                            starStrSortedByAppIds(&[2, 4], &subst),
+                        );
+                        // add enode to egraph
+                        let newId = patternSubstStr(eg, newENodePat, &r);
+
+                        debug!(
+                            "Unfolding at {rootUnfold}, starCount {star1Count} \n {:?} \n with {:?} \n to {:?}",
+                            eg.getExactENodeInEGraph(rootUnfoldEnode),
+                            &constructENodefromPatternSubst(eg, &subPat, &r).unwrap().weak_shape().0,
+                            eg.getExactENodeInEGraph(
+                                &constructENodefromPatternSubst(
+                                    eg,
+                                    &Pattern::parse(newENodePat).unwrap(),
+                                    &r
+                                )
+                                .unwrap()
+                            )
+                        );
+
+                        eg.analysis_data_mut(newId.id).predNames.insert(format!(
+                            "unfold_{rootUnfold}_using_{}_in_{rootClause}",
+                            subst[var].id
+                        ));
                         thisNewIds.push(newId);
                     }
                     matches.push(thisNewIds);
                 }
 
                 let matchesCombination: Vec<Vec<AppliedId>> = combination(matches);
-                // TODO: why is there *4 here?
                 let newEnode =
                     Pattern::parse(&format!("(compose <{} *5>)", starPStr(3, &subst))).unwrap();
                 for m in matchesCombination {
@@ -67,7 +94,7 @@ fn unfold() -> CHCRewrite {
                     }
 
                     eg.union_instantiations(
-                        &*rootPat2,
+                        &rootPat2,
                         &newEnode,
                         &newSubst,
                         Some("Unfold".to_string()),
@@ -77,6 +104,7 @@ fn unfold() -> CHCRewrite {
         },
     );
     RewriteT {
+        name: "unfold".to_owned(),
         searcher: searcher,
         applier: applier,
     }
@@ -122,7 +150,12 @@ fn newChildrenPermute() -> CHCRewrite {
             }
         }
     });
-    RewriteT { searcher, applier }.into()
+    RewriteT {
+        name: "newPermute".to_owned(),
+        searcher,
+        applier,
+    }
+    .into()
 }
 
 // TODO: can use marking to determine that we already permute this Enode
@@ -163,7 +196,12 @@ fn composeChildrenPermute() -> CHCRewrite {
             }
         }
     });
-    RewriteT { searcher, applier }.into()
+    RewriteT {
+        name: "composePermute".to_owned(),
+        searcher,
+        applier,
+    }
+    .into()
 }
 
 fn defineFromSharingBlock() -> CHCRewrite {
@@ -181,7 +219,7 @@ fn defineFromSharingBlock() -> CHCRewrite {
             );
 
             let origENode = eg
-                .getExactEnodeInEGraph(&constructENodefromPatternSubst(eg, &pat, &subst).unwrap());
+                .getExactENodeInEGraph(&constructENodefromPatternSubst(eg, &pat, &subst).unwrap());
 
             // TODO0: try change to rootData instead of mergeVarTypes
             let mut rootData = eg.analysis_data(rootAppId.id).varTypes.clone();
@@ -207,8 +245,8 @@ fn defineFromSharingBlock() -> CHCRewrite {
                 );
             }
 
-            debug!("mergeVarTypes = {mergeVarTypes:#?}");
-            debug!("varToChildIndx = {varToChildIndx:#?}");
+            // debug!("mergeVarTypes = {mergeVarTypes:#?}");
+            // debug!("varToChildIndx = {varToChildIndx:#?}");
 
             let mut unionfind: QuickUnionUf<UnionBySize> =
                 QuickUnionUf::<UnionBySize>::new(childAppIds.len());
@@ -322,7 +360,12 @@ fn defineFromSharingBlock() -> CHCRewrite {
         }
     });
 
-    RewriteT { searcher, applier }.into()
+    RewriteT {
+        name: "define".to_owned(),
+        searcher,
+        applier,
+    }
+    .into()
 }
 
 fn trueToAnd() -> CHCRewrite {
@@ -334,9 +377,9 @@ fn trueToAnd() -> CHCRewrite {
 pub fn getAllRewrites() -> Vec<CHCRewrite> {
     vec![
         unfold(),
-        newChildrenPermute(),
-        composeChildrenPermute(),
-        defineFromSharingBlock(),
+        // newChildrenPermute(),
+        // composeChildrenPermute(),
+        // defineFromSharingBlock(),
         trueToAnd(),
     ]
 }

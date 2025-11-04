@@ -36,10 +36,10 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
         let result = ematchAllInEclassInternal(pattern, State::default(), i, eg);
         out.extend(result.into_iter().map(final_subst));
     }
-    // assert!(out.len() == outPatterns.len());
     out
 }
 
+// match under this Eclass and then apply slotMap over the matched result?
 pub fn ematchAllInEclass<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
     pattern: &Pattern<L>,
@@ -72,12 +72,13 @@ fn ematchAllInEclassInternal<L: Language, N: Analysis<L>>(
             let mut st = st;
             if let Some(j) = st.partial_subst.get(v) {
                 if !eg.eq(&i, j) {
+                    debug!("check existing var {j:?} vs new var {i:?}, fail");
                     return Vec::new();
                 } else {
                     // debug!("check existing var {:?}, pass", i);
                 }
             } else {
-                debug!("insert {} -> {:?} to subst", v, i);
+                // debug!("insert {} -> {:?} to subst", v, i);
                 st.partial_subst.insert(v.clone(), i.clone());
             }
             let ret = vec![st];
@@ -161,8 +162,8 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
     out: &mut Vec<State>,
     eclassEnode: &L,
 ) {
-    debug!("eclassEnode {:?}", eclassEnode);
-    debug!("patternEnode {:?}", patternEnode);
+    // debug!("eclassEnode {:?}", eclassEnode);
+    // debug!("patternEnode {:?}", patternEnode);
     'nodeloop: for enode_shape in eg.get_group_compatible_weak_variants(&eclassEnode) {
         // debug!("eclassEnodeShape {:?}", enode_shape);
         if CHECKS {
@@ -175,6 +176,8 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
 
         let matchWithStar =
             checkChildrenTypeEq(&n_sh.getChildrenType(), &clear_n2_sh.getChildrenType());
+
+        debug!("checkChildrenTypeEq ret {matchWithStar}");
 
         if n_sh != clear_n2_sh && !matchWithStar {
             debug!("continue at shape diff {n_sh:?} != {clear_n2_sh:?}");
@@ -206,9 +209,9 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
 
         let mut acc = vec![st.clone()];
         let eclassChildren = enode_shape.applied_id_occurrences();
-        debug!("matchChildren with {:#?}", st);
-        debug!("patternChildren {:?}", patternChildren);
-        debug!("eclassChildren {:?}", eclassChildren);
+        // debug!("matchChildren with {:#?}", st);
+        // debug!("patternChildren {:?}", patternChildren);
+        // debug!("eclassChildren {:?}", eclassChildren);
         for i in 0..patternChildren.len() {
             if let Pattern::Star(n) = patternChildren[i] {
                 let mut counter = 0;
@@ -217,7 +220,7 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
                 while j < eclassChildren.len() {
                     let newPVar = Pattern::PVar(format!("star_{}_{}", n, counter));
                     (acc) = matchEclassWithEveryState(acc, eclassChildren[j], &newPVar, eg);
-                    debug!("acc star {acc:?}");
+                    // debug!("acc star {acc:?}");
 
                     j += 1;
                     counter += 1;
@@ -229,7 +232,7 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
             let subId = eclassChildren[i];
             let subPat = &patternChildren[i];
             (acc) = matchEclassWithEveryState(acc, subId, subPat, eg);
-            debug!("acc {acc:?}");
+            // debug!("acc {acc:?}");
         }
 
         // debug!("matchChildren Result");

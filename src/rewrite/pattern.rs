@@ -121,9 +121,9 @@ fn pattern_substInternal<L: Language, N: Analysis<L>>(
             if CHECKS {
                 assert_eq!(children.len(), refs.len());
             }
-            // (Pond): Recursively updat children pointer
+            // (Pond): Recursively update children pointer
             for i in 0..refs.len() {
-                *(refs[i]) = pattern_subst(eg, &children[i], subst);
+                *(refs[i]) = pattern_substInternal(eg, &children[i], subst);
             }
             eg.add_syn(n)
         }
@@ -134,9 +134,9 @@ fn pattern_substInternal<L: Language, N: Analysis<L>>(
             })
             .clone(),
         Pattern::Subst(b, x, t) => {
-            let b = pattern_subst(eg, &*b, subst);
-            let x = pattern_subst(eg, &*x, subst);
-            let t = pattern_subst(eg, &*t, subst);
+            let b = pattern_substInternal(eg, &*b, subst);
+            let x = pattern_substInternal(eg, &*x, subst);
+            let t = pattern_substInternal(eg, &*t, subst);
 
             // temporary swap-out so that we can access both the e-graph and the subst-method fully.
             let mut method = eg.subst_method.take().unwrap();
@@ -160,6 +160,21 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(
     let pattern = &mut pattern.clone();
     replaceStarInPatternFromSubst(pattern, subst);
 
+    debug!("calling pattern_substInternal on {pattern:#?}");
+    // debug!("with {subst:#?}");
+    pattern_substInternal(eg, &pattern, subst)
+}
+
+pub fn patternSubstStr<L: Language, N: Analysis<L>>(
+    eg: &mut EGraph<L, N>,
+    patternStr: &str,
+    subst: &Subst,
+) -> AppliedId {
+    let mut pattern = Pattern::parse(patternStr).unwrap();
+    replaceStarInPatternFromSubst(&mut pattern, subst);
+    debug!("patternStr: {patternStr:#?}");
+    debug!("calling pattern_substInternal on {pattern:#?}");
+    // debug!("with {subst:#?}");
     pattern_substInternal(eg, &pattern, subst)
 }
 

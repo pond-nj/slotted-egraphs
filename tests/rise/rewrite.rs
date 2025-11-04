@@ -123,6 +123,7 @@ fn let_const() -> Rewrite<Rise> {
     let pat = Pattern::parse("(let $1 ?c ?t)").unwrap();
 
     let rt: RewriteT<Rise> = RewriteT {
+        name: "let_const".to_owned(),
         searcher: Box::new(|_| ()),
         applier: Box::new(move |(), eg| {
             for subst in ematch_all(eg, &pat) {
@@ -229,6 +230,7 @@ fn beta_extr() -> Rewrite<Rise> {
     let a = pat.clone();
 
     let rt: RewriteT<Rise, (), Vec<(Subst, RecExpr<Rise>)>> = RewriteT {
+        name: "beta_extr".to_owned(),
         searcher: Box::new(move |eg| {
             let extractor = Extractor::<_, AstSize>::new(eg, AstSize);
 
@@ -261,6 +263,7 @@ fn beta_extr_direct() -> Rewrite<Rise> {
     let a = pat.clone();
 
     let rt: RewriteT<Rise> = RewriteT {
+        name: "beta_extr_direct".to_owned(),
         searcher: Box::new(|_| ()),
         applier: Box::new(move |(), eg| {
             let extractor = Extractor::<_, AstSize>::new(eg, AstSize);

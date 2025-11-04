@@ -27,8 +27,9 @@ impl Debug for SlotMap {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "(")?;
         let n = self.len();
-        for (i, (x, y)) in self.iter().enumerate() {
-            write!(f, "{x:?} -> {y:?}")?;
+        for (i, (_x, y)) in self.iter().enumerate() {
+            // write!(f, "{x:?} -> {y:?}")?;
+            write!(f, "{y:?}")?;
             if i < n - 1 {
                 write!(f, ", ")?;
             }

@@ -1,4 +1,5 @@
 use crate::*;
+use log::debug;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -54,13 +55,16 @@ impl RunnerLimits {
         CustomErrorT: Clone,
     {
         let elapsed = self.start_time.unwrap().elapsed();
-        if iteration > self.iter_limit {
+        debug!("checking limits: {iteration} > {}", self.iter_limit);
+        if iteration >= self.iter_limit {
+            debug!("check_limits return iter limit");
             Err(StopReason::IterationLimit)
         } else if eg.total_number_of_nodes() > self.node_limit {
             Err(StopReason::NodeLimit)
         } else if elapsed > self.time_limit {
             Err(StopReason::TimeLimit)
         } else {
+            debug!("check_limits return ok");
             Ok(())
         }
     }
@@ -93,7 +97,7 @@ where
     L: Language,
     N: Analysis<L>,
     IterData: IterationData<L, N>,
-    CustomErrorT: Clone,
+    CustomErrorT: Clone + Debug,
 {
     pub fn new(n: N) -> Self {
         Self {
@@ -152,6 +156,7 @@ where
             }
             let iter = self.run_one(rewrites);
             self.iterations.push(iter);
+            debug!("done iter {:?}", self.iterations.len());
         }
         Report {
             iterations: self.iterations.len(),
@@ -191,6 +196,8 @@ where
             result = result.and_then(|_| Err(StopReason::Saturated));
         }
 
+        debug!("run result: {result:#?}");
+
         if let Err(stop_reason) = result {
             self.stop_reason = Some(stop_reason);
         }
@@ -208,7 +215,7 @@ where
     L: Language,
     N: Analysis<L> + Default,
     IterData: IterationData<L, N>,
-    CustomErrorT: Clone,
+    CustomErrorT: Clone + Debug,
 {
     fn default() -> Self {
         Runner::new(Default::default())

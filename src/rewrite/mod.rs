@@ -10,8 +10,11 @@ pub use pattern::*;
 mod subst_method;
 pub use subst_method::*;
 
+use log::debug;
+
 /// An equational rewrite rule.
 pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
+    pub name: String,
     pub(crate) searcher: Box<dyn Fn(&EGraph<L, N>) -> Box<dyn Any>>,
     pub(crate) applier: Box<dyn Fn(Box<dyn Any>, &mut EGraph<L, N>)>,
 }
@@ -22,6 +25,7 @@ pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
 ///
 /// In most cases, `T` is a [Subst].
 pub struct RewriteT<L: Language, N: Analysis<L> = (), T: Any = ()> {
+    pub name: String,
     pub searcher: Box<dyn Fn(&EGraph<L, N>) -> T>,
     pub applier: Box<dyn Fn(T, &mut EGraph<L, N>)>,
 }
@@ -32,6 +36,7 @@ impl<L: Language + 'static, N: Analysis<L> + 'static, T: 'static> RewriteT<L, N,
         let searcher = self.searcher;
         let applier = self.applier;
         Rewrite {
+            name: self.name,
             searcher: Box::new(move |eg| Box::new((*searcher)(eg))),
             applier: Box::new(move |t, eg| (*applier)(any_to_t(t), eg)),
         }
@@ -50,9 +55,19 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
 ) -> bool {
     let prog = eg.progress();
 
-    let ts: Vec<Box<dyn Any>> = rewrites.iter().map(|rw| (*rw.searcher)(eg)).collect();
+    let ts: Vec<Box<dyn Any>> = rewrites
+        .iter()
+        .map(|rw| {
+            debug!("doing search for {}", rw.name);
+            let ret = (*rw.searcher)(eg);
+            debug!("done search for {}", rw.name);
+            ret
+        })
+        .collect();
     for (rw, t) in rewrites.iter().zip(ts.into_iter()) {
+        debug!("doing apply for {}", rw.name);
         (*rw.applier)(t, eg);
+        debug!("done apply for {}", rw.name);
     }
 
     prog != eg.progress()
@@ -76,6 +91,7 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
         let rule = rule.to_string();
         let a2 = a.clone();
         RewriteT {
+            name: rule.to_owned(),
             searcher: Box::new(move |eg| ematch_all(eg, &a)),
             applier: Box::new(move |substs, eg| {
                 Self::apply_substs_cond(substs, &cond, &a2, &b, &rule, eg)

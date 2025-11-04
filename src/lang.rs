@@ -26,6 +26,7 @@ pub enum LanguageChildrenType {
 }
 
 pub fn checkChildrenTypeEq(a: &Vec<LanguageChildrenType>, b: &Vec<LanguageChildrenType>) -> bool {
+    debug!("checkChildrenTypeEq {a:?} vs {b:?}");
     if a.len() == 0 || b.len() == 0 {
         if a.len() == 1 && a[0] == LanguageChildrenType::Star {
             return true;
@@ -40,7 +41,9 @@ pub fn checkChildrenTypeEq(a: &Vec<LanguageChildrenType>, b: &Vec<LanguageChildr
         }
     }
 
-    for i in 0..a.len().min(b.len()) {
+    let minLen = a.len().min(b.len());
+
+    for i in 0..minLen {
         match (&a[i], &b[i]) {
             (LanguageChildrenType::Vec(a_), LanguageChildrenType::Vec(b_)) => {
                 if !checkChildrenTypeEq(&a_, &b_) {
@@ -57,6 +60,14 @@ pub fn checkChildrenTypeEq(a: &Vec<LanguageChildrenType>, b: &Vec<LanguageChildr
                 }
             }
         }
+    }
+
+    if a.len() > minLen && a[minLen] == LanguageChildrenType::Star {
+        return true;
+    }
+
+    if b.len() > minLen && b[minLen] == LanguageChildrenType::Star {
+        return true;
     }
 
     if a.len() != b.len() {

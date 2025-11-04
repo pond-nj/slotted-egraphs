@@ -50,40 +50,6 @@ fn crop_ident(s: &str) -> Result<(/*ident*/ &str, /*rest*/ &str), ParseError> {
     Ok(out)
 }
 
-pub fn starPVar(starIndex: u32, starCount: u32) -> String {
-    format!("star_{}_{}", starIndex, starCount)
-}
-
-pub fn starPStr(starIndex: u32, subst: &Subst) -> String {
-    let mut countStar = 0;
-    let mut allStarStr: String = "".to_string();
-    while subst.contains_key(&starPVar(starIndex, countStar)) {
-        allStarStr += &(format!("?{} ", starPVar(starIndex, countStar)));
-        countStar += 1;
-    }
-    allStarStr
-}
-
-pub fn starIds(starIndex: u32, subst: &Subst) -> Vec<AppliedId> {
-    let mut allIds = vec![];
-    let mut starCount = 0;
-    while subst.contains_key(&starPVar(starIndex, starCount)) {
-        allIds.push(subst[&starPVar(starIndex, starCount)].clone());
-        starCount += 1;
-    }
-
-    allIds
-}
-
-pub fn getMaxStarCount(starIndex: u32, subst: &Subst) -> u32 {
-    let mut starMax = 0;
-    while subst.contains_key(&starPVar(starIndex, starMax)) {
-        starMax += 1;
-    }
-
-    starMax
-}
-
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
     let mut tokens = Vec::new();
 
