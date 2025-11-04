@@ -143,6 +143,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         debug!("start pending loops");
         while let Some(sh) = self.pending.keys().cloned().next() {
+            debug!("pending lens {}", self.pending.len());
             let pending_ty = self.pending.remove(&sh).unwrap();
             self.handle_pending(sh, pending_ty);
 
