@@ -109,6 +109,17 @@ pub fn constructENodefromPatternSubst<L: Language, N: Analysis<L>>(
     Some(someNode.unwrap())
 }
 
+pub fn lookupPattern<L: Language, N: Analysis<L>>(
+    eg: &EGraph<L, N>,
+    pattern: &Pattern<L>,
+    subst: &Subst,
+) -> Option<AppliedId> {
+    let Some(foundENode) = constructENodefromPatternSubst(eg, pattern, subst) else {
+        return None;
+    };
+    eg.lookup(&foundENode)
+}
+
 fn pattern_substInternal<L: Language, N: Analysis<L>>(
     eg: &mut EGraph<L, N>,
     pattern: &Pattern<L>,

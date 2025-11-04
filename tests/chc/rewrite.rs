@@ -4,101 +4,215 @@ use log::debug;
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use tracing_subscriber::filter::combinator::And;
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 
 static G_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 use std::collections::HashSet;
 
-fn unfold() -> CHCRewrite {
-    let rootPat =
-        Pattern::parse("(compose <(new ?syntax1 (and <*0>) <(compose <*1>) *2> ) *3>)").unwrap();
-    let rootPat2 = rootPat.clone();
+// fn unfold() -> CHCRewrite {
+//     let rootPat =
+//         Pattern::parse("(compose <(new ?syntax1 (and <*0>) <(compose <*1>) *2> ) *3>)").unwrap();
+//     let rootPat2 = rootPat.clone();
 
-    let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &rootPat) });
+//     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &rootPat) });
+//     let applier = Box::new(
+//         // (compose <[(new ?syntax2 (true) <*4>) \dot (#matches of *1)] *3>)
+//         move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
+//             debug!("unfold rule, found {:#?}", substs);
+//             for subst in substs {
+//                 let star1Max = getMaxStarCount(1, &subst);
+
+//                 let mut matches: Vec<Vec<AppliedId>> = vec![];
+//                 let subPat = Pattern::parse("(new ?syntax2 (and <*6>) <*4>)").unwrap();
+
+//                 let rootUnfoldPattern =
+//                     Pattern::parse("(new ?syntax1 (and <*0>) <(compose <*1>) *2> )").unwrap();
+//                 let rootClause = pattern_subst(eg, &rootUnfoldPattern, &subst);
+//                 let rootUnfold =
+//                     pattern_subst(eg, &Pattern::parse("(compose <*1>)").unwrap(), &subst);
+
+//                 let rootUnfoldEnode: &CHC =
+//                     &constructENodefromPatternSubst(eg, &rootUnfoldPattern, &subst).unwrap();
+
+//                 for star1Count in 0..star1Max {
+//                     let var = &starPVar(1, star1Count);
+//                     let result: Vec<Subst> =
+//                         ematchAllInEclass(eg, &subPat, subst[var].id, &subst[var].m);
+//                     debug!("subPat = {subPat:?}");
+//                     debug!("subEclass match result {result:#?}");
+//                     let mut thisNewIds: Vec<AppliedId> = vec![];
+
+//                     for mut r in result {
+//                         mergeSubst(&mut r, &subst);
+
+//                         // TODO: add interface for these new Enode
+//                         let newENodePat = &format!(
+//                             "(new ?syntax1 (and <{}>) <{}>)",
+//                             starStrSortedByAppIds(&[0, 6], &subst),
+//                             starStrSortedByAppIds(&[2, 4], &subst),
+//                         );
+//                         // add enode to egraph
+//                         let newId = patternSubstStr(eg, newENodePat, &r);
+
+//                         debug!(
+//                             "Unfolding at {rootUnfold}, starCount {star1Count} \n {:?} \n with {:?} \n to {:?}",
+//                             eg.getExactENodeInEGraph(rootUnfoldEnode),
+//                             &constructENodefromPatternSubst(eg, &subPat, &r).unwrap().weak_shape().0,
+//                             eg.getExactENodeInEGraph(
+//                                 &constructENodefromPatternSubst(
+//                                     eg,
+//                                     &Pattern::parse(newENodePat).unwrap(),
+//                                     &r
+//                                 )
+//                                 .unwrap()
+//                             )
+//                         );
+
+//                         eg.analysis_data_mut(newId.id).predNames.insert(format!(
+//                             "unfold_{rootUnfold}_using_{}_in_{rootClause}",
+//                             subst[var].id
+//                         ));
+//                         thisNewIds.push(newId);
+//                     }
+//                     matches.push(thisNewIds);
+//                 }
+
+//                 let matchesCombination: Vec<Vec<AppliedId>> = combination(matches);
+//                 let newEnode =
+//                     Pattern::parse(&format!("(compose <{} *5>)", starPStr(3, &subst))).unwrap();
+//                 for m in matchesCombination {
+//                     assert!(m.len() == star1Max as usize);
+//                     // Create a new compose Enode whose children is the vector of AppliedId and union it with the original Compose
+//                     let mut newSubst = subst.clone();
+//                     let mut star4Count = 0;
+//                     for id in m {
+//                         let key = starPVar(5, star4Count);
+//                         assert!(!newSubst.contains_key(&key));
+//                         newSubst.insert(key, id);
+//                         star4Count += 1;
+//                     }
+
+//                     eg.union_instantiations(
+//                         &rootPat2,
+//                         &newEnode,
+//                         &newSubst,
+//                         Some("Unfold".to_string()),
+//                     );
+//                 }
+//             }
+//         },
+//     );
+//     RewriteT {
+//         name: "unfold".to_owned(),
+//         searcher: searcher,
+//         applier: applier,
+//     }
+//     .into()
+// }
+
+fn unfold() -> CHCRewrite {
+    let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { vec![] });
     let applier = Box::new(
         // (compose <[(new ?syntax2 (true) <*4>) \dot (#matches of *1)] *3>)
         move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
-            debug!("unfold rule, found {:#?}", substs);
-            for subst in substs {
-                let star1Max = getMaxStarCount(1, &subst);
+            let rootPat = Pattern::parse("(compose <*0>)").unwrap();
+            let rootMatches = ematch_all(eg, &rootPat);
+            // (compose1 <(new1 syntax1 cond1 <(compose2 <new2 syntax2>)>)>)
+            for compose1Children in rootMatches {
+                let rootId = lookupPattern(eg, &rootPat, &compose1Children).unwrap();
+                let mut compose1Children: Vec<_> =
+                    compose1Children.iter().map(|(s, appId)| appId).collect();
+                compose1Children.sort();
+                // TODO: it's not good to iterate while updating egraph
+                for (i1, new1EClass) in compose1Children.iter().enumerate() {
+                    for new1 in eg.enodes_applied(new1EClass) {
+                        if let CHC::Interface(..) = new1 {
+                            continue;
+                        }
 
-                let mut matches: Vec<Vec<AppliedId>> = vec![];
-                let subPat = Pattern::parse("(new ?syntax2 (and <*6>) <*4>)").unwrap();
+                        let CHC::New(syntax1, cond1, new1Children) = new1 else {
+                            panic!();
+                        };
 
-                let rootUnfoldPattern =
-                    Pattern::parse("(new ?syntax1 (and <*0>) <(compose <*1>) *2> )").unwrap();
-                let rootClause = pattern_subst(eg, &rootUnfoldPattern, &subst);
-                let rootUnfold =
-                    pattern_subst(eg, &Pattern::parse("(compose <*1>)").unwrap(), &subst);
+                        // TODO: this will only pick the first and out
+                        let and1 = eg.enodes_applied(&cond1).iter().next().unwrap().clone();
+                        let CHC::And(and1Children) = and1 else {
+                            panic!();
+                        };
 
-                let rootUnfoldEnode: &CHC =
-                    &constructENodefromPatternSubst(eg, &rootUnfoldPattern, &subst).unwrap();
+                        for (i2, compose2Id) in new1Children.iter().enumerate() {
+                            let compose2Id = compose2Id.getAppliedId();
 
-                for star1Count in 0..star1Max {
-                    let var = &starPVar(1, star1Count);
-                    let result: Vec<Subst> =
-                        ematchAllInEclass(eg, &subPat, subst[var].id, &subst[var].m);
-                    debug!("subPat = {subPat:?}");
-                    debug!("subEclass match result {result:#?}");
-                    let mut thisNewIds: Vec<AppliedId> = vec![];
+                            for compose2 in eg.enodes_applied(&compose2Id) {
+                                if let CHC::Init(..) = compose2 {
+                                    continue;
+                                }
 
-                    for mut r in result {
-                        mergeSubst(&mut r, &subst);
+                                let CHC::Compose(compose2Children) = compose2 else {
+                                    panic!();
+                                };
 
-                        // TODO: add interface for these new Enode
-                        let newENodePat = &format!(
-                            "(new ?syntax1 (and <{}>) <{}>)",
-                            starStrSortedByAppIds(&[0, 6], &subst),
-                            starStrSortedByAppIds(&[2, 4], &subst),
-                        );
-                        // add enode to egraph
-                        let newId = patternSubstStr(eg, newENodePat, &r);
+                                let mut unfoldedENodes: Vec<Vec<AppliedId>> = vec![];
+                                for new2EClass in compose2Children.iter() {
+                                    let new2EClass = new2EClass.getAppliedId();
+                                    let mut unfoldedFromThisEClass: Vec<AppliedId> = vec![];
+                                    for new2 in eg.enodes_applied(&new2EClass) {
+                                        if let CHC::Interface(..) = new2 {
+                                            continue;
+                                        }
 
-                        debug!(
-                            "Unfolding at {rootUnfold}, starCount {star1Count} \n {:?} \n with {:?} \n to {:?}",
-                            eg.getExactENodeInEGraph(rootUnfoldEnode),
-                            &constructENodefromPatternSubst(eg, &subPat, &r).unwrap().weak_shape().0,
-                            eg.getExactENodeInEGraph(
-                                &constructENodefromPatternSubst(
-                                    eg,
-                                    &Pattern::parse(newENodePat).unwrap(),
-                                    &r
-                                )
-                                .unwrap()
-                            )
-                        );
+                                        let CHC::New(syntax2, cond2, new2Children) = new2 else {
+                                            panic!();
+                                        };
 
-                        eg.analysis_data_mut(newId.id).predNames.insert(format!(
-                            "unfold_{rootUnfold}_using_{}_in_{rootClause}",
-                            subst[var].id
-                        ));
-                        thisNewIds.push(newId);
+                                        let and2 = eg
+                                            .enodes_applied(&cond2)
+                                            .iter()
+                                            .next()
+                                            .unwrap()
+                                            .clone();
+                                        let CHC::And(and2Children) = and2 else {
+                                            panic!();
+                                        };
+
+                                        let mut unfoldedChildren = new1Children.clone();
+                                        unfoldedChildren.remove(i2);
+                                        // 2
+                                        unfoldedChildren.extend(new2Children.clone());
+
+                                        let mut mergeAndChildren = and1Children.clone();
+                                        mergeAndChildren.extend(and2Children);
+                                        // 1
+                                        let mergeAnd = eg.add(CHC::And(mergeAndChildren));
+
+                                        // TODO: sorting here?
+                                        let unfoldedENode = eg.add(CHC::New(
+                                            syntax1.clone(),
+                                            mergeAnd,
+                                            unfoldedChildren,
+                                        ));
+                                        unfoldedFromThisEClass.push(unfoldedENode);
+                                    }
+                                    unfoldedENodes.push(unfoldedFromThisEClass);
+                                }
+
+                                for childrenComb in &combination(unfoldedENodes) {
+                                    let mut unfoldedComposeChildren = compose1Children.clone();
+                                    unfoldedComposeChildren.remove(i1);
+                                    unfoldedComposeChildren.extend(childrenComb);
+                                    let unfoldedComposeChildren = unfoldedComposeChildren
+                                        .into_iter()
+                                        .map(|appId| AppliedIdOrStar::AppliedId(appId.clone()))
+                                        .collect();
+                                    let unfoldedCompose =
+                                        eg.add(CHC::Compose(unfoldedComposeChildren));
+                                    eg.union(&rootId, &unfoldedCompose);
+                                }
+                            }
+                        }
                     }
-                    matches.push(thisNewIds);
-                }
-
-                let matchesCombination: Vec<Vec<AppliedId>> = combination(matches);
-                let newEnode =
-                    Pattern::parse(&format!("(compose <{} *5>)", starPStr(3, &subst))).unwrap();
-                for m in matchesCombination {
-                    assert!(m.len() == star1Max as usize);
-                    // Create a new compose Enode whose children is the vector of AppliedId and union it with the original Compose
-                    let mut newSubst = subst.clone();
-                    let mut star4Count = 0;
-                    for id in m {
-                        let key = starPVar(5, star4Count);
-                        assert!(!newSubst.contains_key(&key));
-                        newSubst.insert(key, id);
-                        star4Count += 1;
-                    }
-
-                    eg.union_instantiations(
-                        &rootPat2,
-                        &newEnode,
-                        &newSubst,
-                        Some("Unfold".to_string()),
-                    );
                 }
             }
         },
@@ -111,98 +225,98 @@ fn unfold() -> CHCRewrite {
     .into()
 }
 
-fn newChildrenPermute() -> CHCRewrite {
-    let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
-    let patClone = pat.clone();
-    let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &patClone) });
-    let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
-        // TODO: is there a different between using AppliedId and Id
-        let mut did = HashSet::<(AppliedId, AppliedId, BTreeSet<AppliedId>)>::default();
-        let newPat = Pattern::parse("(new ?syntax ?cond <*2>)").unwrap();
-        for subst in substs {
-            let mut thisDid = BTreeSet::<AppliedId>::default();
-            for (var, id) in subst.iter() {
-                thisDid.insert(id.clone());
-            }
+// fn newChildrenPermute() -> CHCRewrite {
+//     let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
+//     let patClone = pat.clone();
+//     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &patClone) });
+//     let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
+//         // TODO: is there a different between using AppliedId and Id
+//         let mut did = HashSet::<(AppliedId, AppliedId, BTreeSet<AppliedId>)>::default();
+//         let newPat = Pattern::parse("(new ?syntax ?cond <*2>)").unwrap();
+//         for subst in substs {
+//             let mut thisDid = BTreeSet::<AppliedId>::default();
+//             for (var, id) in subst.iter() {
+//                 thisDid.insert(id.clone());
+//             }
 
-            let mut this = (subst["syntax"].clone(), subst["cond"].clone(), thisDid);
-            if did.contains(&this) {
-                continue;
-            }
+//             let mut this = (subst["syntax"].clone(), subst["cond"].clone(), thisDid);
+//             if did.contains(&this) {
+//                 continue;
+//             }
 
-            did.insert(this);
+//             did.insert(this);
 
-            // TODO: make new children follow old vars?
-            let ids = starIds(1, &subst);
-            let idsPermuts = permute(&ids);
-            let mut newSubst = subst.clone();
-            for permut in idsPermuts {
-                let mut newSubstTmp = newSubst.clone();
-                for (i, id) in permut.iter().enumerate() {
-                    newSubstTmp.insert(starPVar(2, i.try_into().unwrap()), id.clone());
-                }
-                eg.union_instantiations(
-                    &pat,
-                    &newPat,
-                    &newSubstTmp,
-                    Some("newChildrenPermute".to_string()),
-                );
-            }
-        }
-    });
-    RewriteT {
-        name: "newPermute".to_owned(),
-        searcher,
-        applier,
-    }
-    .into()
-}
+//             // TODO: make new children follow old vars?
+//             let ids = starIds(1, &subst);
+//             let idsPermuts = permute(&ids);
+//             let mut newSubst = subst.clone();
+//             for permut in idsPermuts {
+//                 let mut newSubstTmp = newSubst.clone();
+//                 for (i, id) in permut.iter().enumerate() {
+//                     newSubstTmp.insert(starPVar(2, i.try_into().unwrap()), id.clone());
+//                 }
+//                 eg.union_instantiations(
+//                     &pat,
+//                     &newPat,
+//                     &newSubstTmp,
+//                     Some("newChildrenPermute".to_string()),
+//                 );
+//             }
+//         }
+//     });
+//     RewriteT {
+//         name: "newPermute".to_owned(),
+//         searcher,
+//         applier,
+//     }
+//     .into()
+// }
 
 // TODO: can use marking to determine that we already permute this Enode
-fn composeChildrenPermute() -> CHCRewrite {
-    let pat = Pattern::parse("(compose <*1>)").unwrap();
-    let patClone = pat.clone();
-    let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &patClone) });
-    let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
-        // TODO: is there a different between using AppliedId and Id
-        let mut did = HashSet::<BTreeSet<AppliedId>>::default();
-        let newPat = Pattern::parse("(compose <*2>)").unwrap();
-        for subst in substs {
-            let mut thisDid = BTreeSet::<AppliedId>::default();
-            for (var, id) in subst.iter() {
-                thisDid.insert(id.clone());
-            }
+// fn composeChildrenPermute() -> CHCRewrite {
+//     let pat = Pattern::parse("(compose <*1>)").unwrap();
+//     let patClone = pat.clone();
+//     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &patClone) });
+//     let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
+//         // TODO: is there a different between using AppliedId and Id
+//         let mut did = HashSet::<BTreeSet<AppliedId>>::default();
+//         let newPat = Pattern::parse("(compose <*2>)").unwrap();
+//         for subst in substs {
+//             let mut thisDid = BTreeSet::<AppliedId>::default();
+//             for (var, id) in subst.iter() {
+//                 thisDid.insert(id.clone());
+//             }
 
-            if did.contains(&thisDid) {
-                continue;
-            }
+//             if did.contains(&thisDid) {
+//                 continue;
+//             }
 
-            did.insert(thisDid);
+//             did.insert(thisDid);
 
-            let ids = starIds(1, &subst);
-            let idsPermuts = permute(&ids);
-            let mut newSubst = subst.clone();
-            for permut in idsPermuts {
-                let mut newSubstTmp = newSubst.clone();
-                for (i, id) in permut.iter().enumerate() {
-                    newSubstTmp.insert(starPVar(2, i.try_into().unwrap()), id.clone());
-                }
-                eg.union_instantiations(
-                    &pat,
-                    &newPat,
-                    &newSubstTmp,
-                    Some("composeChildrenPermute".to_string()),
-                );
-            }
-        }
-    });
-    RewriteT {
-        name: "composePermute".to_owned(),
-        searcher,
-        applier,
-    }
-    .into()
-}
+//             let ids = starIds(1, &subst);
+//             let idsPermuts = permute(&ids);
+//             let mut newSubst = subst.clone();
+//             for permut in idsPermuts {
+//                 let mut newSubstTmp = newSubst.clone();
+//                 for (i, id) in permut.iter().enumerate() {
+//                     newSubstTmp.insert(starPVar(2, i.try_into().unwrap()), id.clone());
+//                 }
+//                 eg.union_instantiations(
+//                     &pat,
+//                     &newPat,
+//                     &newSubstTmp,
+//                     Some("composeChildrenPermute".to_string()),
+//                 );
+//             }
+//         }
+//     });
+//     RewriteT {
+//         name: "composePermute".to_owned(),
+//         searcher,
+//         applier,
+//     }
+//     .into()
+// }
 
 fn defineFromSharingBlock() -> CHCRewrite {
     let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
@@ -379,7 +493,7 @@ pub fn getAllRewrites() -> Vec<CHCRewrite> {
         unfold(),
         // newChildrenPermute(),
         // composeChildrenPermute(),
-        // defineFromSharingBlock(),
+        defineFromSharingBlock(),
         trueToAnd(),
     ]
 }

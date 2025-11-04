@@ -24,6 +24,16 @@ pub enum AppliedIdOrStar {
     Star(u32),
 }
 
+impl AppliedIdOrStar {
+    pub fn getAppliedId(&self) -> AppliedId {
+        let AppliedIdOrStar::AppliedId(appId) = self else {
+            panic!();
+        };
+
+        appId.clone()
+    }
+}
+
 /// A "term" or "expression" from some given [Language] L.
 // The AppliedIds in `node` are ignored (any typically set to AppliedId::null()). They are replaced by the children RecExpr.
 // A non-fancy version of RecExpr that uses the slots as "names".

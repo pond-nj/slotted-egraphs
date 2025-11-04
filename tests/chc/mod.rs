@@ -69,12 +69,12 @@ pub struct CHCData {
 }
 
 pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
-    debug!("aggregateVarType");
+    // debug!("aggregateVarType");
     let sh = transformToEgraphNameSpace(sh, eg);
     let mut slots = sh.slots();
     let appIds = sh.applied_id_occurrences();
     let mut varTypes = HashMap::default();
-    debug!("slots: {:?}", slots);
+    // debug!("slots: {:?}", slots);
     for s in slots {
         for app in &appIds {
             let appInverse = app.m.inverse();
@@ -89,8 +89,8 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
         }
     }
 
-    debug!("aggregateVarType for {:?}", sh);
-    debug!("get {:?}", varTypes);
+    // debug!("aggregateVarType for {:?}", sh);
+    // debug!("get {:?}", varTypes);
 
     varTypes
 }
@@ -123,7 +123,7 @@ impl Analysis<CHC> for CHCAnalysis {
 
     fn merge(x: CHCData, y: CHCData, i: Id, eg: &CHCEGraph) -> CHCData {
         let c = eg.eclass(i).unwrap();
-        debug!("calling merge to {:?}", i);
+        // debug!("calling merge to {:?}", i);
         // debug!("dump from merge c {}", c);
         // debug!("x {x:?}");
         // debug!("y {y:?}");
