@@ -260,6 +260,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.hashcons.len()
     }
 
+    pub fn totalNumberOfEclass(&self) -> usize {
+        self.classes.len()
+    }
+
     /// Checks that two AppliedIds are semantically equal.
     pub fn eq(&self, a: &AppliedId, b: &AppliedId) -> bool {
         let a = self.find_applied_id(a);

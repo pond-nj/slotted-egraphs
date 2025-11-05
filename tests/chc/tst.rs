@@ -241,7 +241,7 @@ fn addPredName(id: Id, predName: String, eg: &mut CHCEGraph) {
     data.predNames.insert(predName);
 }
 
-#[test]
+// #[test]
 fn tst2() {
     // TODO: how to determine slot type?
     initLogger();

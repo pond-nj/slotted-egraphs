@@ -1,3 +1,5 @@
+use std::{backtrace::Backtrace, time::Instant};
+
 use crate::*;
 use log::debug;
 
@@ -26,6 +28,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         subst: &Subst,
         #[allow(unused)] justification: Option<String>,
     ) -> bool {
+        // this doesn't take a long time
         let a = pattern_subst(self, &from_pat, subst);
         let b = pattern_subst(self, &to_pat, subst);
         debug!("Union because {justification:?}, {a:?} with {b:?}");
@@ -38,6 +41,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let proof = ghost!(self.prove_explicit(&syn_a, &syn_b, justification));
 
         let out = self.union_internal(&a, &b, proof);
+
         self.rebuild_called_from_union_instantiations();
         out
     }
@@ -236,8 +240,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let src_id = psn.src_id;
 
             self.raw_add_to_class(to.id, (sh.clone(), new_bij), src_id);
-            debug!("adding {sh:?} to self.pending");
+            let oldPendingLen = self.pending.len();
             self.pending.insert(sh, PendingType::Full);
+            let newPendingLen = self.pending.len();
+            debug!("insert to pending len from move_to by {oldPendingLen} to {newPendingLen}");
         }
         // debug!(
         //     "after compose fresh from {:?}",

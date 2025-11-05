@@ -92,6 +92,14 @@ where
     pub hooks: Vec<Box<dyn FnMut(&mut Self) -> Result<(), CustomErrorT> + 'static>>,
 }
 
+pub fn time<T>(f: impl FnOnce() -> T) -> (T, Duration) {
+    let start = Instant::now();
+    let res = f();
+    let end = Instant::now();
+    let duration = end.duration_since(start);
+    (res, duration)
+}
+
 impl<L, N, IterData, CustomErrorT> Runner<L, N, IterData, CustomErrorT>
 where
     L: Language,
@@ -184,6 +192,9 @@ where
 
         // Apply rewrites, then check hooks, then check limits, then check if saturated.
         let progress = apply_rewrites(&mut self.egraph, rewrites);
+
+        self.egraph.rebuild();
+
         result = result
             .and_then(|_| {
                 hooks

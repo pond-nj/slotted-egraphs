@@ -1,6 +1,298 @@
-use super::*;
-use crate::*;
+use slotted_egraphs::*;
+
 use log::debug;
+
+define_language! {
+    // TODO(Pond): now children can only have max one vector
+    // TODO: add dont care var?
+    pub enum CHC {
+        Var(Slot) = "var",
+        // to specify types
+        Int(Slot) = "int",
+        Node(Slot) = "node",
+
+        PredSyntax(Vec<AppliedId>) = "pred",
+        New(AppliedId, AppliedId, Vec<AppliedIdOrStar>) = "new",
+        Compose(Vec<AppliedIdOrStar>) = "compose",
+        True() = "true",
+
+        // node(x, l, r) has subtree l and r and element x at this node
+        BiNode(AppliedId, AppliedId, AppliedId) = "binode",
+        Leaf() = "leaf",
+
+        // Boolean
+        And(Vec<AppliedIdOrStar>) = "and",
+
+        // Arithmetic
+        Geq(AppliedId, AppliedId) = "geq",
+        Leq(AppliedId, AppliedId) = "leq",
+        Less(AppliedId, AppliedId) = "lt",
+        Greater(AppliedId, AppliedId) = "gt",
+        Eq(AppliedId, AppliedId) = "eq",
+        Add(AppliedId, AppliedId) = "+",
+        Minus(AppliedId, AppliedId) = "-",
+
+        Number(u32),
+
+        // (init predName syntax)
+        // use to create empty compose eclass for recursive definition
+        Init(AppliedId, AppliedId) = "init",
+        // (interface predName syntax u32)
+        // use for new predicate
+        Interface(AppliedId, AppliedId, AppliedId) = "interface",
+        PredName(String),
+    }
+}
+
+#[derive(Default)]
+pub struct CHCAnalysis;
+
+// TODO: implement Debug to CHC clause using syn_enode
+#[derive(Eq, PartialEq, Clone, Debug)]
+pub struct CHCData {
+    predNames: HashSet<String>,
+    varTypes: HashMap<Slot, VarType>,
+}
+
+pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
+    // debug!("aggregateVarType");
+    let sh = transformToEgraphNameSpace(sh, eg);
+    let mut slots = sh.slots();
+    let appIds = sh.applied_id_occurrences();
+    let mut varTypes = HashMap::default();
+    // debug!("slots: {:?}", slots);
+    for s in slots {
+        for app in &appIds {
+            let appInverse = app.m.inverse();
+            if let Some(mapToS) = appInverse.get(s) {
+                let childEclass = eg.analysis_data(app.id);
+                let childSlotType = childEclass.varTypes.get(&mapToS).unwrap();
+                varTypes
+                    .entry(s)
+                    .and_modify(|vt: &mut VarType| assert!(vt == childSlotType))
+                    .or_insert(childSlotType.clone());
+            }
+        }
+    }
+
+    // debug!("aggregateVarType for {:?}", sh);
+    // debug!("get {:?}", varTypes);
+
+    varTypes
+}
+
+// TODO bug (crash) lookup return mismatch slots number with this enode
+// guess it's case where eclass interface slots is less than the enode slot
+fn transformToEgraphNameSpace(sh: &CHC, eg: &CHCEGraph) -> CHC {
+    if let Some(appId) = eg.lookup(sh) {
+        return eg.getExactENodeInEGraph(sh);
+    }
+
+    sh.clone()
+}
+
+fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCData {
+    let sh = transformToEgraphNameSpace(sh, eg);
+    let mut hm = HashMap::default();
+    hm.insert(*sh.slots().iter().next().unwrap(), returnType);
+    debug!("result {hm:?}");
+    CHCData {
+        predNames: HashSet::default(),
+        varTypes: hm,
+    }
+}
+
+// TODO2: varType not propagate up
+// TODO: internal var for each eclass
+impl Analysis<CHC> for CHCAnalysis {
+    type Data = CHCData;
+
+    fn merge(x: CHCData, y: CHCData, i: Id, eg: &CHCEGraph) -> CHCData {
+        let c = eg.eclass(i).unwrap();
+        // debug!("calling merge to {:?}", i);
+        // debug!("dump from merge c {}", c);
+        // debug!("x {x:?}");
+        // debug!("y {y:?}");
+        // debug!("eclass {:?}", eg.eclass(i).unwrap());
+
+        let mut newPredNames = HashSet::<String>::default();
+        let xLen = x.predNames.len();
+        let yLen = y.predNames.len();
+        newPredNames.extend(y.predNames);
+        newPredNames.extend(x.predNames);
+
+        let mut newVarTypes = x.varTypes.clone();
+        for (var, yVarType) in y.varTypes {
+            if let Some(thisType) = newVarTypes.get(&var) {
+                assert!(yVarType == *thisType);
+            } else {
+                newVarTypes.insert(var, yVarType);
+            }
+        }
+
+        let eclassSlots = eg.allSlots(i);
+        // debug!("eclassSlots {:?}", eclassSlots);
+        let newVarTypes = newVarTypes
+            .into_iter()
+            .filter(|(s, vt)| eclassSlots.contains(&s))
+            .collect();
+
+        // debug!("result varTypes {:?}", newVarTypes);
+
+        CHCData {
+            predNames: newPredNames,
+            varTypes: newVarTypes,
+        }
+    }
+
+    fn make(eg: &CHCEGraph, sh: &CHC) -> CHCData {
+        // debug!("calling make on {:?}", sh);
+        match sh {
+            CHC::Init(predNameId, predSyntaxId) | CHC::Interface(predNameId, predSyntaxId, _) => {
+                let stringEnodes = eg.enodes(predNameId.id);
+                assert!(stringEnodes.len() == 1);
+                let stringEnode = stringEnodes.iter().next().unwrap();
+                let CHC::PredName(predName) = stringEnode else {
+                    panic!();
+                };
+                let mut predNames = HashSet::default();
+                predNames.insert(predName.to_owned());
+
+                CHCData {
+                    predNames,
+                    varTypes: aggregateVarType(sh, eg),
+                }
+            }
+            CHC::Int(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Int),
+            CHC::Node(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Node),
+            CHC::Var(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Unknown),
+            _ => CHCData {
+                predNames: HashSet::default(),
+                varTypes: aggregateVarType(sh, eg),
+            },
+        }
+    }
+
+    fn modify(eg: &mut EGraph<CHC, Self>, i: Id) {}
+}
+
+pub fn dumpCHCEClass(
+    i: Id,
+    map: &mut HashMap<AppliedId, RecExpr<CHC>, rustc_hash::FxBuildHasher>,
+    eg: &CHCEGraph,
+) {
+    let nodes = eg.enodes(i);
+    if nodes.len() == 0 {
+        return;
+    }
+
+    let mut slot_order: Vec<Slot> = eg.slots(i).into();
+    slot_order.sort();
+    let slot_str = slot_order
+        .iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<_>>()
+        .join(", ");
+
+    let synExpr = eg.getSynExpr(&i, map);
+    print!("\n{}", synExpr);
+    print!("\n{:?}", eg.analysis_data(i));
+    print!("\n{:?}({}):", i, &slot_str);
+    print!(">> {:?}\n", eg.getSynNodeNoSubst(&i));
+
+    for node in eg.enodes(i) {
+        print!(" - {node:?}\n");
+        let (sh, m) = node.weak_shape();
+        print!(" -   {sh:?}\n");
+    }
+    let permute = eg.getSlotPermutation(&i);
+    for p in permute {
+        print!(" -- {:?}\n", p);
+    }
+}
+
+pub fn dumpCHCEGraph(eg: &CHCEGraph) {
+    print!("\n == Egraph ==");
+    let mut eclasses = eg.ids();
+    eclasses.sort();
+
+    let mut map = HashMap::<AppliedId, RecExpr<CHC>, rustc_hash::FxBuildHasher>::default();
+    for i in eclasses {
+        dumpCHCEClass(i, &mut map, eg);
+    }
+    print!("");
+}
+
+pub fn id<L: Language, N: Analysis<L>>(s: &str, eg: &mut EGraph<L, N>) -> AppliedId {
+    eg.check();
+    let re = RecExpr::parse(s).unwrap();
+    let out = eg.add_syn_expr(re.clone());
+    eg.check();
+    out
+}
+
+pub fn merge(s1: &str, s2: &str, eg: &mut CHCEGraph) {
+    let id1 = &id(&s1, eg);
+    let id2 = &id(&s2, eg);
+    eg.union(id1, id2);
+}
+
+pub fn starPVar(starIndex: u32, starCount: u32) -> String {
+    format!("star_{}_{}", starIndex, starCount)
+}
+
+// get a string of star_i_j from the subst
+pub fn starPStr(starIndex: u32, subst: &Subst) -> String {
+    let mut res: Vec<String> = starPVecStr(starIndex, subst);
+    for s in &mut res {
+        s.insert_str(0, "?");
+    }
+    res.join(" ")
+}
+
+// get a vector of string of star_i_j from the subst
+fn starPVecStr(starIndex: u32, subst: &Subst) -> Vec<String> {
+    let mut countStar = 0;
+    let mut allStarStr: Vec<String> = vec![];
+    while subst.contains_key(&starPVar(starIndex, countStar)) {
+        allStarStr.push((format!("{}", starPVar(starIndex, countStar))));
+        countStar += 1;
+    }
+    allStarStr
+}
+
+// get all appliedId that is
+pub fn starIds(starIndex: u32, subst: &Subst) -> Vec<AppliedId> {
+    let mut allIds = vec![];
+    let mut starCount = 0;
+    // cannot merge this into one call because starCount gets updated
+    while subst.contains_key(&starPVar(starIndex, starCount)) {
+        allIds.push(subst[&starPVar(starIndex, starCount)].clone());
+        starCount += 1;
+    }
+
+    allIds
+}
+
+pub fn starStrSortedByAppIds(starIndices: &[u32], subst: &Subst) -> String {
+    let mut starStrs = vec![];
+    for i in starIndices {
+        starStrs.extend(starPVecStr(*i, subst));
+    }
+    starStrs.sort_by(|si, sj| subst[si].cmp(&subst[sj]));
+    starStrs.iter_mut().for_each(|s| s.insert_str(0, "?"));
+    starStrs.join(" ")
+}
+
+pub fn getMaxStarCount(starIndex: u32, subst: &Subst) -> u32 {
+    let mut starMax = 0;
+    while subst.contains_key(&starPVar(starIndex, starMax)) {
+        starMax += 1;
+    }
+
+    starMax
+}
+
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -598,4 +890,201 @@ pub fn getAllRewrites() -> Vec<CHCRewrite> {
         // defineFromSharingBlock(),
         trueToAnd(),
     ]
+}
+
+type CHCEGraph = EGraph<CHC, CHCAnalysis>;
+type CHCRewrite = Rewrite<CHC, CHCAnalysis>;
+type CHCRunner = Runner<CHC, CHCAnalysis>;
+
+fn minDummy(x: &str, y: &str, z: &str) -> String {
+    let syntax = format!("(pred <{x} {y} {z}>)");
+    format!("(init min {syntax})")
+}
+
+fn minCHC(x: &str, y: &str, z: &str, eg: &mut CHCEGraph) -> AppliedId {
+    let syntax = format!("(pred <{x} {y} {z}>)");
+    // min(X,Y,Z) <- X< Y, Z=X
+    let cond1 = format!("(and <(lt {x} {y}) (eq {z} {x})>)");
+    let chc1 = format!("(new {syntax} {cond1} <>)");
+    let itf1 = format!("(interface min {syntax} 1)");
+    merge(&chc1, &itf1, eg);
+
+    // min(X,Y,Z) <- X >= Y, Z=Y
+    let cond2 = format!("(and <(geq {x} {y}) (eq {z} {y})>)");
+    let chc2 = format!("(new {syntax} {cond2} <>)");
+    let itf2 = format!("(interface min {syntax} 2)");
+    merge(&chc1, &itf1, eg);
+
+    id(&format!("(compose <{chc1} {chc2}>)"), eg)
+}
+
+fn minLeafDummy(x: &str, y: &str) -> String {
+    let syntax = format!("(pred <{x} {y}>)");
+    format!("(init minLeaf {syntax})")
+}
+
+fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {
+    let a = generateVarFromCount(count, VarType::Int);
+    let l = generateVarFromCount(count, VarType::Node);
+    let r = generateVarFromCount(count, VarType::Node);
+    let m1 = generateVarFromCount(count, VarType::Int);
+    let m2 = generateVarFromCount(count, VarType::Int);
+    let m3 = generateVarFromCount(count, VarType::Int);
+
+    let syntax = format!("(pred <{x} {y}>)");
+
+    // min-leaf(X,Y) <- X=leaf, Y=0
+    let cond1 = format!("(and <(eq {y} 0) (eq {x} (leaf))>)");
+    let chc1 = format!("(new {syntax} {cond1} <>)");
+    let itf1 = format!("(interface minLeaf {syntax} 1)");
+    merge(&chc1, &itf1, eg);
+
+    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
+    let cond2 = format!("(and <(eq {x} (binode {a} {l} {r})) (eq {y} (+ {m3} 1))>)");
+    let chc2 = format!(
+        "(new {syntax} {cond2} <{} {} {}>)",
+        minLeafDummy(&l, &m1),
+        minLeafDummy(&r, &m2),
+        minDummy(&m1, &m2, &m3)
+    );
+    let itf2 = format!("(interface minLeaf {syntax} 2)");
+    merge(&chc2, &itf2, eg);
+
+    id(&format!("(compose <{itf1} {itf2}>)"), eg)
+}
+
+fn leafDropDummy(x: &str, y: &str, z: &str) -> String {
+    let syntax = format!("(pred <{x} {y} {z}>)");
+    format!("(init leafDrop {syntax})")
+}
+
+fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {
+    let syntax = format!("(pred <{x} {y} {z}>)");
+
+    // left-drop(x,y,z) ← y=leaf, z=leaf
+    let cond1 = format!("(and <(eq {y} (leaf)) (eq {z} (leaf))>)");
+    let chc1 = format!("(new {syntax} {cond1} <>)");
+    let itf1 = format!("(interface leafDrop {syntax} 1)");
+    merge(&chc1, &itf1, eg);
+
+    // left-drop(x, y ,z) ← x ≤0, y = node(a,L,R), z = node(a,L,R)
+    let l = generateVarFromCount(count, VarType::Node);
+    let r = generateVarFromCount(count, VarType::Node);
+    let a = generateVarFromCount(count, VarType::Int);
+    let cond2 =
+        format!("(and <(leq {x} 0) (eq {y} (binode {a} {l} {r})) (eq {z} (binode {a} {l} {r}))>)");
+    let chc2 = format!("(new {syntax} {cond2} <>)");
+    let itf2 = format!("(interface leafDrop {syntax} 2)");
+    merge(&chc2, &itf2, eg);
+
+    // left-drop(x,y,z) ← y= node(a,L,R), x ≥1,N1=x−1, left-drop(N1,L,z)
+    let l1 = generateVarFromCount(count, VarType::Node);
+    let r1 = generateVarFromCount(count, VarType::Node);
+    let a1 = generateVarFromCount(count, VarType::Int);
+    let n1 = generateVarFromCount(count, VarType::Int);
+    let cond3 = format!("(and <(eq {y} (binode {a1} {l1} {r1})) (geq {x} 1) (eq {n1} (- {x} 1))>)");
+    let chc3 = format!("(new {syntax} {cond3} <{}>)", leafDropDummy(x, y, z));
+    let itf3 = format!("(interface leafDrop {syntax} 3)");
+    merge(&chc3, &itf3, eg);
+
+    id(&format!("(compose <{chc1} {chc2} {chc3}>)"), eg)
+}
+
+fn rootDummy(n: &str, t: &str, u: &str, m: &str, k: &str) -> String {
+    let syntax = format!("(pred <{n} {t} {u} {m} {k}>)");
+    format!("(init root {syntax})")
+}
+
+fn rootDummy2(n: &str, t: &str, u: &str) -> String {
+    let syntax = format!("(pred <{n} {t} {u}>)");
+    format!("(init root {syntax})")
+}
+
+fn addPredName(id: Id, predName: String, eg: &mut CHCEGraph) {
+    let data = eg.analysis_data_mut(id);
+    data.predNames.insert(predName);
+}
+
+fn tst2() {
+    // TODO: how to determine slot type?
+    initLogger();
+    let mut egOrig = CHCEGraph::default();
+    let mut count = 0;
+    {
+        let eg = &mut egOrig;
+
+        let n = &generateVarFromCount(&mut count, VarType::Int);
+        let t = &generateVarFromCount(&mut count, VarType::Node);
+        let u = &generateVarFromCount(&mut count, VarType::Node);
+        let m = &generateVarFromCount(&mut count, VarType::Int);
+        let k = &generateVarFromCount(&mut count, VarType::Int);
+
+        //  false ← N≥0,M+N<K, left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
+        let syntax = "(pred <>)";
+        let cond = format!("(and <(geq {n} 0) (lt (+ {m} {n}) {k})>)");
+        let rootCHC: String = format!(
+            "(new {syntax} {cond} <{} {} {}>)",
+            leafDropDummy(n, t, u),
+            minLeafDummy(u, m),
+            minLeafDummy(t, k)
+        );
+        let composeRoot = format!("(compose <{rootCHC}>)");
+
+        let rootDummyId = id(&rootDummy(n, t, u, m, k), eg);
+        let rootId = id(&composeRoot, eg);
+        eg.union(&rootId, &rootDummyId);
+
+        let x = &generateVarFromCount(&mut count, VarType::Int);
+        let y = &generateVarFromCount(&mut count, VarType::Int);
+        let z = &generateVarFromCount(&mut count, VarType::Int);
+
+        let minDummyId = id(&minDummy(x, y, z), eg);
+        let minId = minCHC(x, y, z, eg);
+        eg.union(&minDummyId, &minId);
+
+        let x = &generateVarFromCount(&mut count, VarType::Int);
+        let y = &generateVarFromCount(&mut count, VarType::Node);
+        let z = &generateVarFromCount(&mut count, VarType::Node);
+
+        let leafDropDummyId = id(&leafDropDummy(x, y, z), eg);
+        let leafDropId = leafDropCHC(x, y, z, &mut count, eg);
+        eg.union(&leafDropDummyId, &leafDropId);
+
+        let x = &generateVarFromCount(&mut count, VarType::Node);
+        let y = &generateVarFromCount(&mut count, VarType::Int);
+
+        let minLeafDummyId = id(&minLeafDummy(x, y), eg);
+        let minLeafId = minLeafCHC(x, y, &mut count, eg);
+        eg.union(&minLeafDummyId, &minLeafId);
+
+        debug!("egraph before run");
+        dumpCHCEGraph(&eg);
+    }
+
+    // TODO: can we not use mem::take here?
+    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(1);
+    let report = runner.run(&getAllRewrites());
+    debug!("report {report:?}");
+
+    debug!("egraph after run");
+    dumpCHCEGraph(&runner.egraph);
+
+    // check unfold result
+    // 19. new1(N,M,K)←M=0,K=0
+    // 20. new1(N,M,K)←N≤0,M=M3+1,K=K3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(L,K1), min-leaf(R,K2), min(K1,K2,K3)
+    // 21. new1(N,M,K)←N≥1,N1=N−1 K=K3+1, left-drop(N1,L,U), min-leaf(U,M), min-leaf(L,K1), min-leaf(R,K2), min(K1,K2,K3)
+
+    let n = &generateVarFromCount(&mut count, VarType::Int);
+    let m = &generateVarFromCount(&mut count, VarType::Int);
+    let k = &generateVarFromCount(&mut count, VarType::Int);
+    let syntax = format!("(pred <{n} {m} {k}>)");
+    let cond = format!("(and <(eq {k} 0) (eq {m} 0)>)");
+    // let chc: String = format!("(new {syntax} {cond} <>)");
+    // let res = ematch_all(&runner.egraph, &Pattern::parse(&chc).unwrap());
+    let res = ematch_all(&runner.egraph, &Pattern::parse(&cond).unwrap());
+    assert!(res.len() >= 1);
+}
+
+fn main() {
+    tst2();
 }

@@ -85,7 +85,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn add(&mut self, enode: L) -> AppliedId {
-        self.add_internal(self.shape_called_from_add(enode))
+        // major time is in add_internal
+        let (sh, _) = time(|| self.shape_called_from_add(enode));
+        let (addedId, _) = time(|| self.add_internal(sh));
+        addedId
     }
 
     // create a duplicate Enode with reset mapped slot in AppliedId,
@@ -100,18 +103,22 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // self.add(x) = y implies that x.slots() is a superset of y.slots().
     // x.slots() - y.slots() are redundant slots.
     pub(in crate::egraph) fn add_internal(&mut self, t: (L, SlotMap)) -> AppliedId {
-        if let Some(x) = self.lookup_internal(&t) {
+        let (lookupRes, lookUpTime) = time(|| self.lookup_internal(&t));
+        if let Some(x) = lookupRes {
             return x;
         }
 
         // TODO this code is kinda exactly what add_syn is supposed to do anyways. There's probably a way to write this more concisely.
         // We convert the enode to "syn" so that semantic_add will compute the necessary redundancy proofs.
         // change private slot, apply slot map to Enode
-        let enode = t.0.refresh_private().apply_slotmap(&t.1);
-        let enode = self.synify_enode(enode);
+        let (enode, applyTime) = time(|| t.0.refresh_private().apply_slotmap(&t.1));
+        let (enode, synifyTime) = time(|| self.synify_enode(enode));
 
-        let syn = self.mk_singleton_class(enode);
-        self.semify_app_id(syn)
+        // make takes up most of the time here
+        let (syn, mkTime) = time(|| self.mk_singleton_class(enode));
+        let (semifyAppId, semifyTime) = time(|| self.semify_app_id(syn));
+        debug!("add_internal: lookup {lookUpTime:?}, apply {applyTime:?}, synify {synifyTime:?}, mk {mkTime:?}, semify {semifyTime:?}");
+        semifyAppId
     }
 
     pub fn lookup(&self, n: &L) -> Option<AppliedId> {
@@ -175,7 +182,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // we use semantic_add so that the redundancy, symmetry and congruence checks run on it.
         let t = syn_enode_fresh.weak_shape();
         self.raw_add_to_class(i, t.clone(), i);
+        let oldPendingLen = self.pending.len();
         self.pending.insert(t.0, PendingType::Full);
+        let newPendingLen = self.pending.len();
+        debug!("insert to pending len from make class by {oldPendingLen} to {newPendingLen}");
         self.modify_queue.push(i);
         self.rebuild_called_from_add();
 

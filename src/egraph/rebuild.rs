@@ -151,6 +151,20 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 self.check();
             }
         }
+        // TODO: doing this makes the test fail
+        // while !self.pending.is_empty() {
+        //     debug!("pending lens {}", self.pending.len());
+        //     let pending_batch = std::mem::take(&mut self.pending);
+        //     for (sh, pending_ty) in pending_batch {
+        //         self.handle_pending(sh, pending_ty);
+        //     }
+
+        //     // expensive invariants check: run once per batch instead of once per item
+        //     if CHECKS {
+        //         self.check();
+        //     }
+        // }
+
         debug!("end pending loops");
 
         while let Some(i) = self.modify_queue.pop() {
@@ -321,10 +335,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // add parent to pending
     // upon touching an e-class, you need to update all usages of it.
     pub(crate) fn touched_class(&mut self, i: Id, pending_ty: PendingType) {
+        let oldPendingLen = self.pending.len();
         for sh in &self.classes[&i].usages {
             let v = self.pending.entry(sh.clone()).or_insert(pending_ty);
             *v = v.merge(pending_ty);
         }
+        let newPendingLen = self.pending.len();
+        debug!("insert to pending len from touched_class by {oldPendingLen} to {newPendingLen}");
     }
 
     pub(crate) fn pc_from_shape(&self, sh: &L) -> ProvenContains<L> {
