@@ -187,7 +187,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let newPendingLen = self.pending.len();
         debug!("insert to pending len from make class by {oldPendingLen} to {newPendingLen}");
         self.modify_queue.push(i);
-        self.rebuild_called_from_add();
+        // self.rebuild_called_from_add();
 
         // fresh slots is for that eclass, old is slots from added Enode
         self.mk_syn_applied_id(i, fresh_to_old)

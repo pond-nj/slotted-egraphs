@@ -1,3 +1,4 @@
+use log::debug;
 use serial_test::serial;
 
 use crate::*;
@@ -44,12 +45,15 @@ fn get_both(eg: &EGraph<Arith, ConstProp>, x: &AppliedId, y: &AppliedId) -> Opti
 #[test]
 #[serial]
 fn const_prop() {
+    initLogger();
     let start = RecExpr::parse("(add 2 (mul 2 3))").unwrap();
 
     let mut eg = EGraph::<Arith, ConstProp>::default();
     let i = eg.add_expr(start.clone());
 
     assert_eq!(eg.analysis_data(i.id), &Some(8));
+
+    eg.rebuild();
 
     let t: RecExpr<Arith> = RecExpr::parse("8").unwrap();
     assert_eq!(t, extract::<Arith, ConstProp, AstSize>(&i, &eg));

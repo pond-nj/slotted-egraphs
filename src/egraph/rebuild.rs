@@ -136,22 +136,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.touched_class(from.id, PendingType::Full);
     }
 
-    pub(crate) fn rebuild(&mut self) {
+    pub fn rebuild(&mut self) {
         if CHECKS {
             self.check();
         }
 
         debug!("start pending loops");
-        // while let Some(sh) = self.pending.keys().cloned().next() {
-        //     debug!("pending lens {}", self.pending.len());
-        //     let pending_ty = self.pending.remove(&sh).unwrap();
-        //     self.handle_pending(sh, pending_ty);
-
-        //     if CHECKS {
-        //         self.check();
-        //     }
-        // }
-        // TODO: doing this makes the test fail
         while !self.pending.is_empty() {
             debug!("pending lens {}", self.pending.len());
             let pending_batch = std::mem::take(&mut self.pending);
@@ -167,6 +157,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         debug!("end pending loops");
 
+        debug!("modify_queue {:?}", self.modify_queue);
         while let Some(i) = self.modify_queue.pop() {
             let i = self.find_id(i);
             N::modify(self, i);

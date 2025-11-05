@@ -42,7 +42,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let out = self.union_internal(&a, &b, proof);
 
-        self.rebuild_called_from_union_instantiations();
+        // self.rebuild_called_from_union_instantiations();
         out
     }
 
