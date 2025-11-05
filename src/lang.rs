@@ -26,7 +26,6 @@ pub enum LanguageChildrenType {
 }
 
 pub fn checkChildrenTypeEq(a: &Vec<LanguageChildrenType>, b: &Vec<LanguageChildrenType>) -> bool {
-    debug!("checkChildrenTypeEq {a:?} vs {b:?}");
     if a.len() == 0 || b.len() == 0 {
         if a.len() == 1 && a[0] == LanguageChildrenType::Star {
             return true;

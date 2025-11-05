@@ -172,12 +172,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // (Pond) update analysis first but then might remove this node later?????, why???
         debug!("Eclass {:?}", self.eclass(i).unwrap());
-        self.update_analysis(&sh, i);
+        // self.update_analysis(&sh, i);
 
-        if let PendingType::OnlyAnalysis = pending_ty {
-            debug!("end handling pending at OnlyAnalysis");
-            return;
-        }
+        // if let PendingType::OnlyAnalysis = pending_ty {
+        //     debug!("end handling pending at OnlyAnalysis");
+        //     return;
+        // }
 
         let psn = self.classes[&i].nodes[&sh].clone();
         let node = sh.apply_slotmap(&psn.elem);
@@ -221,7 +221,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let t = (sh.clone(), bij);
         self.raw_add_to_class(i.id, t.clone(), src_id);
 
-        // self.update_analysis(&sh, i_orig.id);
+        self.update_analysis(&sh, i_orig.id);
 
         self.determine_self_symmetries(src_id);
     }

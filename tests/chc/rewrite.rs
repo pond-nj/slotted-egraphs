@@ -125,8 +125,23 @@ fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> Vec<AppliedIdOrStar> 
     panic!();
 }
 
-type UnfoldRecipe = (AppliedId, Vec<AppliedIdOrStar>, Vec<AppliedIdOrStar>);
-type ComposeUnfoldRecipe = (Vec<Vec<UnfoldRecipe>>, usize, Vec<AppliedId>, AppliedId);
+type UnfoldRecipe = (
+    AppliedId,
+    Vec<AppliedIdOrStar>,
+    Vec<AppliedIdOrStar>,
+    AppliedId,
+);
+
+#[derive(Debug)]
+struct ComposeUnfoldRecipe {
+    unfoldRecipe: Vec<Vec<UnfoldRecipe>>,
+    exclude: usize,
+    compose1Children: Vec<AppliedId>,
+    rootId: AppliedId,
+    compose2Id: AppliedId,
+    new1EClass: AppliedId,
+}
+
 fn unfold() -> CHCRewrite {
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<ComposeUnfoldRecipe> {
         let rootPat = Pattern::parse("(compose <*0>)").unwrap();
@@ -194,17 +209,20 @@ fn unfold() -> CHCRewrite {
                                         syntax1.clone(),
                                         mergeAndChildren,
                                         unfoldedChildren,
+                                        new2EClass.clone(),
                                     ));
                                 }
                                 unfoldedENodesRecipe.push(fromThisEClassRecipe);
                             }
 
-                            composeUnfoldReceipt.push((
-                                unfoldedENodesRecipe,
-                                i1,
-                                compose1Children.clone(),
-                                rootId.clone(),
-                            ));
+                            composeUnfoldReceipt.push(ComposeUnfoldRecipe {
+                                unfoldRecipe: unfoldedENodesRecipe,
+                                exclude: i1,
+                                compose1Children: compose1Children.clone(),
+                                rootId: rootId.clone(),
+                                compose2Id: compose2Id.clone(),
+                                new1EClass: new1EClass.clone(),
+                            });
                         }
                     }
                 }
@@ -214,21 +232,35 @@ fn unfold() -> CHCRewrite {
         composeUnfoldReceipt
     });
     let applier = Box::new(
-        // (compose <[(new ?syntax2 (true) <*4>) \dot (#matches of *1)] *3>)
         move |composeRecipes: Vec<ComposeUnfoldRecipe>, eg: &mut CHCEGraph| {
+            debug!("receive {:?}", composeRecipes);
             for composeRecipe in composeRecipes {
-                let (unfoldedENodesRecipe, i1, compose1Children, rootId) = composeRecipe;
-                for unfoldRecipeComb in combination(unfoldedENodesRecipe) {
+                let ComposeUnfoldRecipe {
+                    unfoldRecipe,
+                    exclude,
+                    compose1Children,
+                    rootId,
+                    compose2Id,
+                    new1EClass,
+                } = composeRecipe;
+                for unfoldRecipeComb in combination(unfoldRecipe) {
                     let mut childrenComb = vec![];
-                    for (syntax1, mergeAndChildren, unfoldedChildren) in unfoldRecipeComb {
+                    for (syntax1, mergeAndChildren, unfoldedChildren, new2EClass) in
+                        unfoldRecipeComb
+                    {
                         let mergeAnd = eg.add(CHC::And(mergeAndChildren));
                         let unfoldedENode = CHC::New(syntax1, mergeAnd, unfoldedChildren);
                         let unfoldedENodeId = eg.add(unfoldedENode);
+                        eg.analysis_data_mut(unfoldedENodeId.id)
+                            .predNames
+                            .insert(format!(
+                                "unfold_{compose2Id}_in_{new1EClass}_using_{new2EClass}"
+                            ));
                         childrenComb.push(unfoldedENodeId);
                     }
 
                     let mut unfoldedComposeChildren = compose1Children.clone();
-                    unfoldedComposeChildren.remove(i1);
+                    unfoldedComposeChildren.remove(exclude);
                     unfoldedComposeChildren.extend(childrenComb);
                     let unfoldedComposeChildren = unfoldedComposeChildren
                         .into_iter()
@@ -516,7 +548,7 @@ pub fn getAllRewrites() -> Vec<CHCRewrite> {
         unfold(),
         // newChildrenPermute(),
         // composeChildrenPermute(),
-        defineFromSharingBlock(),
+        // defineFromSharingBlock(),
         trueToAnd(),
     ]
 }
