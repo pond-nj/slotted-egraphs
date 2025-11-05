@@ -27,14 +27,14 @@ pub fn mergeSubst(subst1: &mut Subst, subst2: &Subst) {
 pub fn ematch_all<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
     pattern: &Pattern<L>,
-) -> Vec<Subst> {
+) -> Vec<(Subst, Id)> {
     debug!("=== Call EmatchAll ===");
     debug!("pattern = {pattern}");
-    let mut out: Vec<Subst> = Vec::new();
+    let mut out: Vec<(Subst, Id)> = Vec::new();
     for i in eg.ids() {
-        let i = eg.mk_sem_identity_applied_id(i);
-        let result = ematchAllInEclassInternal(pattern, State::default(), i, eg);
-        out.extend(result.into_iter().map(final_subst));
+        let appId = eg.mk_sem_identity_applied_id(i);
+        let result = ematchAllInEclassInternal(pattern, State::default(), appId, eg);
+        out.extend(result.into_iter().map(final_subst).map(|x| (x, i)));
     }
     out
 }

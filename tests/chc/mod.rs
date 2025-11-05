@@ -80,8 +80,8 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
             let appInverse = app.m.inverse();
             if let Some(mapToS) = appInverse.get(s) {
                 let childEclassData = eg.analysis_data(app.id);
-                debug!("childEclass {:?}", eg.eclass(app.id).unwrap());
-                debug!("try to get {mapToS:?}");
+                // debug!("childEclass {:?}", eg.eclass(app.id).unwrap());
+                // debug!("try to get {mapToS:?}");
                 let childSlotType = childEclassData.varTypes.get(&mapToS).unwrap();
                 varTypes
                     .entry(s)

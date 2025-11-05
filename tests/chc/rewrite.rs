@@ -149,8 +149,9 @@ fn unfold() -> CHCRewrite {
         let rootMatches = ematch_all(eg, &rootPat);
         // (compose1 <(new1 syntax1 cond1 <(compose2 <new2 syntax2>)>)>)
         let mut composeUnfoldReceipt = vec![];
-        for compose1Children in rootMatches {
+        for (compose1Children, rootId1) in rootMatches {
             let rootId = lookupPattern(eg, &rootPat, &compose1Children).unwrap();
+            assert!(rootId1 == rootId.id);
             let mut compose1Children: Vec<AppliedId> = compose1Children
                 .iter()
                 .map(|(s, appId)| appId.clone())
@@ -168,7 +169,7 @@ fn unfold() -> CHCRewrite {
                     };
 
                     // TODO: this will only pick the first and out
-                    debug!("cond1 EClass {:?}", eg.eclass(cond1.id));
+                    // debug!("cond1 EClass {:?}", eg.eclass(cond1.id));
                     let and1Children = getAnyAndChildren(&cond1, eg);
 
                     for (i2, compose2Id) in new1Children.iter().enumerate() {
@@ -423,7 +424,9 @@ fn unfold() -> CHCRewrite {
 fn defineFromSharingBlock() -> CHCRewrite {
     let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
     let patClone = pat.clone();
-    let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &patClone) });
+    let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> {
+        ematch_all(eg, &patClone).into_iter().map(|s| s.0).collect()
+    });
     let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
         debug!("define found {:?}", substs);
         for subst in substs {

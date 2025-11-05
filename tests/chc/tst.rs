@@ -50,15 +50,6 @@ fn sCHC(x: &str, y: &str) -> String {
     format!("(compose <{s_chc1}>)")
 }
 
-// r1(x) <- .
-// r2(y) <- .
-// Q(x, y) <- r1(x), r2(y).
-// S(x).
-// P(x, y) <- Q(x, y), S(x).
-// P(x, y) <- .
-
-// P(x, y) <- r1(x), r2(y), S(x).
-
 fn pCHC(x: &str, y: &str) -> String {
     let p_syntax = &format!("(pred <{x} {y}>)");
     // P(x, y) <- Q(x, y), S(x).
@@ -79,7 +70,7 @@ fn pDummy(x: &str, y: &str) -> String {
 
 #[test]
 fn tst1() {
-    initLogger();
+    // initLogger();
     let mut eg = CHCEGraph::default();
     let x = "(var $0)";
     let y = "(var $1)";
@@ -99,11 +90,17 @@ fn tst1() {
         eg.union(&cId, &cDummyId);
     }
 
+    let rootId = id(&pCHC(x, y), &mut eg);
+
     let mut runner: CHCRunner = Runner::default().with_egraph(eg).with_iter_limit(5);
     let report = runner.run(&getAllRewrites());
     debug!("report {report:?}");
     debug!("egraph after");
     dumpCHCEGraph(&runner.egraph);
+
+    // find
+    // P(x, y) <- .
+    // P(x, y) <- r1(x), r2(y), S(x).
 
     let x = "?a";
     let y = "?b";
@@ -116,20 +113,34 @@ fn tst1() {
     for p in permutation {
         let unfolded_p_chc1 = &format!("(new {p_syntax} (and <>) <{} {} {}>)", p[0], p[1], p[2]);
         let newRoot = format!("(compose <{p_chc2} {unfolded_p_chc1}>)");
-        let resultLen = ematch_all(&runner.egraph, &Pattern::parse(&newRoot).unwrap()).len();
-        if (resultLen > 0) {
+        let result = ematch_all(&runner.egraph, &Pattern::parse(&newRoot).unwrap());
+        if (result.len() > 0) {
+            assert!(result.first().unwrap().1 == rootId.id);
             found = true;
             break;
         }
 
         let newRoot = format!("(compose <{unfolded_p_chc1} {p_chc2}>)");
-        let resultLen = ematch_all(&runner.egraph, &Pattern::parse(&newRoot).unwrap()).len();
-        if (resultLen > 0) {
+        let result = ematch_all(&runner.egraph, &Pattern::parse(&newRoot).unwrap());
+        if (result.len() > 0) {
+            assert!(result.first().unwrap().1 == rootId.id);
             found = true;
             break;
         }
     }
     assert!(found);
+
+    // find
+    // P(x, y).
+    // P(x, y).
+    let x = "?a";
+    let y = "?b";
+    let p_syntax = &format!("(pred <{x} {y}>)");
+    let p_chc2 = &format!("(new {p_syntax} (true) <>)");
+    let unfoldBoth = format!("(compose <{p_chc2} {p_chc2}>)");
+    let result = ematch_all(&runner.egraph, &Pattern::parse(&unfoldBoth).unwrap());
+    assert!(result.len() > 0);
+    assert!(result.first().unwrap().1 == rootId.id);
 }
 
 fn minDummy(x: &str, y: &str, z: &str) -> String {

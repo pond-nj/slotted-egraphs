@@ -53,7 +53,7 @@ fn crop_ident(s: &str) -> Result<(/*ident*/ &str, /*rest*/ &str), ParseError> {
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
     let mut tokens = Vec::new();
 
-    debug!("from {}", s);
+    // debug!("from {}", s);
 
     loop {
         s = s.trim_start();
@@ -102,7 +102,7 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
         }
     }
 
-    debug!("to tokens {:?}", tokens);
+    // debug!("to tokens {:?}", tokens);
     Ok(tokens)
 }
 

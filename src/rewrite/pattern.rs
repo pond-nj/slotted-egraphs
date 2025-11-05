@@ -171,7 +171,7 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(
     let pattern = &mut pattern.clone();
     replaceStarInPatternFromSubst(pattern, subst);
 
-    debug!("calling pattern_substInternal on {pattern:#?}");
+    // debug!("calling pattern_substInternal on {pattern:#?}");
     // debug!("with {subst:#?}");
     pattern_substInternal(eg, &pattern, subst)
 }
@@ -183,8 +183,8 @@ pub fn patternSubstStr<L: Language, N: Analysis<L>>(
 ) -> AppliedId {
     let mut pattern = Pattern::parse(patternStr).unwrap();
     replaceStarInPatternFromSubst(&mut pattern, subst);
-    debug!("patternStr: {patternStr:#?}");
-    debug!("calling pattern_substInternal on {pattern:#?}");
+    // debug!("patternStr: {patternStr:#?}");
+    // debug!("calling pattern_substInternal on {pattern:#?}");
     // debug!("with {subst:#?}");
     pattern_substInternal(eg, &pattern, subst)
 }

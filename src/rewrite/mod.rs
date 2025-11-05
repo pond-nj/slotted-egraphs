@@ -92,7 +92,7 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
         let a2 = a.clone();
         RewriteT {
             name: rule.to_owned(),
-            searcher: Box::new(move |eg| ematch_all(eg, &a)),
+            searcher: Box::new(move |eg| ematch_all(eg, &a).into_iter().map(|s| s.0).collect()),
             applier: Box::new(move |substs, eg| {
                 Self::apply_substs_cond(substs, &cond, &a2, &b, &rule, eg)
             }),

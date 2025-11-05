@@ -126,7 +126,7 @@ fn let_const() -> Rewrite<Rise> {
         name: "let_const".to_owned(),
         searcher: Box::new(|_| ()),
         applier: Box::new(move |(), eg| {
-            for subst in ematch_all(eg, &pat) {
+            for subst in ematch_all(eg, &pat).into_iter().map(|s| s.0) {
                 if eg
                     .enodes_applied(&subst["c"])
                     .iter()
@@ -235,7 +235,7 @@ fn beta_extr() -> Rewrite<Rise> {
             let extractor = Extractor::<_, AstSize>::new(eg, AstSize);
 
             let mut out: Vec<(Subst, RecExpr<Rise>)> = Vec::new();
-            for subst in ematch_all(eg, &a) {
+            for subst in ematch_all(eg, &a).into_iter().map(|s| s.0) {
                 let b = extractor.extract(&subst["b"], eg);
                 let t = extractor.extract(&subst["t"], eg);
                 let res = re_subst(s, b, &t);
@@ -269,7 +269,7 @@ fn beta_extr_direct() -> Rewrite<Rise> {
             let extractor = Extractor::<_, AstSize>::new(eg, AstSize);
 
             let mut out: Vec<(Subst, RecExpr<Rise>)> = Vec::new();
-            for subst in ematch_all(eg, &a) {
+            for subst in ematch_all(eg, &a).into_iter().map(|s| s.0) {
                 let b = extractor.extract(&subst["b"], eg);
                 let t = extractor.extract(&subst["t"], eg);
                 let res = re_subst(s, b, &t);

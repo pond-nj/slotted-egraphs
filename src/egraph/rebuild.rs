@@ -180,7 +180,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         */
 
         // (Pond) update analysis first but then might remove this node later?????, why???
-        debug!("Eclass {:?}", self.eclass(i).unwrap());
+        // debug!("Eclass {:?}", self.eclass(i).unwrap());
         // self.update_analysis(&sh, i);
 
         // if let PendingType::OnlyAnalysis = pending_ty {
@@ -190,6 +190,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let psn = self.classes[&i].nodes[&sh].clone();
         let node = sh.apply_slotmap(&psn.elem);
+        // TODO: why does this call remove from and then add to again?
         self.raw_remove_from_class(i, sh.clone());
         let app_i = self.mk_sem_identity_applied_id(i);
 
