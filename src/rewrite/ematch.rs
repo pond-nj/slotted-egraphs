@@ -7,12 +7,12 @@ use log_derive::{logfn, logfn_inputs};
 pub type Subst = HashMap<String, AppliedId>;
 
 #[derive(Default, Clone, Debug)]
-struct State {
+pub struct State {
     // uses egraph slots.
-    partial_subst: Subst,
+    pub partial_subst: Subst,
 
     // maps from the egraph slots to the pattern slots.
-    partial_slotmap: SlotMap,
+    pub partial_slotmap: SlotMap,
 }
 
 pub fn mergeSubst(subst1: &mut Subst, subst2: &Subst) {
@@ -30,6 +30,7 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
 ) -> Vec<(Subst, Id)> {
     debug!("=== Call EmatchAll ===");
     debug!("pattern = {pattern}");
+    debug!("= {pattern:#?}");
     let mut out: Vec<(Subst, Id)> = Vec::new();
     for i in eg.ids() {
         let appId = eg.mk_sem_identity_applied_id(i);
@@ -118,15 +119,17 @@ fn ematchAllInEclassInternal<L: Language, N: Analysis<L>>(
                 );
 
                 if out.len() > 0 {
-                    debug!("{enodeIdx}th enode found matched");
+                    debug!("{enodeIdx}th enode in {i} found matched");
                 } else {
-                    debug!("{enodeIdx}th enode not found matched");
+                    debug!("{enodeIdx}th enode in {i} not found matched");
                 }
             }
             let ret = out;
             if ret.len() > 0 {
                 // debug!("At return, Search {} in {:?}", pattern, i);
                 // debug!("ret {:?}", ret);
+            } else {
+                debug!("try match in eclass {i:?} not found");
             }
             ret
         }
@@ -256,7 +259,7 @@ fn ematchCheckEnodeAndChildren<L: Language, N: Analysis<L>>(
     }
 }
 
-pub(crate) fn nullify_app_ids<L: Language>(l: &L) -> L {
+pub fn nullify_app_ids<L: Language>(l: &L) -> L {
     let mut l = l.clone();
     for x in l.applied_id_occurrences_mut() {
         *x = AppliedId::null();
@@ -264,7 +267,7 @@ pub(crate) fn nullify_app_ids<L: Language>(l: &L) -> L {
     l
 }
 
-fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> bool {
+pub fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> bool {
     if let Some(v_old) = map.get(k) {
         if v_old != v {
             return false;
@@ -274,7 +277,7 @@ fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> boo
     map.is_bijection()
 }
 
-fn final_subst(s: State) -> Subst {
+pub fn final_subst(s: State) -> Subst {
     // debug!("final_subst s {:#?}", s);
     let State {
         partial_subst: mut subst,

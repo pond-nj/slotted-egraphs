@@ -70,7 +70,7 @@ fn pDummy(x: &str, y: &str) -> String {
 
 #[test]
 fn tst1() {
-    // initLogger();
+    initLogger();
     let mut eg = CHCEGraph::default();
     let x = "(var $0)";
     let y = "(var $1)";
@@ -110,25 +110,19 @@ fn tst1() {
 
     let permutation = permute(&children);
     let mut found = false;
-    for p in permutation {
-        let unfolded_p_chc1 = &format!("(new {p_syntax} (and <>) <{} {} {}>)", p[0], p[1], p[2]);
-        let newRoot = format!("(compose <{p_chc2} {unfolded_p_chc1}>)");
-        let result = ematch_all(&runner.egraph, &Pattern::parse(&newRoot).unwrap());
-        if (result.len() > 0) {
-            assert!(result.first().unwrap().1 == rootId.id);
-            found = true;
-            break;
-        }
 
-        let newRoot = format!("(compose <{unfolded_p_chc1} {p_chc2}>)");
-        let result = ematch_all(&runner.egraph, &Pattern::parse(&newRoot).unwrap());
-        if (result.len() > 0) {
-            assert!(result.first().unwrap().1 == rootId.id);
-            found = true;
-            break;
-        }
-    }
-    assert!(found);
+    debug!("rootId {rootId:?}");
+
+    let unfolded_p_chc1 = &format!(
+        "(new {p_syntax} (and <>) <{} {} {}>)",
+        r1Dummy(x, y),
+        r2Dummy(x, y),
+        sDummy(x, y)
+    );
+    let newRoot = format!("(compose <{p_chc2} {unfolded_p_chc1}>)");
+    let result = ematchQueryall(&runner.egraph, &Pattern::parse(&newRoot).unwrap());
+    assert!(result.len() > 0);
+    assert!(result[1].1 == rootId.id);
 
     // find
     // P(x, y).
@@ -148,6 +142,8 @@ fn minDummy(x: &str, y: &str, z: &str) -> String {
     format!("(init min {syntax})")
 }
 
+// min(X,Y,Z) <- X< Y, Z=X
+// min(X,Y,Z) <- X >= Y, Z=Y
 fn minCHC(x: &str, y: &str, z: &str, eg: &mut CHCEGraph) -> AppliedId {
     let syntax = format!("(pred <{x} {y} {z}>)");
     // min(X,Y,Z) <- X< Y, Z=X
@@ -170,6 +166,8 @@ fn minLeafDummy(x: &str, y: &str) -> String {
     format!("(init minLeaf {syntax})")
 }
 
+// min-leaf(X,Y) <- X=leaf, Y=0
+// min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
 fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {
     let a = generateVarFromCount(count, VarType::Int);
     let l = generateVarFromCount(count, VarType::Node);
@@ -255,7 +253,7 @@ fn addPredName(id: Id, predName: String, eg: &mut CHCEGraph) {
 #[test]
 fn tst2() {
     // TODO: how to determine slot type?
-    initLogger();
+    // initLogger();
     let mut egOrig = CHCEGraph::default();
     let mut count = 0;
     {
@@ -333,46 +331,92 @@ fn tst2() {
     assert!(res.len() >= 1);
 }
 
-// #[test]
-// fn tst3() {
-//     // TODO: how to determine slot type?
-//     initLogger();
-//     let mut egOrig = CHCEGraph::default();
-//     let mut count = 0;
-//     {
-//         let eg = &mut egOrig;
+fn checkMinLeafUnfoldWithMin(eg: &mut CHCEGraph) {
+    // min-leaf(X,Y) <- X=leaf, Y=0
+    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 < M2, M3 = M1.
+    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 >= M2, M2 = M3.
 
-//         let n = &generateVarFromCount(&mut count, VarType::Int);
-//         let t = &generateVarFromCount(&mut count, VarType::Node);
-//         let u = &generateVarFromCount(&mut count, VarType::Node);
+    let x = &generateVarFromCount(&mut 0, VarType::Node);
+    let y = &generateVarFromCount(&mut 0, VarType::Int);
 
-//         //  false ← N≥0,left-drop(N,T,U)
-//         let syntax = "(pred <>)";
-//         let cond = format!("(and <(geq {n} 0)>)");
-//         let rootCHC: String = format!("(new {syntax} {cond} <{}>)", leafDropDummy(n, t, u));
-//         let composeRoot = format!("(compose <{rootCHC}>)");
+    let count = &mut 0;
+    let a = generateVarFromCount(count, VarType::Int);
+    let l = generateVarFromCount(count, VarType::Node);
+    let r = generateVarFromCount(count, VarType::Node);
+    let m1 = generateVarFromCount(count, VarType::Int);
+    let m2 = generateVarFromCount(count, VarType::Int);
+    let m3 = generateVarFromCount(count, VarType::Int);
 
-//         let rootDummyId = id(&rootDummy2(n, t, u), eg);
-//         let rootId = id(&composeRoot, eg);
-//         eg.union(&rootId, &rootDummyId);
+    let syntax = format!("(pred <{x} {y}>)");
 
-//         let x = &generateVarFromCount(&mut count, VarType::Int);
-//         let y = &generateVarFromCount(&mut count, VarType::Node);
-//         let z = &generateVarFromCount(&mut count, VarType::Node);
+    // min-leaf(X,Y) <- X=leaf, Y=0
+    let cond1 = format!("(and <(eq {y} 0) (eq {x} (leaf))>)");
+    let chc1 = format!("(new {syntax} {cond1} <>)");
 
-//         let leafDropDummyId = id(&leafDropDummy(x, y, z), eg);
-//         let leafDropId = leafDropCHC(x, y, z, &mut count, eg);
-//         eg.union(&leafDropDummyId, &leafDropId);
+    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 < M2, M3 = M1.
+    let cond2 = format!(
+        "(and <(eq {x} (binode {a} {l} {r})) (eq {y} (+ {m3} 1)) (lt {m1} {m2}) (eq {m3} {m1})>)"
+    );
+    let chc2 = format!(
+        "(new {syntax} {cond2} <{} {}>)",
+        minLeafDummy(&l, &m1),
+        minLeafDummy(&r, &m2),
+    );
 
-//         debug!("egraph before run");
-//         dumpCHCEGraph(&eg);
-//     }
+    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 >= M2, M2 = M3.
+    let cond3 = format!(
+        "(and <(eq {x} (binode {a} {l} {r})) (eq {y} (+ {m3} 1)) (geq {m1} {m2}) (eq {m2} {m3})>)"
+    );
+    let chc3 = format!(
+        "(new {syntax} {cond2} <{} {}>)",
+        minLeafDummy(&l, &m1),
+        minLeafDummy(&r, &m2),
+    );
 
-//     // TODO: can we not use mem::take here?
-//     let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(60);
-//     let report = runner.run(&getAllRewrites());
-//     debug!("report {report:?}");
+    let unfold = format!("(compose <{chc1} {chc2} {chc3}>)");
+    let res = ematchQueryall(&eg, &Pattern::parse(&unfold).unwrap());
+    assert!(res.len() > 0);
+    assert!(res[0].1 == id(&minLeafDummy(x, y), eg).id);
+}
 
-//     debug!("egraph after run");
-//     dumpCHCEGraph(&runner.egraph);
-// }
+#[test]
+fn tst3() {
+    // TODO: how to determine slot type?
+    // initLogger();
+    let mut egOrig = CHCEGraph::default();
+    let mut count = 0;
+    {
+        let eg = &mut egOrig;
+
+        let x = &generateVarFromCount(&mut count, VarType::Int);
+        let y = &generateVarFromCount(&mut count, VarType::Int);
+        let z = &generateVarFromCount(&mut count, VarType::Int);
+
+        // min(X,Y,Z) <- X< Y, Z=X
+        // min(X,Y,Z) <- X >= Y, Z=Y
+        let minDummyId = id(&minDummy(x, y, z), eg);
+        let minId = minCHC(x, y, z, eg);
+        eg.union(&minDummyId, &minId);
+
+        let x = &generateVarFromCount(&mut count, VarType::Node);
+        let y = &generateVarFromCount(&mut count, VarType::Int);
+
+        // min-leaf(X,Y) <- X=leaf, Y=0
+        // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
+        let minLeafDummyId = id(&minLeafDummy(x, y), eg);
+        let minLeafId = minLeafCHC(x, y, &mut count, eg);
+        eg.union(&minLeafId, &minLeafDummyId);
+
+        debug!("egraph before run");
+        dumpCHCEGraph(&eg);
+    }
+
+    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(1);
+    let report = runner.run(&getAllRewrites());
+    debug!("report {report:?}");
+
+    debug!("egraph after run");
+    dumpCHCEGraph(&runner.egraph);
+
+    checkMinLeafUnfoldWithMin(&mut runner.egraph);
+}

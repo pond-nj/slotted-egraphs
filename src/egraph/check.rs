@@ -23,7 +23,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // (Pond) turn id (of this eclass) to AppliedId with identity slotmap
     #[track_caller]
-    pub(crate) fn mk_sem_identity_applied_id(&self, i: Id) -> AppliedId {
+    pub fn mk_sem_identity_applied_id(&self, i: Id) -> AppliedId {
         self.mk_sem_applied_id(i, SlotMap::identity(&self.slots(i)))
     }
 

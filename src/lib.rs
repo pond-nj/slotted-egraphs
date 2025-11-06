@@ -31,7 +31,7 @@ pub use symbol_table::GlobalSymbol as Symbol;
 
 // Whether to enable invariant-checks.
 #[cfg(feature = "checks")]
-const CHECKS: bool = true;
+pub const CHECKS: bool = true;
 #[cfg(not(feature = "checks"))]
 const CHECKS: bool = false;
 

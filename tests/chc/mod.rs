@@ -14,6 +14,9 @@ use tracing_subscriber::{fmt, prelude::*};
 mod rewrite;
 pub use rewrite::*;
 
+mod ematchQuery;
+pub use ematchQuery::*;
+
 mod tst;
 
 define_language! {
