@@ -252,10 +252,10 @@ fn checkMinLeafUnfoldWithMin(eg: &mut CHCEGraph) {
     debug!("found res3 {res3:?}");
     assert!(res3.len() > 0);
 
-    // let unfold = format!("(compose <{chc1} {chc2} {chc3}>)");
-    // let res = ematchQueryall(&eg, &Pattern::parse(&unfold).unwrap());
-    // assert!(res.len() > 0);
-    // assert!(res[0].1 == id(&minLeafDummy(x, y), eg).id);
+    let unfold = format!("(compose <{chc1} {chc2} {chc3}>)");
+    let res = ematchQueryall(&eg, &Pattern::parse(&unfold).unwrap());
+    assert!(res.len() > 0);
+    assert!(res[0].1 == id(&minLeafDummy(x, y), eg).id);
 }
 
 #[test]
