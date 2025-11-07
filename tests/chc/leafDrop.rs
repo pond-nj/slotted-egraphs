@@ -192,7 +192,7 @@ fn mainTest() {
     let cond = format!("(and <(eq {k} 0) (eq {m} 0)>)");
     // let chc: String = format!("(new {syntax} {cond} <>)");
     // let res = ematch_all(&runner.egraph, &Pattern::parse(&chc).unwrap());
-    let res = ematch_all(&runner.egraph, &Pattern::parse(&cond).unwrap());
+    let res = ematchQueryall(&runner.egraph, &Pattern::parse(&cond).unwrap());
     assert!(res.len() >= 1);
 }
 
