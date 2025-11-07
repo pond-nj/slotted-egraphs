@@ -243,10 +243,11 @@ pub fn dumpCHCEGraph(eg: &CHCEGraph) {
     print!("");
 }
 
-pub fn merge(s1: &str, s2: &str, eg: &mut CHCEGraph) {
+pub fn merge(s1: &str, s2: &str, eg: &mut CHCEGraph) -> Id {
     let id1 = &id(&s1, eg);
     let id2 = &id(&s2, eg);
     eg.union(id1, id2);
+    eg.find_applied_id(id1).id
 }
 
 pub fn starPVar(starIndex: u32, starCount: u32) -> String {

@@ -185,7 +185,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let oldPendingLen = self.pending.len();
         self.pending.insert(t.0, PendingType::Full);
         let newPendingLen = self.pending.len();
-        debug!("insert to pending len from make class by {oldPendingLen} to {newPendingLen}");
+        // debug!("insert to pending len from make class by {oldPendingLen} to {newPendingLen}");
         self.modify_queue.push(i);
         // self.rebuild_called_from_add();
 
@@ -205,7 +205,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         (sh, bij): (L, Bijection),
         src_id: Id,
     ) {
-        debug!("add to {id:?} {:?}", sh);
+        // debug!("add to {id:?} {:?}", sh);
         let psn = ProvenSourceNode { elem: bij, src_id };
 
         let tmp1 = self
@@ -226,7 +226,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(in crate::egraph) fn raw_remove_from_class(&mut self, id: Id, sh: L) -> ProvenSourceNode {
-        debug!("remove from {id:?} {:?}", sh);
+        // debug!("remove from {id:?} {:?}", sh);
         let opt_psn = self.classes.get_mut(&id).unwrap().nodes.remove(&sh);
         let opt_id = self.hashcons.remove(&sh);
         if CHECKS {
@@ -268,7 +268,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             syn_enode: syn_enode.clone(),
             analysis_data: N::make(&self, &syn_enode),
         };
-        debug!("classes insert {:?}", c_id);
+        // debug!("classes insert {:?}", c_id);
         self.classes.insert(c_id, c);
 
         {

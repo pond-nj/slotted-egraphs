@@ -68,6 +68,11 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
         debug!("doing apply for {}", rw.name);
         (*rw.applier)(t, eg);
         debug!("done apply for {}", rw.name);
+        debug!(
+            "egraph size after {} is {}",
+            rw.name,
+            eg.total_number_of_nodes()
+        );
     }
 
     prog != eg.progress()

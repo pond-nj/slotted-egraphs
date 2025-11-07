@@ -323,7 +323,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let (a, b, prf) = self.pc_congruence(&pc1, &pc2);
         if a.id != b.id {
-            debug!("handle_congruence, union a {a:?}, b {b:?}");
+            // debug!("handle_congruence, union a {a:?}, b {b:?}");
         }
         self.union_internal(&a, &b, prf);
     }
@@ -337,7 +337,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             *v = v.merge(pending_ty);
         }
         let newPendingLen = self.pending.len();
-        debug!("insert to pending len from touched_class by {oldPendingLen} to {newPendingLen}");
+        // debug!("insert to pending len from touched_class by {oldPendingLen} to {newPendingLen}");
     }
 
     pub(crate) fn pc_from_shape(&self, sh: &L) -> ProvenContains<L> {

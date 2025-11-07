@@ -431,14 +431,8 @@ fn defineFromSharingBlock() -> CHCRewrite {
         ematch_all(eg, &patClone).into_iter().map(|s| s.0).collect()
     });
     let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
-        debug!("define found {:?}", substs);
         for subst in substs {
             let rootAppId = pattern_subst(eg, &pat, &subst);
-            debug!(
-                "root eclass {:?} {:?}",
-                rootAppId.id,
-                eg.eclass(rootAppId.id).unwrap()
-            );
 
             let origENode = eg
                 .getExactENodeInEGraph(&constructENodefromPatternSubst(eg, &pat, &subst).unwrap());
@@ -448,16 +442,16 @@ fn defineFromSharingBlock() -> CHCRewrite {
             let mut varToChildIndx: HashMap<Slot, Vec<usize>> = HashMap::default();
             let mut mergeVarTypes: HashMap<Slot, VarType> = HashMap::default();
             let childAppIds = &origENode.applied_id_occurrences()[2..];
-            debug!("childAppIds {childAppIds:#?}");
+            // debug!("childAppIds {childAppIds:#?}");
             for indx in 0..childAppIds.len() {
                 let appId = childAppIds[indx];
-                debug!("appId.slots {:?}", appId.slots());
+                // debug!("appId.slots {:?}", appId.slots());
                 for s in appId.slots() {
                     varToChildIndx.entry(s).or_insert(vec![]).push(indx);
                 }
 
                 let childrenVarTypes = &eg.analysis_data(appId.id).varTypes;
-                debug!("childrenVarTypes = {childrenVarTypes:#?}");
+                // debug!("childrenVarTypes = {childrenVarTypes:#?}");
                 mergeVarTypes.extend(
                     appId
                         .m
@@ -475,7 +469,6 @@ fn defineFromSharingBlock() -> CHCRewrite {
             let mut hasNonBasicVar = vec![false; childAppIds.len()];
 
             for (var, childrenIndx) in &varToChildIndx {
-                debug!("var = {var:?}");
                 if isNonBasicVar(&mergeVarTypes[var]) {
                     let leader = childrenIndx.first().unwrap();
                     for next in childrenIndx {
@@ -509,7 +502,7 @@ fn defineFromSharingBlock() -> CHCRewrite {
                 let mut children: Vec<_> =
                     group.clone().into_iter().map(|i| childAppIds[i]).collect();
                 children.sort();
-                debug!("from {:?} children after sort {:?}", rootAppId.id, children);
+                // debug!("from {:?} children after sort {:?}", rootAppId.id, children);
 
                 let dummyEnode = CHC::New(
                     id("(pred <>)", eg),
@@ -524,14 +517,14 @@ fn defineFromSharingBlock() -> CHCRewrite {
                 let mut basicVars: Vec<_> =
                     basicVars.into_iter().map(|s| map.inverse()[s]).collect();
 
-                debug!("dummyEnode root {:?} shape {:#?}", rootAppId.id, dummyEnode);
+                // debug!("dummyEnode root {:?} shape {:#?}", rootAppId.id, dummyEnode);
 
                 basicVars.sort();
 
-                debug!("mergeVarTypes {mergeVarTypes:?}");
-                debug!("map {:?}", map);
+                // debug!("mergeVarTypes {mergeVarTypes:?}");
+                // debug!("map {:?}", map);
 
-                debug!("sorted basicVars {basicVars:?}");
+                // debug!("sorted basicVars {basicVars:?}");
                 let basicVarsStr = basicVars
                     .into_iter()
                     .map(|s| generateVar(&s.to_string(), mergeVarTypes[&map[s]].clone()))
@@ -553,9 +546,9 @@ fn defineFromSharingBlock() -> CHCRewrite {
                 }
                 let newENodeStr = format!("(new {syntax} (true) <{childrenStr}>)");
 
-                debug!("define_from_{}_{}", rootAppId.id, counter);
-                debug!("newENodeStr {newENodeStr:?}");
-                debug!("newSubst {newSubst:#?}");
+                // debug!("define_from_{}_{}", rootAppId.id, counter);
+                // debug!("newENodeStr {newENodeStr:?}");
+                // debug!("newSubst {newSubst:#?}");
 
                 let newENodeAppId =
                     pattern_subst(eg, &Pattern::parse(&newENodeStr).unwrap(), &newSubst);
@@ -601,7 +594,7 @@ pub fn getAllRewrites() -> Vec<CHCRewrite> {
         unfold(),
         // newChildrenPermute(),
         // composeChildrenPermute(),
-        // defineFromSharingBlock(),
+        defineFromSharingBlock(),
         trueToAnd(),
     ]
 }
