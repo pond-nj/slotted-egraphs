@@ -17,6 +17,7 @@ pub use rewrite::*;
 mod ematchQuery;
 pub use ematchQuery::*;
 
+mod leafDrop;
 mod tst;
 
 define_language! {

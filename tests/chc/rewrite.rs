@@ -272,6 +272,9 @@ fn unfold() -> CHCRewrite {
                             unfoldRecipeComb
                         {
                             let mergeAnd = eg.add(CHC::And(mergeAndChildren));
+                            eg.analysis_data_mut(mergeAnd.id).predNames.insert(format!(
+                                "and_from_unfold_{compose2Id}_in_{new1EClass}_using_{new2EClass}"
+                            ));
                             let unfoldedENode = CHC::New(syntax1, mergeAnd, unfoldedChildren);
                             let unfoldedENodeId = eg.add(unfoldedENode);
                             eg.analysis_data_mut(unfoldedENodeId.id)

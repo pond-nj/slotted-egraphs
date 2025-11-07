@@ -144,6 +144,12 @@ fn ematchQueryCheckEnodeAndChildren(
                 allSetOfChildren.push(newPatternChildren);
             }
         }
+        CHC::Eq(..) => {
+            assert!(patternChildren.len() == 2);
+            allSetOfChildren.push(patternChildren.to_vec());
+            allSetOfChildren
+                .push([patternChildren[1].clone(), patternChildren[0].clone()].to_vec());
+        }
         _ => {
             allSetOfChildren.push(patternChildren.to_vec());
         }
@@ -154,7 +160,9 @@ fn ematchQueryCheckEnodeAndChildren(
         debug!(
             "try match to {eclassEnode:?} with patEnode {patternEnode:?} and {patternChildren:?}"
         );
-        'nodeloop: for enode_shape in eg.get_group_compatible_weak_variants(&eclassEnode) {
+        let enodes = eg.get_group_compatible_weak_variants(&eclassEnode);
+        assert!(!enodes.is_empty());
+        'nodeloop: for enode_shape in enodes {
             if CHECKS {
                 assert_eq!(&nullify_app_ids(patternEnode), patternEnode);
             }
@@ -180,7 +188,8 @@ fn ematchQueryCheckEnodeAndChildren(
             {
                 // (Pond) if cannot try map between pattern and enode slots
                 if !try_insert_compatible_slotmap_bij(x, y, &mut st.partial_slotmap) {
-                    // debug!("continue at !try_insert_compatible_slotmap_bij");
+                    debug!("continue at !try_insert_compatible_slotmap_bij");
+                    debug!("cannot insert {x:?} -> {y:?} in {st:?}");
                     continue 'nodeloop;
                 }
             }
