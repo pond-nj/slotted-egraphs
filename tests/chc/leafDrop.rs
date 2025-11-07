@@ -272,26 +272,8 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) {
     debug!("found resCond3 {resCond3:?}");
     assert!(resCond3.len() > 0);
 
-    // let chc3 = format!(
-    //     "(new {syntax} {} <{} {} {}>)",
-    //     cond3,
-    //     leafDropDummy(n1, l, u),
-    //     minLeafDummy(u, m),
-    //     minLeafDummy(t, k)
-    // );
-    // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
-    // (new (pred <(int $f16862) (int $f16863) (int $f16864)>)
-    // (and <(eq (node $f16865) (binode (int $f16869) (node $f16867) (node $f16868))) (geq (int $f16862) (1)) (eq (int $f16870) (- (int $f16862) (1)))>)
-    // <(init (minLeaf) (pred <(node $f16865) (int $f16863)>))
-    // (init (minLeaf) (pred <(node $f16866) (int $f16864)>))
-    // (init (leafDrop) (pred <(int $f16862) (node $f16865) (node $f16866)>))>)
-    // f16866 = u
-    // f16865 = l
-    // f16862 = n1 = n
-    // f16864 = m
-    //
     let chc3 = format!(
-        "(new ?syntax {} <{} {} {}>)",
+        "(new {syntax} {} <{} {} {}>)",
         cond3,
         leafDropDummy(n1, l, u),
         minLeafDummy(u, m),
