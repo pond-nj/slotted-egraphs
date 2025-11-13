@@ -1,4 +1,4 @@
-pub fn combination<T: Clone>(toBeCombine: Vec<Vec<T>>) -> Vec<Vec<T>> {
+pub fn combination<T: Clone>(toBeCombine: &Vec<Vec<T>>) -> Vec<Vec<T>> {
     let mut maxRange: Vec<u32> = vec![];
     for i in toBeCombine.iter() {
         maxRange.push(i.len() as u32);

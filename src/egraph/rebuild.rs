@@ -331,13 +331,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // add parent to pending
     // upon touching an e-class, you need to update all usages of it.
     pub(crate) fn touched_class(&mut self, i: Id, pending_ty: PendingType) {
-        let oldPendingLen = self.pending.len();
         for sh in &self.classes[&i].usages {
             let v = self.pending.entry(sh.clone()).or_insert(pending_ty);
             *v = v.merge(pending_ty);
         }
-        let newPendingLen = self.pending.len();
-        // debug!("insert to pending len from touched_class by {oldPendingLen} to {newPendingLen}");
     }
 
     pub(crate) fn pc_from_shape(&self, sh: &L) -> ProvenContains<L> {

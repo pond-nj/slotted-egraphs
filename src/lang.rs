@@ -627,6 +627,9 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
 
         let mut c = self.clone();
         for x in c.public_slot_occurrences_mut() {
+            if !m.contains_key(*x) {
+                continue;
+            }
             let y = m[*x];
 
             // If y collides with a private slot, we have a problem.
@@ -645,7 +648,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
         if CHECKS {
             assert!(
                 m.keys().is_superset(&self.slots()),
-                "Language::apply_slotmap: The SlotMap doesn't map all free slots!"
+                "Language::apply_slotmap: The SlotMap doesn't map all free slots!, slotmap: {m:?}, free slots: {:?}", self.slots()
             );
         }
         self.apply_slotmap_partial(m)
@@ -653,6 +656,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
 
     #[doc(hidden)]
     fn apply_slotmap_fresh(&self, m: &SlotMap) -> Self {
+        let mut m = m.clone();
         let mut prv = vec![].into();
         if CHECKS {
             prv = self.private_slots();
@@ -661,6 +665,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
         let mut c = self.clone();
         for x in c.public_slot_occurrences_mut() {
             let y = m.get(*x).unwrap_or_else(Slot::fresh);
+            m.insert(*x, y);
 
             // If y collides with a private slot, we have a problem.
             if CHECKS {

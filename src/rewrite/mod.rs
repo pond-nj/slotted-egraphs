@@ -57,7 +57,7 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
 
     let ts: Vec<Box<dyn Any>> = rewrites
         .iter()
-        .map(|rw| {
+        .map(|rw: &Rewrite<L, N>| {
             debug!("doing search for {}", rw.name);
             let ret = (*rw.searcher)(eg);
             debug!("done search for {}", rw.name);

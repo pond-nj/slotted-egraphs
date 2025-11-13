@@ -1,6 +1,8 @@
 use super::*;
 use crate::*;
+use derive_more::derive;
 use log::debug;
+use std::cell::RefCell;
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -11,107 +13,6 @@ use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 static G_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 use std::collections::HashSet;
-
-// fn unfold() -> CHCRewrite {
-//     let rootPat =
-//         Pattern::parse("(compose <(new ?syntax1 (and <*0>) <(compose <*1>) *2> ) *3>)").unwrap();
-//     let rootPat2 = rootPat.clone();
-
-//     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &rootPat) });
-//     let applier = Box::new(
-//         // (compose <[(new ?syntax2 (true) <*4>) \dot (#matches of *1)] *3>)
-//         move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
-//             debug!("unfold rule, found {:#?}", substs);
-//             for subst in substs {
-//                 let star1Max = getMaxStarCount(1, &subst);
-
-//                 let mut matches: Vec<Vec<AppliedId>> = vec![];
-//                 let subPat = Pattern::parse("(new ?syntax2 (and <*6>) <*4>)").unwrap();
-
-//                 let rootUnfoldPattern =
-//                     Pattern::parse("(new ?syntax1 (and <*0>) <(compose <*1>) *2> )").unwrap();
-//                 let rootClause = pattern_subst(eg, &rootUnfoldPattern, &subst);
-//                 let rootUnfold =
-//                     pattern_subst(eg, &Pattern::parse("(compose <*1>)").unwrap(), &subst);
-
-//                 let rootUnfoldEnode: &CHC =
-//                     &constructENodefromPatternSubst(eg, &rootUnfoldPattern, &subst).unwrap();
-
-//                 for star1Count in 0..star1Max {
-//                     let var = &starPVar(1, star1Count);
-//                     let result: Vec<Subst> =
-//                         ematchAllInEclass(eg, &subPat, subst[var].id, &subst[var].m);
-//                     debug!("subPat = {subPat:?}");
-//                     debug!("subEclass match result {result:#?}");
-//                     let mut thisNewIds: Vec<AppliedId> = vec![];
-
-//                     for mut r in result {
-//                         mergeSubst(&mut r, &subst);
-
-//                         // TODO: add interface for these new Enode
-//                         let newENodePat = &format!(
-//                             "(new ?syntax1 (and <{}>) <{}>)",
-//                             starStrSortedByAppIds(&[0, 6], &subst),
-//                             starStrSortedByAppIds(&[2, 4], &subst),
-//                         );
-//                         // add enode to egraph
-//                         let newId = patternSubstStr(eg, newENodePat, &r);
-
-//                         debug!(
-//                             "Unfolding at {rootUnfold}, starCount {star1Count} \n {:?} \n with {:?} \n to {:?}",
-//                             eg.getExactENodeInEGraph(rootUnfoldEnode),
-//                             &constructENodefromPatternSubst(eg, &subPat, &r).unwrap().weak_shape().0,
-//                             eg.getExactENodeInEGraph(
-//                                 &constructENodefromPatternSubst(
-//                                     eg,
-//                                     &Pattern::parse(newENodePat).unwrap(),
-//                                     &r
-//                                 )
-//                                 .unwrap()
-//                             )
-//                         );
-
-//                         eg.analysis_data_mut(newId.id).predNames.insert(format!(
-//                             "unfold_{rootUnfold}_using_{}_in_{rootClause}",
-//                             subst[var].id
-//                         ));
-//                         thisNewIds.push(newId);
-//                     }
-//                     matches.push(thisNewIds);
-//                 }
-
-//                 let matchesCombination: Vec<Vec<AppliedId>> = combination(matches);
-//                 let newEnode =
-//                     Pattern::parse(&format!("(compose <{} *5>)", starPStr(3, &subst))).unwrap();
-//                 for m in matchesCombination {
-//                     assert!(m.len() == star1Max as usize);
-//                     // Create a new compose Enode whose children is the vector of AppliedId and union it with the original Compose
-//                     let mut newSubst = subst.clone();
-//                     let mut star4Count = 0;
-//                     for id in m {
-//                         let key = starPVar(5, star4Count);
-//                         assert!(!newSubst.contains_key(&key));
-//                         newSubst.insert(key, id);
-//                         star4Count += 1;
-//                     }
-
-//                     eg.union_instantiations(
-//                         &rootPat2,
-//                         &newEnode,
-//                         &newSubst,
-//                         Some("Unfold".to_string()),
-//                     );
-//                 }
-//             }
-//         },
-//     );
-//     RewriteT {
-//         name: "unfold".to_owned(),
-//         searcher: searcher,
-//         applier: applier,
-//     }
-//     .into()
-// }
 
 fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> Vec<AppliedIdOrStar> {
     let n = eg.enodes_applied(appId).first().unwrap().clone();
@@ -126,12 +27,13 @@ fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> Vec<AppliedIdOrStar> 
     panic!();
 }
 
-type UnfoldRecipe = (
-    AppliedId,
-    Vec<AppliedIdOrStar>,
-    Vec<AppliedIdOrStar>,
-    AppliedId,
-);
+#[derive(Debug, Clone)]
+pub struct UnfoldRecipe {
+    syntax1: AppliedId,
+    mergeAndChildren: Vec<AppliedIdOrStar>,
+    unfoldedChildren: Vec<AppliedIdOrStar>,
+    new2EClass: AppliedId,
+}
 
 #[derive(Debug)]
 struct ComposeUnfoldRecipe {
@@ -143,115 +45,309 @@ struct ComposeUnfoldRecipe {
     new1EClass: AppliedId,
 }
 
-fn unfold() -> CHCRewrite {
-    let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<ComposeUnfoldRecipe> {
-        let rootPat = Pattern::parse("(compose <*0>)").unwrap();
-        let rootMatches = ematch_all(eg, &rootPat);
-        // (compose1 <(new1 syntax1 cond1 <(compose2 <new2 syntax2>)>)>)
-        let mut composeUnfoldReceipt = vec![];
-        for (compose1Children, rootId1) in rootMatches {
-            let rootId = lookupPattern(eg, &rootPat, &compose1Children).unwrap();
-            assert!(rootId1 == rootId.id);
-            let mut compose1Children: Vec<AppliedId> = compose1Children
-                .iter()
-                .map(|(s, appId)| appId.clone())
-                .collect();
-            compose1Children.sort();
-            // TODO: it's not good to iterate while updating egraph
-            for (i1, new1EClass) in compose1Children.iter().enumerate() {
-                for new1 in eg.enodes_applied(new1EClass) {
-                    if let CHC::Interface(..) = new1 {
-                        continue;
-                    }
+#[derive(Debug, Clone)]
+pub struct UnfoldListComponent {
+    composeAppId: AppliedId,
+    composeShape: CHC,
+    newEClassAppId: AppliedId,
+    newENodeShape: CHC,
+}
 
-                    let CHC::New(syntax1, cond1, new1Children) = new1 else {
+impl UnfoldListComponent {
+    pub fn getShape(&self) -> (UnfoldListComponent, SlotMap) {
+        let (composeShape, m) = self.composeShape.weak_shape();
+
+        (
+            UnfoldListComponent {
+                composeAppId: self.composeAppId.apply_slotmap(&m.inverse()),
+                composeShape,
+                newEClassAppId: self.newEClassAppId.apply_slotmap(&m.inverse()),
+                newENodeShape: self.newENodeShape.apply_slotmap(&m.inverse()),
+            },
+            m,
+        )
+    }
+}
+
+type UnfoldList = Vec<(UnfoldListComponent)>;
+
+// TODO unfold list, list of ENodes waiting to be unfolded
+// add new unfolded ENode to the Unfold list
+// unfold every clause in the body at most once in unfold one rewrite
+
+// Fold list should also be from the unfold list
+
+// 1) composeAppId, 2) NewEClass AppliedId, 3) New ENode shape
+// fn unfold(unfoldList: &Rc<RefCell<UnfoldList>>) -> CHCRewrite {
+//     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<ComposeUnfoldRecipe> {
+//         let rootPat = Pattern::parse("(compose <*0>)").unwrap();
+//         let rootMatches = ematch_all(eg, &rootPat);
+//         // (compose1 <(new1 syntax1 cond1 <(compose2 <new2 syntax2>)>)>)
+//         let mut composeUnfoldReceipt = vec![];
+//         for (compose1Children, rootId1) in rootMatches {
+//             let rootId = lookupPattern(eg, &rootPat, &compose1Children).unwrap();
+//             assert!(rootId1 == rootId.id);
+//             let mut compose1Children: Vec<AppliedId> = compose1Children
+//                 .iter()
+//                 .map(|(s, appId)| appId.clone())
+//                 .collect();
+//             compose1Children.sort();
+//             for (i1, new1EClass) in compose1Children.iter().enumerate() {
+//                 for new1 in eg.enodes_applied(new1EClass) {
+//                     if let CHC::Interface(..) = new1 {
+//                         continue;
+//                     }
+
+//                     let CHC::New(syntax1, cond1, new1Children) = new1 else {
+//                         panic!();
+//                     };
+
+//                     let and1Children = getAnyAndChildren(&cond1, eg);
+//                     for (i2, compose2Id) in new1Children.iter().enumerate() {
+//                         let compose2Id = compose2Id.getAppliedId();
+//                         for compose2 in eg.enodes_applied(&compose2Id) {
+//                             if let CHC::Init(..) = compose2 {
+//                                 continue;
+//                             }
+
+//                             let CHC::Compose(compose2Children) = compose2 else {
+//                                 panic!();
+//                             };
+
+//                             let mut unfoldedENodesRecipe: Vec<Vec<UnfoldRecipe>> = vec![];
+//                             for new2EClass in compose2Children.iter() {
+//                                 let new2EClass = new2EClass.getAppliedId();
+//                                 let mut fromThisEClassRecipe: Vec<UnfoldRecipe> = vec![];
+//                                 for new2 in eg.enodes_applied(&new2EClass) {
+//                                     if let CHC::Interface(..) = new2 {
+//                                         continue;
+//                                     }
+
+//                                     let CHC::New(syntax2, cond2, new2Children) = new2 else {
+//                                         panic!();
+//                                     };
+
+//                                     let and2Children = getAnyAndChildren(&cond2, eg);
+
+//                                     let mut unfoldedChildren = new1Children.clone();
+//                                     unfoldedChildren.remove(i2);
+//                                     // 2
+//                                     unfoldedChildren.extend(new2Children.clone());
+
+//                                     let mut mergeAndChildren = and1Children.clone();
+//                                     mergeAndChildren.extend(and2Children);
+
+//                                     fromThisEClassRecipe.push((
+//                                         syntax1.clone(),
+//                                         mergeAndChildren,
+//                                         unfoldedChildren,
+//                                         new2EClass.clone(),
+//                                     ));
+//                                 }
+//                                 unfoldedENodesRecipe.push(fromThisEClassRecipe);
+//                             }
+
+//                             composeUnfoldReceipt.push(ComposeUnfoldRecipe {
+//                                 unfoldRecipe: unfoldedENodesRecipe,
+//                                 exclude: i1,
+//                                 compose1Children: compose1Children.clone(),
+//                                 rootId: rootId.clone(),
+//                                 compose2Id: compose2Id.clone(),
+//                                 new1EClass: new1EClass.clone(),
+//                             });
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+
+//         composeUnfoldReceipt
+//     });
+//     let applier = Box::new(
+//         move |composeRecipes: Vec<ComposeUnfoldRecipe>, eg: &mut CHCEGraph| {
+//             for composeRecipe in composeRecipes {
+//                 let ComposeUnfoldRecipe {
+//                     unfoldRecipe,
+//                     exclude,
+//                     compose1Children,
+//                     rootId,
+//                     compose2Id,
+//                     new1EClass,
+//                 } = composeRecipe;
+//                 let mut toBeUnion = vec![];
+//                 // this loops takes a long time, around 1sec per iter
+//                 for unfoldRecipeComb in combination(unfoldRecipe) {
+//                     let mut childrenComb = vec![];
+//                     let start = Instant::now(); // Record the start time
+//                                                 // this one takes around half the time of the whole loop
+//                     let (_, time1) = time(|| {
+//                         for (syntax1, mut mergeAndChildren, mut unfoldedChildren, new2EClass) in
+//                             unfoldRecipeComb
+//                         {
+//                             mergeAndChildren.sort();
+//                             let mergeAnd = eg.add(CHC::And(mergeAndChildren));
+//                             eg.analysis_data_mut(mergeAnd.id).predNames.insert(format!(
+//                                 "and_from_unfold_{compose2Id}_in_{new1EClass}_using_{new2EClass}"
+//                             ));
+//                             unfoldedChildren.sort();
+//                             let unfoldedENode = CHC::New(syntax1, mergeAnd, unfoldedChildren);
+//                             let unfoldedENodeId = eg.add(unfoldedENode);
+//                             eg.analysis_data_mut(unfoldedENodeId.id)
+//                                 .predNames
+//                                 .insert(format!(
+//                                     "unfold_{compose2Id}_in_{new1EClass}_using_{new2EClass}"
+//                                 ));
+//                             childrenComb.push(unfoldedENodeId);
+//                         }
+//                     });
+
+//                     let (_, time2) = time(|| {
+//                         let mut unfoldedComposeChildren = compose1Children.clone();
+//                         unfoldedComposeChildren.remove(exclude);
+//                         unfoldedComposeChildren.extend(childrenComb);
+//                         unfoldedComposeChildren.sort();
+//                         let unfoldedComposeChildren = unfoldedComposeChildren
+//                             .into_iter()
+//                             .map(|appId| AppliedIdOrStar::AppliedId(appId.clone()))
+//                             .collect();
+//                         let unfoldedCompose = eg.add(CHC::Compose(unfoldedComposeChildren));
+//                         toBeUnion.push(unfoldedCompose);
+//                     });
+//                 }
+//                 // if there's no union here, it ends very fast
+//                 for x in toBeUnion {
+//                     eg.union(&rootId, &x);
+//                 }
+//             }
+//         },
+//     );
+//     RewriteT {
+//         name: "unfold".to_owned(),
+//         searcher: searcher,
+//         applier: applier,
+//     }
+//     .into()
+// }
+
+fn unfold(unfoldList: &Rc<RefCell<UnfoldList>>) -> CHCRewrite {
+    let unfoldListCopy = Rc::clone(unfoldList);
+    let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<ComposeUnfoldRecipe> {
+        let mut composeUnfoldReceipt = vec![];
+        for toBeUnfolded in Rc::clone(&unfoldListCopy).borrow().iter() {
+            let (toBeUnfolded, m) = toBeUnfolded.getShape();
+            debug!("unfold: get toBeUnfolded {toBeUnfolded:#?}");
+            let UnfoldListComponent {
+                composeAppId,
+                composeShape,
+                newEClassAppId,
+                newENodeShape,
+            } = toBeUnfolded;
+
+            let compose1 = eg.getNode(&composeAppId, &composeShape);
+            // let compose1 = composeShape;
+            debug!("compose1 {:?}", compose1);
+            let CHC::Compose(compose1Children) = compose1 else {
+                panic!();
+            };
+            let mut compose1Children: Vec<AppliedId> = compose1Children
+                .into_iter()
+                .map(|appId| {
+                    let AppliedIdOrStar::AppliedId(appId) = appId else {
                         panic!();
                     };
+                    appId
+                })
+                .collect();
+            compose1Children.sort();
+            for (i1, new1EClass) in compose1Children.iter().enumerate() {
+                if new1EClass != &eg.find_applied_id(&newEClassAppId) {
+                    debug!("unfold: new1EClass {new1EClass:?} != {newEClassAppId:?}");
+                    continue;
+                }
 
-                    // TODO: this will only pick the first and out
-                    // debug!("cond1 EClass {:?}", eg.eclass(cond1.id));
-                    let and1Children = getAnyAndChildren(&cond1, eg);
+                debug!("unfold: new1EClass {new1EClass:?}");
+                let new1 = eg.getNode(&new1EClass, &newENodeShape);
+                // let new1 = newENodeShape.clone();
+                debug!("unfold: new1 {new1:?}");
 
-                    for (i2, compose2Id) in new1Children.iter().enumerate() {
-                        let compose2Id = compose2Id.getAppliedId();
+                let CHC::New(syntax1, cond1, new1Children) = new1 else {
+                    panic!();
+                };
 
-                        for compose2 in eg.enodes_applied(&compose2Id) {
-                            if let CHC::Init(..) = compose2 {
-                                continue;
-                            }
-
-                            let CHC::Compose(compose2Children) = compose2 else {
-                                panic!();
-                            };
-
-                            let mut unfoldedENodesRecipe: Vec<Vec<UnfoldRecipe>> = vec![];
-                            for new2EClass in compose2Children.iter() {
-                                let new2EClass = new2EClass.getAppliedId();
-                                let mut fromThisEClassRecipe: Vec<UnfoldRecipe> = vec![];
-                                for new2 in eg.enodes_applied(&new2EClass) {
-                                    if let CHC::Interface(..) = new2 {
-                                        continue;
-                                    }
-
-                                    let CHC::New(syntax2, cond2, new2Children) = new2 else {
-                                        panic!();
-                                    };
-
-                                    let and2Children = getAnyAndChildren(&cond2, eg);
-
-                                    let mut unfoldedChildren = new1Children.clone();
-                                    unfoldedChildren.remove(i2);
-                                    // 2
-                                    unfoldedChildren.extend(new2Children.clone());
-
-                                    let mut mergeAndChildren = and1Children.clone();
-                                    mergeAndChildren.extend(and2Children);
-
-                                    fromThisEClassRecipe.push((
-                                        syntax1.clone(),
-                                        mergeAndChildren,
-                                        unfoldedChildren,
-                                        new2EClass.clone(),
-                                    ));
-                                }
-                                unfoldedENodesRecipe.push(fromThisEClassRecipe);
-                            }
-
-                            composeUnfoldReceipt.push(ComposeUnfoldRecipe {
-                                unfoldRecipe: unfoldedENodesRecipe,
-                                exclude: i1,
-                                compose1Children: compose1Children.clone(),
-                                rootId: rootId.clone(),
-                                compose2Id: compose2Id.clone(),
-                                new1EClass: new1EClass.clone(),
-                            });
+                let and1Children = getAnyAndChildren(&cond1, eg);
+                for (i2, compose2Id) in new1Children.iter().enumerate() {
+                    let compose2Id = compose2Id.getAppliedId();
+                    for compose2 in eg.enodes_applied(&compose2Id) {
+                        if let CHC::Init(..) = compose2 {
+                            continue;
                         }
+
+                        let CHC::Compose(compose2Children) = compose2 else {
+                            panic!();
+                        };
+
+                        let mut unfoldedENodesRecipe: Vec<Vec<UnfoldRecipe>> = vec![];
+                        for new2EClass in compose2Children.iter() {
+                            let new2EClass = new2EClass.getAppliedId();
+                            debug!(
+                                "new2EClassId {:?}, composeAppId {:?}",
+                                new2EClass.id, composeAppId.id
+                            );
+                            let mut fromThisEClassRecipe: Vec<UnfoldRecipe> = vec![];
+                            for new2 in eg.enodes_applied(&new2EClass) {
+                                if let CHC::Interface(..) = new2 {
+                                    continue;
+                                }
+
+                                let CHC::New(syntax2, cond2, new2Children) = new2 else {
+                                    panic!();
+                                };
+
+                                let and2Children = getAnyAndChildren(&cond2, eg);
+
+                                let mut unfoldedChildren = new1Children.clone();
+                                debug!("unfoldedChildren1 {:?}", unfoldedChildren);
+                                unfoldedChildren.remove(i2);
+                                // 2
+                                unfoldedChildren.extend(new2Children.clone());
+                                debug!("unfoldedChildren {:?}", unfoldedChildren);
+
+                                let mut mergeAndChildren = and1Children.clone();
+                                mergeAndChildren.extend(and2Children);
+
+                                fromThisEClassRecipe.push(UnfoldRecipe {
+                                    syntax1: syntax1.clone(),
+                                    mergeAndChildren: mergeAndChildren,
+                                    unfoldedChildren,
+                                    new2EClass: new2EClass.clone(),
+                                });
+                            }
+                            unfoldedENodesRecipe.push(fromThisEClassRecipe);
+                        }
+
+                        let x = ComposeUnfoldRecipe {
+                            unfoldRecipe: unfoldedENodesRecipe,
+                            exclude: i1,
+                            compose1Children: compose1Children.clone(),
+                            rootId: composeAppId.clone(),
+                            compose2Id: compose2Id.clone(),
+                            new1EClass: new1EClass.clone(),
+                        };
+
+                        composeUnfoldReceipt.push(x);
                     }
                 }
             }
         }
 
+        debug!("unfold search ret {composeUnfoldReceipt:#?}");
         composeUnfoldReceipt
     });
+
+    let unfoldListCopy2 = Rc::clone(unfoldList);
     let applier = Box::new(
         move |composeRecipes: Vec<ComposeUnfoldRecipe>, eg: &mut CHCEGraph| {
-            let mut unfoldTotalAdd = 0;
-            for composeRecipe in &composeRecipes {
-                let ComposeUnfoldRecipe {
-                    unfoldRecipe,
-                    exclude,
-                    compose1Children,
-                    rootId,
-                    compose2Id,
-                    new1EClass,
-                } = composeRecipe;
-                for unfoldRecipeComb in combination(unfoldRecipe.clone()) {
-                    unfoldTotalAdd += 1;
-                }
-            }
-
-            debug!("expect unfold to add and union {unfoldTotalAdd} times");
-            let mut countdown = unfoldTotalAdd;
+            Rc::clone(&unfoldListCopy2).borrow_mut().clear();
             for composeRecipe in composeRecipes {
                 let ComposeUnfoldRecipe {
                     unfoldRecipe,
@@ -263,20 +359,28 @@ fn unfold() -> CHCRewrite {
                 } = composeRecipe;
                 let mut toBeUnion = vec![];
                 // this loops takes a long time, around 1sec per iter
-                for unfoldRecipeComb in combination(unfoldRecipe) {
+                for unfoldRecipeComb in combination(&unfoldRecipe) {
                     let mut childrenComb = vec![];
                     let start = Instant::now(); // Record the start time
                                                 // this one takes around half the time of the whole loop
+                    let mut createdENodes = vec![];
                     let (_, time1) = time(|| {
-                        for (syntax1, mergeAndChildren, unfoldedChildren, new2EClass) in
-                            unfoldRecipeComb
+                        for UnfoldRecipe {
+                            syntax1,
+                            mut mergeAndChildren,
+                            mut unfoldedChildren,
+                            new2EClass,
+                        } in unfoldRecipeComb
                         {
+                            mergeAndChildren.sort();
                             let mergeAnd = eg.add(CHC::And(mergeAndChildren));
                             eg.analysis_data_mut(mergeAnd.id).predNames.insert(format!(
                                 "and_from_unfold_{compose2Id}_in_{new1EClass}_using_{new2EClass}"
                             ));
+                            unfoldedChildren.sort();
                             let unfoldedENode = CHC::New(syntax1, mergeAnd, unfoldedChildren);
-                            let unfoldedENodeId = eg.add(unfoldedENode);
+                            let unfoldedENodeId = eg.add(unfoldedENode.clone());
+                            createdENodes.push((unfoldedENodeId.clone(), unfoldedENode));
                             eg.analysis_data_mut(unfoldedENodeId.id)
                                 .predNames
                                 .insert(format!(
@@ -290,39 +394,37 @@ fn unfold() -> CHCRewrite {
                         let mut unfoldedComposeChildren = compose1Children.clone();
                         unfoldedComposeChildren.remove(exclude);
                         unfoldedComposeChildren.extend(childrenComb);
+                        unfoldedComposeChildren.sort();
                         let unfoldedComposeChildren = unfoldedComposeChildren
                             .into_iter()
                             .map(|appId| AppliedIdOrStar::AppliedId(appId.clone()))
                             .collect();
-                        let unfoldedCompose = eg.add(CHC::Compose(unfoldedComposeChildren));
-                        toBeUnion.push(unfoldedCompose);
-                        countdown -= 1;
-                        debug!("unfold countdown {countdown}");
-                        debug!(
-                            "egraph enodes {} eclasses {}",
-                            eg.total_number_of_nodes(),
-                            eg.totalNumberOfEclass()
-                        );
-                    });
+                        let composeENode = CHC::Compose(unfoldedComposeChildren);
+                        let unfoldedCompose = eg.add(composeENode.clone());
+                        toBeUnion.push(unfoldedCompose.clone());
 
-                    // time1 takes 2x to 4x the time of time2
-                    debug!("time1 {time1:?}");
-                    debug!("time2 {time2:?}");
+                        for (enodeId, enode) in createdENodes {
+                            let next = UnfoldListComponent {
+                                composeAppId: unfoldedCompose.clone(),
+                                composeShape: composeENode.clone(),
+                                newEClassAppId: enodeId,
+                                newENodeShape: enode,
+                            };
+
+                            debug!("pusing to unfoldList {next:#?}");
+
+                            Rc::clone(&unfoldListCopy2).borrow_mut().push(next);
+                        }
+                    });
                 }
-                let mut totalENodes = 0;
-                totalENodes += eg.enodes(rootId.id).len();
-                for x in &toBeUnion {
-                    totalENodes += eg.enodes(x.id).len();
-                }
-                debug!("toBeUnion size {}", toBeUnion.len());
-                debug!("after union, total {totalENodes} enodes");
-                // if there's no union here, it ends very fast
+
                 for x in toBeUnion {
                     eg.union(&rootId, &x);
                 }
             }
         },
     );
+
     RewriteT {
         name: "unfold".to_owned(),
         searcher: searcher,
@@ -331,105 +433,14 @@ fn unfold() -> CHCRewrite {
     .into()
 }
 
-// fn newChildrenPermute() -> CHCRewrite {
-//     let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
-//     let patClone = pat.clone();
-//     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &patClone) });
-//     let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
-//         // TODO: is there a different between using AppliedId and Id
-//         let mut did = HashSet::<(AppliedId, AppliedId, BTreeSet<AppliedId>)>::default();
-//         let newPat = Pattern::parse("(new ?syntax ?cond <*2>)").unwrap();
-//         for subst in substs {
-//             let mut thisDid = BTreeSet::<AppliedId>::default();
-//             for (var, id) in subst.iter() {
-//                 thisDid.insert(id.clone());
-//             }
-
-//             let mut this = (subst["syntax"].clone(), subst["cond"].clone(), thisDid);
-//             if did.contains(&this) {
-//                 continue;
-//             }
-
-//             did.insert(this);
-
-//             // TODO: make new children follow old vars?
-//             let ids = starIds(1, &subst);
-//             let idsPermuts = permute(&ids);
-//             let mut newSubst = subst.clone();
-//             for permut in idsPermuts {
-//                 let mut newSubstTmp = newSubst.clone();
-//                 for (i, id) in permut.iter().enumerate() {
-//                     newSubstTmp.insert(starPVar(2, i.try_into().unwrap()), id.clone());
-//                 }
-//                 eg.union_instantiations(
-//                     &pat,
-//                     &newPat,
-//                     &newSubstTmp,
-//                     Some("newChildrenPermute".to_string()),
-//                 );
-//             }
-//         }
-//     });
-//     RewriteT {
-//         name: "newPermute".to_owned(),
-//         searcher,
-//         applier,
-//     }
-//     .into()
-// }
-
-// TODO: can use marking to determine that we already permute this Enode
-// fn composeChildrenPermute() -> CHCRewrite {
-//     let pat = Pattern::parse("(compose <*1>)").unwrap();
-//     let patClone = pat.clone();
-//     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> { ematch_all(eg, &patClone) });
-//     let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
-//         // TODO: is there a different between using AppliedId and Id
-//         let mut did = HashSet::<BTreeSet<AppliedId>>::default();
-//         let newPat = Pattern::parse("(compose <*2>)").unwrap();
-//         for subst in substs {
-//             let mut thisDid = BTreeSet::<AppliedId>::default();
-//             for (var, id) in subst.iter() {
-//                 thisDid.insert(id.clone());
-//             }
-
-//             if did.contains(&thisDid) {
-//                 continue;
-//             }
-
-//             did.insert(thisDid);
-
-//             let ids = starIds(1, &subst);
-//             let idsPermuts = permute(&ids);
-//             let mut newSubst = subst.clone();
-//             for permut in idsPermuts {
-//                 let mut newSubstTmp = newSubst.clone();
-//                 for (i, id) in permut.iter().enumerate() {
-//                     newSubstTmp.insert(starPVar(2, i.try_into().unwrap()), id.clone());
-//                 }
-//                 eg.union_instantiations(
-//                     &pat,
-//                     &newPat,
-//                     &newSubstTmp,
-//                     Some("composeChildrenPermute".to_string()),
-//                 );
-//             }
-//         }
-//     });
-//     RewriteT {
-//         name: "composePermute".to_owned(),
-//         searcher,
-//         applier,
-//     }
-//     .into()
-// }
-
-fn defineFromSharingBlock() -> CHCRewrite {
+// TODO: only define from a list?
+fn defineFromSharingBlock(unfoldList: &Rc<RefCell<UnfoldList>>) -> CHCRewrite {
     let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
     let patClone = pat.clone();
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> {
         ematch_all(eg, &patClone).into_iter().map(|s| s.0).collect()
     });
+    let unfoldListClone = Rc::clone(unfoldList);
     let applier = Box::new(move |substs: Vec<Subst>, eg: &mut CHCEGraph| {
         for subst in substs {
             let rootAppId = pattern_subst(eg, &pat, &subst);
@@ -442,16 +453,13 @@ fn defineFromSharingBlock() -> CHCRewrite {
             let mut varToChildIndx: HashMap<Slot, Vec<usize>> = HashMap::default();
             let mut mergeVarTypes: HashMap<Slot, VarType> = HashMap::default();
             let childAppIds = &origENode.applied_id_occurrences()[2..];
-            // debug!("childAppIds {childAppIds:#?}");
             for indx in 0..childAppIds.len() {
                 let appId = childAppIds[indx];
-                // debug!("appId.slots {:?}", appId.slots());
                 for s in appId.slots() {
                     varToChildIndx.entry(s).or_insert(vec![]).push(indx);
                 }
 
                 let childrenVarTypes = &eg.analysis_data(appId.id).varTypes;
-                // debug!("childrenVarTypes = {childrenVarTypes:#?}");
                 mergeVarTypes.extend(
                     appId
                         .m
@@ -460,9 +468,6 @@ fn defineFromSharingBlock() -> CHCRewrite {
                         .map(|(from, to)| (to, *childrenVarTypes.get(&from).unwrap())),
                 );
             }
-
-            // debug!("mergeVarTypes = {mergeVarTypes:#?}");
-            // debug!("varToChildIndx = {varToChildIndx:#?}");
 
             let mut unionfind: QuickUnionUf<UnionBySize> =
                 QuickUnionUf::<UnionBySize>::new(childAppIds.len());
@@ -506,7 +511,7 @@ fn defineFromSharingBlock() -> CHCRewrite {
 
                 let dummyEnode = CHC::New(
                     id("(pred <>)", eg),
-                    id("(true)", eg),
+                    id("(and <>)", eg),
                     children
                         .clone()
                         .into_iter()
@@ -517,14 +522,7 @@ fn defineFromSharingBlock() -> CHCRewrite {
                 let mut basicVars: Vec<_> =
                     basicVars.into_iter().map(|s| map.inverse()[s]).collect();
 
-                // debug!("dummyEnode root {:?} shape {:#?}", rootAppId.id, dummyEnode);
-
                 basicVars.sort();
-
-                // debug!("mergeVarTypes {mergeVarTypes:?}");
-                // debug!("map {:?}", map);
-
-                // debug!("sorted basicVars {basicVars:?}");
                 let basicVarsStr = basicVars
                     .into_iter()
                     .map(|s| generateVar(&s.to_string(), mergeVarTypes[&map[s]].clone()))
@@ -533,6 +531,7 @@ fn defineFromSharingBlock() -> CHCRewrite {
                 let syntax = format!("(pred <{basicVarsStr}>)");
 
                 let oldLen = eg.total_number_of_nodes();
+                // TODO: change counter to local variable
                 let counter = G_COUNTER.load(Ordering::SeqCst);
 
                 let mut childrenStr = "".to_string();
@@ -544,19 +543,19 @@ fn defineFromSharingBlock() -> CHCRewrite {
                     );
                     childrenStr += &format!("?x{} ", i);
                 }
-                let newENodeStr = format!("(new {syntax} (true) <{childrenStr}>)");
-
-                // debug!("define_from_{}_{}", rootAppId.id, counter);
-                // debug!("newENodeStr {newENodeStr:?}");
-                // debug!("newSubst {newSubst:#?}");
-
+                let newENodeStr = format!("(new {syntax} (and <>) <{childrenStr}>)");
                 let newENodeAppId =
                     pattern_subst(eg, &Pattern::parse(&newENodeStr).unwrap(), &newSubst);
+                let newENode = constructENodefromPatternSubst(
+                    eg,
+                    &Pattern::parse(&newENodeStr).unwrap(),
+                    &newSubst,
+                )
+                .unwrap();
 
                 if eg.total_number_of_nodes() == oldLen {
                     continue;
                 }
-                // TODO: does the use of global load & store hurt performance?
 
                 let itf = id(
                     &format!(
@@ -568,9 +567,24 @@ fn defineFromSharingBlock() -> CHCRewrite {
                 eg.union(&newENodeAppId, &itf);
                 G_COUNTER.store(counter + 1, Ordering::SeqCst);
 
-                let composeEnode = CHC::Compose(vec![AppliedIdOrStar::AppliedId(newENodeAppId)]);
+                let newENodeShape = newENode.weak_shape().0;
+                let composeEnode =
+                    CHC::Compose(vec![AppliedIdOrStar::AppliedId(newENodeAppId.clone())]);
+                let composeShape = composeEnode.weak_shape().0;
                 let composeAppId = eg.add(composeEnode);
-                debug!("define new {:?}", composeAppId);
+
+                let unfoldListComponent = UnfoldListComponent {
+                    composeAppId: composeAppId,
+                    composeShape: composeShape,
+                    newEClassAppId: newENodeAppId,
+                    newENodeShape: newENodeShape,
+                };
+
+                println!("pushing to unfoldList {unfoldListComponent:#?}");
+
+                Rc::clone(&unfoldListClone)
+                    .borrow_mut()
+                    .push(unfoldListComponent);
             }
         }
     });
@@ -589,12 +603,10 @@ fn trueToAnd() -> CHCRewrite {
     Rewrite::new("trueToAnd", pat, outPat)
 }
 
-pub fn getAllRewrites() -> Vec<CHCRewrite> {
+pub fn getAllRewrites(unfoldList: &Rc<RefCell<UnfoldList>>) -> Vec<CHCRewrite> {
     vec![
-        unfold(),
-        // newChildrenPermute(),
-        // composeChildrenPermute(),
-        defineFromSharingBlock(),
+        unfold(unfoldList),
+        defineFromSharingBlock(unfoldList),
         trueToAnd(),
     ]
 }

@@ -4,11 +4,16 @@ use log::debug;
 pub fn ematchQueryall(eg: &CHCEGraph, pattern: &Pattern<CHC>) -> Vec<(Subst, Id)> {
     debug!("=== Call ematchQueryall ===");
     debug!("pattern = {pattern}");
-    debug!("= {pattern:#?}");
     let mut out: Vec<(Subst, Id)> = Vec::new();
     for i in eg.ids() {
         let appId = eg.mk_sem_identity_applied_id(i);
         let result = ematchQueryAllInEclassInternal(pattern, State::default(), appId, eg);
+        if result.len() > 0 {
+            debug!("some match in eclass {i:?} for pattern {pattern}");
+        } else {
+            debug!("no match in eclass {i:?} for pattern {pattern}");
+        }
+
         out.extend(result.into_iter().map(final_subst).map(|x| (x, i)));
     }
     out
@@ -199,12 +204,29 @@ fn ematchQueryCheckEnodeAndChildren(
 
             debug!("shape pass, try to match children");
 
+            let mut starCount = 0;
             for i in 0..patternChildren.len() {
+                if let Pattern::Star(_) = patternChildren[i] {
+                    starCount += 1;
+                }
+            }
+            assert!(starCount <= 1);
+
+            let mut countNonStarFromBack = 0;
+            for i in (0..patternChildren.len()).rev() {
+                if let Pattern::Star(_) = patternChildren[i] {
+                    break;
+                }
+                countNonStarFromBack += 1;
+            }
+
+            // forward match
+            let mut i = 0;
+            let mut j = 0;
+            while i < patternChildren.len() && j < eclassChildren.len() {
                 if let Pattern::Star(n) = patternChildren[i] {
                     let mut counter = 0;
-                    assert!(i == patternChildren.len() - 1);
-                    let mut j = i;
-                    while j < eclassChildren.len() {
+                    while j < eclassChildren.len() - countNonStarFromBack {
                         let newPVar = Pattern::PVar(format!("star_{}_{}", n, counter));
                         (acc) =
                             matchQueryEclassWithEveryState(acc, eclassChildren[j], &newPVar, eg);
@@ -214,14 +236,26 @@ fn ematchQueryCheckEnodeAndChildren(
                         counter += 1;
                     }
 
-                    break;
+                    i += 1;
+
+                    continue;
                 }
 
-                let subId = eclassChildren[i];
                 let subPat = &patternChildren[i];
+                let subId = eclassChildren[j];
                 (acc) = matchQueryEclassWithEveryState(acc, subId, subPat, eg);
-                // debug!("acc {acc:?}");
+                i += 1;
+                j += 1;
             }
+            if patternChildren.len() > eclassChildren.len() {
+                assert!(i == patternChildren.len() - 1 || i == patternChildren.len());
+                assert!(j == eclassChildren.len());
+            } else {
+                assert!(i == patternChildren.len());
+                assert!(j == eclassChildren.len());
+            }
+
+            // backward match
 
             if acc.len() > 0 {
                 debug!("some match found");

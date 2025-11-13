@@ -61,7 +61,9 @@ impl AppliedId {
         if CHECKS {
             assert!(
                 m.keys().is_superset(&self.slots()),
-                "AppliedId::apply_slotmap: The SlotMap doesn't map all free slots!"
+                "AppliedId::apply_slotmap: The SlotMap doesn't map all free slots! map {:#?} vs {:#?}",
+                m,
+                self.slots()
             );
         }
         self.apply_slotmap_partial(m)

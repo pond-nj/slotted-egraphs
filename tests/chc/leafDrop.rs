@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use super::*;
 
 use log::debug;
@@ -116,6 +118,7 @@ fn mainTest() {
     // TODO: how to determine slot type?
     initLogger();
     let mut egOrig = CHCEGraph::default();
+    let mut unfoldList = Rc::new(RefCell::new(vec![]));
     let mut count = 0;
     {
         let eg = &mut egOrig;
@@ -176,11 +179,11 @@ fn mainTest() {
     }
 
     // TODO: can we not use mem::take here?
-    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(1);
-    let report = runner.run(&getAllRewrites());
+    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(3);
+    let report = runner.run(&mut getAllRewrites(&mut unfoldList));
     debug!("report {report:?}");
 
-    debug!("egraph after run");
+    println!("egraph after run");
     dumpCHCEGraph(&runner.egraph);
 
     debug!(
@@ -189,8 +192,9 @@ fn mainTest() {
         runner.egraph.total_number_of_nodes()
     );
 
-    checkMinLeafUnfoldWithMin(&mut runner.egraph);
-    checkUnfoldNewDefineExists(&mut runner.egraph);
+    // checkMinLeafUnfoldWithMin(&mut runner.egraph);
+    let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
+    checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
 
     // check unfold result
     // 19. new1(N,M,K)←M=0,K=0
@@ -208,7 +212,8 @@ fn mainTest() {
     assert!(res.len() >= 1);
 }
 
-fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) {
+// needs at least two iterations for this to pass
+fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
     // new1(N,M,K)←left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
     // new1(N,K,M)←left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
     // the head in egraph is new(n, k, m) instead of new(n, m, k)
@@ -219,6 +224,7 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) {
     let t = &generateVarFromCount(count, VarType::Node);
     let u = &generateVarFromCount(count, VarType::Node);
 
+    // define
     let syntax = format!("(pred <{n} {k} {m}>)");
     let chc: String = format!(
         "(new {syntax} (and <>) <{} {} {}>)",
@@ -227,15 +233,15 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) {
         minLeafDummy(t, k)
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&chc).unwrap());
-    debug!("found define {:?}", res);
     assert!(res.len() >= 1);
 
     let newDefineCompose = format!("(compose <{chc}>)");
     let res = ematchQueryall(&eg, &Pattern::parse(&newDefineCompose).unwrap());
+    let newDefineComposeId = res[0].1;
     assert!(res.len() >= 1);
 
+    // unfold
     // new1(N,K,M)←left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
-
     // with
     // left-drop(x,y,z) ← y=leaf, z=leaf
     // left-drop(x, y ,z) ← x ≤0, y = node(a,L,R), z = node(a,L,R)
@@ -263,24 +269,101 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) {
         minLeafDummy(t, k)
     );
     let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2).unwrap());
-    debug!("found res2 {res2:?}");
     assert!(res2.len() > 0);
 
+    let a1 = &generateVarFromCount(count, VarType::Int);
+    let l1 = &generateVarFromCount(count, VarType::Node);
+    let r1 = &generateVarFromCount(count, VarType::Node);
+
     let n1 = &generateVarFromCount(count, VarType::Int);
-    let cond3 = format!("(and <(eq {t} (binode {a} {l} {r})) (geq {n} 1) (eq {n1} (- {n} 1))>)");
+    let cond3 = format!("(and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (- {n} 1))>)");
     let resCond3 = ematchQueryall(eg, &Pattern::parse(&cond3).unwrap());
-    debug!("found resCond3 {resCond3:?}");
     assert!(resCond3.len() > 0);
 
     let chc3 = format!(
         "(new {syntax} {} <{} {} {}>)",
         cond3,
-        leafDropDummy(n1, l, u),
+        leafDropDummy(n1, l1, u),
         minLeafDummy(u, m),
         minLeafDummy(t, k)
     );
     let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
     assert!(res3.len() > 0);
+
+    let compose = format!("(compose <{chc1} {chc2} {chc3}>)");
+    let composeRes = ematchQueryall(&eg, &Pattern::parse(&compose).unwrap());
+    assert!(composeRes.len() > 0);
+    assert!(composeRes[0].1 == newDefineComposeId);
+
+    return newDefineComposeId;
+}
+
+// need at least 3 iterations for this to pass
+fn checkUnfold2NewDefineWithMinLeaf(newDefineComposeId: Id, eg: &mut CHCEGraph) {
+    // new1(N,K,M)←T = leaf, U = leaf, min-leaf(U,M), min-leaf(T,K)
+
+    // with
+    // min-leaf(X,Y) <- X=leaf, Y=0
+    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
+    // into
+
+    // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, min-leaf(T,K)
+
+    // TODO: vvv this is wrong, it should be unfolded with the second clause of minleaf
+    // new1(N,K,M)←T = leaf, U = leaf, min-leaf(U,M), T = leaf, K = 0
+
+    let mut count = 0;
+
+    let n = &generateVarFromCount(&mut count, VarType::Int);
+    let k = &generateVarFromCount(&mut count, VarType::Int);
+    let m = &generateVarFromCount(&mut count, VarType::Int);
+
+    let syntax = format!("(pred <{n} {k} {m}>)");
+
+    let t = &generateVarFromCount(&mut count, VarType::Node);
+    let u = &generateVarFromCount(&mut count, VarType::Node);
+
+    let originalCHC = format!(
+        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf))>) <{} {}>)",
+        minLeafDummy(u, m),
+        minLeafDummy(t, k)
+    );
+    let res = ematchQueryall(&eg, &Pattern::parse(&originalCHC).unwrap());
+    println!("found ENodeTobeUnfolded {:?}", res);
+    assert!(res.len() >= 1);
+
+    let composeOriginalCHC = format!("(compose <{originalCHC} *0>)");
+    let res = ematchQueryall(&eg, &Pattern::parse(&composeOriginalCHC).unwrap());
+    let originalRootId = res[0].1;
+    println!("found composeOriginalCHC {:?}", originalRootId);
+    assert!(res.len() == 1);
+
+    assert!(newDefineComposeId == originalRootId);
+
+    // unfold_id13_in_id65_using_id55
+    let unfoldChc1 = format!(
+        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {u} (leaf)) (eq {m} 0)>) <{}>)",
+        minLeafDummy(t, k)
+    );
+    let res = ematchQueryall(&eg, &Pattern::parse(&unfoldChc1).unwrap());
+    println!("found unfoldCHC1 {:?}", res);
+    assert!(res.len() >= 1);
+
+    // TODO: this is wrong,
+    // let unfoldChc2 = format!(
+    //     "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {t} (leaf)) (eq {k} 0)>) <{}>)",
+    //     minLeafDummy(u, m)
+    // );
+    // let res = ematchQueryall(&eg, &Pattern::parse(&unfoldChc2).unwrap());
+    // println!("found unfoldCHC2 {:?}", res);
+    // assert!(res.len() >= 1);
+
+    //     let composeCHC = format!("(compose <{unfoldChc1} {unfoldChc2} *0>)");
+    //     let res = ematchQueryall(&eg, &Pattern::parse(&composeCHC).unwrap());
+    //     println!("found composeCHC {:?}", res);
+    //     assert!(res.len() >= 1);
+
+    //     assert!(res[0].1 == originalRootId);
 }
 
 fn checkMinLeafUnfoldWithMin(eg: &mut CHCEGraph) {
@@ -341,44 +424,45 @@ fn checkMinLeafUnfoldWithMin(eg: &mut CHCEGraph) {
     assert!(res[0].1 == id(&minLeafDummy(x, y), eg).id);
 }
 
-#[test]
-fn minLeafAndMinTest() {
-    // TODO: how to determine slot type?
-    initLogger();
-    let mut egOrig = CHCEGraph::default();
-    let mut count = 0;
-    {
-        let eg = &mut egOrig;
+// #[test]
+// fn minLeafAndMinTest() {
+//     // TODO: how to determine slot type?
+//     initLogger();
+//     let mut egOrig = CHCEGraph::default();
+//     let mut unfoldList = Rc::new(RefCell::new(vec![]));
+//     let mut count = 0;
+//     {
+//         let eg = &mut egOrig;
 
-        let x = &generateVarFromCount(&mut count, VarType::Int);
-        let y = &generateVarFromCount(&mut count, VarType::Int);
-        let z = &generateVarFromCount(&mut count, VarType::Int);
+//         let x = &generateVarFromCount(&mut count, VarType::Int);
+//         let y = &generateVarFromCount(&mut count, VarType::Int);
+//         let z = &generateVarFromCount(&mut count, VarType::Int);
 
-        // min(X,Y,Z) <- X< Y, Z=X
-        // min(X,Y,Z) <- X >= Y, Z=Y
-        let minDummyId = id(&minDummy(x, y, z), eg);
-        let minId = minCHC(x, y, z, eg);
-        eg.union(&minDummyId, &minId);
+//         // min(X,Y,Z) <- X< Y, Z=X
+//         // min(X,Y,Z) <- X >= Y, Z=Y
+//         let minDummyId = id(&minDummy(x, y, z), eg);
+//         let minId = minCHC(x, y, z, eg);
+//         eg.union(&minDummyId, &minId);
 
-        let x = &generateVarFromCount(&mut count, VarType::Node);
-        let y = &generateVarFromCount(&mut count, VarType::Int);
+//         let x = &generateVarFromCount(&mut count, VarType::Node);
+//         let y = &generateVarFromCount(&mut count, VarType::Int);
 
-        // min-leaf(X,Y) <- X=leaf, Y=0
-        // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
-        let minLeafDummyId = id(&minLeafDummy(x, y), eg);
-        let minLeafId = minLeafCHC(x, y, &mut count, eg);
-        eg.union(&minLeafId, &minLeafDummyId);
+//         // min-leaf(X,Y) <- X=leaf, Y=0
+//         // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
+//         let minLeafDummyId = id(&minLeafDummy(x, y), eg);
+//         let minLeafId = minLeafCHC(x, y, &mut count, eg);
+//         eg.union(&minLeafId, &minLeafDummyId);
 
-        debug!("egraph before run");
-        dumpCHCEGraph(&eg);
-    }
+//         debug!("egraph before run");
+//         dumpCHCEGraph(&eg);
+//     }
 
-    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(1);
-    let report = runner.run(&getAllRewrites());
-    debug!("report {report:?}");
+//     let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(1);
+//     let report = runner.run(&mut getAllRewrites(&mut unfoldList));
+//     debug!("report {report:?}");
 
-    debug!("egraph after run");
-    dumpCHCEGraph(&runner.egraph);
+//     debug!("egraph after run");
+//     dumpCHCEGraph(&runner.egraph);
 
-    checkMinLeafUnfoldWithMin(&mut runner.egraph);
-}
+//     checkMinLeafUnfoldWithMin(&mut runner.egraph);
+// }

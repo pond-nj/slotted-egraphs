@@ -55,7 +55,6 @@ impl RunnerLimits {
         CustomErrorT: Clone,
     {
         let elapsed = self.start_time.unwrap().elapsed();
-        debug!("checking limits: {iteration} > {}", self.iter_limit);
         if iteration >= self.iter_limit {
             debug!("check_limits return iter limit");
             Err(StopReason::IterationLimit)
@@ -158,12 +157,16 @@ where
             .check_limits(self.iterations.len(), &self.egraph)
     }
     pub fn run(&mut self, rewrites: &[Rewrite<L, N>]) -> Report<CustomErrorT> {
+        // let res = self.check_limits();
+        // if let Err(e) = res {
+        //     self.stop_reason = Some(e);
+        // }
+
         loop {
             if let Some(_) = self.stop_reason {
                 break;
             }
-            let iter = self.run_one(rewrites);
-            self.iterations.push(iter);
+            self.run_one(rewrites);
             debug!("done iter {:?}", self.iterations.len());
         }
         Report {
@@ -181,7 +184,8 @@ where
                 .as_secs_f64(),
         }
     }
-    fn run_one(&mut self, rewrites: &[Rewrite<L, N>]) -> Iteration<IterData> {
+    fn run_one(&mut self, rewrites: &[Rewrite<L, N>]) {
+        println!("start run one");
         assert!(self.stop_reason.is_none());
 
         // if the runner has not started, start the timer
@@ -194,6 +198,14 @@ where
         let progress = apply_rewrites(&mut self.egraph, rewrites);
 
         self.egraph.rebuild();
+
+        let iter = Iteration {
+            data: IterData::make(self),
+            num_nodes: self.egraph.total_number_of_nodes(),
+            finish_time: Some(Instant::now()),
+        };
+
+        self.iterations.push(iter);
 
         result = result
             .and_then(|_| {
@@ -213,11 +225,7 @@ where
             self.stop_reason = Some(stop_reason);
         }
         self.hooks = hooks;
-        Iteration {
-            data: IterData::make(self),
-            num_nodes: self.egraph.total_number_of_nodes(),
-            finish_time: Some(Instant::now()),
-        }
+        println!("done run one");
     }
 }
 

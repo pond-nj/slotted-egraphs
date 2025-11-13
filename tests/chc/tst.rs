@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use super::*;
 
 use log::debug;
@@ -72,6 +74,7 @@ fn pDummy(x: &str, y: &str) -> String {
 fn tst1() {
     initLogger();
     let mut eg = CHCEGraph::default();
+    let mut unfoldList = Rc::new(RefCell::new(vec![]));
     let x = "(var $0)";
     let y = "(var $1)";
     let pCompose = pCHC(x, y);
@@ -93,7 +96,7 @@ fn tst1() {
     let rootId = id(&pCHC(x, y), &mut eg);
 
     let mut runner: CHCRunner = Runner::default().with_egraph(eg).with_iter_limit(5);
-    let report = runner.run(&getAllRewrites());
+    let report = runner.run(&mut getAllRewrites(&unfoldList));
     debug!("report {report:?}");
     debug!("egraph after");
     dumpCHCEGraph(&runner.egraph);

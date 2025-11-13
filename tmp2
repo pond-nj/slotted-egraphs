@@ -1,1 +1,5 @@
-unfold_id10_in_id104_using_id50
+unfold_id13_in_id76_using_id55
+New(id20: ($0, $1, $2), id80: ($1, $3), [AppliedId(id10: ($0, $3, $4)), AppliedId(id13: ($4, $2))])
+
+(new (pred <(int $f533) (int $f534) (int $f535)>) (and <(eq (node $f536) (leaf)) (eq (int $f534) (0))>) 
+<(init (leafDrop) (pred <(int $f533) (node $f536) (node $f537)>)) (init (minLeaf) (pred <(node $f537) (int $f535)>))>)

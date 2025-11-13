@@ -37,6 +37,7 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
         let result = ematchAllInEclassInternal(pattern, State::default(), appId, eg);
         out.extend(result.into_iter().map(final_subst).map(|x| (x, i)));
     }
+    debug!("ematch_all result {out:?} for pattern {pattern}");
     out
 }
 

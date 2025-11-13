@@ -198,6 +198,24 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.classes.get(&self.find_id(i))
     }
 
+    // get node with this shape using the eclass appId
+    pub fn getNode(&self, eclassAppId: &AppliedId, node: &L) -> L {
+        let eclass = self.eclass(eclassAppId.id).unwrap();
+        debug!("eclass {:?}", eclass);
+
+        // update node
+        let node = self.find_enode(node);
+
+        let (sh, m) = node.weak_shape();
+        let Some(eclassNode) = eclass.nodes.get(&sh) else {
+            panic!("node {node:?} not found in {eclass:#?}");
+        };
+        let l = sh.apply_slotmap(&eclassNode.elem);
+        debug!("before apply_slotmap_partial {l:?}");
+        debug!("eclassAppId.m {:#?}", eclassAppId.m);
+        l.apply_slotmap_partial(&eclassAppId.m)
+    }
+
     pub fn enodes(&self, i: Id) -> HashSet<L> {
         // We prevent this, as otherwise the output will have wrong slots.
         assert!(self.is_alive(i), "Can't access e-nodes of dead class");
