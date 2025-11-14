@@ -72,7 +72,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.unionfind.borrow().len()
     }
 
-    pub(crate) fn find_enode(&self, enode: &L) -> L {
+    pub fn find_enode(&self, enode: &L) -> L {
         self.proven_find_enode(enode).elem
     }
 

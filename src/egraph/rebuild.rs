@@ -238,12 +238,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     fn update_analysis(&mut self, sh: &L, i: Id) {
         // call make on this Enode
+        debug!("sh {sh:?}");
         let v = N::make(self, sh);
+        debug!("sh data {v:#?}");
+        debug!("i eclass {:?} {:?}", i, self.eclass(i).unwrap());
 
         // let c = self.classes.get_mut(&i).unwrap();
         // let old = c.analysis_data.clone();
         let oldData = self.analysis_data(i).clone();
         // merge with old data
+        debug!("merge call from update_analysis");
         let new = N::merge(oldData.clone(), v, i, self);
         let updateData = self.analysis_data_mut(i);
         // c.analysis_data = new.clone();

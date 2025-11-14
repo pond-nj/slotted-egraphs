@@ -72,6 +72,7 @@ pub struct CHCData {
     varTypes: HashMap<Slot, VarType>,
 }
 
+// TODO: reimplement this to not access eclass many times
 pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
     // debug!("aggregateVarType");
     let sh = transformToEgraphNameSpace(sh, eg);
@@ -84,7 +85,7 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
             let appInverse = app.m.inverse();
             if let Some(mapToS) = appInverse.get(s) {
                 let childEclassData = eg.analysis_data(app.id);
-                // debug!("childEclass {:?}", eg.eclass(app.id).unwrap());
+                // debug!("childEclass {:?} {:?}", app.id, eg.eclass(app.id).unwrap());
                 // debug!("try to get {mapToS:?}");
                 let childSlotType = childEclassData.varTypes.get(&mapToS).unwrap();
                 varTypes
@@ -131,8 +132,8 @@ impl Analysis<CHC> for CHCAnalysis {
         let c = eg.eclass(i).unwrap();
         // debug!("calling merge to {:?}", i);
         // debug!("dump from merge c {}", c);
-        // debug!("x {x:?}");
-        // debug!("y {y:?}");
+        debug!("x {x:#?}");
+        debug!("y {y:#?}");
         // debug!("eclass {:?}", eg.eclass(i).unwrap());
 
         let mut newPredNames = HashSet::<String>::default();

@@ -233,11 +233,15 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
         minLeafDummy(t, k)
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&chc).unwrap());
+    debug!("defineNewId: {res:?}");
     assert!(res.len() >= 1);
+    // id65
 
     let newDefineCompose = format!("(compose <{chc}>)");
     let res = ematchQueryall(&eg, &Pattern::parse(&newDefineCompose).unwrap());
     let newDefineComposeId = res[0].1;
+    debug!("defineComposeId: {newDefineComposeId:?}");
+    // id66
     assert!(res.len() >= 1);
 
     // unfold
@@ -330,6 +334,7 @@ fn checkUnfold2NewDefineWithMinLeaf(newDefineComposeId: Id, eg: &mut CHCEGraph) 
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&originalCHC).unwrap());
     println!("found ENodeTobeUnfolded {:?}", res);
+    // id 76
     assert!(res.len() >= 1);
 
     let composeOriginalCHC = format!("(compose <{originalCHC} *0>)");
@@ -340,7 +345,11 @@ fn checkUnfold2NewDefineWithMinLeaf(newDefineComposeId: Id, eg: &mut CHCEGraph) 
 
     assert!(newDefineComposeId == originalRootId);
 
-    // unfold_id13_in_id65_using_id55
+    // not found unfold
+    // unfold_id13_in_id76_using_id55
+    // (and <(eq (node $3) (leaf)) (eq (int $2) (0))>)
+    // New(id20: ($0, $1, $2), id80: ($2, $3), [AppliedId(id10: ($0, $4, $3)), AppliedId(id13: ($4, $1))])
+    // 0 = N, 1 = K, 2 = M
     let unfoldChc1 = format!(
         "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {u} (leaf)) (eq {m} 0)>) <{}>)",
         minLeafDummy(t, k)

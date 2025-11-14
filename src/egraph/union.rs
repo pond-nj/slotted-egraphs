@@ -178,7 +178,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // moves everything from `from` to `to`.
     fn move_to(&mut self, from: &AppliedId, to: &AppliedId, #[allow(unused)] proof: ProvenEq) {
-        println!("merging {:?} with {:?}", from.id, to.id);
+        debug!("merging {:?} with {:?}", from.id, to.id);
+        debug!("from {:?}", self.eclass(from.id));
+        debug!("to {:?}", self.eclass(to.id));
         if CHECKS {
             assert_eq!(from.slots(), to.slots());
             #[cfg(feature = "explanations")]
