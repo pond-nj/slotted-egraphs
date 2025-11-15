@@ -39,6 +39,9 @@ pub struct RunnerLimits {
     node_limit: usize,
     start_time: Option<Instant>,
     time_limit: Duration,
+    total_search_time: Duration,
+    total_apply_time: Duration,
+    total_rebuild_time: Duration,
 }
 /// Type alias for the result of a [`Runner`].
 pub type RunnerResult<T, CustomErrorT = String> = Result<T, StopReason<CustomErrorT>>;
@@ -117,6 +120,9 @@ where
                 time_limit: Duration::from_secs(60),
                 // The start_time is initialized when the Runner is ran
                 start_time: None,
+                total_search_time: Duration::new(0, 0),
+                total_apply_time: Duration::new(0, 0),
+                total_rebuild_time: Duration::new(0, 0),
             },
             hooks: vec![],
             roots: vec![],
@@ -182,6 +188,9 @@ where
                 .unwrap()
                 .duration_since(self.limits.start_time.unwrap())
                 .as_secs_f64(),
+            search_time: self.limits.total_search_time.as_secs_f64(),
+            apply_time: self.limits.total_apply_time.as_secs_f64(),
+            rebuild_time: self.limits.total_rebuild_time.as_secs_f64(),
         }
     }
     fn run_one(&mut self, rewrites: &[Rewrite<L, N>]) {
@@ -195,9 +204,12 @@ where
         let mut result = Ok(());
 
         // Apply rewrites, then check hooks, then check limits, then check if saturated.
-        let progress = apply_rewrites(&mut self.egraph, rewrites);
+        let (progress, searchTime, applyTime) = apply_rewrites(&mut self.egraph, rewrites);
+        self.limits.total_search_time += searchTime;
+        self.limits.total_apply_time += applyTime;
 
-        self.egraph.rebuild();
+        let (_, rebuildTime) = time(|| self.egraph.rebuild());
+        self.limits.total_rebuild_time += rebuildTime;
 
         let iter = Iteration {
             data: IterData::make(self),

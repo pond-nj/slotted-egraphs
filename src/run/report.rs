@@ -20,4 +20,7 @@ where
     pub egraph_nodes: usize,
     pub egraph_classes: usize,
     pub total_time: f64,
+    pub search_time: f64,
+    pub apply_time: f64,
+    pub rebuild_time: f64,
 }

@@ -1,5 +1,5 @@
 use crate::*;
-use std::any::Any;
+use std::{any::Any, time::Duration};
 
 mod ematch;
 pub use ematch::*;
@@ -52,30 +52,34 @@ pub fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
 pub fn apply_rewrites<L: Language, N: Analysis<L>>(
     eg: &mut EGraph<L, N>,
     rewrites: &[Rewrite<L, N>],
-) -> bool {
+) -> (bool, Duration, Duration) {
     let prog = eg.progress();
 
-    let ts: Vec<Box<dyn Any>> = rewrites
-        .iter()
-        .map(|rw: &Rewrite<L, N>| {
-            debug!("doing search for {}", rw.name);
-            let ret = (*rw.searcher)(eg);
-            debug!("done search for {}", rw.name);
-            ret
-        })
-        .collect();
-    for (rw, t) in rewrites.iter().zip(ts.into_iter()) {
-        debug!("doing apply for {}", rw.name);
-        (*rw.applier)(t, eg);
-        debug!("done apply for {}", rw.name);
-        debug!(
-            "egraph size after {} is {}",
-            rw.name,
-            eg.total_number_of_nodes()
-        );
-    }
+    let (ts, searchTime): (Vec<Box<dyn Any>>, Duration) = time(|| {
+        rewrites
+            .iter()
+            .map(|rw: &Rewrite<L, N>| {
+                debug!("doing search for {}", rw.name);
+                let ret = (*rw.searcher)(eg);
+                debug!("done search for {}", rw.name);
+                ret
+            })
+            .collect()
+    });
+    let (_, applyTime) = time(|| {
+        for (rw, t) in rewrites.iter().zip(ts.into_iter()) {
+            debug!("doing apply for {}", rw.name);
+            (*rw.applier)(t, eg);
+            debug!("done apply for {}", rw.name);
+            debug!(
+                "egraph size after {} is {}",
+                rw.name,
+                eg.total_number_of_nodes()
+            );
+        }
+    });
 
-    prog != eg.progress()
+    (prog != eg.progress(), searchTime, applyTime)
 }
 
 impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {

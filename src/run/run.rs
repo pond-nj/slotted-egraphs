@@ -1,5 +1,5 @@
 use crate::*;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 // TODO: Turn this into a nicer interface like egg's `Runner`.
 
@@ -14,11 +14,21 @@ where
     F: FnMut(&mut EGraph<L, N>) -> Result<(), String> + 'static,
 {
     let start_time = Instant::now();
+    let mut searchTime = Duration::new(0, 0);
+    let mut applyTime = Duration::new(0, 0);
+    let mut rebuildTime = Duration::new(0, 0);
     let mut iterations = 0;
     let stop_reason: StopReason;
 
     loop {
-        let did_change = apply_rewrites(egraph, &rws);
+        let (did_change, search_time, apply_time) = apply_rewrites(egraph, &rws);
+        searchTime += search_time;
+        applyTime += apply_time;
+
+        if egraph.total_number_of_nodes() == 0 {
+            stop_reason = StopReason::Saturated;
+            break;
+        }
 
         match hook(egraph) {
             Ok(_) => (),
@@ -52,5 +62,8 @@ where
         egraph_nodes: egraph.total_number_of_nodes(),
         egraph_classes: egraph.ids().len(),
         total_time: start_time.elapsed().as_secs_f64(),
+        search_time: searchTime.as_secs_f64(),
+        apply_time: applyTime.as_secs_f64(),
+        rebuild_time: rebuildTime.as_secs_f64(),
     }
 }
