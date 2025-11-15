@@ -37,6 +37,7 @@ fn ematchQueryAllInEclassInternal(
                     // debug!("check existing var {:?}, pass", i);
                 }
             } else {
+                debug!("insert partial_subst {v:?} -> {i:?}");
                 st.partial_subst.insert(v.clone(), i.clone());
             }
             let ret = vec![st];
@@ -196,6 +197,8 @@ fn ematchQueryCheckEnodeAndChildren(
                     debug!("continue at !try_insert_compatible_slotmap_bij");
                     debug!("cannot insert {x:?} -> {y:?} in {st:?}");
                     continue 'nodeloop;
+                } else {
+                    debug!("insert partial_slotmap {x:?} -> {y:?}");
                 }
             }
 

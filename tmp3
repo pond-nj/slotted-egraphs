@@ -1,0 +1,5 @@
+pattern (compose <(new (pred <(int $0) (int $1) (int $2)>) (and <(eq (node $3) (leaf)) (eq (node $4) (leaf))>) 
+<(init (minLeaf) (pred <(node $4) (int $2)>)) (init (minLeaf) (pred <(node $3) (int $1)>))>) *0>)
+Compose([AppliedId(id76: ($f266, $f267, $f268, $f9758, $f9759)), AppliedId(id77: ($f266, $f267, $f268, $f9758, $f9759, $f9760, $f9761, $f9762)), AppliedId(id78: ($f266, $f267, $f268, $f9758, $f9759, $f9763, $f9764, $f9765, $f9766))])
+
+{ partial_subst: {}, partial_slotmap: ($f266 -> $0, $f267 -> $1, $f268 -> $2, $f9758 -> $3, $f9759 -> $4) }
