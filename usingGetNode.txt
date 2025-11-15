@@ -1,0 +1,538 @@
+ == Egraph ==
+(pred <>)
+CHCData { predNames: {}, varTypes: {} }
+id0():>> PredSyntax([])
+ - PredSyntax([])
+ -   PredSyntax([])
+
+(int $f0)
+CHCData { predNames: {}, varTypes: {$f0: Int} }
+id1($f0):>> Int($f0)
+ - Int($f0)
+ -   Int($0)
+
+(0)
+CHCData { predNames: {}, varTypes: {} }
+id2():>> Number(0)
+ - Number(0)
+ -   Number(0)
+
+(geq (int $f1) (0))
+CHCData { predNames: {}, varTypes: {$f1: Int} }
+id3($f1):>> Geq(id1: ($f1), id2: ())
+ - Geq(id1: ($f1), id2: ())
+ -   Geq(id1: ($0), id2: ())
+
+(+ (int $f3) (int $f2))
+CHCData { predNames: {}, varTypes: {$f2: Int, $f3: Int} }
+id4($f2, $f3):>> Add(id1: ($f3), id1: ($f2))
+ - Add(id1: ($f3), id1: ($f2))
+ -   Add(id1: ($0), id1: ($1))
+
+(lt (+ (int $f5) (int $f4)) (int $f6))
+CHCData { predNames: {}, varTypes: {$f5: Int, $f6: Int, $f4: Int} }
+id5($f4, $f5, $f6):>> Less(id4: ($f4, $f5), id1: ($f6))
+ - Less(id4: ($f4, $f5), id1: ($f6))
+ -   Less(id4: ($0, $1), id1: ($2))
+
+(and <(geq (int $f7) (0)) (lt (+ (int $f8) (int $f7)) (int $f9))>)
+CHCData { predNames: {}, varTypes: {$f7: Int, $f9: Int, $f8: Int} }
+id6($f7, $f8, $f9):>> And([AppliedId(id3: ($f7)), AppliedId(id5: ($f7, $f8, $f9))])
+ - And([AppliedId(id3: ($f7)), AppliedId(id5: ($f7, $f8, $f9))])
+ -   And([AppliedId(id3: ($0)), AppliedId(id5: ($0, $1, $2))])
+
+(leafDrop)
+CHCData { predNames: {}, varTypes: {} }
+id7():>> PredName("leafDrop")
+ - PredName("leafDrop")
+ -   PredName("leafDrop")
+
+(node $f10)
+CHCData { predNames: {}, varTypes: {$f10: Node} }
+id8($f10):>> Node($f10)
+ - Node($f10)
+ -   Node($0)
+
+(pred <(int $f11) (node $f12) (node $f13)>)
+CHCData { predNames: {}, varTypes: {$f13: Node, $f12: Node, $f11: Int} }
+id9($f11, $f12, $f13):>> PredSyntax([id1: ($f11), id8: ($f12), id8: ($f13)])
+ - PredSyntax([id1: ($f11), id8: ($f12), id8: ($f13)])
+ -   PredSyntax([id1: ($0), id8: ($1), id8: ($2)])
+
+(init (leafDrop) (pred <(int $f14) (node $f15) (node $f16)>))
+CHCData { predNames: {"leafDrop"}, varTypes: {$f16: Node, $f14: Int, $f15: Node} }
+id10($f14, $f15, $f16):>> Init(id7: (), id9: ($f14, $f15, $f16))
+ - Compose([AppliedId(id36: ($f14, $f15, $f16)), AppliedId(id43: ($f14, $f15, $f16)), AppliedId(id50: ($f14, $f15, $f16))])
+ -   Compose([AppliedId(id36: ($0, $1, $2)), AppliedId(id43: ($0, $1, $2)), AppliedId(id50: ($0, $1, $2))])
+ - Init(id7: (), id9: ($f14, $f15, $f16))
+ -   Init(id7: (), id9: ($0, $1, $2))
+
+(minLeaf)
+CHCData { predNames: {}, varTypes: {} }
+id11():>> PredName("minLeaf")
+ - PredName("minLeaf")
+ -   PredName("minLeaf")
+
+(pred <(node $f17) (int $f18)>)
+CHCData { predNames: {}, varTypes: {$f17: Node, $f18: Int} }
+id12($f17, $f18):>> PredSyntax([id8: ($f17), id1: ($f18)])
+ - PredSyntax([id8: ($f17), id1: ($f18)])
+ -   PredSyntax([id8: ($0), id1: ($1)])
+
+(init (minLeaf) (pred <(node $f19) (int $f20)>))
+CHCData { predNames: {"minLeaf"}, varTypes: {$f20: Int, $f19: Node} }
+id13($f19, $f20):>> Init(id11: (), id12: ($f19, $f20))
+ - Compose([AppliedId(id55: ($f19, $f20)), AppliedId(id60: ($f19, $f20))])
+ -   Compose([AppliedId(id55: ($0, $1)), AppliedId(id60: ($0, $1))])
+ - Init(id11: (), id12: ($f19, $f20))
+ -   Init(id11: (), id12: ($0, $1))
+
+(new (pred <>) (and <(geq (int $f21) (0)) (lt (+ (int $f24) (int $f21)) (int $f25))>) <(init (leafDrop) (pred <(int $f21) (node $f22) (node $f23)>)) (init (minLeaf) (pred <(node $f23) (int $f24)>)) (init (minLeaf) (pred <(node $f22) (int $f25)>))>)
+CHCData { predNames: {"rootCHC"}, varTypes: {$f23: Node, $f21: Int, $f22: Node, $f24: Int, $f25: Int} }
+id14($f21, $f22, $f23, $f24, $f25):>> New(id0: (), id6: ($f21, $f24, $f25), [AppliedId(id10: ($f21, $f22, $f23)), AppliedId(id13: ($f23, $f24)), AppliedId(id13: ($f22, $f25))])
+ - New(id0: (), id6: ($f21, $f24, $f25), [AppliedId(id10: ($f21, $f22, $f23)), AppliedId(id13: ($f23, $f24)), AppliedId(id13: ($f22, $f25))])
+ -   New(id0: (), id6: ($0, $1, $2), [AppliedId(id10: ($0, $3, $4)), AppliedId(id13: ($4, $1)), AppliedId(id13: ($3, $2))])
+
+(root)
+CHCData { predNames: {}, varTypes: {} }
+id15():>> PredName("root")
+ - PredName("root")
+ -   PredName("root")
+
+(pred <(int $f26) (node $f27) (node $f28) (int $f29) (int $f30)>)
+CHCData { predNames: {}, varTypes: {$f26: Int, $f28: Node, $f27: Node, $f30: Int, $f29: Int} }
+id16($f26, $f27, $f28, $f29, $f30):>> PredSyntax([id1: ($f26), id8: ($f27), id8: ($f28), id1: ($f29), id1: ($f30)])
+ - PredSyntax([id1: ($f26), id8: ($f27), id8: ($f28), id1: ($f29), id1: ($f30)])
+ -   PredSyntax([id1: ($0), id8: ($1), id8: ($2), id1: ($3), id1: ($4)])
+
+(init (root) (pred <(int $f31) (node $f32) (node $f33) (int $f34) (int $f35)>))
+CHCData { predNames: {"root"}, varTypes: {$f33: Node, $f34: Int, $f35: Int, $f32: Node, $f31: Int} }
+id17($f31, $f32, $f33, $f34, $f35):>> Init(id15: (), id16: ($f31, $f32, $f33, $f34, $f35))
+ - Init(id15: (), id16: ($f31, $f32, $f33, $f34, $f35))
+ -   Init(id15: (), id16: ($0, $1, $2, $3, $4))
+ - Compose([AppliedId(id14: ($f31, $f32, $f33, $f34, $f35))])
+ -   Compose([AppliedId(id14: ($0, $1, $2, $3, $4))])
+
+(min)
+CHCData { predNames: {}, varTypes: {} }
+id19():>> PredName("min")
+ - PredName("min")
+ -   PredName("min")
+
+(pred <(int $f41) (int $f42) (int $f43)>)
+CHCData { predNames: {}, varTypes: {$f42: Int, $f43: Int, $f41: Int} }
+id20($f41, $f42, $f43):>> PredSyntax([id1: ($f41), id1: ($f42), id1: ($f43)])
+ - PredSyntax([id1: ($f41), id1: ($f42), id1: ($f43)])
+ -   PredSyntax([id1: ($0), id1: ($1), id1: ($2)])
+
+(lt (int $f47) (int $f48))
+CHCData { predNames: {}, varTypes: {$f47: Int, $f48: Int} }
+id22($f47, $f48):>> Less(id1: ($f47), id1: ($f48))
+ - Less(id1: ($f47), id1: ($f48))
+ -   Less(id1: ($0), id1: ($1))
+
+(eq (int $f50) (int $f49))
+CHCData { predNames: {}, varTypes: {$f50: Int, $f49: Int} }
+id23($f49, $f50):>> Eq(id1: ($f50), id1: ($f49))
+ - Eq(id1: ($f50), id1: ($f49))
+ -   Eq(id1: ($0), id1: ($1))
+
+(and <(lt (int $f51) (int $f52)) (eq (int $f53) (int $f51))>)
+CHCData { predNames: {}, varTypes: {$f53: Int, $f52: Int, $f51: Int} }
+id24($f51, $f52, $f53):>> And([AppliedId(id22: ($f51, $f52)), AppliedId(id23: ($f51, $f53))])
+ - And([AppliedId(id22: ($f51, $f52)), AppliedId(id23: ($f51, $f53))])
+ -   And([AppliedId(id22: ($0, $1)), AppliedId(id23: ($0, $2))])
+
+(1)
+CHCData { predNames: {}, varTypes: {} }
+id26():>> Number(1)
+ - Number(1)
+ -   Number(1)
+
+(interface (min) (pred <(int $f57) (int $f58) (int $f59)>) (1))
+CHCData { predNames: {"min"}, varTypes: {$f58: Int, $f59: Int, $f57: Int} }
+id27($f57, $f58, $f59):>> Interface(id19: (), id20: ($f57, $f58, $f59), id26: ())
+ - New(id20: ($f57, $f58, $f59), id24: ($f57, $f58, $f59), [])
+ -   New(id20: ($0, $1, $2), id24: ($0, $1, $2), [])
+ - Interface(id19: (), id20: ($f57, $f58, $f59), id26: ())
+ -   Interface(id19: (), id20: ($0, $1, $2), id26: ())
+
+(geq (int $f60) (int $f61))
+CHCData { predNames: {}, varTypes: {$f60: Int, $f61: Int} }
+id28($f60, $f61):>> Geq(id1: ($f60), id1: ($f61))
+ - Geq(id1: ($f60), id1: ($f61))
+ -   Geq(id1: ($0), id1: ($1))
+
+(and <(geq (int $f62) (int $f63)) (eq (int $f64) (int $f63))>)
+CHCData { predNames: {}, varTypes: {$f64: Int, $f63: Int, $f62: Int} }
+id29($f62, $f63, $f64):>> And([AppliedId(id28: ($f62, $f63)), AppliedId(id23: ($f63, $f64))])
+ - And([AppliedId(id28: ($f62, $f63)), AppliedId(id23: ($f63, $f64))])
+ -   And([AppliedId(id28: ($0, $1)), AppliedId(id23: ($1, $2))])
+
+(new (pred <(int $f65) (int $f66) (int $f67)>) (and <(geq (int $f65) (int $f66)) (eq (int $f67) (int $f66))>) <>)
+CHCData { predNames: {}, varTypes: {$f66: Int, $f65: Int, $f67: Int} }
+id30($f65, $f66, $f67):>> New(id20: ($f65, $f66, $f67), id29: ($f65, $f66, $f67), [])
+ - New(id20: ($f65, $f66, $f67), id29: ($f65, $f66, $f67), [])
+ -   New(id20: ($0, $1, $2), id29: ($0, $1, $2), [])
+
+(compose <(interface (min) (pred <(int $f68) (int $f69) (int $f70)>) (1)) (new (pred <(int $f68) (int $f69) (int $f70)>) (and <(geq (int $f68) (int $f69)) (eq (int $f70) (int $f69))>) <>)>)
+CHCData { predNames: {"min"}, varTypes: {$f68: Int, $f70: Int, $f69: Int} }
+id31($f68, $f69, $f70):>> Compose([AppliedId(id27: ($f68, $f69, $f70)), AppliedId(id30: ($f68, $f69, $f70))])
+ - Compose([AppliedId(id27: ($f68, $f69, $f70)), AppliedId(id30: ($f68, $f69, $f70))])
+ -   Compose([AppliedId(id27: ($0, $1, $2)), AppliedId(id30: ($0, $1, $2))])
+ - Init(id19: (), id20: ($f68, $f69, $f70))
+ -   Init(id19: (), id20: ($0, $1, $2))
+
+(leaf)
+CHCData { predNames: {}, varTypes: {} }
+id32():>> Leaf
+ - Leaf
+ -   Leaf
+
+(eq (node $f71) (leaf))
+CHCData { predNames: {}, varTypes: {$f71: Node} }
+id33($f71):>> Eq(id8: ($f71), id32: ())
+ - Eq(id8: ($f71), id32: ())
+ -   Eq(id8: ($0), id32: ())
+
+(and <(eq (node $f72) (leaf)) (eq (node $f73) (leaf))>)
+CHCData { predNames: {"and_from_unfold_id10_in_id65_using_id36", "and_from_unfold_id10_in_id70_using_id36"}, varTypes: {$f73: Node, $f72: Node} }
+id34($f72, $f73):>> And([AppliedId(id33: ($f72)), AppliedId(id33: ($f73))])
+ - And([AppliedId(id33: ($f72)), AppliedId(id33: ($f73))])
+ -   And([AppliedId(id33: ($0)), AppliedId(id33: ($1))])
+
+(interface (leafDrop) (pred <(int $f77) (node $f78) (node $f79)>) (1))
+CHCData { predNames: {"leafDrop"}, varTypes: {$f78: Node, $f79: Node, $f77: Int} }
+id36($f77, $f78, $f79):>> Interface(id7: (), id9: ($f77, $f78, $f79), id26: ())
+ - New(id9: ($f77, $f78, $f79), id34: ($f78, $f79), [])
+ -   New(id9: ($0, $1, $2), id34: ($1, $2), [])
+ - Interface(id7: (), id9: ($f77, $f78, $f79), id26: ())
+ -   Interface(id7: (), id9: ($0, $1, $2), id26: ())
+
+(leq (int $f80) (0))
+CHCData { predNames: {}, varTypes: {$f80: Int} }
+id37($f80):>> Leq(id1: ($f80), id2: ())
+ - Leq(id1: ($f80), id2: ())
+ -   Leq(id1: ($0), id2: ())
+
+(binode (int $f83) (node $f81) (node $f82))
+CHCData { predNames: {}, varTypes: {$f83: Int, $f82: Node, $f81: Node} }
+id38($f81, $f82, $f83):>> BiNode(id1: ($f83), id8: ($f81), id8: ($f82))
+ - BiNode(id1: ($f83), id8: ($f81), id8: ($f82))
+ -   BiNode(id1: ($0), id8: ($1), id8: ($2))
+
+(eq (node $f84) (binode (int $f87) (node $f85) (node $f86)))
+CHCData { predNames: {}, varTypes: {$f86: Node, $f84: Node, $f87: Int, $f85: Node} }
+id39($f84, $f85, $f86, $f87):>> Eq(id8: ($f84), id38: ($f85, $f86, $f87))
+ - Eq(id8: ($f84), id38: ($f85, $f86, $f87))
+ -   Eq(id8: ($0), id38: ($1, $2, $3))
+
+(and <(leq (int $f88) (0)) (eq (node $f89) (binode (int $f93) (node $f91) (node $f92))) (eq (node $f90) (binode (int $f93) (node $f91) (node $f92)))>)
+CHCData { predNames: {"and_from_unfold_id10_in_id65_using_id43", "and_from_unfold_id10_in_id70_using_id43"}, varTypes: {$f90: Node, $f92: Node, $f89: Node, $f93: Int, $f91: Node, $f88: Int} }
+id40($f88, $f89, $f90, $f91, $f92, $f93):>> And([AppliedId(id37: ($f88)), AppliedId(id39: ($f89, $f91, $f92, $f93)), AppliedId(id39: ($f90, $f91, $f92, $f93))])
+ - And([AppliedId(id37: ($f88)), AppliedId(id39: ($f89, $f91, $f92, $f93)), AppliedId(id39: ($f90, $f91, $f92, $f93))])
+ -   And([AppliedId(id37: ($0)), AppliedId(id39: ($1, $2, $3, $4)), AppliedId(id39: ($5, $2, $3, $4))])
+
+(2)
+CHCData { predNames: {}, varTypes: {} }
+id42():>> Number(2)
+ - Number(2)
+ -   Number(2)
+
+(interface (leafDrop) (pred <(int $f100) (node $f101) (node $f102)>) (2))
+CHCData { predNames: {"leafDrop"}, varTypes: {$f102: Node, $f101: Node, $f291: Node, $f292: Node, $f293: Int, $f100: Int} }
+id43($f100, $f101, $f102):>> Interface(id7: (), id9: ($f100, $f101, $f102), id42: ())
+ - Interface(id7: (), id9: ($f100, $f101, $f102), id42: ())
+ -   Interface(id7: (), id9: ($0, $1, $2), id42: ())
+ - New(id9: ($f100, $f101, $f102), id40: ($f100, $f101, $f102, $f291, $f292, $f293), [])
+ -   New(id9: ($0, $1, $2), id40: ($0, $1, $2, $3, $4, $5), [])
+
+(geq (int $f106) (1))
+CHCData { predNames: {}, varTypes: {$f106: Int} }
+id44($f106):>> Geq(id1: ($f106), id26: ())
+ - Geq(id1: ($f106), id26: ())
+ -   Geq(id1: ($0), id26: ())
+
+(- (int $f107) (1))
+CHCData { predNames: {}, varTypes: {$f107: Int} }
+id45($f107):>> Minus(id1: ($f107), id26: ())
+ - Minus(id1: ($f107), id26: ())
+ -   Minus(id1: ($0), id26: ())
+
+(eq (int $f109) (- (int $f108) (1)))
+CHCData { predNames: {}, varTypes: {$f108: Int, $f109: Int} }
+id46($f108, $f109):>> Eq(id1: ($f109), id45: ($f108))
+ - Eq(id1: ($f109), id45: ($f108))
+ -   Eq(id1: ($0), id45: ($1))
+
+(and <(eq (node $f111) (binode (int $f114) (node $f112) (node $f113))) (geq (int $f110) (1)) (eq (int $f115) (- (int $f110) (1)))>)
+CHCData { predNames: {"and_from_unfold_id10_in_id65_using_id50", "and_from_unfold_id10_in_id70_using_id50"}, varTypes: {$f111: Node, $f110: Int, $f113: Node, $f114: Int, $f112: Node, $f115: Int} }
+id47($f110, $f111, $f112, $f113, $f114, $f115):>> And([AppliedId(id39: ($f111, $f112, $f113, $f114)), AppliedId(id44: ($f110)), AppliedId(id46: ($f110, $f115))])
+ - And([AppliedId(id39: ($f111, $f112, $f113, $f114)), AppliedId(id44: ($f110)), AppliedId(id46: ($f110, $f115))])
+ -   And([AppliedId(id39: ($0, $1, $2, $3)), AppliedId(id44: ($4)), AppliedId(id46: ($4, $5))])
+
+(3)
+CHCData { predNames: {}, varTypes: {} }
+id49():>> Number(3)
+ - Number(3)
+ -   Number(3)
+
+(interface (leafDrop) (pred <(int $f123) (node $f124) (node $f125)>) (3))
+CHCData { predNames: {"leafDrop"}, varTypes: {$f288: Int, $f124: Node, $f123: Int, $f286: Node, $f287: Node, $f125: Node, $f289: Int} }
+id50($f123, $f124, $f125):>> Interface(id7: (), id9: ($f123, $f124, $f125), id49: ())
+ - Interface(id7: (), id9: ($f123, $f124, $f125), id49: ())
+ -   Interface(id7: (), id9: ($0, $1, $2), id49: ())
+ - New(id9: ($f123, $f124, $f125), id47: ($f123, $f124, $f286, $f287, $f288, $f289), [AppliedId(id10: ($f289, $f286, $f125))])
+ -   New(id9: ($0, $1, $2), id47: ($0, $1, $3, $4, $5, $6), [AppliedId(id10: ($6, $3, $2))])
+
+(eq (int $f133) (0))
+CHCData { predNames: {}, varTypes: {$f133: Int} }
+id52($f133):>> Eq(id1: ($f133), id2: ())
+ - Eq(id1: ($f133), id2: ())
+ -   Eq(id1: ($0), id2: ())
+
+(and <(eq (int $f135) (0)) (eq (node $f134) (leaf))>)
+CHCData { predNames: {}, varTypes: {$f135: Int, $f134: Node} }
+id53($f134, $f135):>> And([AppliedId(id52: ($f135)), AppliedId(id33: ($f134))])
+ - And([AppliedId(id52: ($f135)), AppliedId(id33: ($f134))])
+ -   And([AppliedId(id52: ($0)), AppliedId(id33: ($1))])
+
+(interface (minLeaf) (pred <(node $f138) (int $f139)>) (1))
+CHCData { predNames: {"minLeaf"}, varTypes: {$f138: Node, $f139: Int} }
+id55($f138, $f139):>> Interface(id11: (), id12: ($f138, $f139), id26: ())
+ - New(id12: ($f138, $f139), id53: ($f138, $f139), [])
+ -   New(id12: ($0, $1), id53: ($0, $1), [])
+ - Interface(id11: (), id12: ($f138, $f139), id26: ())
+ -   Interface(id11: (), id12: ($0, $1), id26: ())
+
+(+ (int $f140) (1))
+CHCData { predNames: {}, varTypes: {$f140: Int} }
+id56($f140):>> Add(id1: ($f140), id26: ())
+ - Add(id1: ($f140), id26: ())
+ -   Add(id1: ($0), id26: ())
+
+(eq (int $f141) (+ (int $f142) (1)))
+CHCData { predNames: {}, varTypes: {$f141: Int, $f142: Int} }
+id57($f141, $f142):>> Eq(id1: ($f141), id56: ($f142))
+ - Eq(id1: ($f141), id56: ($f142))
+ -   Eq(id1: ($0), id56: ($1))
+
+(and <(eq (node $f143) (binode (int $f145) (node $f146) (node $f147))) (eq (int $f144) (+ (int $f148) (1)))>)
+CHCData { predNames: {"and_from_unfold_id13_in_id74_using_id60", "and_from_unfold_id13_in_id65_using_id60"}, varTypes: {$f144: Int, $f148: Int, $f147: Node, $f145: Int, $f143: Node, $f146: Node} }
+id58($f143, $f144, $f145, $f146, $f147, $f148):>> And([AppliedId(id39: ($f143, $f146, $f147, $f145)), AppliedId(id57: ($f144, $f148))])
+ - And([AppliedId(id39: ($f143, $f146, $f147, $f145)), AppliedId(id57: ($f144, $f148))])
+ -   And([AppliedId(id39: ($0, $1, $2, $3)), AppliedId(id57: ($4, $5))])
+
+(interface (minLeaf) (pred <(node $f157) (int $f158)>) (2))
+CHCData { predNames: {"minLeaf"}, varTypes: {$f297: Int, $f157: Node, $f295: Node, $f298: Int, $f299: Int, $f296: Node, $f158: Int, $f294: Int} }
+id60($f157, $f158):>> Interface(id11: (), id12: ($f157, $f158), id42: ())
+ - New(id12: ($f157, $f158), id58: ($f157, $f158, $f294, $f295, $f296, $f297), [AppliedId(id13: ($f295, $f298)), AppliedId(id13: ($f296, $f299)), AppliedId(id31: ($f298, $f299, $f297))])
+ -   New(id12: ($0, $1), id58: ($0, $1, $2, $3, $4, $5), [AppliedId(id13: ($3, $6)), AppliedId(id13: ($4, $7)), AppliedId(id31: ($6, $7, $5))])
+ - Interface(id11: (), id12: ($f157, $f158), id42: ())
+ -   Interface(id11: (), id12: ($0, $1), id42: ())
+
+(and <>)
+CHCData { predNames: {}, varTypes: {} }
+id62():>> And([])
+ - And([])
+ -   And([])
+
+(define_from_id14_0)
+CHCData { predNames: {}, varTypes: {} }
+id64():>> PredName("define_from_id14_0")
+ - PredName("define_from_id14_0")
+ -   PredName("define_from_id14_0")
+
+(interface (define_from_id14_0) (pred <(int $f261) (int $f262) (int $f263)>) (2))
+CHCData { predNames: {"define_from_id14_0"}, varTypes: {$f263: Int, $f282: Node, $f262: Int, $f283: Node, $f261: Int} }
+id65($f261, $f262, $f263):>> Interface(id64: (), id20: ($f261, $f262, $f263), id42: ())
+ - Interface(id64: (), id20: ($f261, $f262, $f263), id42: ())
+ -   Interface(id64: (), id20: ($0, $1, $2), id42: ())
+ - New(id20: ($f261, $f262, $f263), id62: (), [AppliedId(id10: ($f261, $f282, $f283)), AppliedId(id13: ($f282, $f262)), AppliedId(id13: ($f283, $f263))])
+ -   New(id20: ($0, $1, $2), id62: (), [AppliedId(id10: ($0, $3, $4)), AppliedId(id13: ($3, $1)), AppliedId(id13: ($4, $2))])
+
+(compose <(interface (define_from_id14_0) (pred <(int $f266) (int $f267) (int $f268)>) (2))>)
+CHCData { predNames: {}, varTypes: {$f666: Int, $f675: Node, $f660: Node, $f661: Node, $f684: Int, $f686: Node, $f679: Int, $f658: Node, $f266: Int, $f676: Int, $f664: Node, $f267: Int, $f678: Node, $f683: Node, $f689: Int, $f659: Node, $f681: Int, $f682: Node, $f268: Int, $f662: Int, $f688: Int, $f677: Node, $f680: Int, $f685: Node, $f663: Node, $f687: Int, $f674: Node, $f665: Int} }
+id66($f266, $f267, $f268):>> Compose([AppliedId(id65: ($f266, $f267, $f268))])
+ - Compose([AppliedId(id65: ($f266, $f267, $f268))])
+ -   Compose([AppliedId(id65: ($0, $1, $2))])
+ - Compose([AppliedId(id81: ($f266, $f267, $f268, $f682, $f683)), AppliedId(id82: ($f266, $f267, $f268, $f682, $f683, $f684, $f685, $f686, $f687, $f688, $f689))])
+ -   Compose([AppliedId(id81: ($0, $1, $2, $3, $4)), AppliedId(id82: ($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10))])
+ - Compose([AppliedId(id84: ($f266, $f267, $f268, $f674, $f675)), AppliedId(id85: ($f266, $f267, $f268, $f674, $f675, $f676, $f677, $f678, $f679, $f680, $f681))])
+ -   Compose([AppliedId(id84: ($0, $1, $2, $3, $4)), AppliedId(id85: ($0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10))])
+ - Compose([AppliedId(id76: ($f266, $f267, $f268, $f658, $f659)), AppliedId(id77: ($f266, $f267, $f268, $f658, $f659, $f660, $f661, $f662)), AppliedId(id78: ($f266, $f267, $f268, $f658, $f659, $f663, $f664, $f665, $f666))])
+ -   Compose([AppliedId(id76: ($0, $1, $2, $3, $4)), AppliedId(id77: ($0, $1, $2, $3, $4, $5, $6, $7)), AppliedId(id78: ($0, $1, $2, $3, $4, $8, $9, $10, $11))])
+
+(pred <(int $f269)>)
+CHCData { predNames: {}, varTypes: {$f269: Int} }
+id67($f269):>> PredSyntax([id1: ($f269)])
+ - PredSyntax([id1: ($f269)])
+ -   PredSyntax([id1: ($0)])
+
+(define_from_id50_1)
+CHCData { predNames: {}, varTypes: {} }
+id69():>> PredName("define_from_id50_1")
+ - PredName("define_from_id50_1")
+ -   PredName("define_from_id50_1")
+
+(interface (define_from_id50_1) (pred <(int $f273)>) (2))
+CHCData { predNames: {"define_from_id50_1"}, varTypes: {$f285: Node, $f284: Node, $f273: Int} }
+id70($f273):>> Interface(id69: (), id67: ($f273), id42: ())
+ - New(id67: ($f273), id62: (), [AppliedId(id10: ($f273, $f284, $f285))])
+ -   New(id67: ($0), id62: (), [AppliedId(id10: ($0, $1, $2))])
+ - Interface(id69: (), id67: ($f273), id42: ())
+ -   Interface(id69: (), id67: ($0), id42: ())
+
+(compose <(interface (define_from_id50_1) (pred <(int $f276)>) (2))>)
+CHCData { predNames: {}, varTypes: {$f276: Int, $f693: Node, $f697: Int, $f692: Node, $f698: Int, $f695: Node, $f690: Node, $f696: Node, $f691: Node, $f694: Int} }
+id71($f276):>> Compose([AppliedId(id70: ($f276))])
+ - Compose([AppliedId(id70: ($f276))])
+ -   Compose([AppliedId(id70: ($0))])
+ - Compose([AppliedId(id87: ($f276, $f690, $f691)), AppliedId(id88: ($f276, $f690, $f691, $f692, $f693, $f694)), AppliedId(id89: ($f276, $f690, $f691, $f695, $f696, $f697, $f698))])
+ -   Compose([AppliedId(id87: ($0, $1, $2)), AppliedId(id88: ($0, $1, $2, $3, $4, $5)), AppliedId(id89: ($0, $1, $2, $6, $7, $8, $9))])
+
+(define_from_id60_2)
+CHCData { predNames: {}, varTypes: {} }
+id73():>> PredName("define_from_id60_2")
+ - PredName("define_from_id60_2")
+ -   PredName("define_from_id60_2")
+
+(interface (define_from_id60_2) (pred <(int $f279)>) (2))
+CHCData { predNames: {"define_from_id60_2"}, varTypes: {$f290: Node, $f279: Int} }
+id74($f279):>> Interface(id73: (), id67: ($f279), id42: ())
+ - Interface(id73: (), id67: ($f279), id42: ())
+ -   Interface(id73: (), id67: ($0), id42: ())
+ - New(id67: ($f279), id62: (), [AppliedId(id13: ($f290, $f279))])
+ -   New(id67: ($0), id62: (), [AppliedId(id13: ($1, $0))])
+
+(compose <(interface (define_from_id60_2) (pred <(int $f281)>) (2))>)
+CHCData { predNames: {}, varTypes: {$f668: Int, $f281: Int, $f672: Int, $f673: Int, $f670: Node, $f667: Node, $f669: Node, $f671: Int} }
+id75($f281):>> Compose([AppliedId(id74: ($f281))])
+ - Compose([AppliedId(id91: ($f281, $f667)), AppliedId(id92: ($f281, $f667, $f668, $f669, $f670, $f671, $f672, $f673))])
+ -   Compose([AppliedId(id91: ($0, $1)), AppliedId(id92: ($0, $1, $2, $3, $4, $5, $6, $7))])
+ - Compose([AppliedId(id74: ($f281))])
+ -   Compose([AppliedId(id74: ($0))])
+
+(new (pred <(int $f483) (int $f484) (int $f485)>) (and <(eq (node $f486) (leaf)) (eq (node $f487) (leaf))>) <(init (minLeaf) (pred <(node $f486) (int $f484)>)) (init (minLeaf) (pred <(node $f487) (int $f485)>))>)
+CHCData { predNames: {"unfold_id10_in_id65_using_id36"}, varTypes: {$f484: Int, $f483: Int, $f486: Node, $f485: Int, $f487: Node} }
+id76($f483, $f484, $f485, $f486, $f487):>> New(id20: ($f483, $f484, $f485), id34: ($f486, $f487), [AppliedId(id13: ($f486, $f484)), AppliedId(id13: ($f487, $f485))])
+ - New(id20: ($f483, $f484, $f485), id34: ($f486, $f487), [AppliedId(id13: ($f486, $f484)), AppliedId(id13: ($f487, $f485))])
+ -   New(id20: ($0, $1, $2), id34: ($3, $4), [AppliedId(id13: ($3, $1)), AppliedId(id13: ($4, $2))])
+
+(new (pred <(int $f488) (int $f489) (int $f490)>) (and <(leq (int $f488) (0)) (eq (node $f491) (binode (int $f495) (node $f493) (node $f494))) (eq (node $f492) (binode (int $f495) (node $f493) (node $f494)))>) <(init (minLeaf) (pred <(node $f491) (int $f489)>)) (init (minLeaf) (pred <(node $f492) (int $f490)>))>)
+CHCData { predNames: {"unfold_id10_in_id65_using_id43"}, varTypes: {$f488: Int, $f494: Node, $f490: Int, $f493: Node, $f495: Int, $f491: Node, $f492: Node, $f489: Int} }
+id77($f488, $f489, $f490, $f491, $f492, $f493, $f494, $f495):>> New(id20: ($f488, $f489, $f490), id40: ($f488, $f491, $f492, $f493, $f494, $f495), [AppliedId(id13: ($f491, $f489)), AppliedId(id13: ($f492, $f490))])
+ - New(id20: ($f488, $f489, $f490), id40: ($f488, $f491, $f492, $f493, $f494, $f495), [AppliedId(id13: ($f491, $f489)), AppliedId(id13: ($f492, $f490))])
+ -   New(id20: ($0, $1, $2), id40: ($0, $3, $4, $5, $6, $7), [AppliedId(id13: ($3, $1)), AppliedId(id13: ($4, $2))])
+
+(new (pred <(int $f496) (int $f497) (int $f498)>) (and <(eq (node $f499) (binode (int $f503) (node $f501) (node $f502))) (geq (int $f496) (1)) (eq (int $f504) (- (int $f496) (1)))>) <(init (leafDrop) (pred <(int $f504) (node $f501) (node $f500)>)) (init (minLeaf) (pred <(node $f499) (int $f497)>)) (init (minLeaf) (pred <(node $f500) (int $f498)>))>)
+CHCData { predNames: {"unfold_id10_in_id65_using_id50"}, varTypes: {$f499: Node, $f498: Int, $f502: Node, $f504: Int, $f500: Node, $f501: Node, $f496: Int, $f503: Int, $f497: Int} }
+id78($f496, $f497, $f498, $f499, $f500, $f501, $f502, $f503, $f504):>> New(id20: ($f496, $f497, $f498), id47: ($f496, $f499, $f501, $f502, $f503, $f504), [AppliedId(id10: ($f504, $f501, $f500)), AppliedId(id13: ($f499, $f497)), AppliedId(id13: ($f500, $f498))])
+ - New(id20: ($f496, $f497, $f498), id47: ($f496, $f499, $f501, $f502, $f503, $f504), [AppliedId(id10: ($f504, $f501, $f500)), AppliedId(id13: ($f499, $f497)), AppliedId(id13: ($f500, $f498))])
+ -   New(id20: ($0, $1, $2), id47: ($0, $3, $4, $5, $6, $7), [AppliedId(id10: ($7, $4, $8)), AppliedId(id13: ($3, $1)), AppliedId(id13: ($8, $2))])
+
+(and <(eq (node $f527) (leaf)) (eq (int $f526) (0))>)
+CHCData { predNames: {"and_from_unfold_id13_in_id65_using_id55", "and_from_unfold_id13_in_id74_using_id55"}, varTypes: {$f527: Node, $f526: Int} }
+id80($f526, $f527):>> And([AppliedId(id33: ($f527)), AppliedId(id52: ($f526))])
+ - And([AppliedId(id33: ($f527)), AppliedId(id52: ($f526))])
+ -   And([AppliedId(id33: ($0)), AppliedId(id52: ($1))])
+
+(new (pred <(int $f528) (int $f529) (int $f530)>) (and <(eq (node $f531) (leaf)) (eq (int $f529) (0))>) <(init (leafDrop) (pred <(int $f528) (node $f531) (node $f532)>)) (init (minLeaf) (pred <(node $f532) (int $f530)>))>)
+CHCData { predNames: {"unfold_id13_in_id65_using_id55"}, varTypes: {$f532: Node, $f530: Int, $f531: Node, $f528: Int, $f529: Int} }
+id81($f528, $f529, $f530, $f531, $f532):>> New(id20: ($f528, $f529, $f530), id80: ($f529, $f531), [AppliedId(id10: ($f528, $f531, $f532)), AppliedId(id13: ($f532, $f530))])
+ - New(id20: ($f528, $f529, $f530), id80: ($f529, $f531), [AppliedId(id10: ($f528, $f531, $f532)), AppliedId(id13: ($f532, $f530))])
+ -   New(id20: ($0, $1, $2), id80: ($1, $3), [AppliedId(id10: ($0, $3, $4)), AppliedId(id13: ($4, $2))])
+
+(new (pred <(int $f533) (int $f534) (int $f535)>) (and <(eq (node $f536) (binode (int $f538) (node $f539) (node $f540))) (eq (int $f534) (+ (int $f541) (1)))>) <(init (leafDrop) (pred <(int $f533) (node $f536) (node $f537)>)) (init (minLeaf) (pred <(node $f537) (int $f535)>)) (init (minLeaf) (pred <(node $f539) (int $f542)>)) (init (minLeaf) (pred <(node $f540) (int $f543)>)) (compose <(interface (min) (pred <(int $f542) (int $f543) (int $f541)>) (1)) (new (pred <(int $f542) (int $f543) (int $f541)>) (and <(geq (int $f542) (int $f543)) (eq (int $f541) (int $f543))>) <>)>)>)
+CHCData { predNames: {"unfold_id13_in_id65_using_id60"}, varTypes: {$f541: Int, $f536: Node, $f535: Int, $f543: Int, $f538: Int, $f533: Int, $f540: Node, $f542: Int, $f539: Node, $f537: Node, $f534: Int} }
+id82($f533, $f534, $f535, $f536, $f537, $f538, $f539, $f540, $f541, $f542, $f543):>> New(id20: ($f533, $f534, $f535), id58: ($f536, $f534, $f538, $f539, $f540, $f541), [AppliedId(id10: ($f533, $f536, $f537)), AppliedId(id13: ($f537, $f535)), AppliedId(id13: ($f539, $f542)), AppliedId(id13: ($f540, $f543)), AppliedId(id31: ($f542, $f543, $f541))])
+ - New(id20: ($f533, $f534, $f535), id58: ($f536, $f534, $f538, $f539, $f540, $f541), [AppliedId(id10: ($f533, $f536, $f537)), AppliedId(id13: ($f537, $f535)), AppliedId(id13: ($f539, $f542)), AppliedId(id13: ($f540, $f543)), AppliedId(id31: ($f542, $f543, $f541))])
+ -   New(id20: ($0, $1, $2), id58: ($3, $1, $4, $5, $6, $7), [AppliedId(id10: ($0, $3, $8)), AppliedId(id13: ($8, $2)), AppliedId(id13: ($5, $9)), AppliedId(id13: ($6, $10)), AppliedId(id31: ($9, $10, $7))])
+
+(new (pred <(int $f563) (int $f564) (int $f565)>) (and <(eq (node $f567) (leaf)) (eq (int $f565) (0))>) <(init (leafDrop) (pred <(int $f563) (node $f566) (node $f567)>)) (init (minLeaf) (pred <(node $f566) (int $f564)>))>)
+CHCData { predNames: {"unfold_id13_in_id65_using_id55"}, varTypes: {$f564: Int, $f563: Int, $f565: Int, $f566: Node, $f567: Node} }
+id84($f563, $f564, $f565, $f566, $f567):>> New(id20: ($f563, $f564, $f565), id80: ($f565, $f567), [AppliedId(id10: ($f563, $f566, $f567)), AppliedId(id13: ($f566, $f564))])
+ - New(id20: ($f563, $f564, $f565), id80: ($f565, $f567), [AppliedId(id10: ($f563, $f566, $f567)), AppliedId(id13: ($f566, $f564))])
+ -   New(id20: ($0, $1, $2), id80: ($2, $3), [AppliedId(id10: ($0, $4, $3)), AppliedId(id13: ($4, $1))])
+
+(new (pred <(int $f568) (int $f569) (int $f570)>) (and <(eq (node $f572) (binode (int $f573) (node $f574) (node $f575))) (eq (int $f570) (+ (int $f576) (1)))>) <(init (leafDrop) (pred <(int $f568) (node $f571) (node $f572)>)) (init (minLeaf) (pred <(node $f571) (int $f569)>)) (init (minLeaf) (pred <(node $f574) (int $f577)>)) (init (minLeaf) (pred <(node $f575) (int $f578)>)) (compose <(interface (min) (pred <(int $f577) (int $f578) (int $f576)>) (1)) (new (pred <(int $f577) (int $f578) (int $f576)>) (and <(geq (int $f577) (int $f578)) (eq (int $f576) (int $f578))>) <>)>)>)
+CHCData { predNames: {"unfold_id13_in_id65_using_id60"}, varTypes: {$f569: Int, $f575: Node, $f570: Int, $f568: Int, $f571: Node, $f576: Int, $f577: Int, $f572: Node, $f573: Int, $f574: Node, $f578: Int} }
+id85($f568, $f569, $f570, $f571, $f572, $f573, $f574, $f575, $f576, $f577, $f578):>> New(id20: ($f568, $f569, $f570), id58: ($f572, $f570, $f573, $f574, $f575, $f576), [AppliedId(id10: ($f568, $f571, $f572)), AppliedId(id13: ($f571, $f569)), AppliedId(id13: ($f574, $f577)), AppliedId(id13: ($f575, $f578)), AppliedId(id31: ($f577, $f578, $f576))])
+ - New(id20: ($f568, $f569, $f570), id58: ($f572, $f570, $f573, $f574, $f575, $f576), [AppliedId(id10: ($f568, $f571, $f572)), AppliedId(id13: ($f571, $f569)), AppliedId(id13: ($f574, $f577)), AppliedId(id13: ($f575, $f578)), AppliedId(id31: ($f577, $f578, $f576))])
+ -   New(id20: ($0, $1, $2), id58: ($3, $2, $4, $5, $6, $7), [AppliedId(id10: ($0, $8, $3)), AppliedId(id13: ($8, $1)), AppliedId(id13: ($5, $9)), AppliedId(id13: ($6, $10)), AppliedId(id31: ($9, $10, $7))])
+
+(new (pred <(int $f598)>) (and <(eq (node $f599) (leaf)) (eq (node $f600) (leaf))>) <>)
+CHCData { predNames: {"unfold_id10_in_id70_using_id36"}, varTypes: {$f599: Node, $f598: Int, $f600: Node} }
+id87($f598, $f599, $f600):>> New(id67: ($f598), id34: ($f599, $f600), [])
+ - New(id67: ($f598), id34: ($f599, $f600), [])
+ -   New(id67: ($0), id34: ($1, $2), [])
+
+(new (pred <(int $f601)>) (and <(leq (int $f601) (0)) (eq (node $f602) (binode (int $f606) (node $f604) (node $f605))) (eq (node $f603) (binode (int $f606) (node $f604) (node $f605)))>) <>)
+CHCData { predNames: {"unfold_id10_in_id70_using_id43"}, varTypes: {$f602: Node, $f606: Int, $f605: Node, $f604: Node, $f601: Int, $f603: Node} }
+id88($f601, $f602, $f603, $f604, $f605, $f606):>> New(id67: ($f601), id40: ($f601, $f602, $f603, $f604, $f605, $f606), [])
+ - New(id67: ($f601), id40: ($f601, $f602, $f603, $f604, $f605, $f606), [])
+ -   New(id67: ($0), id40: ($0, $1, $2, $3, $4, $5), [])
+
+(new (pred <(int $f607)>) (and <(eq (node $f608) (binode (int $f612) (node $f610) (node $f611))) (geq (int $f607) (1)) (eq (int $f613) (- (int $f607) (1)))>) <(init (leafDrop) (pred <(int $f613) (node $f610) (node $f609)>))>)
+CHCData { predNames: {"unfold_id10_in_id70_using_id50"}, varTypes: {$f608: Node, $f612: Int, $f613: Int, $f607: Int, $f610: Node, $f609: Node, $f611: Node} }
+id89($f607, $f608, $f609, $f610, $f611, $f612, $f613):>> New(id67: ($f607), id47: ($f607, $f608, $f610, $f611, $f612, $f613), [AppliedId(id10: ($f613, $f610, $f609))])
+ - New(id67: ($f607), id47: ($f607, $f608, $f610, $f611, $f612, $f613), [AppliedId(id10: ($f613, $f610, $f609))])
+ -   New(id67: ($0), id47: ($0, $1, $2, $3, $4, $5), [AppliedId(id10: ($5, $2, $6))])
+
+(new (pred <(int $f633)>) (and <(eq (node $f634) (leaf)) (eq (int $f633) (0))>) <>)
+CHCData { predNames: {"unfold_id13_in_id74_using_id55"}, varTypes: {$f633: Int, $f634: Node} }
+id91($f633, $f634):>> New(id67: ($f633), id80: ($f633, $f634), [])
+ - New(id67: ($f633), id80: ($f633, $f634), [])
+ -   New(id67: ($0), id80: ($0, $1), [])
+
+(new (pred <(int $f635)>) (and <(eq (node $f636) (binode (int $f637) (node $f638) (node $f639))) (eq (int $f635) (+ (int $f640) (1)))>) <(init (minLeaf) (pred <(node $f638) (int $f641)>)) (init (minLeaf) (pred <(node $f639) (int $f642)>)) (compose <(interface (min) (pred <(int $f641) (int $f642) (int $f640)>) (1)) (new (pred <(int $f641) (int $f642) (int $f640)>) (and <(geq (int $f641) (int $f642)) (eq (int $f640) (int $f642))>) <>)>)>)
+CHCData { predNames: {"unfold_id13_in_id74_using_id60"}, varTypes: {$f635: Int, $f642: Int, $f640: Int, $f637: Int, $f636: Node, $f639: Node, $f638: Node, $f641: Int} }
+id92($f635, $f636, $f637, $f638, $f639, $f640, $f641, $f642):>> New(id67: ($f635), id58: ($f636, $f635, $f637, $f638, $f639, $f640), [AppliedId(id13: ($f638, $f641)), AppliedId(id13: ($f639, $f642)), AppliedId(id31: ($f641, $f642, $f640))])
+ - New(id67: ($f635), id58: ($f636, $f635, $f637, $f638, $f639, $f640), [AppliedId(id13: ($f638, $f641)), AppliedId(id13: ($f639, $f642)), AppliedId(id31: ($f641, $f642, $f640))])
+ -   New(id67: ($0), id58: ($1, $0, $2, $3, $4, $5), [AppliedId(id13: ($3, $6)), AppliedId(id13: ($4, $7)), AppliedId(id31: ($6, $7, $5))])
+
+(pred <(int $f1062) (int $f1063)>)
+CHCData { predNames: {}, varTypes: {$f1062: Int, $f1063: Int} }
+id94($f1062, $f1063):>> PredSyntax([id1: ($f1062), id1: ($f1063)])
+ - PredSyntax([id1: ($f1062), id1: ($f1063)])
+ -   PredSyntax([id1: ($0), id1: ($1)])
+
+(define_from_id78_3)
+CHCData { predNames: {}, varTypes: {} }
+id96():>> PredName("define_from_id78_3")
+ - PredName("define_from_id78_3")
+ -   PredName("define_from_id78_3")
+
+(interface (define_from_id78_3) (pred <(int $f1068) (int $f1069)>) (2))
+CHCData { predNames: {"define_from_id78_3"}, varTypes: {$f1084: Node, $f1069: Int, $f1085: Node, $f1068: Int} }
+id97($f1068, $f1069):>> Interface(id96: (), id94: ($f1068, $f1069), id42: ())
+ - New(id94: ($f1068, $f1069), id62: (), [AppliedId(id10: ($f1068, $f1084, $f1085)), AppliedId(id13: ($f1085, $f1069))])
+ -   New(id94: ($0, $1), id62: (), [AppliedId(id10: ($0, $2, $3)), AppliedId(id13: ($3, $1))])
+ - Interface(id96: (), id94: ($f1068, $f1069), id42: ())
+ -   Interface(id96: (), id94: ($0, $1), id42: ())
+
+(compose <(interface (define_from_id78_3) (pred <(int $f1072) (int $f1073)>) (2))>)
+CHCData { predNames: {}, varTypes: {$f1072: Int, $f1073: Int} }
+id98($f1072, $f1073):>> Compose([AppliedId(id97: ($f1072, $f1073))])
+ - Compose([AppliedId(id97: ($f1072, $f1073))])
+ -   Compose([AppliedId(id97: ($0, $1))])
+
+(define_from_id84_4)
+CHCData { predNames: {}, varTypes: {} }
+id100():>> PredName("define_from_id84_4")
+ - PredName("define_from_id84_4")
+ -   PredName("define_from_id84_4")
+
+(interface (define_from_id84_4) (pred <(int $f1078) (int $f1079)>) (2))
+CHCData { predNames: {"define_from_id84_4"}, varTypes: {$f1078: Int, $f1087: Node, $f1079: Int, $f1086: Node} }
+id101($f1078, $f1079):>> Interface(id100: (), id94: ($f1078, $f1079), id42: ())
+ - Interface(id100: (), id94: ($f1078, $f1079), id42: ())
+ -   Interface(id100: (), id94: ($0, $1), id42: ())
+ - New(id94: ($f1078, $f1079), id62: (), [AppliedId(id10: ($f1078, $f1086, $f1087)), AppliedId(id13: ($f1086, $f1079))])
+ -   New(id94: ($0, $1), id62: (), [AppliedId(id10: ($0, $2, $3)), AppliedId(id13: ($2, $1))])
+
+(compose <(interface (define_from_id84_4) (pred <(int $f1082) (int $f1083)>) (2))>)
+CHCData { predNames: {}, varTypes: {$f1082: Int, $f1083: Int} }
+id102($f1082, $f1083):>> Compose([AppliedId(id101: ($f1082, $f1083))])
+ - Compose([AppliedId(id101: ($f1082, $f1083))])
+ -   Compose([AppliedId(id101: ($0, $1))])

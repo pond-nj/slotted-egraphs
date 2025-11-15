@@ -332,15 +332,17 @@ fn checkUnfold2NewDefineWithMinLeaf(newDefineComposeId: Id, eg: &mut CHCEGraph) 
         minLeafDummy(u, m),
         minLeafDummy(t, k)
     );
+    // unfold_id10_in_id65_using_id36
     let res = ematchQueryall(&eg, &Pattern::parse(&originalCHC).unwrap());
     println!("found ENodeTobeUnfolded {:?}", res);
-    // id 76
+    // should be id 76
     assert!(res.len() >= 1);
 
     let composeOriginalCHC = format!("(compose <{originalCHC} *0>)");
     let res = ematchQueryall(&eg, &Pattern::parse(&composeOriginalCHC).unwrap());
     let originalRootId = res[0].1;
     println!("found composeOriginalCHC {:?}", originalRootId);
+    // should be id 66
     assert!(res.len() == 1);
 
     assert!(newDefineComposeId == originalRootId);

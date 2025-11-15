@@ -86,6 +86,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let cap = &l.slots() & &r.slots();
 
+        assert!(cap.len() > 0, "merged slots must not be emptied");
+
         if l.slots() != cap {
             self.shrink_slots(&l, &cap, proof.clone());
             self.union_internal(&l, &r, proof);

@@ -1,6 +1,6 @@
-use vec_collections::AbstractVecSet;
-
 use crate::*;
+use log::debug;
+use vec_collections::AbstractVecSet;
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // mk_sem_applied_id & friends.
@@ -24,7 +24,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // (Pond) turn id (of this eclass) to AppliedId with identity slotmap
     #[track_caller]
     pub fn mk_sem_identity_applied_id(&self, i: Id) -> AppliedId {
-        self.mk_sem_applied_id(i, SlotMap::identity(&self.slots(i)))
+        let slots = self.slots(i);
+        self.mk_sem_applied_id(i, SlotMap::identity(&slots))
     }
 
     #[track_caller]

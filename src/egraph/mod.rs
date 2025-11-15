@@ -133,6 +133,10 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
 
         Ok(())
     }
+
+    pub fn slots(&self) -> SmallHashSet<Slot> {
+        self.slots.clone()
+    }
 }
 
 impl<L: Language, N: Analysis<L> + Default> Default for EGraph<L, N> {
@@ -533,6 +537,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         map: &'a mut HashMap<AppliedId, RecExpr<L>>,
     ) -> &'a RecExpr<L> {
         let appId = self.mk_sem_identity_applied_id(i.clone());
+        debug!("getSynExpr {appId:?}");
         self.getSynExprRecur(&appId, map)
     }
 
