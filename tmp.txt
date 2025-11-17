@@ -1,0 +1,31 @@
+(new (pred 
+<(int $f1725) (int $f1726) (int $f1727)>) 
+(and <
+(eq (node $f1728) (binode (int $f1732) (node $f1730) (node $f1731))) 
+(eq (node $f1728) (binode (int $f1734) (node $f1735) (node $f1736))) 
+(geq (int $f1725) (1)) 
+(eq (int $f1733) (- (int $f1725) (1))) 
+(eq (int $f1726) (+ (int $f1737) (1)))>) 
+<(init (leafDrop) (pred <(int $f1733) (node $f1730) (node $f1729)>)) 
+(init (minLeaf) (pred <(node $f1729) (int $f1727)>)) 
+(init (minLeaf) (pred <(node $f1735) (int $f1738)>)) 
+(init (minLeaf) (pred <(node $f1736) (int $f1739)>)) 
+(compose <(interface (min) (pred <(int $f1738) (int $f1739) (int $f1737)>) (1)) (new (pred <(int $f1738) (int $f1739) (int $f1737)>) (and <(geq (int $f1738) (int $f1739)) (eq (int $f1737) (int $f1739))>) <>)>)>)
+
+f1725 = N
+f1726 = K
+f1727 = M
+f1728 = T
+f1732 = a
+f1730 = L
+f1731 = R
+f1734 = A1
+f1735 = L1
+f1736 = R1
+f1733 = N1
+f1737 = M3
+f1729 = U
+f1738 = M1
+f1739 = M2
+// new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M),
+    //  T=node(A1,L1,R1), K=M3+1, min-leaf(L1,M1), min-leaf(R1,M2), min(M1,M2,M3)

@@ -193,10 +193,15 @@ fn mainTest() {
         runner.egraph.total_number_of_nodes()
     );
 
-    // checkMinLeafUnfoldWithMin(&mut runner.egraph);
     let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
     checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
     checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
+
+    checkUnfold21NewDefineWithMinLeaf(&mut runner.egraph);
+    // TODO: vvv the compose lookup in here takes a very long time to run, why? vvv
+    checkUnfold31NewDefineWithMinLeaf(&mut runner.egraph);
+
+    checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
 
     // TODO: check unfold result
     // 19. new1(N,M,K)←M=0,K=0
@@ -247,6 +252,8 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
     // new1(N,K,M)←T = leaf, U = leaf, min-leaf(U,M), min-leaf(T,K)
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), min-leaf(U,M), min-leaf(T,K)
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
+
+    // new1(N,K,M)←T = leaf, U = leaf, min-leaf(U,M), min-leaf(T,K)
     let chc1 = format!(
         "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf))>) <{} {}>)",
         minLeafDummy(u, m),
@@ -259,6 +266,7 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
     let l = &generateVarFromCount(count, VarType::Node);
     let r = &generateVarFromCount(count, VarType::Node);
 
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), min-leaf(U,M), min-leaf(T,K)
     let chc2 = format!(
         "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r}))>) <{} {}>)",
         minLeafDummy(u, m),
@@ -276,6 +284,7 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
     let resCond3 = ematchQueryall(eg, &Pattern::parse(&cond3).unwrap());
     assert!(resCond3.len() > 0);
 
+    // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
     let chc3 = format!(
         "(new {syntax} {} <{} {} {}>)",
         cond3,
@@ -381,6 +390,166 @@ fn checkUnfold2NewDefineWithMinLeaf(newDefineComposeId: Id, eg: &mut CHCEGraph) 
     assert!(res3[0].1 == newDefineComposeId);
 }
 
+// need at least 3 iterations for this to pass -> egraph size around 200
+// clause 20 in the paper
+fn checkUnfold21NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
+    // unfold
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), min-leaf(U,M), min-leaf(T,K)
+
+    // with
+    // min-leaf(X,Y) <- X=leaf, Y=0
+    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
+
+    // into
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=leaf, M=0 , min-leaf(T,K)
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, 
+    //  min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
+
+    let count = &mut 0;
+    let n = &generateVarFromCount(count, VarType::Int);
+    let k = &generateVarFromCount(count, VarType::Int);
+    let m = &generateVarFromCount(count, VarType::Int);
+
+    let syntax = format!("(pred <{n} {k} {m}>)");
+
+    let t = &generateVarFromCount(count, VarType::Node);
+    let u = &generateVarFromCount(count, VarType::Node);
+
+    let a = &generateVarFromCount(count, VarType::Int);
+    let l = &generateVarFromCount(count, VarType::Node);
+    let r = &generateVarFromCount(count, VarType::Node);
+
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), min-leaf(U,M), min-leaf(T,K)
+    let origChc = format!(
+        "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r}))>) <{} {}>)",
+        minLeafDummy(u, m),
+        minLeafDummy(t, k)
+    );
+    let res = ematchQueryall(&eg, &Pattern::parse(&origChc).unwrap());
+    // unfold_id10_in_id65_using_id43
+    // id77
+    println!("unfold21 res: {res:#?}");
+    assert!(res.len() > 0);
+
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=leaf, M=0 , min-leaf(T,K)
+    let chc2 = format!(
+        "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (leaf)) (eq {m} 0)>) <{} >)",
+        minLeafDummy(t, k)
+    );
+    // unfold_id13_in_id77_using_id55
+    let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2).unwrap());
+    println!("unfold21 res2: {res2:#?}");
+    assert!(res2.len() > 0);
+
+    // TODO: should this be different a, l, r with before?
+    let a1 = &generateVarFromCount(count, VarType::Int);
+    let l1 = &generateVarFromCount(count, VarType::Node);
+    let r1 = &generateVarFromCount(count, VarType::Node);
+    let m1 = &generateVarFromCount(count, VarType::Int);
+    let m2 = &generateVarFromCount(count, VarType::Int);
+    let m3 = &generateVarFromCount(count, VarType::Int);
+
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, 
+    //  min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
+    let chc3 = format!(
+        "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
+        minLeafDummy(l1, m1), 
+        minLeafDummy(r1, m2),
+        minDummy(m1, m2, m3),
+        minLeafDummy(t, k)
+    );
+    let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
+    println!("unfold21 res3: {res3:#?}");
+    assert!(res3.len() > 0);
+
+    let composeUnfold21 = format!("(compose <{chc2} {chc3} *0>)");
+    let resCompose = ematchQueryall(&eg, &Pattern::parse(&composeUnfold21).unwrap());
+    println!("unfold21 resCompose: {resCompose:#?}");
+    assert!(resCompose.len() > 0);
+}
+
+
+fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
+    // unfold
+    // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
+
+    // with
+    // min-leaf(X,Y) <- X=leaf, Y=0
+    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
+
+    // into 
+    // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), T = leaf, K = 0
+    // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M),
+    //  T=node(A,L,R), K=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
+    
+    let count = &mut 0;
+    let n = &generateVarFromCount(count, VarType::Int);
+    let k = &generateVarFromCount(count, VarType::Int);
+    let m = &generateVarFromCount(count, VarType::Int);
+
+    let syntax = format!("(pred <{n} {k} {m}>)");
+
+    let t = &generateVarFromCount(count, VarType::Node);
+    let u = &generateVarFromCount(count, VarType::Node);
+
+    // define
+    let syntax = format!("(pred <{n} {k} {m}>)");
+
+    let a1 = &generateVarFromCount(count, VarType::Int);
+    let l1 = &generateVarFromCount(count, VarType::Node);
+    let r1 = &generateVarFromCount(count, VarType::Node);
+    let n1 = &generateVarFromCount(count, VarType::Int);
+    let l1 = &generateVarFromCount(count, VarType::Node);
+
+    // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
+    let chc = format!(
+        "(new {syntax} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (- {n} 1))>) <{} {} {}>)",
+        leafDropDummy(n1, l1, u),
+        minLeafDummy(u, m),
+        minLeafDummy(t, k)
+    );
+    let res = ematchQueryall(&eg, &Pattern::parse(&chc).unwrap());
+    println!("unfold22 res: {res:#?}");
+    assert!(res.len() > 0);
+
+    // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), T = leaf, K = 0
+    let chc2 = format!(
+        "(new {syntax} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (- {n} 1)) (eq {t} (leaf)) (eq {k} 0)>) <{} {}>)",
+        leafDropDummy(n1, l1, u),
+        minLeafDummy(u, m),
+    );
+    let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2).unwrap());
+    // unfold_id13_in_id78_using_id55
+    // id122
+    println!("unfold22 res2: {res2:#?}");
+    assert!(res2.len() > 0);
+
+    let a2 = &generateVarFromCount(count, VarType::Int);
+    let l2 = &generateVarFromCount(count, VarType::Node);
+    let r2 = &generateVarFromCount(count, VarType::Node);
+    let m1 = &generateVarFromCount(count, VarType::Int);
+    let m2 = &generateVarFromCount(count, VarType::Int);
+    let m3 = &generateVarFromCount(count, VarType::Int);
+
+    // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M),
+    //  T=node(A1,L1,R1), K=M3+1, min-leaf(L1,M1), min-leaf(R1,M2), min(M1,M2,M3)
+    let chc3 = format!(
+        "(new {syntax} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (- {n} 1)) (eq {t} (binode {a2} {l2} {r2})) (eq {k} (+ {m3} 1))>) <{} {} {} {} {}>)",
+        leafDropDummy(n1, l1, u),
+        minLeafDummy(u, m),
+        minLeafDummy(l2, m1),
+        minLeafDummy(r2, m2),
+        minDummy(m1, m2, m3),
+    );
+    let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
+    println!("unfold22 res3: {res3:#?}");
+    assert!(res3.len() > 0);
+
+    let composeUnfold22 = format!("(compose <{chc2} {chc3} *0>)");
+    let resCompose = ematchQueryall(&eg, &Pattern::parse(&composeUnfold22).unwrap());
+    println!("unfold22 resCompose: {resCompose:#?}");
+    assert!(resCompose.len() > 0); 
+}
 // test pass but with debug enabled (log to stdout), the time is too long
 // need at least 4 iterations for this to pass -> egraph size around 743
 fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
@@ -450,60 +619,146 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     assert!(res4.len() >= 1);
 }
 
-fn checkMinLeafUnfoldWithMin(eg: &mut CHCEGraph) {
+// need at least 4 iterations for this to pass -> egraph size around 743
+fn checkUnfold31NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
+    // unfold
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
+
+    // with
     // min-leaf(X,Y) <- X=leaf, Y=0
-    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 < M2, M3 = M1.
-    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 >= M2, M2 = M3.
+    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
+
+    // into
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), T=leaf, K=0
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), 
+    // T=node(A2,L2,R2), K=M32+1, min-leaf(L2,M12), min-leaf(R2,M22), min(M12,M22,M32)
 
     let count = &mut 0;
-    let x = &generateVarFromCount(count, VarType::Node);
-    let y = &generateVarFromCount(count, VarType::Int);
+    let n = &generateVarFromCount(count, VarType::Int);
+    let k = &generateVarFromCount(count, VarType::Int);
+    let m = &generateVarFromCount(count, VarType::Int);
 
-    let a = generateVarFromCount(count, VarType::Int);
-    let l = generateVarFromCount(count, VarType::Node);
-    let r = generateVarFromCount(count, VarType::Node);
-    let m1 = generateVarFromCount(count, VarType::Int);
-    let m2 = generateVarFromCount(count, VarType::Int);
-    let m3 = generateVarFromCount(count, VarType::Int);
+    let syntax = format!("(pred <{n} {k} {m}>)");
 
-    let syntax = format!("(pred <{x} {y}>)");
+    let t = &generateVarFromCount(count, VarType::Node);
+    let u = &generateVarFromCount(count, VarType::Node);
+    let a = &generateVarFromCount(count, VarType::Int);
+    let l = &generateVarFromCount(count, VarType::Node);
+    let r = &generateVarFromCount(count, VarType::Node);
 
-    // min-leaf(X,Y) <- X=leaf, Y=0
-    let cond1 = format!("(and <(eq {y} 0) (eq {x} (leaf))>)");
-    let chc1 = format!("(new {syntax} {cond1} <>)");
+    let a1 = &generateVarFromCount(count, VarType::Int);
+    let l1 = &generateVarFromCount(count, VarType::Node);
+    let r1 = &generateVarFromCount(count, VarType::Node);
+    let m1 = &generateVarFromCount(count, VarType::Int);
+    let m2 = &generateVarFromCount(count, VarType::Int);
+    let m3 = &generateVarFromCount(count, VarType::Int);
 
-    let res1 = ematchQueryall(&eg, &Pattern::parse(&chc1).unwrap());
-    assert!(res1.len() > 0);
-
-    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 < M2, M3 = M1.
-    let cond2 = format!(
-        "(and <(eq {x} (binode {a} {l} {r})) (eq {y} (+ {m3} 1)) (lt {m1} {m2}) (eq {m3} {m1})>)"
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
+    let origChc = format!(
+        "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
+        minLeafDummy(l1, m1), 
+        minLeafDummy(r1, m2),
+        minDummy(m1, m2, m3),
+        minLeafDummy(t, k)
     );
+    let res = ematchQueryall(&eg, &Pattern::parse(&origChc).unwrap());
+    println!("unfold31 res: {res:#?}");
+    assert!(res.len() > 0);
+
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), T=leaf, K=0
     let chc2 = format!(
-        "(new {syntax} {cond2} <{} {}>)",
-        minLeafDummy(&l, &m1),
-        minLeafDummy(&r, &m2),
+        "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq {m} (+ {m3} 1)) (eq {t} (leaf)) (eq {k} 0)>) <{} {} {}>)",
+        minLeafDummy(l1, m1), 
+        minLeafDummy(r1, m2),
+        minDummy(m1, m2, m3),
     );
     let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2).unwrap());
+    println!("unfold31 res2: {res2:#?}");
     assert!(res2.len() > 0);
 
-    // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 >= M2, M2 = M3.
-    let cond3 = format!(
-        "(and <(eq {x} (binode {a} {l} {r})) (eq {y} (+ {m3} 1)) (geq {m1} {m2}) (eq {m2} {m3})>)"
-    );
-    let resCond3 = ematchQueryall(eg, &Pattern::parse(&cond3).unwrap());
-    assert!(resCond3.len() > 0);
+    let a2 = &generateVarFromCount(count, VarType::Int);
+    let l2 = &generateVarFromCount(count, VarType::Node);
+    let r2 = &generateVarFromCount(count, VarType::Node);
+    let m12 = &generateVarFromCount(count, VarType::Int);
+    let m22 = &generateVarFromCount(count, VarType::Int);
+    let m32 = &generateVarFromCount(count, VarType::Int);
 
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), 
+    // T=node(A2,L2,R2), K=M32+1, min-leaf(L2,M12), min-leaf(R2,M22), min(M12,M22,M32)
     let chc3 = format!(
-        "(new {syntax} {cond3} <{} {}>)",
-        minLeafDummy(&l, &m1),
-        minLeafDummy(&r, &m2),
+        "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq {m} (+ {m3} 1)) (eq {t} (binode {a2} {l2} {r2})) (eq {k} (+ {m32} 1))>) <{} {} {} {} {} {}>)",
+        minLeafDummy(l1, m1), 
+        minLeafDummy(r1, m2),
+        minDummy(m1, m2, m3),
+        minLeafDummy(l2, m12), 
+        minLeafDummy(r2, m22),
+        minDummy(m12, m22, m32),
     );
     let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
+    println!("unfold31 res3: {res3:#?}");
     assert!(res3.len() > 0);
 
-    let unfold = format!("(compose <{chc1} {chc2} {chc3}>)");
-    let res = ematchQueryall(&eg, &Pattern::parse(&unfold).unwrap());
-    assert!(res.len() > 0);
-    assert!(res[0].1 == id(&minLeafDummy(x, y), eg).id);
+    // TODO: this takes a very long time to run, why?
+    // let composeUnfold31 = format!("(compose <{chc2} {chc3} *0>)");
+    // let resCompose = ematchQueryall(&eg, &Pattern::parse(&composeUnfold31).unwrap());
+    // println!("unfold31 resCompose: {resCompose:#?}");
+    // assert!(resCompose.len() > 0);
 }
+
+// fn checkMinLeafUnfoldWithMin(eg: &mut CHCEGraph) {
+//     // min-leaf(X,Y) <- X=leaf, Y=0
+//     // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 < M2, M3 = M1.
+//     // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 >= M2, M2 = M3.
+
+//     let count = &mut 0;
+//     let x = &generateVarFromCount(count, VarType::Node);
+//     let y = &generateVarFromCount(count, VarType::Int);
+
+//     let a = generateVarFromCount(count, VarType::Int);
+//     let l = generateVarFromCount(count, VarType::Node);
+//     let r = generateVarFromCount(count, VarType::Node);
+//     let m1 = generateVarFromCount(count, VarType::Int);
+//     let m2 = generateVarFromCount(count, VarType::Int);
+//     let m3 = generateVarFromCount(count, VarType::Int);
+
+//     let syntax = format!("(pred <{x} {y}>)");
+
+//     // min-leaf(X,Y) <- X=leaf, Y=0
+//     let cond1 = format!("(and <(eq {y} 0) (eq {x} (leaf))>)");
+//     let chc1 = format!("(new {syntax} {cond1} <>)");
+
+//     let res1 = ematchQueryall(&eg, &Pattern::parse(&chc1).unwrap());
+//     assert!(res1.len() > 0);
+
+//     // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 < M2, M3 = M1.
+//     let cond2 = format!(
+//         "(and <(eq {x} (binode {a} {l} {r})) (eq {y} (+ {m3} 1)) (lt {m1} {m2}) (eq {m3} {m1})>)"
+//     );
+//     let chc2 = format!(
+//         "(new {syntax} {cond2} <{} {}>)",
+//         minLeafDummy(&l, &m1),
+//         minLeafDummy(&r, &m2),
+//     );
+//     let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2).unwrap());
+//     assert!(res2.len() > 0);
+
+//     // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), M1 >= M2, M2 = M3.
+//     let cond3 = format!(
+//         "(and <(eq {x} (binode {a} {l} {r})) (eq {y} (+ {m3} 1)) (geq {m1} {m2}) (eq {m2} {m3})>)"
+//     );
+//     let resCond3 = ematchQueryall(eg, &Pattern::parse(&cond3).unwrap());
+//     assert!(resCond3.len() > 0);
+
+//     let chc3 = format!(
+//         "(new {syntax} {cond3} <{} {}>)",
+//         minLeafDummy(&l, &m1),
+//         minLeafDummy(&r, &m2),
+//     );
+//     let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
+//     assert!(res3.len() > 0);
+
+//     let unfold = format!("(compose <{chc1} {chc2} {chc3}>)");
+//     let res = ematchQueryall(&eg, &Pattern::parse(&unfold).unwrap());
+//     assert!(res.len() > 0);
+//     assert!(res[0].1 == id(&minLeafDummy(x, y), eg).id);
+// }

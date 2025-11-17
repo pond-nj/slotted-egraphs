@@ -161,6 +161,8 @@ fn ematchQueryCheckEnodeAndChildren(
         }
     }
 
+    let outLenBefore = 0;
+
     assert!(allSetOfChildren.len() > 0);
     for patternChildren in allSetOfChildren {
         debug!(
@@ -278,6 +280,11 @@ fn ematchQueryCheckEnodeAndChildren(
             // debug!("acc {:#?}", acc);
             out.extend(acc);
         }
+
+        // TODO: this rule-out some matches that we need, why?
+        // if out.len() > outLenBefore {
+        //     break;
+        // }
     }
 
     // patternEnode: &CHC,
