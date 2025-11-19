@@ -33,6 +33,7 @@ define_language! {
         New(AppliedId, AppliedId, Vec<AppliedIdOrStar>) = "new",
         Compose(Vec<AppliedIdOrStar>) = "compose",
         True() = "true",
+        False() = "false",
 
         // node(x, l, r) has subtree l and r and element x at this node
         BiNode(AppliedId, AppliedId, AppliedId) = "binode",
@@ -52,9 +53,9 @@ define_language! {
 
         Number(u32),
 
-        // (init predName syntax)
+        // (init predName syntax functional outputIdx)
         // use to create empty compose eclass for recursive definition
-        Init(AppliedId, AppliedId) = "init",
+        Init(AppliedId, AppliedId, AppliedId, Vec<AppliedId>) = "init",
         // (interface predName syntax u32)
         // use for new predicate
         Interface(AppliedId, AppliedId, AppliedId) = "interface",
@@ -65,11 +66,20 @@ define_language! {
 #[derive(Default)]
 pub struct CHCAnalysis;
 
+// The implementation in "functionalTransformation" assumes that all the indices between 0 and max(outputIdx)
+// if it's not the output, then it will be the input
+#[derive(Default, Eq, PartialEq, Clone, Debug)]
+pub struct FunctionalInfo {
+    pub functional: bool,
+    pub outputIdx: Vec<usize>,
+}
+
 // TODO: implement Debug to CHC clause using syn_enode
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct CHCData {
     predNames: HashSet<String>,
     varTypes: HashMap<Slot, VarType>,
+    functionalInfo: FunctionalInfo,
 }
 
 // TODO: reimplement this to not access eclass many times
@@ -85,8 +95,6 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
             let appInverse = app.m.inverse();
             if let Some(mapToS) = appInverse.get(s) {
                 let childEclassData = eg.analysis_data(app.id);
-                // debug!("childEclass {:?} {:?}", app.id, eg.eclass(app.id).unwrap());
-                // debug!("try to get {mapToS:?}");
                 let childSlotType = childEclassData.varTypes.get(&mapToS).unwrap();
                 varTypes
                     .entry(s)
@@ -96,14 +104,9 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
         }
     }
 
-    // debug!("aggregateVarType for {:?}", sh);
-    // debug!("get {:?}", varTypes);
-
     varTypes
 }
 
-// TODO bug (crash) lookup return mismatch slots number with this enode
-// guess it's case where eclass interface slots is less than the enode slot
 fn transformToEgraphNameSpace(sh: &CHC, eg: &CHCEGraph) -> CHC {
     if let Some(appId) = eg.lookup(sh) {
         return eg.getExactENodeInEGraph(sh);
@@ -120,7 +123,44 @@ fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCD
     CHCData {
         predNames: HashSet::default(),
         varTypes: hm,
+        functionalInfo: FunctionalInfo::default(),
     }
+}
+
+fn getBoolVal(eclassId: &Id, eg: &CHCEGraph) -> bool {
+    let enodes = eg.enodes(*eclassId);
+    let firstENode = enodes.iter().next().unwrap();
+    match firstENode {
+        CHC::True() => true,
+        CHC::And(v) => {
+            assert!(v.len() == 0);
+            true
+        }
+        CHC::False() => false,
+        _ => panic!(),
+    }
+}
+
+fn getSingleENode(eclassId: &Id, eg: &CHCEGraph) -> CHC {
+    let enodes = eg.enodes(*eclassId);
+    assert!(enodes.len() == 1);
+    enodes.iter().next().unwrap().clone()
+}
+
+fn mergeFunctionalInfo(x: FunctionalInfo, y: FunctionalInfo) -> FunctionalInfo {
+    let mut functionalInfo = None;
+    if x.functional && y.functional {
+        assert!(x == y);
+        functionalInfo = Some(x);
+    } else if !x.functional {
+        assert!(x.outputIdx.len() == 0);
+        functionalInfo = Some(y);
+    } else {
+        assert!(y.outputIdx.len() == 0);
+        functionalInfo = Some(x);
+    }
+
+    functionalInfo.unwrap()
 }
 
 // TODO2: varType not propagate up
@@ -130,11 +170,6 @@ impl Analysis<CHC> for CHCAnalysis {
 
     fn merge(x: CHCData, y: CHCData, i: Id, eg: &CHCEGraph) -> CHCData {
         let c = eg.eclass(i).unwrap();
-        // debug!("calling merge to {:?}", i);
-        // debug!("dump from merge c {}", c);
-        debug!("x {x:#?}");
-        debug!("y {y:#?}");
-        // debug!("eclass {:?}", eg.eclass(i).unwrap());
 
         let mut newPredNames = HashSet::<String>::default();
         let xLen = x.predNames.len();
@@ -152,24 +187,23 @@ impl Analysis<CHC> for CHCAnalysis {
         }
 
         let eclassSlots = eg.allSlots(i);
-        // debug!("eclassSlots {:?}", eclassSlots);
         let newVarTypes = newVarTypes
             .into_iter()
             .filter(|(s, vt)| eclassSlots.contains(&s))
             .collect();
 
-        // debug!("result varTypes {:?}", newVarTypes);
-
         CHCData {
             predNames: newPredNames,
             varTypes: newVarTypes,
+            functionalInfo: mergeFunctionalInfo(x.functionalInfo, y.functionalInfo),
         }
     }
 
     fn make(eg: &CHCEGraph, sh: &CHC) -> CHCData {
         // debug!("calling make on {:?}", sh);
-        match sh {
-            CHC::Init(predNameId, predSyntaxId) | CHC::Interface(predNameId, predSyntaxId, _) => {
+        let mut chcData = match sh {
+            CHC::Init(predNameId, predSyntaxId, _, _)
+            | CHC::Interface(predNameId, predSyntaxId, _) => {
                 let stringEnodes = eg.enodes(predNameId.id);
                 assert!(stringEnodes.len() == 1);
                 let stringEnode = stringEnodes.iter().next().unwrap();
@@ -182,6 +216,7 @@ impl Analysis<CHC> for CHCAnalysis {
                 CHCData {
                     predNames,
                     varTypes: aggregateVarType(sh, eg),
+                    functionalInfo: FunctionalInfo::default(),
                 }
             }
             CHC::Int(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Int),
@@ -190,8 +225,35 @@ impl Analysis<CHC> for CHCAnalysis {
             _ => CHCData {
                 predNames: HashSet::default(),
                 varTypes: aggregateVarType(sh, eg),
+                functionalInfo: FunctionalInfo::default(),
             },
-        }
+        };
+
+        let functionalInfo = match sh {
+            CHC::Init(_, _, functional, outputIdxAppIds) => {
+                let functional = getBoolVal(&functional.id, eg);
+
+                let mut outputIdx: Vec<usize> = vec![];
+                for appId in outputIdxAppIds {
+                    let enode = getSingleENode(&appId.id, eg);
+                    match enode {
+                        CHC::Number(idx) => {
+                            outputIdx.push(idx as usize);
+                        }
+                        _ => panic!(),
+                    }
+                }
+
+                FunctionalInfo {
+                    functional,
+                    outputIdx,
+                }
+            }
+            _ => FunctionalInfo::default(),
+        };
+
+        chcData.functionalInfo = functionalInfo;
+        chcData
     }
 
     fn modify(eg: &mut EGraph<CHC, Self>, i: Id) {}

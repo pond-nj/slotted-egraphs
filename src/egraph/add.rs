@@ -190,6 +190,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.mk_syn_applied_id(i, fresh_to_old)
     }
 
+    #[allow(unused)]
     fn rebuild_called_from_add(&mut self) {
         self.rebuild();
     }

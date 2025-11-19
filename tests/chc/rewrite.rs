@@ -540,6 +540,22 @@ fn addToUnfoldList(unfoldList: &Rc<RefCell<UnfoldList>>, toBeUnfolded: UnfoldLis
     unfoldListCopy.borrow_mut().push(toBeUnfolded);
 }
 
+fn functionalityTransformation(
+    eg: &CHCEGraph,
+    unfoldedChildren: &Vec<AppliedIdOrStar>,
+) -> (Vec<AppliedId>, Vec<AppliedIdOrStar>) {
+    // input to output mapping
+    let mut inputToOutputMapping: HashMap<(Slot, Id), Vec<Slot>> = HashMap::default();
+    for c in unfoldedChildren {
+        let AppliedIdOrStar::AppliedId(AppliedId { id, m }) = c else {
+            panic!();
+        };
+    }
+
+    // TODO
+    (vec![], vec![])
+}
+
 fn unfold(unfoldList: &Rc<RefCell<UnfoldList>>) -> CHCRewrite {
     let unfoldListCopy = Rc::clone(unfoldList);
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<ComposeUnfoldRecipe> {
@@ -634,6 +650,7 @@ fn unfold(unfoldList: &Rc<RefCell<UnfoldList>>) -> CHCRewrite {
 
                                 let and2Children = getAnyAndChildren(&cond2, eg);
 
+                                // TODO: some filtering based on functionality here
                                 let mut unfoldedChildren = new1Children.clone();
                                 debug!("unfoldedChildren1 {:?}", unfoldedChildren);
                                 unfoldedChildren.remove(i2);
@@ -712,14 +729,21 @@ fn unfold(unfoldList: &Rc<RefCell<UnfoldList>>) -> CHCRewrite {
                                 new2EClass,
                             } = unfoldRecipe;
 
+                            // TODO: functionality transformation here
+                            let (extraAndChildren, unfoldedChildren) =
+                                functionalityTransformation(eg, &unfoldedChildren);
+
+                            // TODO: deduplicate here
                             mergeAndChildren.sort();
                             let mergeAnd = eg.add(CHC::And(mergeAndChildren));
                             eg.analysis_data_mut(mergeAnd.id).predNames.insert(format!(
                                 "and_from_unfold_{compose2Id}_in_{new1EClass}_using_{new2EClass}"
                             ));
+                            // TODO: deduplicate here
                             unfoldedChildren.sort();
                             let unfoldedENode = CHC::New(syntax1, mergeAnd, unfoldedChildren);
 
+                            // TODO: we can have a function that sorts an ENode children
                             let unfoldedENodeId = eg.add(unfoldedENode.clone());
                             createdENodes.push((unfoldedENodeId.clone(), unfoldedENode.clone()));
                             debug!("adding unfoldedENode {unfoldedENodeId:?} {unfoldedENode:?}");

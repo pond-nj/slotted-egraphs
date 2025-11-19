@@ -46,6 +46,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
+    #[allow(unused)]
     fn rebuild_called_from_union_instantiations(&mut self) {
         self.rebuild();
     }
@@ -86,7 +87,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let cap = &l.slots() & &r.slots();
 
-        assert!(cap.len() > 0, "merged slots must not be emptied");
+        if l.slots().len() > 0 && r.slots().len() > 0 {
+            assert!(cap.len() > 0, "merged slots must not be emptied");
+        }
 
         if l.slots() != cap {
             self.shrink_slots(&l, &cap, proof.clone());

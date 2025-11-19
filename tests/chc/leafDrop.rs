@@ -6,7 +6,7 @@ use log::debug;
 
 fn minDummy(x: &str, y: &str, z: &str) -> String {
     let syntax = format!("(pred <{x} {y} {z}>)");
-    format!("(init min {syntax})")
+    format!("(init min {syntax} (true) <2>)")
 }
 
 // min(X,Y,Z) <- X< Y, Z=X
@@ -30,7 +30,7 @@ fn minCHC(x: &str, y: &str, z: &str, eg: &mut CHCEGraph) -> AppliedId {
 
 fn minLeafDummy(x: &str, y: &str) -> String {
     let syntax = format!("(pred <{x} {y}>)");
-    format!("(init minLeaf {syntax})")
+    format!("(init minLeaf {syntax} (true) <1>)")
 }
 
 // min-leaf(X,Y) <- X=leaf, Y=0
@@ -67,7 +67,7 @@ fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedI
 
 fn leafDropDummy(x: &str, y: &str, z: &str) -> String {
     let syntax = format!("(pred <{x} {y} {z}>)");
-    format!("(init leafDrop {syntax})")
+    format!("(init leafDrop {syntax} (true) <2>)")
 }
 
 // left-drop(x,y,z) ← y=leaf, z=leaf
@@ -110,7 +110,7 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
 
 fn rootDummy(n: &str, t: &str, u: &str, m: &str, k: &str) -> String {
     let syntax = format!("(pred <{n} {t} {u} {m} {k}>)");
-    format!("(init root {syntax})")
+    format!("(init root {syntax} (false) <>)")
 }
 
 #[test]

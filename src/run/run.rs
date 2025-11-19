@@ -16,7 +16,7 @@ where
     let start_time = Instant::now();
     let mut searchTime = Duration::new(0, 0);
     let mut applyTime = Duration::new(0, 0);
-    let mut rebuildTime = Duration::new(0, 0);
+    let rebuildTime = Duration::new(0, 0);
     let mut iterations = 0;
     let stop_reason: StopReason;
 

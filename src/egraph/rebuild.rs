@@ -164,7 +164,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    fn handle_pending(&mut self, sh: L, pending_ty: PendingType) {
+    fn handle_pending(&mut self, sh: L, _pending_ty: PendingType) {
         // TODO: this is a hack to make the test pass
         if self.hashcons.get(&sh).is_none() {
             return;

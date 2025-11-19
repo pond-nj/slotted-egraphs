@@ -210,7 +210,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // update node
         let node = self.find_enode(node);
 
-        let (sh, m) = node.weak_shape();
+        let (sh, _) = node.weak_shape();
         let Some(eclassNode) = eclass.nodes.get(&sh) else {
             panic!("node {node:?} not found in {eclass:#?}");
         };
