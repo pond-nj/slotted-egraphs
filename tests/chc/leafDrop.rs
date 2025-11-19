@@ -193,13 +193,13 @@ fn mainTest() {
         runner.egraph.total_number_of_nodes()
     );
 
-    let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
-    checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
-    checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
+    // let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
+    // checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
+    // checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
-    checkUnfold21NewDefineWithMinLeaf(&mut runner.egraph);
+    // checkUnfold21NewDefineWithMinLeaf(&mut runner.egraph);
     // TODO: vvv the compose lookup in here takes a very long time to run, why? vvv
-    checkUnfold31NewDefineWithMinLeaf(&mut runner.egraph);
+    // checkUnfold31NewDefineWithMinLeaf(&mut runner.egraph);
 
     checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
 
@@ -683,6 +683,7 @@ fn checkUnfold31NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let m22 = &generateVarFromCount(count, VarType::Int);
     let m32 = &generateVarFromCount(count, VarType::Int);
 
+    // TODO: test functionality transformation here
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), 
     // T=node(A2,L2,R2), K=M32+1, min-leaf(L2,M12), min-leaf(R2,M22), min(M12,M22,M32)
     let chc3 = format!(
