@@ -54,6 +54,12 @@ pub struct UnfoldListComponent {
     newENodeShape: CHC,
 }
 
+#[derive(Debug, Clone)]
+pub struct ConstrRewriteComponent {
+    constrAppId: AppliedId,
+    constrENode: CHC,
+}
+
 impl UnfoldListComponent {
     pub fn getShape(&self) -> (UnfoldListComponent, SlotMap) {
         let (composeShape, m) = self.composeShape.weak_shape();
@@ -171,7 +177,7 @@ fn doFunctionalityTransformation(
     if filterOutChildIdx.len() == 0 {
         return;
     }
-    
+
     newAndChildren.sort();
 
     let mut newUnfoldedChildren: Vec<AppliedIdOrStar> = unfoldedChildren
@@ -196,7 +202,10 @@ fn doFunctionalityTransformation(
     );
 }
 
-fn unfold(unfoldList: &Rc<RefCell<UnfoldList>>) -> CHCRewrite {
+fn unfold(
+    unfoldList: &Rc<RefCell<UnfoldList>>,
+    constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
+) -> CHCRewrite {
     let unfoldListCopy = Rc::clone(unfoldList);
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<ComposeUnfoldRecipe> {
         let mut composeUnfoldReceipt = vec![];
@@ -449,6 +458,52 @@ fn unfold(unfoldList: &Rc<RefCell<UnfoldList>>) -> CHCRewrite {
     .into()
 }
 
+fn constrRewrite(constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>) -> CHCRewrite {
+    let constrRewriteListCopy = Rc::clone(constrRewriteList);
+    let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
+    let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
+        // expand eq rewrite, X = Y, X = Z -> X = Y, X = Z, Y = Z
+        for constrRewriteComponent in Rc::clone(&constrRewriteListCopy).borrow().iter() {
+            let ConstrRewriteComponent {
+                constrAppId,
+                constrENode,
+            } = constrRewriteComponent;
+
+            let CHC::And(andChildren) = constrENode else {
+                panic!();
+            };
+
+            // unionfind: a set of applied ids
+            // how to do this?
+
+            let mut uf = HashUnionFind::new(vec![]);
+
+            let mut eqCount = 0;
+            for andChild in andChildren {
+                let AppliedIdOrStar::AppliedId(andChild) = andChild else {
+                    panic!();
+                };
+
+                // get the children of eq in these eclasses
+                for n in eg.enodes_applied(&andChild) {
+                    let CHC::Eq(eqChild1, eqChild2) = n else {
+                        continue;
+                    };
+
+                    let eqChild1 = uf.find_or_add(&eqChild1).unwrap();
+                    let eqChild2 = uf.find_or_add(&eqChild2).unwrap();
+                }
+            }
+        }
+    });
+    RewriteT {
+        name: "constrRewrite".to_owned(),
+        searcher: searcher,
+        applier: applier,
+    }
+    .into()
+}
+
 // TODO: only define from a list?
 fn defineFromSharingBlock(unfoldList: &Rc<RefCell<UnfoldList>>) -> CHCRewrite {
     let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
@@ -617,9 +672,13 @@ fn trueToAnd() -> CHCRewrite {
 }
 
 // TODO: swapping unfold and define creates some error which should not be
-pub fn getAllRewrites(unfoldList: &Rc<RefCell<UnfoldList>>) -> Vec<CHCRewrite> {
+pub fn getAllRewrites(
+    unfoldList: &Rc<RefCell<UnfoldList>>,
+    constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
+) -> Vec<CHCRewrite> {
     vec![
-        unfold(unfoldList),
+        unfold(unfoldList, constrRewriteList),
+        constrRewrite(constrRewriteList),
         defineFromSharingBlock(unfoldList),
         trueToAnd(),
     ]

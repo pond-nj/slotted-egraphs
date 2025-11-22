@@ -77,3 +77,6 @@ pub use logger::*;
 
 mod permute;
 pub use permute::*;
+
+mod hashuf;
+pub use hashuf::*;

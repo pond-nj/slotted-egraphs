@@ -118,6 +118,7 @@ fn mainTest() {
     initLogger();
     let mut egOrig = CHCEGraph::default();
     let mut unfoldList = Rc::new(RefCell::new(vec![]));
+    let mut constrRewriteList = Rc::new(RefCell::new(vec![]));
     let mut count = 0;
     {
         let eg = &mut egOrig;
@@ -180,7 +181,7 @@ fn mainTest() {
     // TODO: can we not use mem::take here?
 
     let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(4);
-    let (report, t): (Report, _) = time(|| runner.run(&mut getAllRewrites(&mut unfoldList)));
+    let (report, t): (Report, _) = time(|| runner.run(&mut getAllRewrites(&mut unfoldList, &mut constrRewriteList)));
     println!("use time {t:?}");
     println!("report {report:?}");
 
