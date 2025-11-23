@@ -28,6 +28,11 @@ fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> Vec<AppliedIdOrStar> 
     panic!();
 }
 
+fn checkVarType(appId: &AppliedId, eg: &CHCEGraph) {
+    let eclassData = eg.analysis_data(appId.id);
+    assert!(eclassData.varTypes.len() != 0);
+}
+
 #[derive(Debug, Clone)]
 pub struct UnfoldRecipe {
     syntax1: AppliedId,
@@ -189,10 +194,12 @@ fn doFunctionalityTransformation(
     newUnfoldedChildren.sort();
 
     let newAnd = eg.add(CHC::And(newAndChildren));
+    checkVarType(&newAnd, eg);
     // TODO: add data to the newAnd
 
     let newENode = CHC::New(syntax.clone(), newAnd, newUnfoldedChildren);
     let newENodeId = eg.add(newENode);
+    checkVarType(&newENodeId, eg);
     // TODO: add data to the newENode
 
     eg.union_justified(
@@ -383,6 +390,7 @@ fn unfold(
                             mergeAndChildren.sort();
                             let mergeAnd = CHC::And(mergeAndChildren.clone());
                             let mergeAndAppId = eg.add(mergeAnd.clone());
+                            checkVarType(&mergeAndAppId, eg);
 
                             constrRewriteListCopy
                                 .borrow_mut()
@@ -403,6 +411,7 @@ fn unfold(
 
                             // TODO: we can have a function that sorts an ENode children
                             let unfoldedENodeId = eg.add(unfoldedENode.clone());
+                            checkVarType(&unfoldedENodeId, eg);
                             // doFunctionalityTransformation(
                             //     eg,
                             //     &unfoldedENodeId,
@@ -434,6 +443,7 @@ fn unfold(
                             .collect();
                         let composeENode = CHC::Compose(unfoldedComposeChildren);
                         let unfoldedCompose = eg.add(composeENode.clone());
+                        checkVarType(&unfoldedCompose, eg);
                         debug!("adding composeENode {:?} {composeENode:?}", unfoldedCompose);
                         debug!("to be union with {:?}", rootId);
                         toBeUnion.push(unfoldedCompose.clone());
@@ -499,6 +509,7 @@ fn expandEq(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> C
     let mut groups = uf.buildGroups();
     let mut newConstraintChildren: HashSet<AppliedIdOrStar, _> = HashSet::new();
     newConstraintChildren.extend(andChildren.clone());
+    let oldLen = newConstraintChildren.len();
     for group in groups.iter_mut() {
         group.sort();
         for i in 0..group.len() {
@@ -509,14 +520,25 @@ fn expandEq(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> C
 
                 let eqChild = CHC::Eq(group[i].clone(), group[j].clone());
                 let eqChildAppId = eg.add(eqChild);
+                checkVarType(&eqChildAppId, eg);
                 newConstraintChildren.insert(AppliedIdOrStar::AppliedId(eqChildAppId));
             }
         }
     }
+    // TODO: it should be ==
+    // but will there be a bug with this?
+    // if newConstraintChildren.len() != oldLen {
+    //     return constrENode.clone();
+    // }
 
-    let newConstraintChildren: Vec<AppliedIdOrStar> = newConstraintChildren.into_iter().collect();
+    let mut newConstraintChildren: Vec<AppliedIdOrStar> =
+        newConstraintChildren.into_iter().collect();
+    newConstraintChildren.sort();
     let newConstraint = CHC::And(newConstraintChildren);
     let newConstraintAppId = eg.add(newConstraint.clone());
+    checkVarType(&newConstraintAppId, eg);
+    println!("original {constrAppId:?} {constrENode:?}");
+    println!("new {newConstraintAppId:?} {newConstraint:?}");
     eg.union_justified(
         constrAppId,
         &newConstraintAppId,
@@ -563,16 +585,19 @@ fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHC
                 for (val2, l2, r2) in nodeFromChild2.clone() {
                     if val != val2 {
                         let newEqAppId = eg.add(CHC::Eq(val.clone(), val2));
+                        checkVarType(&newEqAppId, eg);
                         andChildren.insert(AppliedIdOrStar::AppliedId(newEqAppId));
                     }
 
                     if l != l2 {
                         let newEqAppId = eg.add(CHC::Eq(l.clone(), l2));
+                        checkVarType(&newEqAppId, eg);
                         andChildren.insert(AppliedIdOrStar::AppliedId(newEqAppId));
                     }
 
                     if r != r2 {
                         let newEqAppId = eg.add(CHC::Eq(r.clone(), r2));
+                        checkVarType(&newEqAppId, eg);
                         andChildren.insert(AppliedIdOrStar::AppliedId(newEqAppId));
                     }
                 }
@@ -582,6 +607,7 @@ fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHC
 
     let newConstraint = CHC::And(andChildren.into_iter().collect());
     let newConstraintAppId = eg.add(newConstraint.clone());
+    checkVarType(&newConstraintAppId, eg);
     eg.union_justified(
         constrAppId,
         &newConstraintAppId,
@@ -603,10 +629,10 @@ fn constraintRewrite(constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>
             } = constrRewriteComponent;
 
             // expand eq rewrite, X = Y, X = Z -> X = Y, X = Z, Y = Z
-            let newConstraint = expandEq(constrAppId, constrENode, eg);
+            let constrENode = expandEq(constrAppId, constrENode, eg);
 
             // constructor eq rewrite, node(x, l, r) = node(x', l', r') -> x = x', l = l', r = r'
-            let newConstraint = constructorEqRewrite(constrAppId, &newConstraint, eg);
+            let constrENode = constructorEqRewrite(constrAppId, &constrENode, eg);
         }
 
         println!("done constraintRewrite");
@@ -771,6 +797,7 @@ fn defineFromSharingBlock(
                     CHC::Compose(vec![AppliedIdOrStar::AppliedId(newENodeAppId.clone())]);
                 let composeShape = composeEnode.weak_shape().0;
                 let composeAppId = eg.add(composeEnode);
+                checkVarType(&composeAppId, eg);
 
                 addToUnfoldList(
                     &unfoldListClone,

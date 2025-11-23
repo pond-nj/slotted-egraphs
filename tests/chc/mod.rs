@@ -75,7 +75,7 @@ pub struct FunctionalInfo {
 }
 
 // TODO: implement Debug to CHC clause using syn_enode
-#[derive(Eq, PartialEq, Clone, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug, Default)]
 pub struct CHCData {
     predNames: HashSet<String>,
     varTypes: HashMap<Slot, VarType>,
@@ -84,7 +84,6 @@ pub struct CHCData {
 
 // TODO: reimplement this to not access eclass many times
 pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
-    // debug!("aggregateVarType");
     let sh = transformToEgraphNameSpace(sh, eg);
     let mut slots = sh.slots();
     let appIds = sh.applied_id_occurrences();
@@ -95,6 +94,16 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
             let appInverse = app.m.inverse();
             if let Some(mapToS) = appInverse.get(s) {
                 let childEclassData = eg.analysis_data(app.id);
+                if !childEclassData.varTypes.contains_key(&mapToS) {
+                    println!("aggregateVarType on {sh:?}");
+                    println!("childEclass {:?}", eg.eclass(app.id));
+                    println!(
+                        "find childEclass {:?}",
+                        eg.eclass(eg.find_applied_id(app).id)
+                    );
+                    println!("childEclassData {childEclassData:?}");
+                    println!("appInverse {appInverse:?}");
+                }
                 let childSlotType = childEclassData.varTypes.get(&mapToS).unwrap();
                 varTypes
                     .entry(s)
@@ -102,6 +111,13 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
                     .or_insert(childSlotType.clone());
             }
         }
+    }
+
+    println!("aggregateVarType on {sh:?}");
+    if appIds.len() != 0 {
+        assert!(varTypes.len() != 0);
+    } else {
+        println!("warning");
     }
 
     varTypes
@@ -169,6 +185,8 @@ impl Analysis<CHC> for CHCAnalysis {
     type Data = CHCData;
 
     fn merge(x: CHCData, y: CHCData, i: Id, eg: &CHCEGraph) -> CHCData {
+        let xClone = x.clone();
+        let yClone = y.clone();
         let c = eg.eclass(i).unwrap();
 
         let mut newPredNames = HashSet::<String>::default();
@@ -178,19 +196,26 @@ impl Analysis<CHC> for CHCAnalysis {
         newPredNames.extend(x.predNames);
 
         let mut newVarTypes = x.varTypes.clone();
-        for (var, yVarType) in y.varTypes {
+        for (var, yVarType) in y.varTypes.iter() {
             if let Some(thisType) = newVarTypes.get(&var) {
-                assert!(yVarType == *thisType);
+                assert!(yVarType == thisType);
             } else {
-                newVarTypes.insert(var, yVarType);
+                newVarTypes.insert(var.clone(), yVarType.clone());
             }
         }
 
         let eclassSlots = eg.allSlots(i);
-        let newVarTypes = newVarTypes
+        let newVarTypes: HashMap<Slot, VarType> = newVarTypes
             .into_iter()
             .filter(|(s, vt)| eclassSlots.contains(&s))
             .collect();
+
+        if (x.varTypes.len() != 0 || y.varTypes.len() != 0) {
+            println!("x {xClone:#?}");
+            println!("y {yClone:#?}");
+
+            assert!(newVarTypes.len() != 0);
+        }
 
         CHCData {
             predNames: newPredNames,
