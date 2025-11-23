@@ -23,7 +23,8 @@ where
     loop {
         let (did_change, search_time, apply_time) = apply_rewrites(egraph, &rws);
         searchTime += search_time;
-        applyTime += apply_time;
+        // TODO
+        // applyTime += apply_time;
 
         if egraph.total_number_of_nodes() == 0 {
             stop_reason = StopReason::Saturated;
@@ -63,7 +64,8 @@ where
         egraph_classes: egraph.ids().len(),
         total_time: start_time.elapsed().as_secs_f64(),
         search_time: searchTime.as_secs_f64(),
-        apply_time: applyTime.as_secs_f64(),
+        // TODO
+        rw_apply_time: vec![],
         rebuild_time: rebuildTime.as_secs_f64(),
     }
 }

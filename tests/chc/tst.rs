@@ -76,6 +76,7 @@ fn tst1() {
     let mut eg = CHCEGraph::default();
     let mut unfoldList = Rc::new(RefCell::new(vec![]));
     let mut constrRewriteList = Rc::new(RefCell::new(vec![]));
+    let mut definedList = Rc::new(RefCell::new(HashSet::default()));
     let x = "(var $0)";
     let y = "(var $1)";
     let pCompose = pCHC(x, y);
@@ -97,7 +98,11 @@ fn tst1() {
     let rootId = id(&pCHC(x, y), &mut eg);
 
     let mut runner: CHCRunner = Runner::default().with_egraph(eg).with_iter_limit(5);
-    let report = runner.run(&mut getAllRewrites(&unfoldList, &constrRewriteList));
+    let report = runner.run(&mut getAllRewrites(
+        &unfoldList,
+        &constrRewriteList,
+        &definedList,
+    ));
     debug!("report {report:?}");
     debug!("egraph after");
     dumpCHCEGraph(&runner.egraph);

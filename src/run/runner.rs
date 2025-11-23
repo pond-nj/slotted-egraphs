@@ -40,7 +40,7 @@ pub struct RunnerLimits {
     start_time: Option<Instant>,
     time_limit: Duration,
     total_search_time: Duration,
-    total_apply_time: Duration,
+    rw_apply_time: Vec<Duration>,
     total_rebuild_time: Duration,
 }
 /// Type alias for the result of a [`Runner`].
@@ -121,7 +121,7 @@ where
                 // The start_time is initialized when the Runner is ran
                 start_time: None,
                 total_search_time: Duration::new(0, 0),
-                total_apply_time: Duration::new(0, 0),
+                rw_apply_time: vec![],
                 total_rebuild_time: Duration::new(0, 0),
             },
             hooks: vec![],
@@ -163,10 +163,10 @@ where
             .check_limits(self.iterations.len(), &self.egraph)
     }
     pub fn run(&mut self, rewrites: &[Rewrite<L, N>]) -> Report<CustomErrorT> {
-        // let res = self.check_limits();
-        // if let Err(e) = res {
-        //     self.stop_reason = Some(e);
-        // }
+        self.limits.rw_apply_time.clear();
+        for r in rewrites {
+            self.limits.rw_apply_time.push(Duration::new(0, 0));
+        }
 
         loop {
             if let Some(_) = self.stop_reason {
@@ -189,7 +189,12 @@ where
                 .duration_since(self.limits.start_time.unwrap())
                 .as_secs_f64(),
             search_time: self.limits.total_search_time.as_secs_f64(),
-            apply_time: self.limits.total_apply_time.as_secs_f64(),
+            rw_apply_time: self
+                .limits
+                .rw_apply_time
+                .iter()
+                .map(|d| d.as_secs_f64())
+                .collect(),
             rebuild_time: self.limits.total_rebuild_time.as_secs_f64(),
         }
     }
@@ -204,9 +209,11 @@ where
         let mut result = Ok(());
 
         // Apply rewrites, then check hooks, then check limits, then check if saturated.
-        let (progress, searchTime, applyTime) = apply_rewrites(&mut self.egraph, rewrites);
+        let (progress, searchTime, applyTimes) = apply_rewrites(&mut self.egraph, rewrites);
         self.limits.total_search_time += searchTime;
-        self.limits.total_apply_time += applyTime;
+        for (i, applyTime) in applyTimes.iter().enumerate() {
+            self.limits.rw_apply_time[i] += *applyTime;
+        }
 
         let (_, rebuildTime) = time(|| self.egraph.rebuild());
         self.limits.total_rebuild_time += rebuildTime;

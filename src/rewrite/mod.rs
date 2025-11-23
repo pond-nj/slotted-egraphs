@@ -52,7 +52,7 @@ pub fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
 pub fn apply_rewrites<L: Language, N: Analysis<L>>(
     eg: &mut EGraph<L, N>,
     rewrites: &[Rewrite<L, N>],
-) -> (bool, Duration, Duration) {
+) -> (bool, Duration, Vec<Duration>) {
     let prog = eg.progress();
 
     let (ts, searchTime): (Vec<Box<dyn Any>>, Duration) = time(|| {
@@ -66,20 +66,24 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
             })
             .collect()
     });
-    let (_, applyTime) = time(|| {
-        for (rw, t) in rewrites.iter().zip(ts.into_iter()) {
-            debug!("doing apply for {}", rw.name);
+
+    let mut appliedTimes = vec![];
+    for (rw, t) in rewrites.iter().zip(ts.into_iter()) {
+        let (_, applyTime) = time(|| {
+            println!("doing apply for {}", rw.name);
             (*rw.applier)(t, eg);
-            debug!("done apply for {}", rw.name);
+            println!("done apply for {}", rw.name);
             debug!(
                 "egraph size after {} is {}",
                 rw.name,
                 eg.total_number_of_nodes()
             );
-        }
-    });
+        });
 
-    (prog != eg.progress(), searchTime, applyTime)
+        appliedTimes.push(applyTime);
+    }
+
+    (prog != eg.progress(), searchTime, appliedTimes)
 }
 
 impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {

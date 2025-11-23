@@ -21,6 +21,6 @@ where
     pub egraph_classes: usize,
     pub total_time: f64,
     pub search_time: f64,
-    pub apply_time: f64,
+    pub rw_apply_time: Vec<f64>,
     pub rebuild_time: f64,
 }

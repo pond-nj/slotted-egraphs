@@ -119,6 +119,7 @@ fn mainTest() {
     let mut egOrig = CHCEGraph::default();
     let mut unfoldList = Rc::new(RefCell::new(vec![]));
     let mut constrRewriteList = Rc::new(RefCell::new(vec![]));
+    let mut definedList = Rc::new(RefCell::new(HashSet::default()));
     let mut count = 0;
     {
         let eg = &mut egOrig;
@@ -181,7 +182,7 @@ fn mainTest() {
     // TODO: can we not use mem::take here?
 
     let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(4);
-    let (report, t): (Report, _) = time(|| runner.run(&mut getAllRewrites(&mut unfoldList, &mut constrRewriteList)));
+    let (report, t): (Report, _) = time(|| runner.run(&mut getAllRewrites(&mut unfoldList, &mut constrRewriteList, &mut definedList)));
     println!("use time {t:?}");
     println!("report {report:?}");
 
@@ -194,15 +195,15 @@ fn mainTest() {
         runner.egraph.total_number_of_nodes()
     );
 
-    // let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
+    let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
     // checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
     // checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
-    // checkUnfold21NewDefineWithMinLeaf(&mut runner.egraph);
+    checkUnfold21NewDefineWithMinLeaf(&mut runner.egraph);
     // TODO: vvv the compose lookup in here takes a very long time to run, why? vvv
-    // checkUnfold31NewDefineWithMinLeaf(&mut runner.egraph);
+    checkUnfold31NewDefineWithMinLeaf(&mut runner.egraph);
 
-    checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
+    // checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
 
     // TODO: check unfold result
     // 19. new1(N,M,K)←M=0,K=0
@@ -663,6 +664,7 @@ fn checkUnfold31NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
         minLeafDummy(t, k)
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&origChc).unwrap());
+    // id114
     println!("unfold31 res: {res:#?}");
     assert!(res.len() > 0);
 
@@ -674,6 +676,8 @@ fn checkUnfold31NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
         minDummy(m1, m2, m3),
     );
     let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2).unwrap());
+    // unfold_id16_in_id114_using_id57
+    // id246
     println!("unfold31 res2: {res2:#?}");
     assert!(res2.len() > 0);
 
@@ -697,6 +701,7 @@ fn checkUnfold31NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
         minDummy(m12, m22, m32),
     );
     let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
+    // unfold_id16_in_id114_using_id62
     println!("unfold31 res3: {res3:#?}");
     assert!(res3.len() > 0);
 

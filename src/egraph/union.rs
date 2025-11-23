@@ -31,7 +31,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // this doesn't take a long time
         let a = pattern_subst(self, &from_pat, subst);
         let b = pattern_subst(self, &to_pat, subst);
-        debug!("Union because {justification:?}, {a:?} with {b:?}");
+        println!("Union because {justification:?}, {a:?} with {b:?}");
 
         #[allow(unused)]
         let syn_a = self.synify_app_id(a.clone());
