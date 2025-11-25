@@ -76,7 +76,7 @@ fn tst1() {
     let mut eg = CHCEGraph::default();
     let mut unfoldList = Rc::new(RefCell::new(vec![]));
     let mut constrRewriteList = Rc::new(RefCell::new(vec![]));
-    let mut definedList = Rc::new(RefCell::new(HashSet::default()));
+    let mut definedList = Rc::new(RefCell::new(BTreeSet::default()));
     let x = "(var $0)";
     let y = "(var $1)";
     let pCompose = pCHC(x, y);

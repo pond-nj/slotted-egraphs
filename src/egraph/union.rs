@@ -183,7 +183,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // moves everything from `from` to `to`.
     fn move_to(&mut self, from: &AppliedId, to: &AppliedId, #[allow(unused)] proof: ProvenEq) {
-        debug!("merging {:?} with {:?}", from.id, to.id);
         debug!("from {:?}", self.eclass(from.id));
         debug!("to {:?}", self.eclass(to.id));
         if CHECKS {
@@ -252,15 +251,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let newPendingLen = self.pending.len();
             debug!("insert to pending len from move_to by {oldPendingLen} to {newPendingLen}");
         }
-        // debug!(
-        //     "after compose fresh from {:?}",
-        //     self.classes.get(&from.id).unwrap()
-        // );
 
-        // debug!(
-        //     "after compose fresh to {:?}",
-        //     self.classes.get(&to.id).unwrap()
-        // );
+        assert!(self.eclass(to.id).unwrap().nodes.len() != 0);
 
         // {
         //     let analysis_from = self.analysis_data(from.id).clone();

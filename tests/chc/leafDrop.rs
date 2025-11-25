@@ -119,7 +119,7 @@ fn mainTest() {
     let mut egOrig = CHCEGraph::default();
     let mut unfoldList = Rc::new(RefCell::new(vec![]));
     let mut constrRewriteList = Rc::new(RefCell::new(vec![]));
-    let mut definedList = Rc::new(RefCell::new(HashSet::default()));
+    let mut definedList = Rc::new(RefCell::new(BTreeSet::default()));
     let mut count = 0;
     {
         let eg = &mut egOrig;
@@ -201,7 +201,7 @@ fn mainTest() {
 
     checkUnfold21NewDefineWithMinLeaf(&mut runner.egraph);
     // TODO: vvv the compose lookup in here takes a very long time to run, why? vvv
-    checkUnfold31NewDefineWithMinLeaf(&mut runner.egraph);
+    // checkUnfold31NewDefineWithMinLeaf(&mut runner.egraph);
 
     // checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
 
@@ -430,8 +430,22 @@ fn checkUnfold21NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let res = ematchQueryall(&eg, &Pattern::parse(&origChc).unwrap());
     // unfold_id10_in_id65_using_id43
     // id77
+    // id79
+    // unfold_id12_in_id67_using_id45
     println!("unfold21 res: {res:#?}");
     assert!(res.len() > 0);
+    {
+        // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), T = U, min-leaf(U,M), min-leaf(T,K)
+        let alterOrigChc1 = format!(
+            "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {t} {u})>) <{} {}>)",
+            minLeafDummy(u, m),
+            minLeafDummy(t, k)
+        );
+        let alterRes1 = ematchQueryall(&eg, &Pattern::parse(&alterOrigChc1).unwrap());
+        println!("unfold21 alterRes1 {alterRes1:#?}");
+        assert!(alterRes1.len() > 0);
+        assert!(alterRes1[0].1 == res[0].1);
+    }
 
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=leaf, M=0 , min-leaf(T,K)
     let chc2 = format!(
@@ -439,6 +453,7 @@ fn checkUnfold21NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
         minLeafDummy(t, k)
     );
     // unfold_id13_in_id77_using_id55
+    // unfold_id16_in_id79_using_id57
     let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2).unwrap());
     println!("unfold21 res2: {res2:#?}");
     assert!(res2.len() > 0);
@@ -463,6 +478,36 @@ fn checkUnfold21NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
     println!("unfold21 res3: {res3:#?}");
     assert!(res3.len() > 0);
+    { 
+        // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, node(a, l, r) = node(A, L, R)
+        //  min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
+        let alterChc3 = format!(
+            "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq (binode {a} {l} {r})
+(binode {a1} {l1} {r1})) (eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
+            minLeafDummy(l1, m1), 
+            minLeafDummy(r1, m2),
+            minDummy(m1, m2, m3),
+            minLeafDummy(t, k)
+        );
+        let alterRes3 = ematchQueryall(&eg, &Pattern::parse(&alterChc3).unwrap());
+        println!("unfold21 alterRes3 {alterRes3:#?}");
+        assert!(alterRes3.len() > 0);
+        assert!(alterRes3[0].1 == res3[0].1);
+
+        // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, node(a, l, r) = node(A, L, R), a = A, l = L, r = R
+        //  min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
+        let alter2Chc3 = format!(
+            "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq (binode {a} {l} {r}) (binode {a1} {l1} {r1})) (eq {a} {a1}) (eq {l} {l1}) (eq {r} {r1}) (eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
+            minLeafDummy(l1, m1), 
+            minLeafDummy(r1, m2),
+            minDummy(m1, m2, m3),
+            minLeafDummy(t, k)
+        );
+        let alter2Res3 = ematchQueryall(&eg, &Pattern::parse(&alter2Chc3).unwrap());
+        println!("unfold21 alter2Res3 {alter2Res3:#?}");
+        assert!(alter2Res3.len() > 0);
+        assert!(alter2Res3[0].1 == res3[0].1);
+    }
 
     let composeUnfold21 = format!("(compose <{chc2} {chc3} *0>)");
     let resCompose = ematchQueryall(&eg, &Pattern::parse(&composeUnfold21).unwrap());

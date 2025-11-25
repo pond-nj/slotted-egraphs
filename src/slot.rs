@@ -1,6 +1,7 @@
 use crate::*;
 use log::debug;
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 use std::fmt::*;
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -16,14 +17,14 @@ pub struct Slot(u32);
 struct SlotTable {
     fresh_idx: u32,
     named_vec: Vec<String>,
-    named_map: HashMap<String, u32>,
+    named_map: BTreeMap<String, u32>,
 }
 
 thread_local! {
     static SLOT_TABLE: RefCell<SlotTable> = RefCell::new(SlotTable {
         fresh_idx: 1,
         named_vec: Vec::default(),
-        named_map: HashMap::default(),
+        named_map: BTreeMap::default(),
     });
 }
 

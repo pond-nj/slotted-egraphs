@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::lambda::*;
 
 pub fn lam_normalize(re: &RecExpr<Lambda>) -> RecExpr<Lambda> {
@@ -8,7 +10,7 @@ pub fn lam_normalize(re: &RecExpr<Lambda>) -> RecExpr<Lambda> {
 fn lam_normalize_impl(
     re: &RecExpr<Lambda>,
     counter: &mut usize,
-    map: HashMap<Slot, Slot>,
+    map: BTreeMap<Slot, Slot>,
 ) -> RecExpr<Lambda> {
     let mut alloc_slot = || {
         let out = Slot::numeric(*counter as _);

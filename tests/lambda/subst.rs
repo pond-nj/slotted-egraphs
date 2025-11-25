@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::*;
 
 // returns an eclass containing b[x := t]
@@ -159,7 +161,7 @@ struct Value {
     // if (w1, w2) in bt_relation, then b_map[w1] == t_map[w2].
 }
 
-type Map = HashMap<Key, Value>;
+type Map = BTreeMap<Key, Value>;
 
 // Ok(app_id) means that it was already in the map, and nothing needs to be done.
 // Err(app_id) means that it was not yet in the map, but a new entry was added for it. Go and union stuff to it!

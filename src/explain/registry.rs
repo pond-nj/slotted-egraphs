@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 #[derive(Clone, Default, Debug)]
-pub(crate) struct ProofRegistry(Rc<RefCell<HashMap<Equation, ProvenEq>>>);
+pub(crate) struct ProofRegistry(Rc<RefCell<BTreeMap<Equation, ProvenEq>>>);
 
 fn normalize_eq(eq: &Equation) -> Equation {
     let mut theta = SlotMap::new();

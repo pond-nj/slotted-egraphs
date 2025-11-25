@@ -1,5 +1,5 @@
 use core::panic;
-use std::hash::{DefaultHasher, Hash, Hasher};
+use std::{collections::BTreeSet, hash::{DefaultHasher, Hash, Hasher}};
 
 use crate::*;
 use either::Either;
@@ -556,17 +556,17 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     #[doc(hidden)]
     fn check(&self) {
         let mut c = self.clone();
-        let all: HashSet<*mut Slot> = c
+        let all: BTreeSet<*mut Slot> = c
             .all_slot_occurrences_mut()
             .into_iter()
             .map(|x| x as *mut Slot)
             .collect();
-        let public: HashSet<*mut Slot> = c
+        let public: BTreeSet<*mut Slot> = c
             .public_slot_occurrences_mut()
             .into_iter()
             .map(|x| x as *mut Slot)
             .collect();
-        let private: HashSet<*mut Slot> = c
+        let private: BTreeSet<*mut Slot> = c
             .private_slot_occurrences_mut()
             .into_iter()
             .map(|x| x as *mut Slot)
@@ -578,7 +578,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
         let f = |x: Vec<Slot>| x.into_iter().collect::<HashSet<_>>();
         assert!(f(c.public_slot_occurrences()).is_disjoint(&f(c.private_slot_occurrences())));
 
-        let all2: HashSet<*mut Slot> = public.union(&private).copied().collect();
+        let all2: BTreeSet<*mut Slot> = public.union(&private).copied().collect();
         assert_eq!(all2, all);
     }
 

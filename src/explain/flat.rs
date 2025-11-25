@@ -4,7 +4,7 @@ type Pos = Vec<u8>;
 
 struct FlatteningContext<L: Language> {
     head: RecExpr<L>,
-    slot_map: HashMap<Slot, Slot>,
+    slot_map: BTreeMap<Slot, Slot>,
 }
 
 struct Step<L: Language> {
@@ -154,7 +154,7 @@ impl<L: Language> FlatteningContext<L> {
         Self::update_slot_map_core(&mut self.slot_map, subhead, subsrc);
     }
 
-    fn update_slot_map_core(map: &mut HashMap<Slot, Slot>, head: &RecExpr<L>, src: &RecExpr<L>) {
+    fn update_slot_map_core(map: &mut BTreeMap<Slot, Slot>, head: &RecExpr<L>, src: &RecExpr<L>) {
         let [SyntaxElem::String(head_op), head_children @ ..] = &*head.node.to_syntax() else {
             unreachable!()
         };
@@ -213,7 +213,7 @@ impl<L: Language> RecExpr<L> {
         }
     }
 
-    fn apply_slot_map(&mut self, m: &HashMap<Slot, Slot>) {
+    fn apply_slot_map(&mut self, m: &BTreeMap<Slot, Slot>) {
         for slot in self.node.all_slot_occurrences_mut().iter_mut() {
             **slot = Self::map_slot(**slot, m);
         }
@@ -223,7 +223,7 @@ impl<L: Language> RecExpr<L> {
     }
 
     // Important: This will loop if the slot map contains a cycle!
-    fn map_slot(s: Slot, m: &HashMap<Slot, Slot>) -> Slot {
+    fn map_slot(s: Slot, m: &BTreeMap<Slot, Slot>) -> Slot {
         if let Some(&new) = m.get(&s) {
             Self::map_slot(new, m)
         } else {

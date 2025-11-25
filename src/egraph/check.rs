@@ -1,3 +1,5 @@
+use std::collections::{BTreeMap, BTreeSet};
+
 use crate::*;
 use log::debug;
 use vec_collections::AbstractVecSet;
@@ -68,11 +70,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn check(&self) {
         // Checks whether the hashcons / usages are correct.
         // And also checks that each Shape comes up in at most one EClass!
-        let mut hashcons = HashMap::default();
-        let mut usages = HashMap::default();
+        let mut hashcons = BTreeMap::default();
+        let mut usages = BTreeMap::default();
 
         for (i, _) in &self.classes {
-            usages.insert(*i, HashSet::default());
+            usages.insert(*i, BTreeSet::default());
         }
 
         // redundancy-check for leaders.
@@ -127,13 +129,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let all_keys = self
             .unionfind_iter()
             .map(|(x, _)| x)
-            .collect::<HashSet<_>>();
+            .collect::<BTreeSet<_>>();
         let all_values = self
             .unionfind_iter()
             .map(|(_, x)| x.id)
-            .collect::<HashSet<_>>();
-        let all_classes = self.classes.keys().copied().collect::<HashSet<_>>();
-        let all: HashSet<Id> = &(&all_keys | &all_values) | &all_classes;
+            .collect::<BTreeSet<_>>();
+        let all_classes = self.classes.keys().copied().collect::<BTreeSet<_>>();
+        let all: BTreeSet<Id> = &(&all_keys | &all_values) | &all_classes;
         for i in all {
             // if they point to themselves, they should do it using the identity.
             if self.is_alive(i) {

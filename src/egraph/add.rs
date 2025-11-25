@@ -1,3 +1,5 @@
+use std::collections::{BTreeMap, BTreeSet};
+
 use vec_collections::AbstractVecSet;
 
 use crate::*;
@@ -86,7 +88,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub fn add(&mut self, enode: L) -> AppliedId {
         // major time is in add_internal
-        let (sh, _) = time(|| self.shape_called_from_add(enode));
+        let (sh, _) = time(|| self.shape_called_from_add(enode.clone()));
         let (addedId, _) = time(|| self.add_internal(sh));
         addedId
     }
@@ -224,7 +226,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(in crate::egraph) fn raw_remove_from_class(&mut self, id: Id, sh: L) -> ProvenSourceNode {
-        // debug!("remove from {id:?} {:?}", sh);
         let opt_psn = self.classes.get_mut(&id).unwrap().nodes.remove(&sh);
         let opt_id = self.hashcons.remove(&sh);
         if CHECKS {
@@ -259,10 +260,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             ProvenPerm::identity(c_id, &slots, &syn_slots, self.proof_registry.clone());
 
         let c = EClass {
-            nodes: HashMap::default(),
+            nodes: BTreeMap::default(),
             group: Group::identity(&proven_perm),
             slots: slots.clone(),
-            usages: HashSet::default(),
+            usages: BTreeSet::default(),
             syn_enode: syn_enode.clone(),
             analysis_data: N::make(&self, &syn_enode),
         };

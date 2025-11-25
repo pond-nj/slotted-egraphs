@@ -6,14 +6,14 @@ pub use cost::*;
 mod with_ord;
 pub use with_ord::*;
 
-use std::collections::BinaryHeap;
+use std::collections::{BTreeMap, BinaryHeap};
 
 /// An object used for quickly extracting terms (i.e. [RecExpr]s) using a given [CostFunction].
 ///
 /// Creating an Extractor will setup an extraction-table which then allows you to extract terms from many e-classes efficiently.
 /// It is most useful when doing "bulk" extractions for many classes.
 pub struct Extractor<L: Language, CF: CostFunction<L>> {
-    pub(crate) map: HashMap<Id, WithOrdRev<L, CF::Cost>>,
+    pub(crate) map: BTreeMap<Id, WithOrdRev<L, CF::Cost>>,
 }
 
 impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
@@ -27,7 +27,7 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
         // - every internal slot needs to be refreshed.
 
         // maps eclass id to their optimal RecExpr.
-        let mut map: HashMap<Id, WithOrdRev<L, CF::Cost>> = HashMap::default();
+        let mut map: BTreeMap<Id, WithOrdRev<L, CF::Cost>> = BTreeMap::default();
         let mut queue: BinaryHeap<WithOrdRev<L, CF::Cost>> = BinaryHeap::new();
 
         for id in eg.ids() {

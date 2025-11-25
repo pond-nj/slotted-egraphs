@@ -213,9 +213,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // upwards merging found a match!
         // if there's another Enode in Egraph already
-        if self.lookup_internal(&t).is_some() {
+        let lookupRes = self.lookup_internal(&t);
+        if lookupRes.is_some() {
             self.handle_congruence(self.pc_from_src_id(src_id));
-            debug!("end handling pending at 1");
             return;
         }
 

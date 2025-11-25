@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::*;
 
 pub struct LambdaRealBig;
@@ -61,7 +63,7 @@ pub fn rewrite_big_step() -> Vec<Rewrite<Lambda>> {
 
 pub fn candidates(eg: &EGraph<Lambda>) -> Vec<Candidate> {
     // find all lambdas:
-    let mut lambdas: HashMap<Id, Vec<Lambda>> = Default::default();
+    let mut lambdas: BTreeMap<Id, Vec<Lambda>> = Default::default();
     for c in eg.ids() {
         let mut v = Vec::new();
         assert!(eg.is_alive(c));

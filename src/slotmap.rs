@@ -1,7 +1,7 @@
 use smallvec::SmallVec;
 
 use crate::*;
-use std::ops::Index;
+use std::{collections::BTreeSet, ops::Index};
 
 // Permutations are a special kind of Bijections.
 // Their key & value sets agree!
@@ -102,7 +102,7 @@ impl SlotMap {
     }
 
     pub fn is_bijection(&self) -> bool {
-        let mut found = HashSet::default();
+        let mut found = BTreeSet::default();
 
         for (_, x) in self.iter() {
             if found.contains(&x) {
@@ -228,7 +228,7 @@ impl SlotMap {
         assert_eq!(&self.map, &sorted);
 
         // left-uniqueness.
-        let mut found = HashSet::default();
+        let mut found = BTreeSet::default();
         for &(x, _) in self.map.iter() {
             assert!(!found.contains(&x));
             found.insert(x);

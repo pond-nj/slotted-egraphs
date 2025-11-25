@@ -21,7 +21,7 @@ use vec_collections::AbstractVecSet;
 
 use core::fmt;
 use derive_more::Debug;
-use std::{cell::RefCell, fmt::*, io};
+use std::{cell::RefCell, collections::{BTreeMap, BTreeSet}, fmt::*, io};
 
 use log::debug;
 
@@ -44,17 +44,17 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
 
     // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
     // It's "shallow" if you will.
-    pub(crate) classes: HashMap<Id, EClass<L, N>>,
+    pub(crate) classes: BTreeMap<Id, EClass<L, N>>,
 
     // For each shape contained in the EGraph, maps to the EClass that contains it.
-    hashcons: HashMap<L, Id>,
+    hashcons: BTreeMap<L, Id>,
 
     // For each (syn_slotset applied) non-normalized (i.e. "syntactic") weak shape, find the e-class who has this as syn_enode.
     // TODO remove this if explanations are disabled.
-    syn_hashcons: HashMap<L, AppliedId>,
+    syn_hashcons: BTreeMap<L, AppliedId>,
 
     // E-Nodes that need to be re-processed, stored as shapes.
-    pending: HashMap<L, PendingType>,
+    pending: BTreeMap<L, PendingType>,
 
     // TODO remove this if explanations are disabled.
     pub(crate) proof_registry: ProofRegistry,
@@ -81,14 +81,14 @@ pub(crate) enum PendingType {
 pub struct EClass<L: Language, N: Analysis<L>> {
     // The set of equivalent ENodes that make up this eclass.
     // for (sh, bij) in nodes; sh.apply_slotmap(bij) represents the actual ENode.
-    nodes: HashMap<L, ProvenSourceNode>,
+    nodes: BTreeMap<L, ProvenSourceNode>,
 
     // All other slots are considered "redundant" (or they have to be qualified by a ENode::Lam).
     // Should not contain Slot(0).
     slots: SmallHashSet<Slot>,
 
     // Shows which Shapes refer to this EClass.
-    usages: HashSet<L>,
+    usages: BTreeSet<L>,
 
     // Expresses the self-symmetries of this e-class.
     pub(crate) group: Group<ProvenPerm>,
@@ -101,10 +101,10 @@ pub struct EClass<L: Language, N: Analysis<L>> {
 
 impl<L: Language, N: Analysis<L>> EClass<L, N> {
     pub fn dumpEClass<T: fmt::Write>(&self, f: &mut T) -> Result {
-        if self.nodes.len() == 0 {
-            write!(f, "\n Empty Eclass")?;
-            return Ok(());
-        }
+        // if self.nodes.len() == 0 {
+        //     write!(f, "\n Empty Eclass")?;
+        //     return Ok(());
+        // }
 
         let mut slot_order: Vec<Slot> = self.slots.iter().cloned().collect();
         slot_order.sort();
@@ -166,13 +166,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub fn allSlots(&self, id: Id) -> HashSet<Slot> {
+    // TODO: include eclass slots
+    pub fn allSlots(&self, id: Id) -> BTreeSet<Slot> {
         let c = self.eclass(id).unwrap();
-        let mut totalSlots = HashSet::default();
+        let mut totalSlots = BTreeSet::default();
         for (sh, psn) in &c.nodes {
             let node = sh.apply_slotmap(&psn.elem);
             totalSlots.extend(node.slots().into_iter());
         }
+
+        totalSlots.extend(self.slots(id));
 
         totalSlots
     }
@@ -509,7 +512,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     fn getSynExprRecur<'a>(
         self: &'a Self,
         i: &AppliedId,
-        map: &'a mut HashMap<AppliedId, RecExpr<L>>,
+        map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
     ) -> &'a RecExpr<L> {
         if map.contains_key(i) {
             return map.get(i).unwrap();
@@ -534,7 +537,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn getSynExpr<'a>(
         self: &'a Self,
         i: &Id,
-        map: &'a mut HashMap<AppliedId, RecExpr<L>>,
+        map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
     ) -> &'a RecExpr<L> {
         let appId = self.mk_sem_identity_applied_id(i.clone());
         debug!("getSynExpr {appId:?}");

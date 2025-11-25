@@ -1,10 +1,10 @@
 use std::hash::Hash;
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub struct HashUnionFind<T> {
     parent: Vec<usize>,
-    map: HashMap<T, usize>,
+    map: BTreeMap<T, usize>,
 }
 
 fn find(parent: &mut Vec<usize>, key: usize) -> usize {
@@ -19,9 +19,9 @@ fn find(parent: &mut Vec<usize>, key: usize) -> usize {
     k
 }
 
-impl<T: Hash + Eq + Clone> HashUnionFind<T> {
+impl<T: Hash + Eq + Clone + Ord> HashUnionFind<T> {
     pub fn new(elems: impl IntoIterator<Item = T>) -> Self {
-        let mut map = HashMap::default();
+        let mut map = BTreeMap::default();
         let mut parent = vec![];
         for elem in elems.into_iter() {
             let j = map.len();
@@ -68,7 +68,7 @@ impl<T: Hash + Eq + Clone> HashUnionFind<T> {
     }
 
     pub fn buildGroups(&mut self) -> Vec<Vec<T>> {
-        let mut groups: HashMap<usize, Vec<T>, _> = HashMap::new();
+        let mut groups: BTreeMap<usize, Vec<T>> = BTreeMap::new();
         for (x, y) in self.map.iter() {
             groups
                 .entry(find(&mut self.parent, *y))

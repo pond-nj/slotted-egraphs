@@ -5,7 +5,7 @@ use crate::*;
 use env_logger::Builder;
 use log::{debug, LevelFilter};
 use slotted_egraphs::*;
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::rc::Rc;
 use std::{default, io::Write};
 use std::{string, vec};
@@ -78,32 +78,22 @@ pub struct FunctionalInfo {
 #[derive(Eq, PartialEq, Clone, Debug, Default)]
 pub struct CHCData {
     predNames: HashSet<String>,
-    varTypes: HashMap<Slot, VarType>,
+    varTypes: BTreeMap<Slot, VarType>,
     functionalInfo: FunctionalInfo,
 }
 
 // TODO: reimplement this to not access eclass many times
-pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
+pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
     let sh = transformToEgraphNameSpace(sh, eg);
     let mut slots = sh.slots();
     let appIds = sh.applied_id_occurrences();
-    let mut varTypes = HashMap::default();
+    let mut varTypes = BTreeMap::default();
     // debug!("slots: {:?}", slots);
     for s in slots {
         for app in &appIds {
             let appInverse = app.m.inverse();
             if let Some(mapToS) = appInverse.get(s) {
                 let childEclassData = eg.analysis_data(app.id);
-                if !childEclassData.varTypes.contains_key(&mapToS) {
-                    println!("aggregateVarType on {sh:?}");
-                    println!("childEclass {:?}", eg.eclass(app.id));
-                    println!(
-                        "find childEclass {:?}",
-                        eg.eclass(eg.find_applied_id(app).id)
-                    );
-                    println!("childEclassData {childEclassData:?}");
-                    println!("appInverse {appInverse:?}");
-                }
                 let childSlotType = childEclassData.varTypes.get(&mapToS).unwrap();
                 varTypes
                     .entry(s)
@@ -113,11 +103,8 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> HashMap<Slot, VarType> {
         }
     }
 
-    println!("aggregateVarType on {sh:?}");
     if appIds.len() != 0 {
         assert!(varTypes.len() != 0);
-    } else {
-        println!("warning");
     }
 
     varTypes
@@ -133,7 +120,7 @@ fn transformToEgraphNameSpace(sh: &CHC, eg: &CHCEGraph) -> CHC {
 
 fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCData {
     let sh = transformToEgraphNameSpace(sh, eg);
-    let mut hm = HashMap::default();
+    let mut hm = BTreeMap::default();
     hm.insert(*sh.slots().iter().next().unwrap(), returnType);
     debug!("result {hm:?}");
     CHCData {
@@ -179,6 +166,15 @@ fn mergeFunctionalInfo(x: FunctionalInfo, y: FunctionalInfo) -> FunctionalInfo {
     functionalInfo.unwrap()
 }
 
+fn mergePredNames(xPredNames: &HashSet<String>, yPredNames: &HashSet<String>) -> HashSet<String> {
+    let mut newPredNames = HashSet::<String>::default();
+    let xLen = xPredNames.len();
+    let yLen = yPredNames.len();
+    newPredNames.extend(yPredNames.clone());
+    newPredNames.extend(xPredNames.clone());
+    newPredNames
+}
+
 // TODO2: varType not propagate up
 // TODO: internal var for each eclass
 impl Analysis<CHC> for CHCAnalysis {
@@ -189,11 +185,7 @@ impl Analysis<CHC> for CHCAnalysis {
         let yClone = y.clone();
         let c = eg.eclass(i).unwrap();
 
-        let mut newPredNames = HashSet::<String>::default();
-        let xLen = x.predNames.len();
-        let yLen = y.predNames.len();
-        newPredNames.extend(y.predNames);
-        newPredNames.extend(x.predNames);
+        let newPredNames = mergePredNames(&x.predNames, &y.predNames);
 
         let mut newVarTypes = x.varTypes.clone();
         for (var, yVarType) in y.varTypes.iter() {
@@ -205,16 +197,22 @@ impl Analysis<CHC> for CHCAnalysis {
         }
 
         let eclassSlots = eg.allSlots(i);
-        let newVarTypes: HashMap<Slot, VarType> = newVarTypes
+        let newVarTypes: BTreeMap<Slot, VarType> = newVarTypes
             .into_iter()
             .filter(|(s, vt)| eclassSlots.contains(&s))
             .collect();
 
         if (x.varTypes.len() != 0 || y.varTypes.len() != 0) {
-            println!("x {xClone:#?}");
-            println!("y {yClone:#?}");
+            if newVarTypes.len() == 0 {
+                println!("x {xClone:#?}");
+                println!("y {yClone:#?}");
+                println!("c {c:#?}");
+                let iApp = eg.mk_identity_applied_id(i);
+                let iFind = eg.eclass(eg.find_applied_id(&iApp).id).unwrap();
+                println!("cFind {iFind:#?}");
 
-            assert!(newVarTypes.len() != 0);
+                assert!(newVarTypes.len() != 0);
+            }
         }
 
         CHCData {
@@ -286,7 +284,7 @@ impl Analysis<CHC> for CHCAnalysis {
 
 pub fn dumpCHCEClass(
     i: Id,
-    map: &mut HashMap<AppliedId, RecExpr<CHC>, rustc_hash::FxBuildHasher>,
+    map: &mut BTreeMap<AppliedId, RecExpr<CHC>>,
     eg: &CHCEGraph,
 ) {
     let nodes = eg.enodes(i);
@@ -324,7 +322,7 @@ pub fn dumpCHCEGraph(eg: &CHCEGraph) {
     let mut eclasses = eg.ids();
     eclasses.sort();
 
-    let mut map = HashMap::<AppliedId, RecExpr<CHC>, rustc_hash::FxBuildHasher>::default();
+    let mut map = BTreeMap::<AppliedId, RecExpr<CHC>>::default();
     for i in eclasses {
         dumpCHCEClass(i, &mut map, eg);
     }

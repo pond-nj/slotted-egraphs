@@ -1,6 +1,6 @@
 use crate::*;
 
-type ShowMap = HashMap<*const ProvenEqRaw, (usize, String)>;
+type ShowMap = BTreeMap<*const ProvenEqRaw, (usize, String)>;
 
 impl ProvenEqRaw {
     /// Prints the proof steps.
