@@ -1,0 +1,22 @@
+"(new {syntax} (and <
+(leq {n} 0)
+(eq {t} (binode {a} {l} {r}))
+(eq {u} (binode {a} {l} {r}))
+(eq {u} (binode {a1} {l1} {r1}))
+(eq {t} {u})
+(eq (binode {a} {l} {r}) (binode {a1} {l1} {r1}))
+(eq {t} (binode {a1} {l1} {r1}))
+(eq {a} {a1})
+(eq {l} {l1})
+(eq {r} {r1})
+(eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
+
+
+"(new {syntax} (and <
+(leq {n} 0)
+(eq {a} {a1})     
+(eq {l} {l1})
+(eq {r} {r1})
+(eq {t} {u})
+(eq {t} (binode {a} {l} {r}))
+(eq {m} (+ {m3} 1))>) <{} {} {} {}>)",

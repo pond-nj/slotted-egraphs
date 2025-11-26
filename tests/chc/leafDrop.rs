@@ -182,7 +182,13 @@ fn mainTest() {
     // TODO: can we not use mem::take here?
 
     let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(4);
-    let (report, t): (Report, _) = time(|| runner.run(&mut getAllRewrites(&mut unfoldList, &mut constrRewriteList, &mut definedList)));
+    let (report, t): (Report, _) = time(|| {
+        runner.run(&mut getAllRewrites(
+            &mut unfoldList,
+            &mut constrRewriteList,
+            &mut definedList,
+        ))
+    });
     println!("use time {t:?}");
     println!("report {report:?}");
 
@@ -199,9 +205,9 @@ fn mainTest() {
     // checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
     // checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
-    checkUnfold21NewDefineWithMinLeaf(&mut runner.egraph);
+    // checkUnfold21NewDefineWithMinLeaf(&mut runner.egraph);
     // TODO: vvv the compose lookup in here takes a very long time to run, why? vvv
-    // checkUnfold31NewDefineWithMinLeaf(&mut runner.egraph);
+    checkUnfold31NewDefineWithMinLeaf(&mut runner.egraph);
 
     // checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
 
@@ -404,7 +410,7 @@ fn checkUnfold21NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
 
     // into
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=leaf, M=0 , min-leaf(T,K)
-    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, 
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1,
     //  min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
 
     let count = &mut 0;
@@ -466,11 +472,11 @@ fn checkUnfold21NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let m2 = &generateVarFromCount(count, VarType::Int);
     let m3 = &generateVarFromCount(count, VarType::Int);
 
-    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, 
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1,
     //  min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
     let chc3 = format!(
         "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
-        minLeafDummy(l1, m1), 
+        minLeafDummy(l1, m1),
         minLeafDummy(r1, m2),
         minDummy(m1, m2, m3),
         minLeafDummy(t, k)
@@ -478,13 +484,20 @@ fn checkUnfold21NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
     println!("unfold21 res3: {res3:#?}");
     assert!(res3.len() > 0);
-    { 
-        // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, node(a, l, r) = node(A, L, R)
+    {
+        // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, node(a, l, r) = node(A, L, R), T = U, T = node(a, l, r)
         //  min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
         let alterChc3 = format!(
-            "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq (binode {a} {l} {r})
-(binode {a1} {l1} {r1})) (eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
-            minLeafDummy(l1, m1), 
+            "(new {syntax} (and <
+(leq {n} 0)
+(eq {t} (binode {a} {l} {r}))
+(eq {u} (binode {a} {l} {r}))
+(eq {u} (binode {a1} {l1} {r1}))
+(eq {t} {u})
+(eq (binode {a} {l} {r}) (binode {a1} {l1} {r1})) 
+(eq {t} (binode {a1} {l1} {r1}))
+(eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
+            minLeafDummy(l1, m1),
             minLeafDummy(r1, m2),
             minDummy(m1, m2, m3),
             minLeafDummy(t, k)
@@ -494,11 +507,22 @@ fn checkUnfold21NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
         assert!(alterRes3.len() > 0);
         assert!(alterRes3[0].1 == res3[0].1);
 
-        // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, node(a, l, r) = node(A, L, R), a = A, l = L, r = R
+        // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, node(a, l, r) = node(A, L, R), T = U, a = A, l = L, r = R, T = node(a, l, r)
         //  min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
         let alter2Chc3 = format!(
-            "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq (binode {a} {l} {r}) (binode {a1} {l1} {r1})) (eq {a} {a1}) (eq {l} {l1}) (eq {r} {r1}) (eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
-            minLeafDummy(l1, m1), 
+            "(new {syntax} (and <
+(leq {n} 0)
+(eq {t} (binode {a} {l} {r}))
+(eq {u} (binode {a} {l} {r}))
+(eq {u} (binode {a1} {l1} {r1}))
+(eq {t} {u})
+(eq (binode {a} {l} {r}) (binode {a1} {l1} {r1}))
+(eq {t} (binode {a1} {l1} {r1}))
+(eq {a} {a1})
+(eq {l} {l1})
+(eq {r} {r1})
+(eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
+            minLeafDummy(l1, m1),
             minLeafDummy(r1, m2),
             minDummy(m1, m2, m3),
             minLeafDummy(t, k)
@@ -515,7 +539,6 @@ fn checkUnfold21NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     assert!(resCompose.len() > 0);
 }
 
-
 fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     // unfold
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
@@ -524,11 +547,11 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     // min-leaf(X,Y) <- X=leaf, Y=0
     // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
 
-    // into 
+    // into
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), T = leaf, K = 0
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M),
     //  T=node(A,L,R), K=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
-    
+
     let count = &mut 0;
     let n = &generateVarFromCount(count, VarType::Int);
     let k = &generateVarFromCount(count, VarType::Int);
@@ -595,7 +618,7 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let composeUnfold22 = format!("(compose <{chc2} {chc3} *0>)");
     let resCompose = ematchQueryall(&eg, &Pattern::parse(&composeUnfold22).unwrap());
     println!("unfold22 resCompose: {resCompose:#?}");
-    assert!(resCompose.len() > 0); 
+    assert!(resCompose.len() > 0);
 }
 // test pass but with debug enabled (log to stdout), the time is too long
 // need at least 4 iterations for this to pass -> egraph size around 743
@@ -677,7 +700,7 @@ fn checkUnfold31NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
 
     // into
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), T=leaf, K=0
-    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), 
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3),
     // T=node(A2,L2,R2), K=M32+1, min-leaf(L2,M12), min-leaf(R2,M22), min(M12,M22,M32)
 
     let count = &mut 0;
@@ -703,7 +726,7 @@ fn checkUnfold31NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
     let origChc = format!(
         "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
-        minLeafDummy(l1, m1), 
+        minLeafDummy(l1, m1),
         minLeafDummy(r1, m2),
         minDummy(m1, m2, m3),
         minLeafDummy(t, k)
@@ -716,7 +739,7 @@ fn checkUnfold31NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), T=leaf, K=0
     let chc2 = format!(
         "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq {m} (+ {m3} 1)) (eq {t} (leaf)) (eq {k} 0)>) <{} {} {}>)",
-        minLeafDummy(l1, m1), 
+        minLeafDummy(l1, m1),
         minLeafDummy(r1, m2),
         minDummy(m1, m2, m3),
     );
@@ -733,15 +756,22 @@ fn checkUnfold31NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let m22 = &generateVarFromCount(count, VarType::Int);
     let m32 = &generateVarFromCount(count, VarType::Int);
 
-    // TODO: test functionality transformation here
-    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), 
+    // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3),
     // T=node(A2,L2,R2), K=M32+1, min-leaf(L2,M12), min-leaf(R2,M22), min(M12,M22,M32)
     let chc3 = format!(
-        "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (binode {a1} {l1} {r1})) (eq {m} (+ {m3} 1)) (eq {t} (binode {a2} {l2} {r2})) (eq {k} (+ {m32} 1))>) <{} {} {} {} {} {}>)",
-        minLeafDummy(l1, m1), 
+        "(new {syntax} 
+(and <
+(leq {n} 0)
+(eq {t} (binode {a} {l} {r}))
+(eq {u} (binode {a} {l} {r}))
+(eq {u} (binode {a1} {l1} {r1}))
+(eq {m} (+ {m3} 1))
+(eq {t} (binode {a2} {l2} {r2}))
+(eq {k} (+ {m32} 1))>) <{} {} {} {} {} {}>)",
+        minLeafDummy(l1, m1),
         minLeafDummy(r1, m2),
         minDummy(m1, m2, m3),
-        minLeafDummy(l2, m12), 
+        minLeafDummy(l2, m12),
         minLeafDummy(r2, m22),
         minDummy(m12, m22, m32),
     );
@@ -749,6 +779,32 @@ fn checkUnfold31NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     // unfold_id16_in_id114_using_id62
     println!("unfold31 res3: {res3:#?}");
     assert!(res3.len() > 0);
+
+    {
+        // TODO: add some testing...
+        // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3),
+        // T=node(A2,L2,R2), K=M32+1, min-leaf(L2,M12), min-leaf(R2,M22), min(M12,M22,M32)
+        let alter1Chc3 = format!(
+            "(new {syntax} 
+(and <
+(leq {n} 0)
+(eq {t} (binode {a} {l} {r}))
+(eq {u} (binode {a} {l} {r}))
+(eq {u} (binode {a1} {l1} {r1}))
+(eq {m} (+ {m3} 1))
+(eq {t} (binode {a2} {l2} {r2}))
+(eq {k} (+ {m32} 1))>) <{} {} {} {} {} {}>)",
+            minLeafDummy(l1, m1),
+            minLeafDummy(r1, m2),
+            minDummy(m1, m2, m3),
+            minLeafDummy(l2, m12),
+            minLeafDummy(r2, m22),
+            minDummy(m12, m22, m32),
+        );
+        let alter1Res3 = ematchQueryall(&eg, &Pattern::parse(&alter1Chc3).unwrap());
+        println!("unfold31 alter1Res3: {alter1Res3:#?}");
+        assert!(alter1Res3.len() > 0);
+    }
 
     // TODO: this takes a very long time to run, why?
     // let composeUnfold31 = format!("(compose <{chc2} {chc3} *0>)");

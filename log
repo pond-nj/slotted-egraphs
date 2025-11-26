@@ -1,0 +1,91 @@
+warning: unused variable: `applyTime`
+  --> src/run/run.rs:18:13
+   |
+18 |     let mut applyTime = Duration::new(0, 0);
+   |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_applyTime`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `apply_time`
+  --> src/run/run.rs:24:39
+   |
+24 |         let (did_change, search_time, apply_time) = apply_rewrites(egraph, &rws);
+   |                                       ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_apply_time`
+
+warning: variable does not need to be mutable
+  --> src/run/run.rs:18:9
+   |
+18 |     let mut applyTime = Duration::new(0, 0);
+   |         ----^^^^^^^^^
+   |         |
+   |         help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `r`
+   --> src/run/runner.rs:167:13
+    |
+167 |         for r in rewrites {
+    |             ^ help: if this is intentional, prefix it with an underscore: `_r`
+
+warning: static `INIT_LOGGER` is never used
+ --> src/logger.rs:6:8
+  |
+6 | static INIT_LOGGER: Once = Once::new();
+  |        ^^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` on by default
+
+warning: `slotted-egraphs` (lib) generated 5 warnings (run `cargo fix --lib -p slotted-egraphs` to apply 1 suggestion)
+warning: `slotted-egraphs` (lib test) generated 5 warnings (5 duplicates)
+warning: unused variable: `a`
+  --> tests/tmptest/mod.rs:18:9
+   |
+18 |     let a = eg.add_expr(RecExpr::parse("(add (var $0) (var $1))").unwrap());
+   |         ^ help: if this is intentional, prefix it with an underscore: `_a`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `b`
+  --> tests/tmptest/mod.rs:19:9
+   |
+19 |     let b = eg.add_expr(RecExpr::parse("(add (var $1) (var $1))").unwrap());
+   |         ^ help: if this is intentional, prefix it with an underscore: `_b`
+
+warning: `slotted-egraphs` (test "entry") generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-7db37e3e129514c0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/entry.rs (target/debug/deps/entry-9a9d60ae6aa2b312)
+
+running 1 test
+Union because None, id1: ($0, $1) with id3: ($0)
+from Some(
+()
+($f1):>> App(id0: ($f1), id0: ($f2))
+ - App(id0: ($f1), id0: ($f2))
+)
+to Some(
+()
+($f3):>> App(id0: ($f3), id2: ())
+ - App(id0: ($f3), id2: ())
+)
+Union because None, id3: ($0) with id3: ($1)
+
+thread 'rise::tst::small11' panicked at /home/pondnj/chc/project/slotted-egraphs/src/egraph/union.rs:91:13:
+merged slots must not be emptied
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test rise::tst::small11 ... FAILED
+
+failures:
+
+failures:
+    rise::tst::small11
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 73 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--test entry`

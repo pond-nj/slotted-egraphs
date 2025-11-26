@@ -27,6 +27,9 @@ pub use chc::*;
 
 mod misc;
 
+mod tmptest;
+pub use tmptest::*;
+
 pub fn singleton_set<T: Eq + Hash + Ord>(t: T) -> SmallHashSet<T> {
     [t].into_iter().collect()
 }

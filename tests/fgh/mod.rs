@@ -5,7 +5,6 @@ use crate::*;
 use log::debug;
 use slotted_egraphs::*;
 
-
 define_language! {
     pub enum Fgh {
         F(Slot, Slot) = "f",

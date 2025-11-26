@@ -21,7 +21,12 @@ use vec_collections::AbstractVecSet;
 
 use core::fmt;
 use derive_more::Debug;
-use std::{cell::RefCell, collections::{BTreeMap, BTreeSet}, fmt::*, io};
+use std::{
+    cell::RefCell,
+    collections::{BTreeMap, BTreeSet},
+    fmt::*,
+    io,
+};
 
 use log::debug;
 
@@ -223,7 +228,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         l.apply_slotmap_partial(&eclassAppId.m)
     }
 
-    pub fn enodes(&self, i: Id) -> HashSet<L> {
+    pub fn enodes(&self, i: Id) -> BTreeSet<L> {
         // We prevent this, as otherwise the output will have wrong slots.
         assert!(self.is_alive(i), "Can't access e-nodes of dead class");
 

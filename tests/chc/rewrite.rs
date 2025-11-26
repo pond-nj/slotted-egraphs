@@ -498,7 +498,7 @@ fn unfold(
 }
 
 // TODO: caching of processed node here?
-fn expandEq(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> CHC {
+fn expandEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> CHC {
     let CHC::And(andChildren) = constrENode else {
         panic!();
     };
@@ -561,8 +561,9 @@ fn expandEq(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> C
     }
 
     checkVarType(&newConstraintAppId, eg);
-    println!("original Eclass {:?}", eg.eclass(constrAppId.id));
-    println!("newConstrEclass {:?}", eg.eclass(newConstraintAppId.id));
+    println!("constrAppId {:?}", constrAppId);
+    println!("originalENodeShape {:?}", constrENode.weak_shape().0);
+    println!("newConstraint {:?}", newConstraint);
     eg.union_justified(
         constrAppId,
         &newConstraintAppId,
@@ -643,6 +644,149 @@ fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHC
     newConstraint
 }
 
+// a = a1, l = l1, r = r1, t = node(a, l, r), t = node(a1, l1, l1), node(a, l, r) = node(a1, l1, r1) -> a = a1, l = l1, r = r1, t = node(a, l, r)
+fn dedupFromEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> CHC {
+    let constrAppId = eg.find_applied_id(constrAppId);
+    let constrENode = eg.find_enode(constrENode);
+    let CHC::And(andChildrenOrig) = constrENode else {
+        panic!();
+    };
+
+    let mut eqMapping = SlotMap::default();
+    for child in andChildrenOrig.iter() {
+        let AppliedIdOrStar::AppliedId(child) = child else {
+            panic!();
+        };
+
+        for eqNode in eg.enodes_applied(&child) {
+            let CHC::Eq(eqChild1, eqChild2) = eqNode else {
+                continue;
+            };
+            // find (eq (node $f658) (node $f659))
+
+            let mut vt = None;
+
+            let mut leftSideSlots = vec![];
+            for singleNode in eg.enodes_applied(&eqChild1) {
+                match singleNode {
+                    CHC::Node(s) => {
+                        leftSideSlots.push(s);
+                        vt = Some(VarType::Node);
+                    }
+                    CHC::Int(s) => {
+                        leftSideSlots.push(s);
+                        vt = Some(VarType::Int);
+                    }
+                    CHC::Var(s) => {
+                        leftSideSlots.push(s);
+                        vt = Some(VarType::Unknown);
+                    }
+                    _ => continue,
+                }
+            }
+
+            if leftSideSlots.len() == 0 {
+                continue;
+            }
+
+            let mut rightSideSlots = vec![];
+            for singleNode in eg.enodes_applied(&eqChild2) {
+                match singleNode {
+                    CHC::Node(s) => {
+                        rightSideSlots.push(s);
+                        assert!(vt.unwrap() == VarType::Node);
+                    }
+                    CHC::Int(s) => {
+                        rightSideSlots.push(s);
+                        assert!(vt.unwrap() == VarType::Int);
+                    }
+                    CHC::Var(s) => {
+                        rightSideSlots.push(s);
+                        assert!(vt.unwrap() == VarType::Unknown);
+                    }
+                    _ => continue,
+                }
+            }
+
+            if rightSideSlots.len() == 0 {
+                continue;
+            }
+
+            // all map to leftSideSlots[0]
+            for l in leftSideSlots.iter() {
+                eqMapping.insert(l.clone(), leftSideSlots[0]);
+            }
+            for r in rightSideSlots {
+                eqMapping.insert(r.clone(), leftSideSlots[0]);
+            }
+        }
+    }
+
+    let mut updatedChildren = vec![];
+    // apply rewrite from equivalent and check for any self equal enodes i.e. node(a, l, r) = node(a, l, r)
+    for child in andChildrenOrig.iter() {
+        let AppliedIdOrStar::AppliedId(child) = child else {
+            panic!();
+        };
+
+        // TODO: how to remove node(a, l, r) = node(a, l, r)
+        let mut updatedChild: Option<AppliedId> = None;
+        for childENode in eg.enodes_applied(child) {
+            let updatedChildENode = childENode.apply_slotmap_partial(&eqMapping);
+            let newUpdatedChild = eg.add(updatedChildENode);
+
+            if !updatedChild.is_none() {
+                eg.union_justified(
+                    &updatedChild.clone().unwrap(),
+                    &newUpdatedChild,
+                    Some("copy-child".to_owned()),
+                );
+            }
+
+            updatedChild = Some(newUpdatedChild);
+        }
+
+        let updatedChild = updatedChild.unwrap();
+
+        let mut skip = false;
+        for selfEqENode in eg.enodes_applied(&updatedChild) {
+            match selfEqENode {
+                CHC::Eq(left, right) => {
+                    if left == right {
+                        skip = true;
+                        break;
+                    }
+                }
+                CHC::True() => {
+                    skip = true;
+                    break;
+                }
+                _ => {}
+            }
+        }
+
+        if skip {
+            let trueId = eg.add(CHC::True());
+            eg.union_justified(&trueId, &updatedChild, Some("selfEq".to_owned()));
+
+            continue;
+        }
+
+        updatedChildren.push(AppliedIdOrStar::AppliedId(updatedChild));
+    }
+
+    updatedChildren.sort();
+    let newConstraint = CHC::And(updatedChildren);
+    let newConstraintAppId = eg.add(newConstraint.clone());
+    eg.union_justified(
+        &constrAppId,
+        &newConstraintAppId,
+        Some("dedupFromEqRewrite".to_owned()),
+    );
+
+    newConstraint
+}
+
 fn constraintRewrite(constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>) -> CHCRewrite {
     let constrRewriteListCopy = Rc::clone(constrRewriteList);
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
@@ -655,10 +799,13 @@ fn constraintRewrite(constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>
             } = constrRewriteComponent;
 
             // expand eq rewrite, X = Y, X = Z -> X = Y, X = Z, Y = Z
-            let constrENode = expandEq(constrAppId, constrENode, eg);
+            let constrENode = expandEqRewrite(constrAppId, constrENode, eg);
 
             // constructor eq rewrite, node(x, l, r) = node(x', l', r') -> x = x', l = l', r = r'
             let constrENode = constructorEqRewrite(constrAppId, &constrENode, eg);
+
+            // deduplicate constraint a = a1, l = l1, r = r1, t = node(a, l, r), t = node(a1, l1, l1) -> a = a1, l = l1, r = r1, t = node(a, l, r)
+            let constrENode = dedupFromEqRewrite(constrAppId, &constrENode, eg);
         }
 
         println!("done constraintRewrite");

@@ -1,5 +1,8 @@
 use core::panic;
-use std::{collections::BTreeSet, hash::{DefaultHasher, Hash, Hasher}};
+use std::{
+    collections::BTreeSet,
+    hash::{DefaultHasher, Hash, Hasher},
+};
 
 use crate::*;
 use either::Either;

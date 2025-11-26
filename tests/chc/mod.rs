@@ -210,6 +210,7 @@ impl Analysis<CHC> for CHCAnalysis {
                 let iApp = eg.mk_identity_applied_id(i);
                 let iFind = eg.eclass(eg.find_applied_id(&iApp).id).unwrap();
                 println!("cFind {iFind:#?}");
+                println!("eclassSlots {eclassSlots:#?}");
 
                 assert!(newVarTypes.len() != 0);
             }
@@ -282,11 +283,7 @@ impl Analysis<CHC> for CHCAnalysis {
     fn modify(eg: &mut EGraph<CHC, Self>, i: Id) {}
 }
 
-pub fn dumpCHCEClass(
-    i: Id,
-    map: &mut BTreeMap<AppliedId, RecExpr<CHC>>,
-    eg: &CHCEGraph,
-) {
+pub fn dumpCHCEClass(i: Id, map: &mut BTreeMap<AppliedId, RecExpr<CHC>>, eg: &CHCEGraph) {
     let nodes = eg.enodes(i);
     if nodes.len() == 0 {
         return;
@@ -306,7 +303,10 @@ pub fn dumpCHCEClass(
     print!("\n{:?}({}):", i, &slot_str);
     print!(">> {:?}\n", eg.getSynNodeNoSubst(&i));
 
-    for node in eg.enodes(i) {
+    let mut eclassNodes: Vec<_> = eg.enodes(i).into_iter().collect();
+    eclassNodes.sort();
+
+    for node in eclassNodes {
         print!(" - {node:?}\n");
         let (sh, m) = node.weak_shape();
         print!(" -   {sh:?}\n");

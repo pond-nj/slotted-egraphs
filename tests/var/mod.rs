@@ -4,7 +4,6 @@
 use crate::*;
 use log::debug;
 
-
 define_language! {
     pub enum Var {
         F(Slot, Slot) = "f",
