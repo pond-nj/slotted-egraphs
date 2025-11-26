@@ -85,20 +85,32 @@ pub struct CHCData {
 // TODO: reimplement this to not access eclass many times
 pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
     let sh = transformToEgraphNameSpace(sh, eg);
+    let sh = eg.find_enode(&sh);
     let mut slots = sh.slots();
     let appIds = sh.applied_id_occurrences();
     let mut varTypes = BTreeMap::default();
     // debug!("slots: {:?}", slots);
     for s in slots {
         for app in &appIds {
-            let appInverse = app.m.inverse();
-            if let Some(mapToS) = appInverse.get(s) {
-                let childEclassData = eg.analysis_data(app.id);
-                let childSlotType = childEclassData.varTypes.get(&mapToS).unwrap();
-                varTypes
-                    .entry(s)
-                    .and_modify(|vt: &mut VarType| assert!(vt == childSlotType))
-                    .or_insert(childSlotType.clone());
+            if (!app.m.is_bijection()) {
+                println!("app = {app:#?}");
+                println!("eclass {:?}", eg.eclass(app.id));
+                println!("sh = {sh:#?}");
+            }
+            for (from, to) in app.m.iter() {
+                if to == s {
+                    let childEclassData = eg.analysis_data(app.id);
+                    if (childEclassData.varTypes.get(&from).is_none()) {
+                        app.fullDump();
+                        eg.find_applied_id(app).fullDump();
+                        println!("childEclass {:?}", eg.eclass(app.id));
+                    }
+                    let childSlotType = childEclassData.varTypes.get(&from).unwrap();
+                    varTypes
+                        .entry(s)
+                        .and_modify(|vt: &mut VarType| assert!(vt == childSlotType))
+                        .or_insert(childSlotType.clone());
+                }
             }
         }
     }
@@ -180,10 +192,9 @@ fn mergePredNames(xPredNames: &HashSet<String>, yPredNames: &HashSet<String>) ->
 impl Analysis<CHC> for CHCAnalysis {
     type Data = CHCData;
 
-    fn merge(x: CHCData, y: CHCData, i: Id, eg: &CHCEGraph) -> CHCData {
+    fn merge(x: CHCData, y: CHCData, from: Id, to: Option<Id>, eg: &CHCEGraph) -> CHCData {
         let xClone = x.clone();
         let yClone = y.clone();
-        let c = eg.eclass(i).unwrap();
 
         let newPredNames = mergePredNames(&x.predNames, &y.predNames);
 
@@ -196,7 +207,10 @@ impl Analysis<CHC> for CHCAnalysis {
             }
         }
 
-        let eclassSlots = eg.allSlots(i);
+        let mut eclassSlots = eg.allSlots(from);
+        if to.is_some() {
+            eclassSlots.extend(eg.allSlots(to.unwrap()));
+        }
         let newVarTypes: BTreeMap<Slot, VarType> = newVarTypes
             .into_iter()
             .filter(|(s, vt)| eclassSlots.contains(&s))
@@ -206,10 +220,6 @@ impl Analysis<CHC> for CHCAnalysis {
             if newVarTypes.len() == 0 {
                 println!("x {xClone:#?}");
                 println!("y {yClone:#?}");
-                println!("c {c:#?}");
-                let iApp = eg.mk_identity_applied_id(i);
-                let iFind = eg.eclass(eg.find_applied_id(&iApp).id).unwrap();
-                println!("cFind {iFind:#?}");
                 println!("eclassSlots {eclassSlots:#?}");
 
                 assert!(newVarTypes.len() != 0);

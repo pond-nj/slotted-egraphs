@@ -67,6 +67,15 @@ pub struct ConstrRewriteComponent {
 }
 
 impl UnfoldListComponent {
+    pub fn find(&self, eg: &CHCEGraph) -> UnfoldListComponent {
+        UnfoldListComponent {
+            composeAppId: eg.find_applied_id(&self.composeAppId),
+            composeShape: eg.find_enode(&self.composeShape),
+            newEClassAppId: eg.find_applied_id(&self.newEClassAppId),
+            newENodeShape: eg.find_enode(&self.newENodeShape),
+        }
+    }
+
     pub fn getShape(&self) -> (UnfoldListComponent, SlotMap) {
         let (composeShape, m) = self.composeShape.weak_shape();
 
@@ -222,7 +231,7 @@ fn unfold(
         let oldEgSize = eg.total_number_of_nodes();
         for toBeUnfolded in Rc::clone(&unfoldListCopy).borrow().iter() {
             debug!("unfold: get toBeUnfolded before getShape {toBeUnfolded:#?}");
-            let (toBeUnfolded, m) = toBeUnfolded.getShape();
+            let (toBeUnfolded, m) = toBeUnfolded.find(eg).getShape();
             debug!("unfold: get toBeUnfolded {toBeUnfolded:#?}");
             let UnfoldListComponent {
                 composeAppId,
@@ -561,9 +570,6 @@ fn expandEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGrap
     }
 
     checkVarType(&newConstraintAppId, eg);
-    println!("constrAppId {:?}", constrAppId);
-    println!("originalENodeShape {:?}", constrENode.weak_shape().0);
-    println!("newConstraint {:?}", newConstraint);
     eg.union_justified(
         constrAppId,
         &newConstraintAppId,
@@ -648,7 +654,7 @@ fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHC
 fn dedupFromEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> CHC {
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
-    let CHC::And(andChildrenOrig) = constrENode else {
+    let CHC::And(andChildrenOrig) = constrENode.clone() else {
         panic!();
     };
 
@@ -733,6 +739,16 @@ fn dedupFromEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEG
         let mut updatedChild: Option<AppliedId> = None;
         for childENode in eg.enodes_applied(child) {
             let updatedChildENode = childENode.apply_slotmap_partial(&eqMapping);
+            // if let CHC::Eq(a, b) = updatedChildENode.clone() {
+            // for e in eg.enodes_applied(&b) {
+            // TODO: l == r can be from l == r == leaf
+            // if let CHC::BiNode(a, l, r) = e {
+            //     if l == r {
+            //         assert!(false);
+            //     }
+            // }
+            // }
+            // }
             let newUpdatedChild = eg.add(updatedChildENode);
 
             if !updatedChild.is_none() {
@@ -776,6 +792,7 @@ fn dedupFromEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEG
     }
 
     updatedChildren.sort();
+    updatedChildren.dedup();
     let newConstraint = CHC::And(updatedChildren);
     let newConstraintAppId = eg.add(newConstraint.clone());
     eg.union_justified(

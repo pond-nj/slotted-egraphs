@@ -62,6 +62,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(from.id, proof.l.id);
         }
 
+        // stuff that sends to cap from 'from'
         let origcap = cap.iter().map(|x| from.m.inverse()[*x]).collect();
         self.record_redundancy_witness(from.id, &origcap, proof);
 
@@ -95,6 +96,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             final_cap = &final_cap - &grp.orbit(d);
         }
 
+        // update class slots
         c.slots = cap.clone();
         let generators = c.group.generators();
         let _ = c;
@@ -248,7 +250,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let oldData = self.analysis_data(i).clone();
         // merge with old data
         debug!("merge call from update_analysis");
-        let new = N::merge(oldData.clone(), v, i, self);
+        let new = N::merge(oldData.clone(), v, i, None, self);
         let updateData = self.analysis_data_mut(i);
         // c.analysis_data = new.clone();
         let changed = new != oldData;

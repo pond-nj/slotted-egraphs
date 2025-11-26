@@ -350,7 +350,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         eclasses.sort_by_key(|(x, _)| *x);
 
         for (i, c) in eclasses {
-            write!(f, "\n{:?}", i)?;
+            write!(f, "\n{:?}(", i)?;
             c.dumpEClass(f)?;
         }
         write!(f, "")?;
@@ -567,7 +567,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     /// Returns the canonical e-node corresponding to `i`.
     pub fn get_syn_node(&self, i: &AppliedId) -> L {
-        let syn = &self.classes[&i.id].syn_enode;
+        let syn = self.find_enode(&self.classes[&i.id].syn_enode);
+        let syn_slots = syn.slots();
+        if !i.m.keys().is_superset(&syn_slots) {
+            println!("i = {:?}", i);
+            println!("eclass {:?}", self.eclass(i.id));
+        }
         syn.apply_slotmap(&i.m)
     }
 

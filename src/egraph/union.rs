@@ -87,7 +87,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let cap = &l.slots() & &r.slots();
 
-        if l.slots().len() > 0 && r.slots().len() > 0 {
+        // TODO: this makes some testcases fail
+        if l.slots().len() > 0 && r.slots().len() > 0 && cap.len() == 0 {
             assert!(cap.len() > 0, "merged slots must not be emptied");
         }
 
@@ -183,8 +184,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // moves everything from `from` to `to`.
     fn move_to(&mut self, from: &AppliedId, to: &AppliedId, #[allow(unused)] proof: ProvenEq) {
-        println!("from {:?}", self.eclass(from.id));
-        println!("to {:?}", self.eclass(to.id));
         if CHECKS {
             assert_eq!(from.slots(), to.slots());
             #[cfg(feature = "explanations")]
@@ -197,7 +196,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let analysis_from = self.analysis_data(from.id).clone();
             // let analysis_to = self.analysis_data_mut(to.id);
             let old_analysis_to = self.analysis_data(to.id);
-            let new_analysis_to = N::merge(analysis_from, old_analysis_to.clone(), to.id, self);
+            let new_analysis_to = N::merge(
+                analysis_from,
+                old_analysis_to.clone(),
+                from.id,
+                Some(to.id),
+                self,
+            );
             let changed = *old_analysis_to != new_analysis_to;
             let updateAnalysis = self.analysis_data_mut(to.id);
             *updateAnalysis = new_analysis_to;

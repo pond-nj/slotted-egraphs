@@ -9,7 +9,13 @@ pub struct ConstProp;
 impl Analysis<Arith> for ConstProp {
     type Data = Option<u32>;
 
-    fn merge(x: Option<u32>, y: Option<u32>, _i: Id, _eg: &EGraph<Arith, Self>) -> Option<u32> {
+    fn merge(
+        x: Option<u32>,
+        y: Option<u32>,
+        from: Id,
+        to: Option<Id>,
+        _eg: &EGraph<Arith, Self>,
+    ) -> Option<u32> {
         match (x, y) {
             (Some(x), Some(y)) => {
                 assert_eq!(x, y);

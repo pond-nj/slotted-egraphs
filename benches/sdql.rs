@@ -142,7 +142,8 @@ mod sdql {
         fn merge(
             a: SdqlKind,
             b: SdqlKind,
-            _id: Id,
+            _from: Id,
+            _to: Option<Id>,
             _eg: &slotted_egraphs::EGraph<Sdql, Self>,
         ) -> SdqlKind {
             SdqlKind {

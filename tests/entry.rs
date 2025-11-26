@@ -50,8 +50,10 @@ pub fn term<L: Language>(s: &str) -> RecExpr<L> {
 pub fn equate<L: Language>(s1: &str, s2: &str, eg: &mut EGraph<L>) {
     eg.check();
     let s1 = id(s1, eg);
+    println!("s1 {:?}", s1);
     eg.check();
     let s2 = id(s2, eg);
+    println!("s2 {:?}", s2);
     eg.check();
     eg.union(&s1, &s2);
     eg.check();

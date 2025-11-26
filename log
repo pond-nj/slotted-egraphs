@@ -1,3 +1,4 @@
+   Compiling slotted-egraphs v0.0.36 (/home/pondnj/chc/project/slotted-egraphs)
 warning: unused variable: `applyTime`
   --> src/run/run.rs:18:13
    |
@@ -37,7 +38,6 @@ warning: static `INIT_LOGGER` is never used
   = note: `#[warn(dead_code)]` on by default
 
 warning: `slotted-egraphs` (lib) generated 5 warnings (run `cargo fix --lib -p slotted-egraphs` to apply 1 suggestion)
-warning: `slotted-egraphs` (lib test) generated 5 warnings (5 duplicates)
 warning: unused variable: `a`
   --> tests/tmptest/mod.rs:18:9
    |
@@ -52,8 +52,9 @@ warning: unused variable: `b`
 19 |     let b = eg.add_expr(RecExpr::parse("(add (var $1) (var $1))").unwrap());
    |         ^ help: if this is intentional, prefix it with an underscore: `_b`
 
+warning: `slotted-egraphs` (lib test) generated 5 warnings (5 duplicates)
 warning: `slotted-egraphs` (test "entry") generated 2 warnings
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.60s
      Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-7db37e3e129514c0)
 
 running 0 tests
@@ -63,29 +64,91 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; fini
      Running tests/entry.rs (target/debug/deps/entry-9a9d60ae6aa2b312)
 
 running 1 test
-Union because None, id1: ($0, $1) with id3: ($0)
-from Some(
+s1 id1: ($0, $1)
+s2 id1: ($1, $2)
+Union because None, id1: ($0, $1) with id1: ($1, $2)
+union_internal
+l id1: ($0, $1)
+r id1: ($1, $2)
+union_internal
+l id1: ($0, $1)
+r id1: ($1, $2)
+
+ == Egraph ==
+id0
 ()
-($f1):>> App(id0: ($f1), id0: ($f2))
+($f0):>> Var($f0)
+ - Var($f0)
+
+id1
+()
+($f2):>> App(id0: ($f1), id0: ($f2))
  - App(id0: ($f1), id0: ($f2))
-)
-to Some(
-()
-($f3):>> App(id0: ($f3), id2: ())
- - App(id0: ($f3), id2: ())
-)
-Union because None, id3: ($0) with id3: ($1)
 
-thread 'rise::tst::small11' panicked at /home/pondnj/chc/project/slotted-egraphs/src/egraph/union.rs:91:13:
+l id1: ($1)
+l find id1: ($1)
+l.slots() {
+    $1,
+}
+l Some(
+    
+    ()
+    ($f2):>> App(id0: ($f1), id0: ($f2))
+     - App(id0: ($f1), id0: ($f2))
+    ,
+)
+rid1: ($2)
+r find id1: ($2)
+r.slots() {
+    $2,
+}
+r Some(
+    
+    ()
+    ($f2):>> App(id0: ($f1), id0: ($f2))
+     - App(id0: ($f1), id0: ($f2))
+    ,
+)
+
+thread 'rise::tst::small14' panicked at /home/pondnj/chc/project/slotted-egraphs/src/egraph/union.rs:103:13:
 merged slots must not be emptied
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-test rise::tst::small11 ... FAILED
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/panicking.rs:697:5
+   1: core::panicking::panic_fmt
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/panicking.rs:75:14
+   2: slotted_egraphs::egraph::union::<impl slotted_egraphs::egraph::EGraph<L,N>>::union_leaders
+             at ./src/egraph/union.rs:103:13
+   3: slotted_egraphs::egraph::union::<impl slotted_egraphs::egraph::EGraph<L,N>>::union_internal
+             at ./src/egraph/union.rs:82:14
+   4: slotted_egraphs::egraph::union::<impl slotted_egraphs::egraph::EGraph<L,N>>::union_leaders
+             at ./src/egraph/union.rs:108:18
+   5: slotted_egraphs::egraph::union::<impl slotted_egraphs::egraph::EGraph<L,N>>::union_internal
+             at ./src/egraph/union.rs:82:14
+   6: slotted_egraphs::egraph::union::<impl slotted_egraphs::egraph::EGraph<L,N>>::union_instantiations
+             at ./src/egraph/union.rs:43:24
+   7: slotted_egraphs::egraph::union::<impl slotted_egraphs::egraph::EGraph<L,N>>::union_justified
+             at ./src/egraph/union.rs:21:14
+   8: slotted_egraphs::egraph::union::<impl slotted_egraphs::egraph::EGraph<L,N>>::union
+             at ./src/egraph/union.rs:8:14
+   9: entry::equate
+             at ./tests/entry.rs:58:8
+  10: entry::rise::tst::small14
+             at ./tests/rise/tst.rs:41:5
+  11: entry::rise::tst::small14::{{closure}}
+             at ./tests/rise/tst.rs:39:13
+  12: core::ops::function::FnOnce::call_once
+             at /home/pondnj/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5
+  13: core::ops::function::FnOnce::call_once
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/ops/function.rs:250:5
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+test rise::tst::small14 ... FAILED
 
 failures:
 
 failures:
-    rise::tst::small11
+    rise::tst::small14
 
-test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 73 filtered out; finished in 0.01s
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 73 filtered out; finished in 0.02s
 
 error: test failed, to rerun pass `--test entry`

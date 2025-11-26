@@ -92,4 +92,8 @@ impl AppliedId {
             m: SlotMap::new(),
         }
     }
+
+    pub fn fullDump(&self) {
+        println!("{:?}: {:?}", self.id, self.m)
+    }
 }

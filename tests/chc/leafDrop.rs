@@ -238,14 +238,14 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
         minLeafDummy(t, k)
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&chc).unwrap());
-    debug!("defineNewId: {res:?}");
+    println!("defineNewId: {res:?}");
     assert!(res.len() >= 1);
     // id65
 
     let newDefineCompose = format!("(compose <{chc}>)");
     let res = ematchQueryall(&eg, &Pattern::parse(&newDefineCompose).unwrap());
     let newDefineComposeId = res[0].1;
-    debug!("defineComposeId: {newDefineComposeId:?}");
+    println!("defineComposeId: {newDefineComposeId:?}");
     // id66
     assert!(res.len() >= 1);
 
@@ -261,13 +261,14 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), min-leaf(U,M), min-leaf(T,K)
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
 
-    // new1(N,K,M)←T = leaf, U = leaf, min-leaf(U,M), min-leaf(T,K)
+    // new1(N,K,M) ← T = leaf, U = leaf, min-leaf(U,M), min-leaf(T,K)
     let chc1 = format!(
         "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf))>) <{} {}>)",
         minLeafDummy(u, m),
         minLeafDummy(t, k)
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&chc1).unwrap());
+    println!("res: {res:?}");
     assert!(res.len() >= 1);
 
     let a = &generateVarFromCount(count, VarType::Int);
@@ -281,6 +282,7 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
         minLeafDummy(t, k)
     );
     let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2).unwrap());
+    println!("res2: {res2:?}");
     assert!(res2.len() > 0);
 
     let a1 = &generateVarFromCount(count, VarType::Int);
@@ -290,6 +292,7 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
     let n1 = &generateVarFromCount(count, VarType::Int);
     let cond3 = format!("(and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (- {n} 1))>)");
     let resCond3 = ematchQueryall(eg, &Pattern::parse(&cond3).unwrap());
+    println!("resCond3: {resCond3:?}");
     assert!(resCond3.len() > 0);
 
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
@@ -301,10 +304,12 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
         minLeafDummy(t, k)
     );
     let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
+    println!("res3: {res3:?}");
     assert!(res3.len() > 0);
 
     let compose = format!("(compose <{chc1} {chc2} {chc3}>)");
     let composeRes = ematchQueryall(&eg, &Pattern::parse(&compose).unwrap());
+    println!("composeRes: {composeRes:?}");
     assert!(composeRes.len() > 0);
     assert!(composeRes[0].1 == newDefineComposeId);
 
