@@ -2,11 +2,11 @@ use super::*;
 use crate::*;
 use derive_more::derive;
 use log::debug;
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use tracing_subscriber::filter::combinator::And;
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 use vec_collections::VecSet;
@@ -400,8 +400,6 @@ fn unfold(
                 // this loops takes a long time, around 1sec per iter
                 for unfoldRecipeComb in combination(&unfoldRecipe) {
                     let mut childrenComb = vec![];
-                    let start = Instant::now(); // Record the start time
-                                                // this one takes around half the time of the whole loop
                     let mut createdENodes = vec![];
                     let (_, time1) = time(|| {
                         for unfoldRecipe in unfoldRecipeComb {
@@ -851,7 +849,6 @@ fn defineFromSharingBlock(
         for subst in substs {
             let rootAppId = pattern_subst(eg, &pat, &subst);
 
-            // TODO: here takes a long time if the and size is larger?
             let origENode = eg
                 .getExactENodeInEGraph(&constructENodefromPatternSubst(eg, &pat, &subst).unwrap());
             let origENodeShape = origENode.weak_shape().0;
@@ -860,7 +857,6 @@ fn defineFromSharingBlock(
                 continue;
             }
             definedList.insert(origENodeShape);
-            println!("define1");
 
             // TODO0: try change to rootData instead of mergeVarTypes
             let mut rootData = eg.analysis_data(rootAppId.id).varTypes.clone();
@@ -906,7 +902,6 @@ fn defineFromSharingBlock(
                 }
             }
 
-            // TODO: this loop is slow
             // for each group, define new chc
             for (_, group) in groupMap {
                 let mut basicVars: BTreeSet<Slot> = BTreeSet::default();
@@ -924,20 +919,20 @@ fn defineFromSharingBlock(
                 children.sort();
                 // debug!("from {:?} children after sort {:?}", rootAppId.id, children);
 
-                let dummyEnode = CHC::New(
-                    id("(pred <>)", eg),
-                    id("(and <>)", eg),
-                    children
-                        .clone()
-                        .into_iter()
-                        .map(|a| AppliedIdOrStar::AppliedId(a.clone()))
-                        .collect(),
-                );
+                let dummyChildren = children
+                    .clone()
+                    .into_iter()
+                    .map(|a| AppliedIdOrStar::AppliedId(a.clone()))
+                    .collect();
+                let emptyPredId = eg.add(CHC::PredSyntax(vec![]));
+                let emptyAndId = eg.add(CHC::And(vec![]));
+                let dummyEnode = CHC::New(emptyPredId, emptyAndId, dummyChildren);
+
                 let (dummyEnodeSh, map) = dummyEnode.weak_shape();
                 let mut basicVars: Vec<_> =
                     basicVars.into_iter().map(|s| map.inverse()[s]).collect();
-
                 basicVars.sort();
+
                 let basicVarsStr = basicVars
                     .into_iter()
                     .map(|s| generateVar(&s.to_string(), mergeVarTypes[&map[s]].clone()))

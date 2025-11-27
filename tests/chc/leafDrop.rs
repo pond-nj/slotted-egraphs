@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, time::Duration};
 
 use super::*;
 
@@ -184,9 +184,9 @@ fn mainTest() {
     let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(4);
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
-            &mut unfoldList,
-            &mut constrRewriteList,
-            &mut definedList,
+            &unfoldList,
+            &constrRewriteList,
+            &definedList,
         ))
     });
     println!("use time {t:?}");
@@ -202,14 +202,13 @@ fn mainTest() {
     );
 
     let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
-    // checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
-    // checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
+    checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
+    checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
-    // checkUnfold21NewDefineWithMinLeaf(&mut runner.egraph);
-    // TODO: vvv the compose lookup in here takes a very long time to run, why? vvv
+    checkUnfold21NewDefineWithMinLeaf(&mut runner.egraph);
     checkUnfold31NewDefineWithMinLeaf(&mut runner.egraph);
 
-    // checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
+    checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
 
     // TODO: check unfold result
     // 19. new1(N,M,K)←M=0,K=0
@@ -362,7 +361,7 @@ fn checkUnfold2NewDefineWithMinLeaf(newDefineComposeId: Id, eg: &mut CHCEGraph) 
     // unfold_id13_in_id76_using_id55
     // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, min-leaf(T,K)
     let unfoldChc1 = format!(
-        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {u} (leaf)) (eq {m} 0)>) <{}>)",
+        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0)>) <{}>)",
         minLeafDummy(t, k)
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&unfoldChc1).unwrap());
@@ -652,7 +651,7 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     // unfold_id13_in_id76_using_id55
     // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, min-leaf(T,K)
     let fromUnfoldChc1 = format!(
-        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {u} (leaf)) (eq {m} 0)>) <{}>)",
+        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0)>) <{}>)",
         minLeafDummy(t, k)
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&fromUnfoldChc1).unwrap());
@@ -661,9 +660,8 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     assert!(res.len() >= 1);
 
     // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, T = leaf, K = 0
-    let toUnfoldChc1 = format!(
-        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {u} (leaf)) (eq {m} 0) (eq {t} (leaf)) (eq {k} 0)>) <>)",
-    );
+    let toUnfoldChc1 =
+        format!("(new {syntax} (and <(eq {u} (leaf)) (eq {m} 0) (eq {t} (leaf)) (eq {k} 0)>) <>)",);
     let toUnfoldChc1Pat: Pattern<CHC> = Pattern::parse(&toUnfoldChc1).unwrap();
     debug!("toUnfoldChc1Pat {toUnfoldChc1Pat:#?}");
     let res2 = ematchQueryall(&eg, &Pattern::parse(&toUnfoldChc1).unwrap());
@@ -679,7 +677,7 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let m3 = &generateVarFromCount(&mut count, VarType::Int);
     // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, T = node(A,L,R), K=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
     let toUnfoldChc2 = format!(
-        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {u} (leaf)) (eq {m} 0) (eq {t} (binode {a} {l} {r})) (eq {k} (+ {m3} 1))>) <{} {} {}>)",
+        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0) (eq {t} (binode {a} {l} {r})) (eq {k} (+ {m3} 1))>) <{} {} {}>)",
         minLeafDummy(&l, &m1),
         minLeafDummy(&r, &m2),
         minDummy(&m1, &m2, &m3),
