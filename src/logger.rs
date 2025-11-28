@@ -3,10 +3,10 @@ use std::sync::Once;
 use env_logger::Builder;
 use log::{debug, LevelFilter};
 
-static INIT_LOGGER: Once = Once::new();
+static _INIT_LOGGER: Once = Once::new();
 
 pub fn initLogger() {
-    // INIT_LOGGER.call_once(|| {
+    // _INIT_LOGGER.call_once(|| {
     //     // This closure runs exactly once, globally.
     //     env_logger::builder()
     //         .format_timestamp(None)

@@ -15,13 +15,13 @@ where
 {
     let start_time = Instant::now();
     let mut searchTime = Duration::new(0, 0);
-    let mut applyTime = Duration::new(0, 0);
+    let mut _applyTime = Duration::new(0, 0);
     let rebuildTime = Duration::new(0, 0);
     let mut iterations = 0;
     let stop_reason: StopReason;
 
     loop {
-        let (did_change, search_time, apply_time) = apply_rewrites(egraph, &rws);
+        let (did_change, search_time, _apply_time) = apply_rewrites(egraph, &rws);
         searchTime += search_time;
         // TODO
         // applyTime += apply_time;

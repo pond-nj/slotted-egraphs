@@ -60,6 +60,8 @@ fn ematchQueryAllInEclassInternal(
 
                 // (Pond) Try to match these two nodes
                 // should return a vector of pattern when matching PatEnode to Enode
+                let outLenBefore = out.len();
+
                 ematchQueryCheckEnodeAndChildren(
                     &st,
                     eg,
@@ -69,7 +71,7 @@ fn ematchQueryAllInEclassInternal(
                     &enode,
                 );
 
-                if out.len() > 0 {
+                if out.len() - outLenBefore > 0 {
                     debug!("{enodeIdx}th enode found matched");
                 } else {
                     debug!("{enodeIdx}th enode not found matched");
@@ -161,7 +163,7 @@ fn ematchQueryCheckEnodeAndChildren(
         }
     }
 
-    let outLenBefore = 0;
+    let outLenBefore = out.len();
 
     assert!(allSetOfChildren.len() > 0);
     for patternChildren in allSetOfChildren {
@@ -290,5 +292,5 @@ fn ematchQueryCheckEnodeAndChildren(
     // patternEnode: &CHC,
     // patternChildren: &[Pattern<CHC>],
     // eclassEnode: &CHC,
-    debug!("return {} try match to {eclassEnode:?} with patEnode {patternEnode:?} and {patternChildren:?}", out.len());
+    debug!("return {} try match to {eclassEnode:?} with patEnode {patternEnode:?} and {patternChildren:?}", out.len() - outLenBefore);
 }

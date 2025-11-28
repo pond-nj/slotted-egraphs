@@ -73,6 +73,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
 // semantic add:
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
+    pub fn addExpr(&mut self, re: &str) -> AppliedId {
+        let re = RecExpr::parse(re).unwrap();
+        self.add_expr(re)
+    }
+
     pub fn add_expr(&mut self, re: RecExpr<L>) -> AppliedId {
         let mut n = re.node;
         let mut refs: Vec<&mut AppliedId> = n.applied_id_occurrences_mut();

@@ -17,5 +17,5 @@ pub trait Analysis<L: Language>: Sized {
 impl<L: Language> Analysis<L> for () {
     type Data = ();
     fn make(_eg: &EGraph<L, Self>, _: &L) {}
-    fn merge(_l: (), _r: (), from: Id, to: Option<Id>, _eg: &EGraph<L, Self>) -> () {}
+    fn merge(_l: (), _r: (), _from: Id, _to: Option<Id>, _eg: &EGraph<L, Self>) -> () {}
 }

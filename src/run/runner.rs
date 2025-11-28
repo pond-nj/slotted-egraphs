@@ -164,7 +164,7 @@ where
     }
     pub fn run(&mut self, rewrites: &[Rewrite<L, N>]) -> Report<CustomErrorT> {
         self.limits.rw_apply_time.clear();
-        for r in rewrites {
+        for _ in rewrites {
             self.limits.rw_apply_time.push(Duration::new(0, 0));
         }
 

@@ -53,12 +53,9 @@ define_language! {
 
         Number(u32),
 
-        // (init predName syntax functional outputIdx)
+        // (composeInit predName syntax functional outputIdx)
         // use to create empty compose eclass for recursive definition
-        Init(AppliedId, AppliedId, AppliedId, Vec<AppliedId>) = "init",
-        // (interface predName syntax u32)
-        // use for new predicate
-        Interface(AppliedId, AppliedId, AppliedId) = "interface",
+        ComposeInit(AppliedId, AppliedId, AppliedId, Vec<AppliedId>) = "composeInit",
         PredName(String),
     }
 }
@@ -82,21 +79,14 @@ pub struct CHCData {
     functionalInfo: FunctionalInfo,
 }
 
-// TODO: reimplement this to not access eclass many times
 pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
     let sh = transformToEgraphNameSpace(sh, eg);
     let sh = eg.find_enode(&sh);
     let mut slots = sh.slots();
     let appIds = sh.applied_id_occurrences();
     let mut varTypes = BTreeMap::default();
-    // debug!("slots: {:?}", slots);
     for s in slots {
         for app in &appIds {
-            if (!app.m.is_bijection()) {
-                println!("app = {app:#?}");
-                println!("eclass {:?}", eg.eclass(app.id));
-                println!("sh = {sh:#?}");
-            }
             for (from, to) in app.m.iter() {
                 if to == s {
                     let childEclassData = eg.analysis_data(app.id);
@@ -236,8 +226,7 @@ impl Analysis<CHC> for CHCAnalysis {
     fn make(eg: &CHCEGraph, sh: &CHC) -> CHCData {
         // debug!("calling make on {:?}", sh);
         let mut chcData = match sh {
-            CHC::Init(predNameId, predSyntaxId, _, _)
-            | CHC::Interface(predNameId, predSyntaxId, _) => {
+            CHC::ComposeInit(predNameId, predSyntaxId, _, _) => {
                 let stringEnodes = eg.enodes(predNameId.id);
                 assert!(stringEnodes.len() == 1);
                 let stringEnode = stringEnodes.iter().next().unwrap();
@@ -264,7 +253,7 @@ impl Analysis<CHC> for CHCAnalysis {
         };
 
         let functionalInfo = match sh {
-            CHC::Init(_, _, functional, outputIdxAppIds) => {
+            CHC::ComposeInit(_, _, functional, outputIdxAppIds) => {
                 let functional = getBoolVal(&functional.id, eg);
 
                 let mut outputIdx: Vec<usize> = vec![];
@@ -293,6 +282,32 @@ impl Analysis<CHC> for CHCAnalysis {
     fn modify(eg: &mut EGraph<CHC, Self>, i: Id) {}
 }
 
+fn weakShapeCHC(enode: &CHC) -> (CHC, SlotMap) {
+    match enode {
+        CHC::New(syntax, cond, children) => {
+            let m = &mut (slotted_egraphs::SlotMap::new(), 0);
+
+            // syntax first
+            let mut updatedSyntax = syntax.clone();
+            updatedSyntax.weak_shape_impl(m);
+
+            // children next
+            let mut updatedChildren = children.clone();
+            updatedChildren.weak_shape_impl(m);
+
+            // and then condition last
+            let mut updatedCond = cond.clone();
+            updatedCond.weak_shape_impl(m);
+
+            (
+                CHC::New(updatedSyntax, updatedCond, updatedChildren),
+                m.0.inverse(),
+            )
+        }
+        _ => enode.weak_shape(),
+    }
+}
+
 pub fn dumpCHCEClass(i: Id, map: &mut BTreeMap<AppliedId, RecExpr<CHC>>, eg: &CHCEGraph) {
     let nodes = eg.enodes(i);
     if nodes.len() == 0 {
@@ -318,7 +333,7 @@ pub fn dumpCHCEClass(i: Id, map: &mut BTreeMap<AppliedId, RecExpr<CHC>>, eg: &CH
 
     for node in eclassNodes {
         print!(" - {node:?}\n");
-        let (sh, m) = node.weak_shape();
+        let (sh, m) = weakShapeCHC(&node);
         print!(" -   {sh:?}\n");
     }
     let permute = eg.getSlotPermutation(&i);

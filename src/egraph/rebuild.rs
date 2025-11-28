@@ -51,12 +51,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // We expect `from` to be on the lhs of this equation.
-    pub(crate) fn shrink_slots(
-        &mut self,
-        from: &AppliedId,
-        cap: &SmallHashSet<Slot>,
-        proof: ProvenEq,
-    ) {
+    pub fn shrink_slots(&mut self, from: &AppliedId, cap: &SmallHashSet<Slot>, proof: ProvenEq) {
         #[cfg(feature = "explanations")]
         if CHECKS {
             assert_eq!(from.id, proof.l.id);

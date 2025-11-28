@@ -271,11 +271,16 @@ pub fn nullify_app_ids<L: Language>(l: &L) -> L {
 pub fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> bool {
     if let Some(v_old) = map.get(k) {
         if v_old != v {
+            debug!("existing map disagree");
             return false;
         }
     }
     map.insert(k, v);
-    map.is_bijection()
+    let ret = map.is_bijection();
+    if !ret {
+        debug!("new map not bijection");
+    }
+    ret
 }
 
 pub fn final_subst(s: State) -> Subst {

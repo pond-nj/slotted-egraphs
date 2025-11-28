@@ -6,7 +6,7 @@ use log::debug;
 
 fn r1Dummy(x: &str, y: &str) -> String {
     let r1_syntax = &format!("(pred <{x}>)");
-    format!("(init r1 {r1_syntax})")
+    format!("(composeInit r1 {r1_syntax})")
 }
 
 fn r1CHC(x: &str, y: &str) -> String {
@@ -17,7 +17,7 @@ fn r1CHC(x: &str, y: &str) -> String {
 
 fn r2Dummy(x: &str, y: &str) -> String {
     let r2_syntax = &format!("(pred <{y}>)");
-    format!("(init r2 {r2_syntax})")
+    format!("(composeInit r2 {r2_syntax})")
 }
 
 fn r2CHC(x: &str, y: &str) -> String {
@@ -28,7 +28,7 @@ fn r2CHC(x: &str, y: &str) -> String {
 
 fn qDummy(x: &str, y: &str) -> String {
     let q_syntax = &format!("(pred <{x} {y}>)");
-    format!("(init q {q_syntax})")
+    format!("(composeInit q {q_syntax})")
 }
 
 fn qCHC(x: &str, y: &str) -> String {
@@ -43,7 +43,7 @@ fn qCHC(x: &str, y: &str) -> String {
 
 fn sDummy(x: &str, y: &str) -> String {
     let s_syntax = &format!("(pred <{x}>)");
-    format!("(init s {s_syntax})")
+    format!("(composeInit s {s_syntax})")
 }
 
 fn sCHC(x: &str, y: &str) -> String {
@@ -67,7 +67,7 @@ fn pCHC(x: &str, y: &str) -> String {
 
 fn pDummy(x: &str, y: &str) -> String {
     let p_syntax = &format!("(pred <{x} {y}>)");
-    format!("(init p {p_syntax})")
+    format!("(composeInit p {p_syntax})")
 }
 
 #[test]
@@ -77,6 +77,8 @@ fn tst1() {
     let mut unfoldList = Rc::new(RefCell::new(vec![]));
     let mut constrRewriteList = Rc::new(RefCell::new(vec![]));
     let mut definedList = Rc::new(RefCell::new(BTreeSet::default()));
+    let mut gCounter: Rc<RefCell<u32>> = Rc::new(RefCell::new(0));
+    let doConstraintRewrite = false;
     let x = "(var $0)";
     let y = "(var $1)";
     let pCompose = pCHC(x, y);
@@ -102,6 +104,8 @@ fn tst1() {
         &unfoldList,
         &constrRewriteList,
         &definedList,
+        &gCounter,
+        doConstraintRewrite,
     ));
     debug!("report {report:?}");
     debug!("egraph after");

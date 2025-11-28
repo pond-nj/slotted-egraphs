@@ -572,8 +572,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if !i.m.keys().is_superset(&syn_slots) {
             println!("i = {:?}", i);
             println!("eclass {:?}", self.eclass(i.id));
+            println!("syn_slots = {syn_slots:?}");
+            println!("i.m = {:?}", i.m);
         }
-        syn.apply_slotmap(&i.m)
+        // syn.apply_slotmap(&i.m)
+        syn.apply_slotmap_partial(&i.m)
     }
 
     pub fn getSynNodeNoSubst(&self, i: &Id) -> &L {

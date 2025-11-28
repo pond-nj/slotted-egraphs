@@ -4,6 +4,7 @@ use derive_more::derive;
 use log::debug;
 use std::cell::{Ref, RefCell};
 use std::collections::{BTreeSet, HashMap};
+use std::f32::consts::E;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
@@ -64,6 +65,8 @@ pub struct UnfoldListComponent {
 pub struct ConstrRewriteComponent {
     constrAppId: AppliedId,
     constrENode: CHC,
+    newENodeAppId: AppliedId,
+    newENode: CHC,
 }
 
 impl UnfoldListComponent {
@@ -222,9 +225,11 @@ fn doFunctionalityTransformation(
 fn unfold(
     unfoldList: &Rc<RefCell<UnfoldList>>,
     constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
+    gCounter: &Rc<RefCell<u32>>,
 ) -> CHCRewrite {
     let unfoldListCopy = Rc::clone(unfoldList);
     let constrRewriteListCopy = Rc::clone(constrRewriteList);
+    let gCounterClone = Rc::clone(gCounter);
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<ComposeUnfoldRecipe> {
         let mut composeUnfoldReceipt = vec![];
 
@@ -289,7 +294,7 @@ fn unfold(
                 for (comp2Idx, compose2Id) in new1Children.iter().enumerate() {
                     let compose2Id = compose2Id.getAppliedId();
                     for compose2 in eg.enodes_applied(&compose2Id) {
-                        if let CHC::Init(..) = compose2 {
+                        if let CHC::ComposeInit(..) = compose2 {
                             continue;
                         }
 
@@ -302,31 +307,14 @@ fn unfold(
                             let new2EClass = new2EClass.getAppliedId();
                             let mut fromThisEClassRecipe: Vec<UnfoldRecipe> = vec![];
                             for new2 in eg.enodes_applied(&new2EClass) {
-                                if let CHC::Interface(..) = new2 {
-                                    continue;
-                                }
-
                                 let CHC::New(syntax2, cond2, new2Children) = new2 else {
                                     panic!();
                                 };
-                                // println!("newENodeShape {:?}", newENodeShape);
-                                // println!("new1 {:?}", new1);
-                                // println!("new1EClass {:?}", new1EClass);
-                                // println!("new1Children {new1Children:?}");
-                                // println!("compose2Id {:?}", compose2Id);
-                                // println!("cond1 {:?}", cond1);
-                                // println!("compose2Children {:?}", compose2Children);
-                                // println!("new2EClass {:?}", new2EClass);
-                                // println!("toBeUnfolded {:#?}", toBeUnfolded);
-                                // println!("cond2 {:?}", cond2);
                                 let and2Children = getAnyAndChildren(&cond2, eg);
-                                // println!("and2Children {:?}", and2Children);
 
                                 let mut unfoldedChildren = new1Children.clone();
-                                // println!("new1Children {:?}", new1Children);
                                 unfoldedChildren.remove(comp2Idx);
                                 unfoldedChildren.extend(new2Children.clone());
-                                // println!("unfoldedChildren {:?}", unfoldedChildren);
 
                                 // must be sorted first before dedup, dedup only remove consecutive duplicates
                                 unfoldedChildren.sort();
@@ -335,10 +323,8 @@ fn unfold(
                                 let mut mergeAndChildren = and1Children.clone();
                                 mergeAndChildren.extend(and2Children);
 
-                                // must be sorted first before dedup, dedup only remove consecutive duplicates
                                 mergeAndChildren.sort();
                                 mergeAndChildren.dedup();
-                                // println!("mergeAndChildren {:?}", mergeAndChildren);
 
                                 // prepare for rewrite.
                                 // cannot rewrite here because this is searcher only.
@@ -416,26 +402,30 @@ fn unfold(
                             let mergeAndAppId = eg.add(mergeAnd.clone());
                             checkVarType(&mergeAndAppId, eg);
 
-                            constrRewriteListCopy
-                                .borrow_mut()
-                                .push(ConstrRewriteComponent {
-                                    constrAppId: mergeAndAppId.clone(),
-                                    constrENode: mergeAnd,
-                                });
-
                             eg.analysis_data_mut(mergeAndAppId.id)
                                 .predNames
                                 .insert(format!(
                                 "and_from_unfold_{compose2Id}_{comp2Idx}_in_{new1EClass}_using_{new2EClass}"
                             ));
 
-                            let unfoldedENode =
-                                CHC::New(syntax1.clone(), mergeAndAppId, unfoldedChildren.clone());
-                            // println!("unfoldedENode {:?}", unfoldedENode);
+                            let unfoldedENode = CHC::New(
+                                syntax1.clone(),
+                                mergeAndAppId.clone(),
+                                unfoldedChildren.clone(),
+                            );
 
-                            // TODO: we can have a function that sorts an ENode children
                             let unfoldedENodeId = eg.add(unfoldedENode.clone());
-                            // println!("add unfoldedENodeId {:?}", unfoldedENodeId);
+                            eg.shrink_slots(&unfoldedENodeId, &syntax1.slots(), ());
+
+                            constrRewriteListCopy
+                                .borrow_mut()
+                                .push(ConstrRewriteComponent {
+                                    constrAppId: mergeAndAppId.clone(),
+                                    constrENode: mergeAnd,
+                                    newENodeAppId: unfoldedENodeId.clone(),
+                                    newENode: unfoldedENode.clone(),
+                                });
+
                             checkVarType(&unfoldedENodeId, eg);
                             // doFunctionalityTransformation(
                             //     eg,
@@ -648,14 +638,7 @@ fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHC
     newConstraint
 }
 
-// a = a1, l = l1, r = r1, t = node(a, l, r), t = node(a1, l1, l1), node(a, l, r) = node(a1, l1, r1) -> a = a1, l = l1, r = r1, t = node(a, l, r)
-fn dedupFromEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> CHC {
-    let constrAppId = eg.find_applied_id(constrAppId);
-    let constrENode = eg.find_enode(constrENode);
-    let CHC::And(andChildrenOrig) = constrENode.clone() else {
-        panic!();
-    };
-
+fn getEqMapping(andChildrenOrig: &Vec<AppliedIdOrStar>, eg: &mut CHCEGraph) -> SlotMap {
     let mut eqMapping = SlotMap::default();
     for child in andChildrenOrig.iter() {
         let AppliedIdOrStar::AppliedId(child) = child else {
@@ -726,41 +709,64 @@ fn dedupFromEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEG
         }
     }
 
-    let mut updatedChildren = vec![];
+    eqMapping
+}
+
+fn newEClassFromEqMapping(
+    originalEClass: &AppliedId,
+    eqMapping: &SlotMap,
+    eg: &mut CHCEGraph,
+) -> AppliedId {
+    let mut updatedChild: Option<AppliedId> = None;
+    let mut hasRewrite = false;
+    for s in originalEClass.slots() {
+        if eqMapping.contains_key(s) {
+            hasRewrite = true;
+            break;
+        }
+    }
+    if !hasRewrite {
+        return originalEClass.clone();
+    }
+
+    for childENode in eg.enodes_applied(originalEClass) {
+        let updatedChildENode = childENode.apply_slotmap_partial(&eqMapping);
+        // TODO: do we need speedup here, it's not tested
+        // TODO: what's the effected of this statement?
+        // let lookupRes = eg.lookup(&updatedChildENode);
+        // if lookupRes.is_some() {
+        //     return lookupRes.unwrap();
+        // }
+
+        let newUpdatedChild = eg.add(updatedChildENode);
+
+        if !updatedChild.is_none() {
+            eg.union_justified(
+                &updatedChild.clone().unwrap(),
+                &newUpdatedChild,
+                Some("copy-child".to_owned()),
+            );
+        }
+
+        updatedChild = Some(newUpdatedChild);
+    }
+
+    updatedChild.unwrap()
+}
+
+fn rewriteConstraintFromEqMapping(
+    andChildrenOrig: &Vec<AppliedIdOrStar>,
+    eqMapping: &SlotMap,
+    eg: &mut CHCEGraph,
+) -> Vec<AppliedIdOrStar> {
+    let mut updatedConstrChildren = vec![];
     // apply rewrite from equivalent and check for any self equal enodes i.e. node(a, l, r) = node(a, l, r)
     for child in andChildrenOrig.iter() {
         let AppliedIdOrStar::AppliedId(child) = child else {
             panic!();
         };
 
-        // TODO: how to remove node(a, l, r) = node(a, l, r)
-        let mut updatedChild: Option<AppliedId> = None;
-        for childENode in eg.enodes_applied(child) {
-            let updatedChildENode = childENode.apply_slotmap_partial(&eqMapping);
-            // if let CHC::Eq(a, b) = updatedChildENode.clone() {
-            // for e in eg.enodes_applied(&b) {
-            // TODO: l == r can be from l == r == leaf
-            // if let CHC::BiNode(a, l, r) = e {
-            //     if l == r {
-            //         assert!(false);
-            //     }
-            // }
-            // }
-            // }
-            let newUpdatedChild = eg.add(updatedChildENode);
-
-            if !updatedChild.is_none() {
-                eg.union_justified(
-                    &updatedChild.clone().unwrap(),
-                    &newUpdatedChild,
-                    Some("copy-child".to_owned()),
-                );
-            }
-
-            updatedChild = Some(newUpdatedChild);
-        }
-
-        let updatedChild = updatedChild.unwrap();
+        let updatedChild = newEClassFromEqMapping(child, &eqMapping, eg);
 
         let mut skip = false;
         for selfEqENode in eg.enodes_applied(&updatedChild) {
@@ -786,20 +792,75 @@ fn dedupFromEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEG
             continue;
         }
 
+        updatedConstrChildren.push(AppliedIdOrStar::AppliedId(updatedChild));
+    }
+
+    updatedConstrChildren.sort();
+    updatedConstrChildren.dedup();
+
+    updatedConstrChildren
+}
+
+fn rewriteChildrenFromEqMapping(
+    children: &Vec<AppliedIdOrStar>,
+    eqMapping: &SlotMap,
+    eg: &mut CHCEGraph,
+) -> Vec<AppliedIdOrStar> {
+    let mut updatedChildren = vec![];
+    for child in children.iter() {
+        let AppliedIdOrStar::AppliedId(child) = child else {
+            panic!();
+        };
+
+        let mut updatedChild = newEClassFromEqMapping(child, eqMapping, eg);
         updatedChildren.push(AppliedIdOrStar::AppliedId(updatedChild));
     }
 
     updatedChildren.sort();
     updatedChildren.dedup();
-    let newConstraint = CHC::And(updatedChildren);
+
+    updatedChildren
+}
+
+// a = a1, l = l1, r = r1, t = node(a, l, r), t = node(a1, l1, l1), node(a, l, r) = node(a1, l1, r1) -> a = a1, l = l1, r = r1, t = node(a, l, r)
+// deduplicate enode calls a = a1, P(a, z), P(a1, z) -> a = a1, P(a, z)
+fn dedupFromEqRewrite(
+    constrAppId: &AppliedId,
+    constrENode: &CHC,
+    newENodeAppId: &AppliedId,
+    newENode: &CHC,
+    eg: &mut CHCEGraph,
+) -> CHC {
+    let constrAppId = eg.find_applied_id(constrAppId);
+    let constrENode = eg.find_enode(constrENode);
+    let CHC::And(andChildrenOrig) = constrENode.clone() else {
+        panic!();
+    };
+
+    // get eqMapping
+    let eqMapping = getEqMapping(&andChildrenOrig, eg);
+    let updatedConstrChildren = rewriteConstraintFromEqMapping(&andChildrenOrig, &eqMapping, eg);
+    let newConstraint = CHC::And(updatedConstrChildren);
     let newConstraintAppId = eg.add(newConstraint.clone());
+    // note: cannot union with the original constraint because some interface
+    // might be dropped after the transformation and we dont want that
+    let newConstraintAppId = eg.add(newConstraint.clone());
+
+    let CHC::New(syntax, _, newChildren) = &newENode else {
+        panic!();
+    };
+
+    let updatedNewChildren = rewriteChildrenFromEqMapping(newChildren, &eqMapping, eg);
+    let updatedNew = CHC::New(syntax.clone(), newConstraintAppId, updatedNewChildren);
+    let updatedNewAppId = eg.add(updatedNew.clone());
+
     eg.union_justified(
-        &constrAppId,
-        &newConstraintAppId,
+        &newENodeAppId,
+        &updatedNewAppId,
         Some("dedupFromEqRewrite".to_owned()),
     );
 
-    newConstraint
+    updatedNew
 }
 
 fn constraintRewrite(constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>) -> CHCRewrite {
@@ -811,16 +872,21 @@ fn constraintRewrite(constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>
             let ConstrRewriteComponent {
                 constrAppId,
                 constrENode,
+                newENodeAppId,
+                newENode,
             } = constrRewriteComponent;
 
             // expand eq rewrite, X = Y, X = Z -> X = Y, X = Z, Y = Z
+            // expand eq rewrite, X = node(a, l, r), Y = node(a, l, r) -> X = Y, X = node(a, l, r), Y = node(a, l, r)
             let constrENode = expandEqRewrite(constrAppId, constrENode, eg);
 
             // constructor eq rewrite, node(x, l, r) = node(x', l', r') -> x = x', l = l', r = r'
             let constrENode = constructorEqRewrite(constrAppId, &constrENode, eg);
 
             // deduplicate constraint a = a1, l = l1, r = r1, t = node(a, l, r), t = node(a1, l1, l1) -> a = a1, l = l1, r = r1, t = node(a, l, r)
-            let constrENode = dedupFromEqRewrite(constrAppId, &constrENode, eg);
+            // deduplicate enode calls a = a1, P(a, z), P(a1, z) -> a = a1, P(a, z)
+            let updatedNewENode =
+                dedupFromEqRewrite(constrAppId, &constrENode, newENodeAppId, newENode, eg);
         }
 
         println!("done constraintRewrite");
@@ -837,10 +903,12 @@ fn constraintRewrite(constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>
 fn defineFromSharingBlock(
     unfoldList: &Rc<RefCell<UnfoldList>>,
     definedList: &Rc<RefCell<BTreeSet<CHC>>>,
+    gCounter: &Rc<RefCell<u32>>,
 ) -> CHCRewrite {
     let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
     let patClone = pat.clone();
     let definedListClone = Rc::clone(definedList);
+    let gCounterClone = Rc::clone(gCounter);
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> {
         ematch_all(eg, &patClone).into_iter().map(|s| s.0).collect()
     });
@@ -939,10 +1007,9 @@ fn defineFromSharingBlock(
                     .collect::<Vec<_>>()
                     .join(" ");
                 let syntax = format!("(pred <{basicVarsStr}>)");
+                let syntaxId = eg.addExpr(&syntax);
 
                 let oldLen = eg.total_number_of_nodes();
-                // TODO: change counter to local variable
-                let counter = G_COUNTER.load(Ordering::SeqCst);
 
                 let mut childrenStr = "".to_string();
                 let mut newSubst = Subst::default();
@@ -967,15 +1034,7 @@ fn defineFromSharingBlock(
                     continue;
                 }
 
-                let itf = id(
-                    &format!(
-                        "(interface define_from_{}_{} {syntax} 2)",
-                        rootAppId.id, counter
-                    ),
-                    eg,
-                );
-                eg.union(&newENodeAppId, &itf);
-                G_COUNTER.store(counter + 1, Ordering::SeqCst);
+                eg.shrink_slots(&newENodeAppId, &syntaxId.slots(), ());
 
                 let newENodeShape = newENode.weak_shape().0;
                 let composeEnode =
@@ -1016,11 +1075,19 @@ pub fn getAllRewrites(
     unfoldList: &Rc<RefCell<UnfoldList>>,
     constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
     definedList: &Rc<RefCell<BTreeSet<CHC>>>,
+    gCounter: &Rc<RefCell<u32>>,
+    doConstraintRewrite: bool,
 ) -> Vec<CHCRewrite> {
-    vec![
-        unfold(unfoldList, constrRewriteList),
-        constraintRewrite(constrRewriteList),
-        defineFromSharingBlock(unfoldList, definedList),
+    let mut rewrites = vec![unfold(unfoldList, constrRewriteList, gCounter)];
+
+    if doConstraintRewrite {
+        rewrites.push(constraintRewrite(constrRewriteList));
+    }
+
+    rewrites.extend([
+        defineFromSharingBlock(unfoldList, definedList, gCounter),
         trueToAnd(),
-    ]
+    ]);
+
+    rewrites
 }

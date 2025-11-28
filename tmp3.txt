@@ -1,11 +1,14 @@
-// new1(N,K,M) ← T = leaf, U = leaf, min-leaf(U,M), min-leaf(T,K)
+id167
+(and <
+(leq (int $f1681) (0)) 
+(eq (node $f1683) (binode (int $f1687) (node $f1685) (node $f1686))) 
+(eq (node $f1683) (binode (int $f1688) (node $f1689) (node $f1690))) 
+(eq (node $f1684) (binode (int $f1687) (node $f1685) (node $f1686)))
+ (eq (int $f1682) (+ (int $f1691) (1)))>)
 
-(new 
-n, k, m
-(pred <(int $f498) (int $f499) (int $f500)>) 
-(and <(eq (node $f501) (leaf)) (eq (node $f501) (leaf))>) 
-<
+id424
+(and <
+(leq (int $f3136) (0)) 
+(eq (node $f3138) (binode (int $f3141) (node $f3139) (node $f3140))) 
+(eq (int $f3137) (+ (int $f3142) (1)))>)
 
-(init (minLeaf) (pred <(node $f501) (int $f499)>) (and <>) <(1)>) 
-U, M
-(init (minLeaf) (pred <(node $f502) (int $f500)>) (and <>) <(1)>)>)

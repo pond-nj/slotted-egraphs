@@ -15,7 +15,7 @@ define_language! {
 #[test]
 fn test() {
     let mut eg = EGraph::<Tmp>::default();
-    let a = eg.add_expr(RecExpr::parse("(add (var $0) (var $1))").unwrap());
-    let b = eg.add_expr(RecExpr::parse("(add (var $1) (var $1))").unwrap());
+    let _a = eg.add_expr(RecExpr::parse("(add (var $0) (var $1))").unwrap());
+    let _b = eg.add_expr(RecExpr::parse("(add (var $1) (var $1))").unwrap());
     println!("egraph = {:?}", eg);
 }
