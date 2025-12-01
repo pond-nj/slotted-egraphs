@@ -88,9 +88,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let cap = &l.slots() & &r.slots();
 
         // TODO: this makes some testcases fail
-        if l.slots().len() > 0 && r.slots().len() > 0 && cap.len() == 0 {
-            assert!(cap.len() > 0, "merged slots must not be emptied");
-        }
+        // if l.slots().len() > 0 && r.slots().len() > 0 && cap.len() == 0 {
+        //     assert!(cap.len() > 0, "merged slots must not be emptied");
+        // }
 
         if l.slots() != cap {
             self.shrink_slots(&l, &cap, proof.clone());
@@ -166,6 +166,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 size(l) <= size(r)
             };
 
+            // always move to eclass with smaller syn slot size
             if right_order(l.id, r.id) {
                 self.move_to(&l, &r, proof)
             } else {

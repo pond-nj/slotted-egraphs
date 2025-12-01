@@ -122,7 +122,7 @@ fn mainTest() {
     let mut definedList = Rc::new(RefCell::new(BTreeSet::default()));
     let mut gCounter: Rc<RefCell<u32>> = Rc::new(RefCell::new(0));
     let mut count = 0;
-    let doConstraintRewrite = false;
+    let doConstraintRewrite = true;
     {
         let eg = &mut egOrig;
 

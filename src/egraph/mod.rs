@@ -497,6 +497,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         enode.map_applied_ids(|app| self.synify_app_id(app))
     }
 
+    pub(crate) fn semifyEnode(&self, enode: L) -> L {
+        enode.map_applied_ids(|app| self.semify_app_id(app))
+    }
+
+    // undo the synify enode, remove the keys to just the slots of that eclass
     pub(crate) fn semify_app_id(&self, app: AppliedId) -> AppliedId {
         let slots = self.slots(app.id);
 
@@ -506,6 +511,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 app.m.remove(k);
             }
         }
+
+        assert!(app.m.keys() == slots);
         app
     }
 

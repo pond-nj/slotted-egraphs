@@ -93,8 +93,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub fn add(&mut self, enode: L) -> AppliedId {
         // major time is in add_internal
-        let (sh, _) = time(|| self.shape_called_from_add(enode.clone()));
-        let (addedId, _) = time(|| self.add_internal(sh));
+        let sh = self.shape_called_from_add(enode.clone());
+        let addedId = self.add_internal(sh);
         addedId
     }
 
@@ -110,33 +110,57 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // self.add(x) = y implies that x.slots() is a superset of y.slots().
     // x.slots() - y.slots() are redundant slots.
     pub(in crate::egraph) fn add_internal(&mut self, t: (L, SlotMap)) -> AppliedId {
-        let (lookupRes, lookUpTime) = time(|| self.lookup_internal(&t));
+        let (lookupRes, lookUpTime) = time(|| self.lookup_internal(&t, false));
         if let Some(x) = lookupRes {
             return x;
         }
+        assert!(self.syn_hashcons.get(&t.0).is_none());
 
         // TODO this code is kinda exactly what add_syn is supposed to do anyways. There's probably a way to write this more concisely.
         // We convert the enode to "syn" so that semantic_add will compute the necessary redundancy proofs.
         // change private slot, apply slot map to Enode
-        let (enode, applyTime) = time(|| t.0.refresh_private().apply_slotmap(&t.1));
-        let (enode, synifyTime) = time(|| self.synify_enode(enode));
+        let enode = t.0.refresh_private().apply_slotmap(&t.1);
+        assert!(self.syn_hashcons.get(&enode.weak_shape().0).is_none());
+        // println!("enode before = {:?}", enode.weak_shape().0);
+        // assert!(self.semifyEnode(enode.clone()) == self.synify_enode(enode.clone()));
+        // TODO: Pond why we dont need this?
+        // let enode = self.synify_enode(enode);
+        // let enode = self.semifyEnode(enode);
+        // println!("enode after = {:?}", enode.weak_shape().0);
+        assert!(self.hashcons.get(&enode.weak_shape().0).is_none());
+        assert!(self.syn_hashcons.get(&enode.weak_shape().0).is_none());
 
         // make takes up most of the time here
-        let (syn, mkTime) = time(|| self.mk_singleton_class(enode));
-        let (semifyAppId, semifyTime) = time(|| self.semify_app_id(syn));
-        debug!("add_internal: lookup {lookUpTime:?}, apply {applyTime:?}, synify {synifyTime:?}, mk {mkTime:?}, semify {semifyTime:?}");
-        semifyAppId
+        let syn = self.mk_singleton_class(enode);
+        syn
+        // TODO: Pond why we dont need this?
+        // let semifyAppId = self.semify_app_id(syn);
+        // semifyAppId
     }
 
     pub fn lookup(&self, n: &L) -> Option<AppliedId> {
-        self.lookup_internal(&self.shape(n))
+        self.lookup_internal(&self.shape(n), false)
     }
 
     pub(in crate::egraph) fn lookup_internal(
         &self,
         (shape, n_bij): &(L, Bijection),
+        callFromHandlePending: bool,
     ) -> Option<AppliedId> {
-        let i = self.hashcons.get(&shape)?;
+        let mut i: Option<Id> = self.hashcons.get(&shape).cloned();
+        if i.is_none() {
+            // let synResult = self.syn_hashcons.get(&shape);
+            // if synResult.is_none() {
+            //     return None;
+            // } else {
+            //     let synResult = synResult.unwrap();
+            //     let updatedSynResult = self.find_applied_id(synResult);
+            //     i = Some(updatedSynResult.id);
+            // }
+
+            return None;
+        }
+        let i = &i.unwrap();
         let c = &self.classes[i];
         let cn_bij = &c.nodes[&shape].elem;
 
@@ -219,8 +243,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .unwrap()
             .nodes
             .insert(sh.clone(), psn);
+
+        if CHECKS {
+            assert!(self.semifyEnode(sh.clone()) == sh)
+        }
+        println!("add to hashcons {:?} -> {id:?}", sh);
+        // synified version is added to hashcons from self.add
+        // non-synified version is added to hashcons from self.handle_pending
         let tmp2 = self.hashcons.insert(sh.clone(), id);
         if CHECKS {
+            // hashcons should contain semify enode
             assert!(tmp1.is_none());
             assert!(tmp2.is_none());
         }
@@ -233,6 +265,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(in crate::egraph) fn raw_remove_from_class(&mut self, id: Id, sh: L) -> ProvenSourceNode {
         let opt_psn = self.classes.get_mut(&id).unwrap().nodes.remove(&sh);
         let opt_id = self.hashcons.remove(&sh);
+        println!("remove from hashcons {:?} -> {opt_id:?}", sh);
         if CHECKS {
             assert!(opt_psn.is_some());
             assert!(opt_id.is_some());
@@ -281,7 +314,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let (sh, bij) = syn_enode.weak_shape();
 
             if CHECKS {
-                assert!(!self.syn_hashcons.contains_key(&sh));
+                if self.syn_hashcons.contains_key(&sh) {
+                    panic!("syn_hashcons already contains key {:?}", sh);
+                }
             }
 
             // make new apply id

@@ -210,7 +210,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // upwards merging found a match!
         // if there's another Enode in Egraph already
-        let lookupRes = self.lookup_internal(&t);
+        let lookupRes = self.lookup_internal(&t, true);
         if lookupRes.is_some() {
             self.handle_congruence(self.pc_from_src_id(src_id));
             return;
