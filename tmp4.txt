@@ -1,0 +1,70 @@
+input to dedupFromEqRewrite And(
+    [
+        AppliedId(
+            id27: ($f4291, $f4285),
+        ),
+        AppliedId(
+            id27: ($f5573, $f4285),
+        ),
+        AppliedId(
+            id27: ($f5573, $f4291),
+        ),
+        AppliedId(
+            id38: ($f481),
+        ),
+        AppliedId(
+            id40: ($f4283, $f4286, $f4287, $f4285),
+        ),
+        AppliedId(
+            id40: ($f4283, $f4289, $f4290, $f4291),
+        ),
+        AppliedId(
+            id40: ($f4283, $f5574, $f5575, $f5573),
+        ),
+        AppliedId(
+            id40: ($f4284, $f4286, $f4287, $f4285),
+        ),
+        AppliedId(
+            id40: ($f4284, $f4289, $f4290, $f4291),
+        ),
+        AppliedId(
+            id40: ($f4284, $f5574, $f5575, $f5573),
+        ),
+        AppliedId(
+            id53: ($f482, $f5576),
+        ),
+        AppliedId(
+            id53: ($f483, $f4288),
+        ),
+        AppliedId(
+            id83: ($f4283, $f4284),
+        ),
+        AppliedId(
+            id83: ($f4286, $f4289),
+        ),
+        AppliedId(
+            id83: ($f4286, $f5574),
+        ),
+        AppliedId(
+            id83: ($f4287, $f4290),
+        ),
+        AppliedId(
+            id83: ($f4287, $f5575),
+        ),
+        AppliedId(
+            id83: ($f4289, $f5574),
+        ),
+        AppliedId(
+            id83: ($f4290, $f5575),
+        ),
+        AppliedId(
+            id198: ($f4286, $f4287, $f4285, $f4291, $f4289, $f4290),
+        ),
+        AppliedId(
+            id198: ($f4286, $f4287, $f4285, $f5573, $f5574, $f5575),
+        ),
+        AppliedId(
+            id198: ($f4289, $f4290, $f4291, $f5573, $f5574, $f5575),
+        ),
+    ],
+)

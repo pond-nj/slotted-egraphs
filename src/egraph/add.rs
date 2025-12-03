@@ -73,6 +73,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
 // semantic add:
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
+    pub fn addExprGetENode(&mut self, re: &str) -> (AppliedId, L) {
+        let re = RecExpr::parse(re).unwrap();
+
+        let mut n: L = re.node;
+        let mut refs: Vec<&mut AppliedId> = n.applied_id_occurrences_mut();
+        if CHECKS {
+            assert_eq!(re.children.len(), refs.len());
+        }
+        // recursively add children
+        for (i, child) in re.children.into_iter().enumerate() {
+            *(refs[i]) = self.add_expr(child);
+        }
+        (self.add(n.clone()), n)
+    }
+
     pub fn addExpr(&mut self, re: &str) -> AppliedId {
         let re = RecExpr::parse(re).unwrap();
         self.add_expr(re)
@@ -247,7 +262,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if CHECKS {
             assert!(self.semifyEnode(sh.clone()) == sh)
         }
-        println!("add to hashcons {:?} -> {id:?}", sh);
+        // println!("add to hashcons {:?} -> {id:?}", sh);
         // synified version is added to hashcons from self.add
         // non-synified version is added to hashcons from self.handle_pending
         let tmp2 = self.hashcons.insert(sh.clone(), id);
@@ -265,7 +280,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(in crate::egraph) fn raw_remove_from_class(&mut self, id: Id, sh: L) -> ProvenSourceNode {
         let opt_psn = self.classes.get_mut(&id).unwrap().nodes.remove(&sh);
         let opt_id = self.hashcons.remove(&sh);
-        println!("remove from hashcons {:?} -> {opt_id:?}", sh);
+        // println!("remove from hashcons {:?} -> {opt_id:?}", sh);
         if CHECKS {
             assert!(opt_psn.is_some());
             assert!(opt_id.is_some());

@@ -77,7 +77,6 @@ fn tst1() {
     let mut unfoldList = Rc::new(RefCell::new(vec![]));
     let mut constrRewriteList = Rc::new(RefCell::new(vec![]));
     let mut definedList = Rc::new(RefCell::new(BTreeSet::default()));
-    let mut gCounter: Rc<RefCell<u32>> = Rc::new(RefCell::new(0));
     let doConstraintRewrite = false;
     let x = "(var $0)";
     let y = "(var $1)";
@@ -104,7 +103,6 @@ fn tst1() {
         &unfoldList,
         &constrRewriteList,
         &definedList,
-        &gCounter,
         doConstraintRewrite,
     ));
     debug!("report {report:?}");

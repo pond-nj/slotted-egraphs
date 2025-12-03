@@ -67,6 +67,7 @@ pub struct ConstrRewriteComponent {
     constrENode: CHC,
     newENodeAppId: AppliedId,
     newENode: CHC,
+    tag: String,
 }
 
 impl UnfoldListComponent {
@@ -225,11 +226,9 @@ fn doFunctionalityTransformation(
 fn unfold(
     unfoldList: &Rc<RefCell<UnfoldList>>,
     constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
-    gCounter: &Rc<RefCell<u32>>,
 ) -> CHCRewrite {
     let unfoldListCopy = Rc::clone(unfoldList);
     let constrRewriteListCopy = Rc::clone(constrRewriteList);
-    let gCounterClone = Rc::clone(gCounter);
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<ComposeUnfoldRecipe> {
         let mut composeUnfoldReceipt = vec![];
 
@@ -417,6 +416,10 @@ fn unfold(
                             let unfoldedENodeId = eg.add(unfoldedENode.clone());
                             eg.shrink_slots(&unfoldedENodeId, &syntax1.slots(), ());
 
+                            let tag = format!(
+                                "unfold_{compose2Id}_{comp2Idx}_in_{new1EClass}_using_{new2EClass}"
+                            );
+
                             constrRewriteListCopy
                                 .borrow_mut()
                                 .push(ConstrRewriteComponent {
@@ -424,6 +427,7 @@ fn unfold(
                                     constrENode: mergeAnd,
                                     newENodeAppId: unfoldedENodeId.clone(),
                                     newENode: unfoldedENode.clone(),
+                                    tag: tag.clone(),
                                 });
 
                             checkVarType(&unfoldedENodeId, eg);
@@ -436,12 +440,11 @@ fn unfold(
                             // );
 
                             createdENodes.push((unfoldedENodeId.clone(), unfoldedENode.clone()));
-                            // debug!("adding unfoldedENode {unfoldedENodeId:?} {unfoldedENode:?}");
+
+                            println!("adding unfoldedENode unfold_{compose2Id}_{comp2Idx}_in_{new1EClass}_using_{new2EClass} {unfoldedENodeId:?}");
                             eg.analysis_data_mut(unfoldedENodeId.id)
                                 .predNames
-                                .insert(format!(
-                                "unfold_{compose2Id}_{comp2Idx}_in_{new1EClass}_using_{new2EClass}"
-                            ));
+                                .insert(tag);
                             childrenComb.push(unfoldedENodeId);
                         }
                     });
@@ -495,7 +498,7 @@ fn unfold(
 }
 
 // TODO: caching of processed node here?
-fn expandEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> CHC {
+pub fn expandEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> CHC {
     let CHC::And(andChildren) = constrENode else {
         panic!();
     };
@@ -567,7 +570,7 @@ fn expandEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGrap
     return newConstraint;
 }
 
-fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> CHC {
+pub fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> CHC {
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
     let CHC::And(andChildrenOrig) = constrENode else {
@@ -638,8 +641,12 @@ fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHC
     newConstraint
 }
 
-fn getEqMapping(andChildrenOrig: &Vec<AppliedIdOrStar>, eg: &mut CHCEGraph) -> SlotMap {
-    let mut eqMapping = SlotMap::default();
+pub fn getEqMapping(
+    andChildrenOrig: &Vec<AppliedIdOrStar>,
+    headVars: &SmallHashSet<Slot>,
+    eg: &mut CHCEGraph,
+) -> SlotMap {
+    let mut uf: HashUnionFind<Slot> = HashUnionFind::new(vec![]);
     for child in andChildrenOrig.iter() {
         let AppliedIdOrStar::AppliedId(child) = child else {
             panic!();
@@ -649,7 +656,6 @@ fn getEqMapping(andChildrenOrig: &Vec<AppliedIdOrStar>, eg: &mut CHCEGraph) -> S
             let CHC::Eq(eqChild1, eqChild2) = eqNode else {
                 continue;
             };
-            // find (eq (node $f658) (node $f659))
 
             let mut vt = None;
 
@@ -701,13 +707,60 @@ fn getEqMapping(andChildrenOrig: &Vec<AppliedIdOrStar>, eg: &mut CHCEGraph) -> S
 
             // all map to leftSideSlots[0]
             for l in leftSideSlots.iter() {
-                eqMapping.insert(l.clone(), leftSideSlots[0]);
+                let k1 = uf.findOrAddE(l);
+                let k2 = uf.findOrAddE(&leftSideSlots[0]);
+                uf.union(k1, k2);
             }
-            for r in rightSideSlots {
-                eqMapping.insert(r.clone(), leftSideSlots[0]);
+            for r in rightSideSlots.iter() {
+                let k1 = uf.findOrAddE(r);
+                let k2 = uf.findOrAddE(&leftSideSlots[0]);
+                uf.union(k1, k2);
             }
         }
     }
+
+    let mut eqMapping = SlotMap::default();
+
+    let groups = uf.buildGroups();
+    for group in groups.iter() {
+        println!("group {:?}", group);
+        let mut mapTo = None;
+
+        // if there is a head var, then mapTo is the head var
+        for s in group.iter() {
+            if headVars.contains(s) {
+                mapTo = Some(s.clone());
+                break;
+            }
+        }
+
+        // else mapTo is the first var in the group
+        if mapTo.is_none() {
+            mapTo = Some(group[0].clone());
+        }
+
+        let mut mapFrom = vec![];
+
+        for s in group.iter() {
+            // dont map head vars
+            if headVars.contains(s) {
+                continue;
+            }
+
+            mapFrom.push(*s);
+        }
+
+        if mapTo.is_none() {
+            continue;
+        }
+
+        for s in mapFrom.iter() {
+            eqMapping.insert(s.clone(), mapTo.unwrap());
+        }
+    }
+
+    println!("headVars {headVars:?}");
+    println!("eqMapping {eqMapping:?}");
 
     eqMapping
 }
@@ -754,7 +807,7 @@ fn newEClassFromEqMapping(
     updatedChild.unwrap()
 }
 
-fn rewriteConstraintFromEqMapping(
+pub fn rewriteConstraintFromEqMapping(
     andChildrenOrig: &Vec<AppliedIdOrStar>,
     eqMapping: &SlotMap,
     eg: &mut CHCEGraph,
@@ -824,7 +877,7 @@ fn rewriteChildrenFromEqMapping(
 
 // a = a1, l = l1, r = r1, t = node(a, l, r), t = node(a1, l1, l1), node(a, l, r) = node(a1, l1, r1) -> a = a1, l = l1, r = r1, t = node(a, l, r)
 // deduplicate enode calls a = a1, P(a, z), P(a1, z) -> a = a1, P(a, z)
-fn dedupFromEqRewrite(
+pub fn dedupFromEqRewrite(
     constrAppId: &AppliedId,
     constrENode: &CHC,
     newENodeAppId: &AppliedId,
@@ -833,22 +886,30 @@ fn dedupFromEqRewrite(
 ) -> CHC {
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
+    println!("input to dedupFromEqRewrite {constrENode:#?}");
     let CHC::And(andChildrenOrig) = constrENode.clone() else {
         panic!();
     };
 
+    let CHC::New(syntax, _, newChildren) = &newENode else {
+        panic!();
+    };
+
     // get eqMapping
-    let eqMapping = getEqMapping(&andChildrenOrig, eg);
+    let eqMapping = getEqMapping(&andChildrenOrig, &syntax.slots(), eg);
+
+    // should not rewrite head variables into something else
+    for s in syntax.slots() {
+        assert!(!eqMapping.contains_key(s));
+    }
+    println!("eqMapping {eqMapping:?}");
     let updatedConstrChildren = rewriteConstraintFromEqMapping(&andChildrenOrig, &eqMapping, eg);
     let newConstraint = CHC::And(updatedConstrChildren);
+    println!("dedup newConstraint {newConstraint:#?}");
     let newConstraintAppId = eg.add(newConstraint.clone());
     // note: cannot union with the original constraint because some interface
     // might be dropped after the transformation and we dont want that
     let newConstraintAppId = eg.add(newConstraint.clone());
-
-    let CHC::New(syntax, _, newChildren) = &newENode else {
-        panic!();
-    };
 
     let updatedNewChildren = rewriteChildrenFromEqMapping(newChildren, &eqMapping, eg);
     let updatedNew = CHC::New(syntax.clone(), newConstraintAppId, updatedNewChildren);
@@ -869,11 +930,13 @@ fn constraintRewrite(constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>
     let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
         println!("start constraintRewrite");
         for constrRewriteComponent in Rc::clone(&constrRewriteListCopy).borrow().iter() {
+            println!("constrRewriteComponent {constrRewriteComponent:#?}");
             let ConstrRewriteComponent {
                 constrAppId,
                 constrENode,
                 newENodeAppId,
                 newENode,
+                tag,
             } = constrRewriteComponent;
 
             // expand eq rewrite, X = Y, X = Z -> X = Y, X = Z, Y = Z
@@ -887,6 +950,9 @@ fn constraintRewrite(constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>
             // deduplicate enode calls a = a1, P(a, z), P(a1, z) -> a = a1, P(a, z)
             let updatedNewENode =
                 dedupFromEqRewrite(constrAppId, &constrENode, newENodeAppId, newENode, eg);
+
+            let updatedNewENodeShape = updatedNewENode.weak_shape().0;
+            // println!("result updatedNewENode {updatedNewENodeShape:?}");
         }
 
         println!("done constraintRewrite");
@@ -903,12 +969,10 @@ fn constraintRewrite(constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>
 fn defineFromSharingBlock(
     unfoldList: &Rc<RefCell<UnfoldList>>,
     definedList: &Rc<RefCell<BTreeSet<CHC>>>,
-    gCounter: &Rc<RefCell<u32>>,
 ) -> CHCRewrite {
     let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
     let patClone = pat.clone();
     let definedListClone = Rc::clone(definedList);
-    let gCounterClone = Rc::clone(gCounter);
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<Subst> {
         ematch_all(eg, &patClone).into_iter().map(|s| s.0).collect()
     });
@@ -1075,19 +1139,15 @@ pub fn getAllRewrites(
     unfoldList: &Rc<RefCell<UnfoldList>>,
     constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
     definedList: &Rc<RefCell<BTreeSet<CHC>>>,
-    gCounter: &Rc<RefCell<u32>>,
     doConstraintRewrite: bool,
 ) -> Vec<CHCRewrite> {
-    let mut rewrites = vec![unfold(unfoldList, constrRewriteList, gCounter)];
+    let mut rewrites = vec![unfold(unfoldList, constrRewriteList)];
 
     if doConstraintRewrite {
         rewrites.push(constraintRewrite(constrRewriteList));
     }
 
-    rewrites.extend([
-        defineFromSharingBlock(unfoldList, definedList, gCounter),
-        trueToAnd(),
-    ]);
+    rewrites.extend([defineFromSharingBlock(unfoldList, definedList), trueToAnd()]);
 
     rewrites
 }

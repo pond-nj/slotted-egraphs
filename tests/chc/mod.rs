@@ -333,8 +333,10 @@ pub fn dumpCHCEClass(i: Id, map: &mut BTreeMap<AppliedId, RecExpr<CHC>>, eg: &CH
 
     for node in eclassNodes {
         print!(" - {node:?}\n");
-        let (sh, m) = weakShapeCHC(&node);
+        let (sh, m) = node.weak_shape();
         print!(" -   {sh:?}\n");
+        let (sh, m) = weakShapeCHC(&node);
+        print!(" - or  {sh:?}\n");
     }
     let permute = eg.getSlotPermutation(&i);
     for p in permute {

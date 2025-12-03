@@ -576,13 +576,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn get_syn_node(&self, i: &AppliedId) -> L {
         let syn = self.find_enode(&self.classes[&i.id].syn_enode);
         let syn_slots = syn.slots();
-        if !i.m.keys().is_superset(&syn_slots) {
-            println!("i = {:?}", i);
-            println!("eclass {:?}", self.eclass(i.id));
-            println!("syn_slots = {syn_slots:?}");
-            println!("i.m = {:?}", i.m);
-        }
-        // syn.apply_slotmap(&i.m)
+        // if !i.m.keys().is_superset(&syn_slots) {
+        //     println!("i = {:?}", i);
+        //     println!("eclass {:?}", self.eclass(i.id));
+        //     println!("syn_slots = {syn_slots:?}");
+        //     println!("i.m = {:?}", i.m);
+        // }
         syn.apply_slotmap_partial(&i.m)
     }
 

@@ -77,4 +77,8 @@ impl<T: Hash + Eq + Clone + Ord> HashUnionFind<T> {
         }
         groups.into_values().collect()
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.map.keys()
+    }
 }
