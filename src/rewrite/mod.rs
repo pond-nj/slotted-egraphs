@@ -58,21 +58,22 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
     let (ts, searchTime): (Vec<Box<dyn Any>>, Duration) = time(|| {
         rewrites
             .iter()
-            .map(|rw: &Rewrite<L, N>| {
-                debug!("doing search for {}", rw.name);
+            .enumerate()
+            .map(|(i, rw)| {
+                debug!("{i} doing search for {}", rw.name);
                 let ret = (*rw.searcher)(eg);
-                debug!("done search for {}", rw.name);
+                debug!("{i} done search for {}", rw.name);
                 ret
             })
             .collect()
     });
 
     let mut appliedTimes = vec![];
-    for (rw, t) in rewrites.iter().zip(ts.into_iter()) {
+    for ((i, rw), t) in rewrites.iter().enumerate().zip(ts.into_iter()) {
         let (_, applyTime) = time(|| {
-            println!("doing apply for {}", rw.name);
+            println!("{i} doing apply for {}", rw.name);
             (*rw.applier)(t, eg);
-            println!("done apply for {}", rw.name);
+            println!("{i} done apply for {}", rw.name);
             debug!(
                 "egraph size after {} is {}",
                 rw.name,

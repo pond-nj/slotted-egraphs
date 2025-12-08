@@ -56,7 +56,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         map[i.0].elem.id == i
     }
 
-    pub(crate) fn unionfind_iter(&self) -> impl Iterator<Item = (Id, AppliedId)> {
+    pub fn unionfind_iter(&self) -> impl Iterator<Item = (Id, AppliedId)> {
         let mut map = self.unionfind.borrow_mut();
         let mut out = Vec::new();
 
@@ -136,7 +136,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         pai2
     }
 
-    pub(crate) fn find_id(&self, i: Id) -> Id {
+    pub fn find_id(&self, i: Id) -> Id {
         self.unionfind_get(i).id
     }
 

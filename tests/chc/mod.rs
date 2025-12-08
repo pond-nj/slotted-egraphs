@@ -308,7 +308,12 @@ fn weakShapeCHC(enode: &CHC) -> (CHC, SlotMap) {
     }
 }
 
-pub fn dumpCHCEClass(i: Id, map: &mut BTreeMap<AppliedId, RecExpr<CHC>>, eg: &CHCEGraph) {
+pub fn dumpCHCEClass(
+    i: Id,
+    map: &mut BTreeMap<AppliedId, RecExpr<CHC>>,
+    groups: &BTreeMap<Id, Vec<Id>>,
+    eg: &CHCEGraph,
+) {
     let nodes = eg.enodes(i);
     if nodes.len() == 0 {
         return;
@@ -325,7 +330,7 @@ pub fn dumpCHCEClass(i: Id, map: &mut BTreeMap<AppliedId, RecExpr<CHC>>, eg: &CH
     let synExpr = eg.getSynExpr(&i, map);
     print!("\n{}", synExpr);
     print!("\n{:?}", eg.analysis_data(i));
-    print!("\n{:?}({}):", i, &slot_str);
+    print!("\n{:?}({:?})({}):", i, groups[&i], &slot_str);
     print!(">> {:?}\n", eg.getSynNodeNoSubst(&i));
 
     let mut eclassNodes: Vec<_> = eg.enodes(i).into_iter().collect();
@@ -349,9 +354,14 @@ pub fn dumpCHCEGraph(eg: &CHCEGraph) {
     let mut eclasses = eg.ids();
     eclasses.sort();
 
+    let mut groups = BTreeMap::<Id, Vec<Id>>::default();
+    for (x, y) in eg.unionfind_iter() {
+        groups.entry(y.id).or_insert(vec![]).push(x);
+    }
+
     let mut map = BTreeMap::<AppliedId, RecExpr<CHC>>::default();
     for i in eclasses {
-        dumpCHCEClass(i, &mut map, eg);
+        dumpCHCEClass(i, &mut map, &groups, eg);
     }
     print!("");
 }

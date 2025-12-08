@@ -125,7 +125,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // self.add(x) = y implies that x.slots() is a superset of y.slots().
     // x.slots() - y.slots() are redundant slots.
     pub(in crate::egraph) fn add_internal(&mut self, t: (L, SlotMap)) -> AppliedId {
-        let (lookupRes, lookUpTime) = time(|| self.lookup_internal(&t, false));
+        let lookupRes = self.lookup_internal(&t, false);
         if let Some(x) = lookupRes {
             return x;
         }
@@ -160,9 +160,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(in crate::egraph) fn lookup_internal(
         &self,
         (shape, n_bij): &(L, Bijection),
-        callFromHandlePending: bool,
+        _callFromHandlePending: bool,
     ) -> Option<AppliedId> {
-        let mut i: Option<Id> = self.hashcons.get(&shape).cloned();
+        let i: Option<Id> = self.hashcons.get(&shape).cloned();
         if i.is_none() {
             // let synResult = self.syn_hashcons.get(&shape);
             // if synResult.is_none() {
