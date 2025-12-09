@@ -109,6 +109,8 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
         assert!(varTypes.len() != 0);
     }
 
+    assert_eq!(sh.slots(), varTypes.keys().copied().collect());
+
     varTypes
 }
 
@@ -124,7 +126,6 @@ fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCD
     let sh = transformToEgraphNameSpace(sh, eg);
     let mut hm = BTreeMap::default();
     hm.insert(*sh.slots().iter().next().unwrap(), returnType);
-    debug!("result {hm:?}");
     CHCData {
         predNames: HashSet::default(),
         varTypes: hm,
@@ -186,6 +187,10 @@ impl Analysis<CHC> for CHCAnalysis {
         let xClone = x.clone();
         let yClone = y.clone();
 
+        // if to.is_some() {
+        //     assert_eq!(from, to.unwrap());
+        // }
+
         let newPredNames = mergePredNames(&x.predNames, &y.predNames);
 
         let mut newVarTypes = x.varTypes.clone();
@@ -196,6 +201,22 @@ impl Analysis<CHC> for CHCAnalysis {
                 newVarTypes.insert(var.clone(), yVarType.clone());
             }
         }
+
+        // let mut newVarTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
+        // let useEclass = if to.is_some() { to.unwrap() } else { from };
+        // for enode in eg.enodes(useEclass) {
+        //     match enode {
+        //         CHC::Int(_) => {
+        //             newVarTypes.extend(CHCDataForPrimitiveVar(&enode, eg, VarType::Int).varTypes)
+        //         }
+        //         CHC::Node(_) => {
+        //             newVarTypes.extend(CHCDataForPrimitiveVar(&enode, eg, VarType::Node).varTypes)
+        //         }
+        //         CHC::Var(_) => newVarTypes
+        //             .extend(CHCDataForPrimitiveVar(&enode, eg, VarType::Unknown).varTypes),
+        //         _ => newVarTypes.extend(aggregateVarType(&enode, eg)),
+        //     };
+        // }
 
         let mut eclassSlots = eg.allSlots(from);
         if to.is_some() {
@@ -210,11 +231,21 @@ impl Analysis<CHC> for CHCAnalysis {
             if newVarTypes.len() == 0 {
                 println!("x {xClone:#?}");
                 println!("y {yClone:#?}");
-                println!("eclassSlots {eclassSlots:#?}");
+                println!("from {:?}", eg.eclass(from));
+                if to.is_some() {
+                    println!("to {:?}", eg.eclass(to.unwrap()));
+                }
+                // println!("eclassSlots {eclassSlots:#?}");
 
                 assert!(newVarTypes.len() != 0);
             }
         }
+
+        // println!("merging {} {:?} result {:#?}", from, to, newVarTypes);
+        // println!("from {:?}", eg.eclass(from));
+        // if to.is_some() {
+        //     println!("to {:?}", eg.eclass(to.unwrap()));
+        // }
 
         CHCData {
             predNames: newPredNames,
@@ -251,6 +282,13 @@ impl Analysis<CHC> for CHCAnalysis {
                 functionalInfo: FunctionalInfo::default(),
             },
         };
+
+        println!("sh {:?}", sh);
+        println!(
+            "making CHCData {:?}, result {:#?}",
+            sh.weak_shape().0,
+            chcData.varTypes
+        );
 
         let functionalInfo = match sh {
             CHC::ComposeInit(_, _, functional, outputIdxAppIds) => {

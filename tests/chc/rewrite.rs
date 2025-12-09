@@ -1281,18 +1281,16 @@ fn defineFold(
     unfoldList: &Rc<RefCell<UnfoldList>>,
     definedList: &Rc<RefCell<BTreeSet<CHC>>>,
 ) -> CHCRewrite {
-    // let pat = Pattern::parse("(new ?syntax ?cond <*1>)").unwrap();
-    // let patClone = pat.clone();
     let definedListClone = Rc::clone(definedList);
-    let searcher = Box::new(move |eg: &CHCEGraph| -> () {
-        // ematch_all(eg, &patClone).into_iter().map(|s| s.0).collect()
-    });
+    let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
     let unfoldListClone = Rc::clone(unfoldList);
     let applier = Box::new(move |substs: (), eg: &mut CHCEGraph| {
-        for eclassId in eg.ids() {
+        let ids = eg.ids();
+        for eclassId in ids {
             let rootAppId = eg.mk_identity_applied_id(eclassId);
 
-            for origENode in eg.enodes_applied(&rootAppId) {
+            let enodesList = eg.enodes(rootAppId.id);
+            for origENode in enodesList {
                 let origENodeShape = origENode.weak_shape().0;
                 let mut definedList = definedListClone.borrow_mut();
                 // check if do this already
@@ -1301,14 +1299,13 @@ fn defineFold(
                 }
                 definedList.insert(origENodeShape);
 
-                let CHC::New(syntax, constrAppId, childAppIds) = &origENode else {
+                let CHC::New(_, _, childAppIds) = &origENode else {
                     continue;
                 };
 
                 // TODO0: try change to rootData instead of mergeVarTypes
-                // let mut rootData = eg.analysis_data(rootAppId.id).varTypes.clone();
                 let mut varToChildIdx: BTreeMap<Slot, Vec<usize>> = BTreeMap::default();
-                let mut mergeVarTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
+                let mut aggrVarTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
 
                 for idx in 0..childAppIds.len() {
                     let appId = childAppIds[idx].getAppliedId();
@@ -1317,7 +1314,7 @@ fn defineFold(
                     }
 
                     let childrenVarTypes = &eg.analysis_data(appId.id).varTypes;
-                    mergeVarTypes.extend(
+                    aggrVarTypes.extend(
                         appId
                             .m
                             .clone()
@@ -1325,6 +1322,18 @@ fn defineFold(
                             .map(|(from, to)| (to, *childrenVarTypes.get(&from).unwrap())),
                     );
                 }
+
+                // let mut rootData = eg.analysis_data(rootAppId.id).varTypes.clone();
+                let mergeVarTypes = aggrVarTypes;
+
+                println!("mergeVarTypes {:#?}", mergeVarTypes);
+                println!("origENode {:?}", origENode);
+                println!("eclassId {:#?}", rootAppId.id);
+                println!(
+                    "childAppIds.m {:#?}",
+                    childAppIds.iter().map(|x| x.getAppliedId().m)
+                );
+                println!("eclass {:#?}", eg.eclass(rootAppId.id));
 
                 let mut unionfind: QuickUnionUf<UnionBySize> =
                     QuickUnionUf::<UnionBySize>::new(childAppIds.len());

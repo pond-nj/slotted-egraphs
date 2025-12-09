@@ -131,6 +131,7 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
 
             #[cfg(not(feature = "explanations"))]
             write!(f, " - {node:?}\n")?;
+            write!(f, " -  {sh:?}\n")?;
         }
         for pp in &self.group.generators() {
             write!(f, " -- {:?}\n", pp.elem)?;
