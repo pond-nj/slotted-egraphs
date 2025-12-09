@@ -1,12 +1,9 @@
-(and <
-(leq (int $f35956) (0)) 
-(eq (node $f35959) (binode (int $f35962) (node $f35960) (node $f35961))) 
-(eq (int $f35957) (+ (int $f35963) (1))) 
-(eq (int $f35958) (+ (int $f35963) (1)))>)
 
-($f35956, $f35957, $f35958, $f35959, $f35960, $f35961, $f35962, $f35963)
-
-
-New(id24: ($0, $1, $2), 
-id1158: ($1, $2, $8, $9, $3, $5, $7), 
-[AppliedId(id16: ($3, $4)), AppliedId(id16: ($5, $6)), AppliedId(id33: ($4, $6, $7))])
+m1 < l
+eclassId < eclassId2
+(and 
+eclassId [x -> m1, y -> l]
+eclassId [x -> l, y -> m1]
+eclassId2 [x -> l, y -> m1]
+...
+)

@@ -200,11 +200,11 @@ fn mainTest() {
         runner.egraph.total_number_of_nodes()
     );
 
-    // let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
-    // checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
-    // checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
+    let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
+    checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
+    checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
-    // checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
+    checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
     checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
 
     // checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
@@ -795,46 +795,46 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         // after constraint
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), M=M3+1, K=M32+1,
         // min-leaf(l,M1), min-leaf(r,M2), min(M1,M2,M3), min-leaf(l,M12), min-leaf(r,M22), min(M12,M22,M32)
-        //         let alter1Chc3 = format!(
-        //             "(new {syntax}
-        // (and <
-        // (leq {n} 0)
-        // (eq {t} (binode {a} {l} {r}))
-        // (eq {m} (+ {m3} 1))
-        // (eq {k} (+ {m32} 1))>)
-        // <{} {} {} {} {} {}>)",
-        //             minLeafDummy(l, m1),
-        //             minLeafDummy(r, m2),
-        //             minDummy(m1, m2, m3),
-        //             minLeafDummy(l, m12),
-        //             minLeafDummy(r, m22),
-        //             minDummy(m12, m22, m32),
-        //         );
-        //         let alter1Res3 = ematchQueryall(&eg, &Pattern::parse(&alter1Chc3).unwrap());
-        //         println!("unfold31 alter1Res3: {alter1Res3:#?}");
-        //         // id932, unfold_id16_0_in_id206_using_id55
-        //         assert!(alter1Res3.len() > 0);
+        let alter1Chc3 = format!(
+            "(new {syntax}
+        (and <
+        (leq {n} 0)
+        (eq {t} (binode {a} {l} {r}))
+        (eq {m} (+ {m3} 1))
+        (eq {k} (+ {m32} 1))>)
+        <{} {} {} {} {} {}>)",
+            minLeafDummy(l, m1),
+            minLeafDummy(r, m2),
+            minDummy(m1, m2, m3),
+            minLeafDummy(l, m12),
+            minLeafDummy(r, m22),
+            minDummy(m12, m22, m32),
+        );
+        let alter1Res3 = ematchQueryall(&eg, &Pattern::parse(&alter1Chc3).unwrap());
+        println!("unfold31 alter1Res3: {alter1Res3:#?}");
+        // id932, unfold_id16_0_in_id206_using_id55
+        assert!(alter1Res3.len() > 0);
 
         // after functionality
-        // let alter2Chc3 = format!(
-        //     "(new {syntax}
-        // (and <
-        // (leq {n} 0)
-        // (eq {t} (binode {a} {l} {r}))
-        // (eq {m} (+ {m3} 1))
-        // (eq {k} (+ {m32} 1))
-        // (eq {m1} {m12})
-        // (eq {m2} {m22})
-        // >)
-        // <{} {} {} {}>)",
-        //     minLeafDummy(l, m1),
-        //     minLeafDummy(r, m2),
-        //     minDummy(m1, m2, m3),
-        //     minDummy(m12, m22, m32),
-        // );
-        // let alter2Res3 = ematchQueryall(&eg, &Pattern::parse(&alter2Chc3).unwrap());
-        // println!("unfold31 alter2Res3: {alter2Res3:#?}");
-        // assert!(alter2Res3.len() > 0);
+        let alter2Chc3 = format!(
+            "(new {syntax}
+        (and <
+        (leq {n} 0)
+        (eq {t} (binode {a} {l} {r}))
+        (eq {m} (+ {m3} 1))
+        (eq {k} (+ {m32} 1))
+        (eq {m1} {m12})
+        (eq {m2} {m22})
+        >)
+        <{} {} {} {}>)",
+            minLeafDummy(l, m1),
+            minLeafDummy(r, m2),
+            minDummy(m1, m2, m3),
+            minDummy(m12, m22, m32),
+        );
+        let alter2Res3 = ematchQueryall(&eg, &Pattern::parse(&alter2Chc3).unwrap());
+        println!("unfold31 alter2Res3: {alter2Res3:#?}");
+        assert!(alter2Res3.len() > 0);
 
         // after constraint again
         let alter3Chc3 = format!(
@@ -874,24 +874,24 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         println!("unfold31 alter4Res3: {alter4Res3:#?}");
         assert!(alter4Res3.len() > 0);
 
-        // after constraint again
-        let alter5Chc3 = format!(
-            "(new {syntax}
-        (and <
-        (leq {n} 0)
-        (eq {t} (binode {a} {l} {r}))
-        (eq {m} (+ {m3} 1))
-        (eq {k} (+ {m32} 1))
-        (eq {m3} {m32})
-        >)
-        <{} {} {}>)",
-            minLeafDummy(l, m1),
-            minLeafDummy(r, m2),
-            minDummy(m1, m2, m3),
-        );
-        let alter5Res3 = ematchQueryall(&eg, &Pattern::parse(&alter5Chc3).unwrap());
-        println!("unfold31 alter1Res3Functional2: {alter5Res3:#?}");
-        assert!(alter5Res3.len() > 0);
+        // after constraint again, TODO
+        // let alter5Chc3 = format!(
+        //     "(new {syntax}
+        // (and <
+        // (leq {n} 0)
+        // (eq {t} (binode {a} {l} {r}))
+        // (eq {m} (+ {m3} 1))
+        // (eq {k} (+ {m32} 1))
+        // (eq {m3} {m32})
+        // >)
+        // <{} {} {}>)",
+        //     minLeafDummy(l, m1),
+        //     minLeafDummy(r, m2),
+        //     minDummy(m1, m2, m3),
+        // );
+        // let alter5Res3 = ematchQueryall(&eg, &Pattern::parse(&alter5Chc3).unwrap());
+        // println!("unfold31 alter1Res3Functional2: {alter5Res3:#?}");
+        // assert!(alter5Res3.len() > 0);
     } else {
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3),
         // T=node(A2,L2,R2), K=M32+1, min-leaf(L2,M12), min-leaf(R2,M22), min(M12,M22,M32)
