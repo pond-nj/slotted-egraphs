@@ -169,10 +169,6 @@ fn functionalityTransformation(
     let functionalityComponentsListClone = Rc::clone(&functionalityComponentsList);
     let constrRewriteListClone = Rc::clone(&constrRewriteList);
     let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
-        println!(
-            "len fltlist {}",
-            functionalityComponentsListClone.borrow().len()
-        );
         for components in Rc::clone(&functionalityComponentsListClone).borrow().iter() {
             let ConstrRewriteComponent {
                 constrAppId,
@@ -189,8 +185,6 @@ fn functionalityTransformation(
             let CHC::And(andChildren) = constrENode else {
                 panic!();
             };
-
-            println!("newENode {:?}", newENode);
 
             // input to output mapping
             let mut inputToOutputMapping: BTreeMap<(Id, Vec<Slot>), Vec<(Vec<Slot>, usize)>> =
@@ -215,12 +209,8 @@ fn functionalityTransformation(
                 let maxOutputIdx = *outputIdx.iter().max().unwrap();
                 let mut inputVars = vec![];
                 let mut outputVars = vec![];
-                println!("outputIdx {:?}", outputIdx);
-                println!("m {:?}", m);
                 for (i, s) in m.values_vec().iter().enumerate() {
                     assert!(i <= maxOutputIdx);
-
-                    println!("i {i} s {s:?}");
 
                     if outputIdx.contains(&i) {
                         outputVars.push(s.clone());
@@ -234,8 +224,6 @@ fn functionalityTransformation(
                     .or_insert(vec![])
                     .push((outputVars, childIdx));
             }
-
-            println!("inputToOutputMapping {:?}", inputToOutputMapping);
             let mut newAndChildren: Vec<AppliedIdOrStar> = andChildren.clone();
             let mut filterOutChildIdx = BTreeSet::new();
 
@@ -281,13 +269,10 @@ fn functionalityTransformation(
                 continue;
             }
 
-            println!("flt received {:?}", unfoldedChildren);
-
             newAndChildren.sort();
             newAndChildren.dedup();
             let newAnd = CHC::And(newAndChildren);
             let newAndAppId = eg.add(newAnd.clone());
-            println!("flt newAnd {:?}", newAnd.weak_shape().0);
             checkVarType(&newAndAppId, eg);
 
             let mut newUnfoldedChildren: Vec<AppliedIdOrStar> = unfoldedChildren
@@ -303,8 +288,6 @@ fn functionalityTransformation(
                 CHC::New(syntax.clone(), newAndAppId.clone(), newUnfoldedChildren);
             let updatedNewENodeAppId = eg.add(updatedNewENode.clone());
             checkVarType(&updatedNewENodeAppId, eg);
-
-            println!("flt output {:?}", weakShapeCHC(&updatedNewENode).0);
 
             constrRewriteListClone
                 .clone()
@@ -1277,6 +1260,52 @@ fn constraintRewrite(
 //     .into()
 // }
 
+fn createSortNewENode(
+    syntaxVars: &Vec<Slot>,
+    condChildren: &Vec<AppliedIdOrStar>,
+    children: &Vec<AppliedIdOrStar>,
+    varTypes: &BTreeMap<Slot, VarType>,
+    eg: &mut CHCEGraph,
+) -> (AppliedId, CHC) {
+    let onlyChildren = children.clone().into_iter().map(|a| a.clone()).collect();
+    let emptyPredId = eg.add(CHC::PredSyntax(vec![]));
+    let emptyAndId = eg.add(CHC::And(vec![]));
+    let dummyENode = CHC::New(emptyPredId, emptyAndId, onlyChildren);
+
+    // get map from children ordering
+    let (_, map) = dummyENode.weak_shape();
+
+    let mut updatedSyntaxVars: Vec<_> = syntaxVars.into_iter().map(|s| map.inverse()[*s]).collect();
+    updatedSyntaxVars.sort();
+
+    let updatedSyntaxVarsStr = updatedSyntaxVars
+        .into_iter()
+        .map(|s| generateVar(&s.to_string(), varTypes[&map[s]].clone()))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let syntaxStr = format!("(pred <{updatedSyntaxVarsStr}>)");
+    let syntaxAppId = eg.addExpr(&syntaxStr);
+
+    let mut updatedCondChildren: Vec<_> = condChildren
+        .clone()
+        .into_iter()
+        .map(|a| AppliedIdOrStar::AppliedId(a.getAppliedId().apply_slotmap(&map.inverse())))
+        .collect();
+    updatedCondChildren.sort();
+    let condAppId = eg.add(CHC::And(updatedCondChildren));
+
+    let updatedChildren = children
+        .clone()
+        .into_iter()
+        .map(|a| AppliedIdOrStar::AppliedId(a.getAppliedId().apply_slotmap(&map.inverse())))
+        .collect();
+
+    (
+        syntaxAppId.clone(),
+        CHC::New(syntaxAppId, condAppId, updatedChildren),
+    )
+}
+
 fn defineFold(
     unfoldList: &Rc<RefCell<UnfoldList>>,
     definedList: &Rc<RefCell<BTreeSet<CHC>>>,
@@ -1326,15 +1355,6 @@ fn defineFold(
                 // let mut rootData = eg.analysis_data(rootAppId.id).varTypes.clone();
                 let mergeVarTypes = aggrVarTypes;
 
-                println!("mergeVarTypes {:#?}", mergeVarTypes);
-                println!("origENode {:?}", origENode);
-                println!("eclassId {:#?}", rootAppId.id);
-                println!(
-                    "childAppIds.m {:#?}",
-                    childAppIds.iter().map(|x| x.getAppliedId().m)
-                );
-                println!("eclass {:#?}", eg.eclass(rootAppId.id));
-
                 let mut unionfind: QuickUnionUf<UnionBySize> =
                     QuickUnionUf::<UnionBySize>::new(childAppIds.len());
                 let mut hasNonBasicVar = vec![false; childAppIds.len()];
@@ -1359,8 +1379,9 @@ fn defineFold(
                 }
 
                 // for each group/sharing block, define new chc
-                for (_, group) in groupMap {
+                for (_, mut group) in groupMap {
                     // TODO: check if this exists in a folding group
+                    group.sort();
                     let mut basicVars: BTreeSet<Slot> = BTreeSet::default();
                     for i in &group {
                         let appId = childAppIds[*i].getAppliedId();
@@ -1374,65 +1395,34 @@ fn defineFold(
                     let mut children: Vec<_> = group
                         .clone()
                         .into_iter()
-                        .map(|i| childAppIds[i].getAppliedId())
+                        .map(|i| childAppIds[i].clone())
                         .collect();
-                    children.sort();
-                    // debug!("from {:?} children after sort {:?}", rootAppId.id, children);
-
-                    let dummyChildren = children
-                        .clone()
-                        .into_iter()
-                        .map(|a| AppliedIdOrStar::AppliedId(a.clone()))
-                        .collect();
-                    let emptyPredId = eg.add(CHC::PredSyntax(vec![]));
-                    let emptyAndId = eg.add(CHC::And(vec![]));
-                    let dummyEnode = CHC::New(emptyPredId, emptyAndId, dummyChildren);
-
-                    let (dummyEnodeSh, map) = dummyEnode.weak_shape();
-                    let mut basicVars: Vec<_> =
-                        basicVars.into_iter().map(|s| map.inverse()[s]).collect();
-                    basicVars.sort();
-
-                    let basicVarsStr = basicVars
-                        .into_iter()
-                        .map(|s| generateVar(&s.to_string(), mergeVarTypes[&map[s]].clone()))
-                        .collect::<Vec<_>>()
-                        .join(" ");
-                    let syntax = format!("(pred <{basicVarsStr}>)");
-                    let syntaxId = eg.addExpr(&syntax);
 
                     let oldLen = eg.total_number_of_nodes();
 
-                    let mut childrenStr = "".to_string();
-                    let mut newSubst = Subst::default();
-                    for i in 0..children.len() {
-                        newSubst.insert(
-                            format!("x{}", i),
-                            children[i].clone().apply_slotmap(&map.inverse()),
-                        );
-                        childrenStr += &format!("?x{} ", i);
-                    }
-                    let newENodeStr = format!("(new {syntax} (and <>) <{childrenStr}>)");
-                    let newENodeAppId =
-                        pattern_subst(eg, &Pattern::parse(&newENodeStr).unwrap(), &newSubst);
-                    let newENode = constructENodefromPatternSubst(
+                    let (syntaxAppId, newENode) = createSortNewENode(
+                        &basicVars.into_iter().collect(),
+                        &vec![],
+                        &children,
+                        &mergeVarTypes,
                         eg,
-                        &Pattern::parse(&newENodeStr).unwrap(),
-                        &newSubst,
-                    )
-                    .unwrap();
+                    );
+                    let newENodeAppId = eg.add(newENode.clone());
 
                     if eg.total_number_of_nodes() == oldLen {
                         continue;
                     }
 
-                    eg.shrink_slots(&newENodeAppId, &syntaxId.slots(), ());
+                    eg.shrink_slots(&newENodeAppId, &syntaxAppId.slots(), ());
 
                     let newENodeShape = newENode.weak_shape().0;
                     let composeEnode =
                         CHC::Compose(vec![AppliedIdOrStar::AppliedId(newENodeAppId.clone())]);
                     let composeShape = composeEnode.weak_shape().0;
                     let composeAppId = eg.add(composeEnode);
+                    eg.analysis_data_mut(composeAppId.id)
+                        .predNames
+                        .insert(format!("define_from_{}", rootAppId.id));
                     checkVarType(&composeAppId, eg);
 
                     addToUnfoldList(

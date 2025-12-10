@@ -4,6 +4,23 @@ use super::*;
 
 use log::debug;
 
+macro_rules! checkRes {
+    ($res:expr) => {
+        assert!(
+            $res.len() > 0,
+            "The collection is empty, expected at least one element."
+        );
+
+        let allIds = $res.iter().map(|x| &x.1).collect::<BTreeSet<_>>();
+
+        assert!(
+            allIds.len() == 1,
+            "Expected all elements to have the same ID. Found IDs: {:?}",
+            allIds
+        );
+    };
+}
+
 fn minDummy(x: &str, y: &str, z: &str) -> String {
     let syntax = format!("(pred <{x} {y} {z}>)");
     format!("(composeInit min {syntax} (true) <2>)")
@@ -228,7 +245,7 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
     let u = &generateVarFromCount(count, VarType::Node);
 
     // define
-    let syntax = format!("(pred <{n} {k} {m}>)");
+    let syntax = format!("(pred <{n} {m} {k}>)");
     let chc: String = format!(
         "(new {syntax} (and <>) <{} {} {}>)",
         leafDropDummy(n, t, u),
@@ -237,7 +254,7 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&chc).unwrap());
     println!("defineNewId: {res:?}");
-    assert!(res.len() >= 1);
+    checkRes!(res);
     // id65
 
     let newDefineCompose = format!("(compose <{chc}>)");
@@ -245,7 +262,7 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
     let newDefineComposeId = res[0].1;
     println!("defineComposeId: {newDefineComposeId:?}");
     // id66
-    assert!(res.len() >= 1);
+    checkRes!(res);
 
     // unfold
     // new1(N,K,M)←left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
@@ -261,13 +278,15 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
 
     // new1(N,K,M) ← T = leaf, U = leaf, min-leaf(U,M), min-leaf(T,K)
     let chc1 = format!(
-        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf))>) <{} {}>)",
+        "(new {syntax} (and <
+(eq {t} (leaf)) 
+(eq {u} (leaf))>) <{} {}>)",
         minLeafDummy(u, m),
         minLeafDummy(t, k)
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&chc1).unwrap());
     println!("res: {res:?}");
-    assert!(res.len() >= 1);
+    checkRes!(res);
 
     let a = &generateVarFromCount(count, VarType::Int);
     let l = &generateVarFromCount(count, VarType::Node);
@@ -277,13 +296,16 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
 
     // new1(N,K,M)← N <= 0 , T = node(a, l, r), U = node(a, l, r), min-leaf(U,M), min-leaf(T,K)
     let chc2 = format!(
-        "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r}))>) <{} {}>)",
+        "(new {syntax} (and <
+(leq {n} 0) 
+(eq {t} (binode {a} {l} {r})) 
+(eq {u} (binode {a} {l} {r}))>) <{} {}>)",
         minLeafDummy(u, m),
         minLeafDummy(t, k)
     );
     let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2).unwrap());
     println!("res2: {res2:?}");
-    assert!(res2.len() > 0);
+    checkRes!(res2);
 
     let a = &generateVarFromCount(count, VarType::Int);
     let l = &generateVarFromCount(count, VarType::Node);
@@ -294,19 +316,22 @@ fn checkUnfoldNewDefineExists(eg: &mut CHCEGraph) -> Id {
 
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
     let chc3 = format!(
-        "(new {syntax} (and <(eq {t} (binode {a} {l} {r})) (geq {n} 1) (eq {n1} (- {n} 1))>) <{} {} {}>)",
+        "(new {syntax} (and <
+(eq {t} (binode {a} {l} {r})) 
+(geq {n} 1) 
+(eq {n1} (- {n} 1))>) <{} {} {}>)",
         leafDropDummy(n1, l, u),
         minLeafDummy(u, m),
         minLeafDummy(t, k)
     );
     let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
     println!("res3: {res3:?}");
-    assert!(res3.len() > 0);
+    checkRes!(res3);
 
     let compose = format!("(compose <{chc1} {chc2} {chc3}>)");
     let composeRes = ematchQueryall(&eg, &Pattern::parse(&compose).unwrap());
     println!("composeRes: {composeRes:?}");
-    assert!(composeRes.len() > 0);
+    checkRes!(composeRes);
     assert!(composeRes[0].1 == newDefineComposeId);
 
     return newDefineComposeId;
@@ -330,7 +355,7 @@ fn checkUnfold2NewDefineWithMinLeaf(newDefineComposeId: Id, eg: &mut CHCEGraph) 
     let k = &generateVarFromCount(&mut count, VarType::Int);
     let m = &generateVarFromCount(&mut count, VarType::Int);
 
-    let syntax = format!("(pred <{n} {k} {m}>)");
+    let syntax = format!("(pred <{n} {m} {k}>)");
 
     let t = &generateVarFromCount(&mut count, VarType::Node);
     let u = &generateVarFromCount(&mut count, VarType::Node);
@@ -344,14 +369,14 @@ fn checkUnfold2NewDefineWithMinLeaf(newDefineComposeId: Id, eg: &mut CHCEGraph) 
     let res = ematchQueryall(&eg, &Pattern::parse(&originalCHC).unwrap());
     println!("found ENodeTobeUnfolded {:?}", res);
     // should be id 76
-    assert!(res.len() >= 1);
+    checkRes!(res);
 
     let composeOriginalCHC = format!("(compose <{originalCHC} *0>)");
     let res = ematchQueryall(&eg, &Pattern::parse(&composeOriginalCHC).unwrap());
     let originalRootId = res[0].1;
     println!("found composeOriginalCHC {:?}", originalRootId);
     // should be id 66
-    assert!(res.len() >= 1);
+    checkRes!(res);
 
     assert!(newDefineComposeId == originalRootId);
 
@@ -364,7 +389,7 @@ fn checkUnfold2NewDefineWithMinLeaf(newDefineComposeId: Id, eg: &mut CHCEGraph) 
     let res = ematchQueryall(&eg, &Pattern::parse(&unfoldChc1).unwrap());
     // should be id100
     println!("found unfoldCHC1 {:?}", res);
-    assert!(res.len() >= 1);
+    checkRes!(res);
 
     // TODO: if we enabled t and u here, it won't match in composeUnfold because t, u is treated to be global var in compose level.
     // but actually since they don't appear in the head, it should be local var in new level only.
@@ -389,12 +414,12 @@ fn checkUnfold2NewDefineWithMinLeaf(newDefineComposeId: Id, eg: &mut CHCEGraph) 
     let res2 = ematchQueryall(&eg, &Pattern::parse(&unfoldChc2).unwrap());
     // should be id102
     println!("found unfoldCHC2 {:?}", res2);
-    assert!(res2.len() >= 1);
+    checkRes!(res2);
 
     let composeUnfoldCHC = format!("(compose <{unfoldChc1} {unfoldChc2} *0>)");
     let res3 = ematchQueryall(&eg, &Pattern::parse(&composeUnfoldCHC).unwrap());
     println!("found composeUnfoldCHC {:?}", res3);
-    assert!(res3.len() >= 1);
+    checkRes!(res3);
     assert!(res3[0].1 == newDefineComposeId);
 }
 
@@ -418,7 +443,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     let k = &generateVarFromCount(count, VarType::Int);
     let m = &generateVarFromCount(count, VarType::Int);
 
-    let syntax = format!("(pred <{n} {k} {m}>)");
+    let syntax = format!("(pred <{n} {m} {k}>)");
 
     let t = &generateVarFromCount(count, VarType::Node);
     let u = &generateVarFromCount(count, VarType::Node);
@@ -439,7 +464,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     // id79
     // unfold_id12_in_id67_using_id45
     println!("unfold21 res: {res:#?}");
-    assert!(res.len() > 0);
+    checkRes!(res);
 
     if doConstraintRewrite {
         // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), T = U, min-leaf(U,M), min-leaf(T,K)
@@ -454,7 +479,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         );
         let alterRes1 = ematchQueryall(&eg, &Pattern::parse(&alterOrigChc1).unwrap());
         println!("unfold21 alterRes1 {alterRes1:#?}");
-        assert!(alterRes1.len() > 0);
+        checkRes!(alterRes1);
         assert!(alterRes1[0].1 == res[0].1);
     }
 
@@ -467,7 +492,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     // unfold_id16_in_id79_using_id57
     let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2).unwrap());
     println!("unfold21 res2: {res2:#?}");
-    assert!(res2.len() > 0);
+    checkRes!(res2);
 
     let a = &generateVarFromCount(count, VarType::Int);
     let l = &generateVarFromCount(count, VarType::Node);
@@ -496,7 +521,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         ));
         let alterRes3 = ematchQueryall(&eg, &Pattern::parse(&chc3.clone().unwrap()).unwrap());
         println!("unfold21 alterRes3 {alterRes3:#?}");
-        assert!(alterRes3.len() > 0);
+        checkRes!(alterRes3);
     } else {
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), U = node(a, l, r), U=node(a1,l1,r1), M=M3+1,
         //  min-leaf(l1,M1), min-leaf(r1,M2), min(M1,M2,M3), min-leaf(T,K)
@@ -514,13 +539,13 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         ));
         let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3.clone().unwrap()).unwrap());
         println!("unfold21 res3: {res3:#?}");
-        assert!(res3.len() > 0);
+        checkRes!(res3);
     }
 
     let composeUnfold21 = format!("(compose <{chc2} {} *0>)", chc3.unwrap());
     let resCompose = ematchQueryall(&eg, &Pattern::parse(&composeUnfold21).unwrap());
     println!("unfold21 resCompose: {resCompose:#?}");
-    assert!(resCompose.len() > 0);
+    checkRes!(resCompose);
 }
 
 fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
@@ -541,13 +566,13 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let k = &generateVarFromCount(count, VarType::Int);
     let m = &generateVarFromCount(count, VarType::Int);
 
-    let syntax = format!("(pred <{n} {k} {m}>)");
+    let syntax = format!("(pred <{n} {m} {k}>)");
 
     let t = &generateVarFromCount(count, VarType::Node);
     let u = &generateVarFromCount(count, VarType::Node);
 
     // define
-    let syntax = format!("(pred <{n} {k} {m}>)");
+    let syntax = format!("(pred <{n} {m} {k}>)");
 
     let a1 = &generateVarFromCount(count, VarType::Int);
     let l1 = &generateVarFromCount(count, VarType::Node);
@@ -564,7 +589,7 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     );
     let res = ematchQueryall(&eg, &Pattern::parse(&chc).unwrap());
     println!("unfold22 res: {res:#?}");
-    assert!(res.len() > 0);
+    checkRes!(res);
 
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), T = leaf, K = 0
     let chc2 = format!(
@@ -576,7 +601,7 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     // unfold_id13_in_id78_using_id55
     // id122
     println!("unfold22 res2: {res2:#?}");
-    assert!(res2.len() > 0);
+    checkRes!(res2);
 
     let a2 = &generateVarFromCount(count, VarType::Int);
     let l2 = &generateVarFromCount(count, VarType::Node);
@@ -597,12 +622,12 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     );
     let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
     println!("unfold22 res3: {res3:#?}");
-    assert!(res3.len() > 0);
+    checkRes!(res3);
 
     let composeUnfold22 = format!("(compose <{chc2} {chc3} *0>)");
     let resCompose = ematchQueryall(&eg, &Pattern::parse(&composeUnfold22).unwrap());
     println!("unfold22 resCompose: {resCompose:#?}");
-    assert!(resCompose.len() > 0);
+    checkRes!(resCompose);
 }
 
 // test pass but with debug enabled (log to stdout), the time is too long
@@ -624,7 +649,7 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let k = &generateVarFromCount(&mut count, VarType::Int);
     let m = &generateVarFromCount(&mut count, VarType::Int);
 
-    let syntax = format!("(pred <{n} {k} {m}>)");
+    let syntax = format!("(pred <{n} {m} {k}>)");
 
     let t = &generateVarFromCount(&mut count, VarType::Node);
     let u = &generateVarFromCount(&mut count, VarType::Node);
@@ -638,7 +663,7 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let res = ematchQueryall(&eg, &Pattern::parse(&fromUnfoldChc1).unwrap());
     println!("found fromUnfoldChc1 {:?}", res);
     // should be id100
-    assert!(res.len() >= 1);
+    checkRes!(res);
 
     // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, T = leaf, K = 0
     let toUnfoldChc1 =
@@ -648,7 +673,7 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let res2 = ematchQueryall(&eg, &Pattern::parse(&toUnfoldChc1).unwrap());
     println!("found toUnfoldChc1 {:?}", res2);
     // should be id199
-    assert!(res2.len() >= 1);
+    checkRes!(res2);
 
     let t = &generateVarFromCount(&mut count, VarType::Node);
     let u = &generateVarFromCount(&mut count, VarType::Node);
@@ -667,12 +692,12 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     );
     let res3 = ematchQueryall(&eg, &Pattern::parse(&toUnfoldChc2).unwrap());
     println!("found toUnfoldChc2 {:?}", res3);
-    assert!(res3.len() >= 1);
+    checkRes!(res3);
 
     let toComposeUnfoldCHC = format!("(compose <{toUnfoldChc1} {toUnfoldChc2} *0>)");
     let res4 = ematchQueryall(&eg, &Pattern::parse(&toComposeUnfoldCHC).unwrap());
     println!("found toComposeUnfoldCHC {:?}", res4);
-    assert!(res4.len() >= 1);
+    checkRes!(res4);
 }
 
 // need at least 4 iterations for this to pass -> egraph size around 743
@@ -695,7 +720,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     let k = &generateVarFromCount(count, VarType::Int);
     let m = &generateVarFromCount(count, VarType::Int);
 
-    let syntax = format!("(pred <{n} {k} {m}>)");
+    let syntax = format!("(pred <{n} {m} {k}>)");
 
     let t = &generateVarFromCount(count, VarType::Node);
     let u = &generateVarFromCount(count, VarType::Node);
@@ -728,7 +753,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     let res = ematchQueryall(&eg, &Pattern::parse(&origChc).unwrap());
     // // 206
     println!("unfold31 res: {res:#?}");
-    assert!(res.len() > 0);
+    checkRes!(res);
 
     let mut chc2: Option<String> = None;
     if true {
@@ -750,7 +775,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         ));
         let alterRes2 = ematchQueryall(&eg, &Pattern::parse(&chc2.unwrap()).unwrap());
         println!("unfold31 alterRes2: {alterRes2:#?}");
-        assert!(alterRes2.len() > 0);
+        checkRes!(alterRes2);
     } else {
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), T=leaf, K=0
         chc2 = Some(format!(
@@ -768,7 +793,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         ));
         let res2 = ematchQueryall(&eg, &Pattern::parse(&chc2.unwrap()).unwrap());
         println!("unfold31 res2: {res2:#?}");
-        assert!(res2.len() > 0);
+        checkRes!(res2);
     }
 
     let a = &generateVarFromCount(count, VarType::Int);
@@ -813,7 +838,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         let alter1Res3 = ematchQueryall(&eg, &Pattern::parse(&alter1Chc3).unwrap());
         println!("unfold31 alter1Res3: {alter1Res3:#?}");
         // id932, unfold_id16_0_in_id206_using_id55
-        assert!(alter1Res3.len() > 0);
+        checkRes!(alter1Res3);
 
         // after functionality
         let alter2Chc3 = format!(
@@ -834,7 +859,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         );
         let alter2Res3 = ematchQueryall(&eg, &Pattern::parse(&alter2Chc3).unwrap());
         println!("unfold31 alter2Res3: {alter2Res3:#?}");
-        assert!(alter2Res3.len() > 0);
+        checkRes!(alter2Res3);
 
         // after constraint again
         let alter3Chc3 = format!(
@@ -853,7 +878,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         );
         let alter3Res3 = ematchQueryall(&eg, &Pattern::parse(&alter3Chc3).unwrap());
         println!("unfold31 alter3Res3: {alter3Res3:#?}");
-        assert!(alter3Res3.len() > 0);
+        checkRes!(alter3Res3);
 
         // after functionality again
         let alter4Chc3 = format!(
@@ -872,7 +897,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         );
         let alter4Res3 = ematchQueryall(&eg, &Pattern::parse(&alter4Chc3).unwrap());
         println!("unfold31 alter4Res3: {alter4Res3:#?}");
-        assert!(alter4Res3.len() > 0);
+        checkRes!(alter4Res3);
 
         // after constraint again, TODO
         // let alter5Chc3 = format!(
@@ -891,7 +916,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         // );
         // let alter5Res3 = ematchQueryall(&eg, &Pattern::parse(&alter5Chc3).unwrap());
         // println!("unfold31 alter1Res3Functional2: {alter5Res3:#?}");
-        // assert!(alter5Res3.len() > 0);
+        // checkRes!(alter5Res3);
     } else {
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3),
         // T=node(A2,L2,R2), K=M32+1, min-leaf(L2,M12), min-leaf(R2,M22), min(M12,M22,M32)
@@ -915,12 +940,12 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         let res3 = ematchQueryall(&eg, &Pattern::parse(&chc3).unwrap());
         // unfold_id16_in_id114_using_id62
         println!("unfold31 res3: {res3:#?}");
-        assert!(res3.len() > 0);
+        checkRes!(res3);
     }
 
     // TODO: this takes a very long time to run, why?
     // let composeUnfold31 = format!("(compose <{chc2} {chc3} *0>)");
     // let resCompose = ematchQueryall(&eg, &Pattern::parse(&composeUnfold31).unwrap());
     // println!("unfold31 resCompose: {resCompose:#?}");
-    // assert!(resCompose.len() > 0);
+    // checkRes!(resCompose);
 }

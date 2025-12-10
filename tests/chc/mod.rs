@@ -283,13 +283,6 @@ impl Analysis<CHC> for CHCAnalysis {
             },
         };
 
-        println!("sh {:?}", sh);
-        println!(
-            "making CHCData {:?}, result {:#?}",
-            sh.weak_shape().0,
-            chcData.varTypes
-        );
-
         let functionalInfo = match sh {
             CHC::ComposeInit(_, _, functional, outputIdxAppIds) => {
                 let functional = getBoolVal(&functional.id, eg);
