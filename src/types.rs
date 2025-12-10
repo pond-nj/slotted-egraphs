@@ -66,11 +66,15 @@ impl AppliedId {
                 self.slots()
             );
         }
-        self.apply_slotmap_partial(m)
+        self.apply_slotmap_intersect(m)
     }
 
-    pub fn apply_slotmap_partial(&self, m: &SlotMap) -> AppliedId {
-        AppliedId::new(self.id, self.m.compose_partial(m))
+    pub fn apply_slotmap_intersect(&self, m: &SlotMap) -> AppliedId {
+        AppliedId::new(self.id, self.m.compose_intersect(m))
+    }
+
+    pub fn applySlotMapPartial(&self, m: &SlotMap) -> AppliedId {
+        AppliedId::new(self.id, self.m.composePartial(m))
     }
 
     pub fn apply_slotmap_fresh(&self, m: &SlotMap) -> AppliedId {

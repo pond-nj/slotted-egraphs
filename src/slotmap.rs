@@ -125,32 +125,49 @@ impl SlotMap {
             assert_eq!(self.values(), other.keys(), "SlotMap::compose() failed!");
         }
 
-        self.compose_partial(other)
+        self.compose_intersect(other)
     }
 
     // self :: X -> Y
     // other :: Y -> Z
     // -> out :: X -> Z
     //
-    // In other words, compose_partial first runs "self" and then "other", for any given input Slot.
-    pub fn compose_partial(&self, other: &SlotMap) -> SlotMap {
+    // In other words, compose_intersect first runs "self" and then "other", for any given input Slot.
+    pub fn compose_intersect(&self, other: &SlotMap) -> SlotMap {
         let mut out = SlotMap::new();
         for (x, y) in self.iter() {
             if let Some(z) = other.get(y) {
                 out.insert(x, z);
             }
         }
+
+        out
+    }
+
+    pub fn composePartial(&self, other: &SlotMap) -> SlotMap {
+        let mut out = SlotMap::new();
+        for (x, y) in self.iter() {
+            if let Some(z) = other.get(y) {
+                out.insert(x, z);
+            } else {
+                out.insert(x, y);
+            }
+        }
+
+        assert!(self.len() == out.len());
         out
     }
 
     // if some slot is missing in `other`, we just choose a fresh slot as output.
     // self.keys() == self.compose_fresh(other).keys() is guaranteed.
     pub fn compose_fresh(&self, other: &SlotMap) -> SlotMap {
+        let mut createNewKeysFor = BTreeSet::default();
         let mut out = SlotMap::new();
         for (x, y) in self.iter() {
             if let Some(z) = other.get(y) {
                 out.insert(x, z);
             } else {
+                assert!(createNewKeysFor.insert(y));
                 out.insert(x, Slot::fresh());
             }
         }

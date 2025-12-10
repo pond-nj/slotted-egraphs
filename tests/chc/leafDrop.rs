@@ -8,7 +8,7 @@ macro_rules! checkRes {
     ($res:expr) => {
         assert!(
             $res.len() > 0,
-            "The collection is empty, expected at least one element."
+            "res is empty, expected at least one element."
         );
 
         let allIds = $res.iter().map(|x| &x.1).collect::<BTreeSet<_>>();
@@ -96,6 +96,7 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     let syntax = format!("(pred <{x} {y} {z}>)");
     let syntaxAppId = eg.addExpr(&syntax);
 
+    // it is not always the case that variable in the head will appear in the body.
     // left-drop(x,y,z) ← y=leaf, z=leaf
     let cond1 = format!("(and <(eq {y} (leaf)) (eq {z} (leaf))>)");
     let chc1 = format!("(new {syntax} {cond1} <>)");
@@ -211,11 +212,32 @@ fn mainTest() {
     dumpCHCEGraph(&runner.egraph);
     runner.egraph.check();
 
-    debug!(
-        "egraph after size after {} {}",
-        runner.egraph.totalNumberOfEclass(),
-        runner.egraph.total_number_of_nodes()
-    );
+    {
+        let cid = 93;
+        let c = runner.egraph.eclass(Id(cid)).unwrap();
+        for (sh, ProvenSourceNode { elem: bij, .. }) in &c.nodes {
+            let real = sh.apply_slotmap(bij);
+            assert!(real.slots().is_superset(&c.slots));
+
+            // println!("real {real:?}");
+            let (computed_sh, computed_bij) = runner.egraph.shape(&real);
+            assert_eq!(&computed_sh, sh);
+
+            // computed_bij :: shape-slots -> slots(i)
+            // bij :: shape-slots -> slots(i)
+            let perm = computed_bij.inverse().compose_intersect(&bij);
+            // if !c.group.contains(&perm) {
+            println!("sh {sh:?}");
+            println!("computed bij {:?}", computed_bij);
+            println!("bij {:?}", bij);
+            println!("perm {:?}", perm);
+            println!("all perms {:?}", c.group.all_perms());
+            println!("eclass {cid} {:?}", c);
+            println!("");
+            // }
+            assert!(c.group.contains(&perm));
+        }
+    }
 
     let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
     checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
@@ -756,9 +778,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     checkRes!(res);
 
     let mut chc2: Option<String> = None;
-    if true {
-        // pass this one first for faster debugging
-    } else if doConstraintRewrite {
+    if doConstraintRewrite {
         // new1(N,K,M)← N <= 0 , T = node(a, L, R), M=M3+1, T=leaf, K=0, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
         chc2 = Some(format!(
             "(new {syntax} (and <

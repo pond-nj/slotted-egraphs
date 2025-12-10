@@ -111,12 +111,12 @@ impl TransitivityProof {
         let mut theta1 = {
             // eq1.l*theta1 == eq.l
             // -> theta1 == eq1.l^-1 * eq.l
-            eq1.l.m.inverse().compose_partial(&eq.l.m)
+            eq1.l.m.inverse().compose_intersect(&eq.l.m)
         };
         let mut theta2 = {
             // eq2.r*theta2 == eq.r
             // -> theta2 == eq2.r^-1 * eq.r
-            eq2.r.m.inverse().compose_partial(&eq.r.m)
+            eq2.r.m.inverse().compose_intersect(&eq.r.m)
         };
 
         let recompute_theta1 = |theta1: &mut SlotMap, theta2: &SlotMap| {
@@ -127,8 +127,8 @@ impl TransitivityProof {
                     &eq1.r
                         .m
                         .inverse()
-                        .compose_partial(&eq2.l.m)
-                        .compose_partial(theta2),
+                        .compose_intersect(&eq2.l.m)
+                        .compose_intersect(theta2),
                 )
                 .unwrap();
         };
@@ -141,8 +141,8 @@ impl TransitivityProof {
                     &eq2.l
                         .m
                         .inverse()
-                        .compose_partial(&eq1.r.m)
-                        .compose_partial(theta1),
+                        .compose_intersect(&eq1.r.m)
+                        .compose_intersect(theta1),
                 )
                 .unwrap();
         };

@@ -64,10 +64,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // goal.l.m :: slots(goal.l.id) -> X
         // goal.r.m :: slots(goal.r.id) -> X
         // goal_associations :: slots(goal.l.id) -> slots(goal.r.id)
-        let goal_associations = goal.l.m.compose_partial(&goal.r.m.inverse());
+        let goal_associations = goal.l.m.compose_intersect(&goal.r.m.inverse());
 
         let mut current = peq;
-        let current_associations = current.l.m.compose_partial(&current.r.m.inverse());
+        let current_associations = current.l.m.compose_intersect(&current.r.m.inverse());
         let open_association_keys = &goal_associations.keys() - &current_associations.keys();
 
         let l_red_slots = &self.syn_slots(current.l.id) - &self.slots(current.l.id);
@@ -252,7 +252,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // child_eq.l.m :: syn_slots(eq.l.id) -> X
             // child_eq.r.m :: syn_slots(eq.r.id) -> X
 
-            for (k, v) in child_eq.l.m.compose_partial(&child_eq.r.m.inverse()).iter() {
+            for (k, v) in child_eq
+                .l
+                .m
+                .compose_intersect(&child_eq.r.m.inverse())
+                .iter()
+            {
                 let Some(k) = eq.l.m.get(k) else { continue };
                 let Some(v) = eq.r.m.get(v) else { continue };
                 try_insert(k, v, &mut map);

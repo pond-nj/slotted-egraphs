@@ -77,6 +77,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             usages.insert(*i, BTreeSet::default());
         }
 
+        // println!("{}", self);
+
         // redundancy-check for leaders.
         // TODO add a similar check for followers, using unionfind_get.
         for (i, _) in &self.classes {
@@ -96,7 +98,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 let eq = self.proven_unionfind_get(*i).proof.equ();
                 // eq.l.m :: slots(i) -> X
                 // eq.r.m :: slots(i) -> X
-                let tmp = eq.l.m.compose_partial(&eq.r.m.inverse());
+                let tmp = eq.l.m.compose_intersect(&eq.r.m.inverse());
                 assert!(tmp.is_perm());
                 assert_eq!(c.slots, tmp.keys());
                 assert_eq!(c.slots, tmp.values());
@@ -159,7 +161,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         // Check that all ENodes are valid.
-        for (_, c) in &self.classes {
+        for (cid, c) in &self.classes {
             for (sh, ProvenSourceNode { elem: bij, .. }) in &c.nodes {
                 let real = sh.apply_slotmap(bij);
                 assert!(real.slots().is_superset(&c.slots));
@@ -168,12 +170,22 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     continue;
                 }
 
+                // println!("real {real:?}");
                 let (computed_sh, computed_bij) = self.shape(&real);
                 assert_eq!(&computed_sh, sh);
 
                 // computed_bij :: shape-slots -> slots(i)
                 // bij :: shape-slots -> slots(i)
-                let perm = computed_bij.inverse().compose_partial(&bij);
+                let perm = computed_bij.inverse().compose_intersect(&bij);
+                if !c.group.contains(&perm) {
+                    println!("sh {sh:?}");
+                    println!("computed bij {:?}", computed_bij);
+                    println!("bij {:?}", bij);
+                    println!("perm {:?}", perm);
+                    println!("all perms {:?}", c.group.all_perms());
+                    println!("eclass {cid} {:?}", c);
+                    println!("");
+                }
                 assert!(c.group.contains(&perm));
 
                 for x in real.applied_id_occurrences() {
@@ -182,7 +194,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         }
 
-        fn check_internal_applied_id<L: Language, N: Analysis<L>>(
+        pub fn check_internal_applied_id<L: Language, N: Analysis<L>>(
             eg: &EGraph<L, N>,
             app_id: &AppliedId,
         ) {

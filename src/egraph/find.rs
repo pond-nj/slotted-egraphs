@@ -122,7 +122,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let mut pai2 = self.proven_unionfind_get(pai.elem.id);
 
-        pai2.elem.m = pai2.elem.m.compose_partial(&pai.elem.m);
+        pai2.elem.m = pai2.elem.m.compose_intersect(&pai.elem.m);
 
         #[cfg(feature = "explanations")]
         {

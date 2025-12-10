@@ -217,7 +217,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // from.m :: slots(from.id) -> X
         // to.m :: slots(to.id) -> X
-        let map = to.m.compose_partial(&from.m.inverse());
+        let map = to.m.compose_intersect(&from.m.inverse());
         if CHECKS {
             self.assert_ty(&map, &self.slots(to.id), &self.slots(from.id));
         }
@@ -289,7 +289,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // f :: slots(from.id) -> slots(to.id)
         // Note that f is a partial map, because some slots might have become redundant.
-        let f = from.m.compose_partial(&to.m.inverse());
+        let f = from.m.compose_intersect(&to.m.inverse());
 
         let change_permutation_from_from_to_to = |x: Perm| -> Perm {
             let perm: Perm = x

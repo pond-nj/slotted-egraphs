@@ -351,7 +351,9 @@ pub fn dumpCHCEClass(
     }
 
     let mut slot_order: Vec<Slot> = eg.slots(i).into();
-    slot_order.sort();
+    let mut slot_sorted = slot_order.clone();
+    slot_sorted.sort();
+    assert!(slot_order == slot_sorted);
     let slot_str = slot_order
         .iter()
         .map(|x| x.to_string())
@@ -382,6 +384,7 @@ pub fn dumpCHCEClass(
 
 pub fn dumpCHCEGraph(eg: &CHCEGraph) {
     print!("\n == Egraph ==");
+    print!("\n size of egraph: {}", eg.total_number_of_nodes());
     let mut eclasses = eg.ids();
     eclasses.sort();
 

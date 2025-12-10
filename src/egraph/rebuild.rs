@@ -30,12 +30,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let elem = self
             .mk_syn_identity_applied_id(i)
-            .apply_slotmap_partial(&SlotMap::identity(cap));
+            .apply_slotmap_intersect(&SlotMap::identity(cap));
 
         #[cfg(feature = "explanations")]
         if CHECKS {
             let eq = prf.equ();
-            let elem2 = eq.r.apply_slotmap_partial(&eq.l.m.inverse());
+            let elem2 = eq.r.apply_slotmap_intersect(&eq.l.m.inverse());
             assert_eq!(elem, elem2);
         }
 

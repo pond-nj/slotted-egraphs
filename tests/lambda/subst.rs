@@ -179,7 +179,7 @@ fn map_lookup(
     // t.m :: slots(t.id) -> X
 
     // bt_relation :: slots(b.id) -> slots(t.id)
-    let bt_relation = b.m.compose_partial(&t.m.inverse());
+    let bt_relation = b.m.compose_intersect(&t.m.inverse());
 
     // x :: X
     // real_x :: slots(b.id)
@@ -207,10 +207,10 @@ fn map_lookup(
         let fresh_inv = fresh.inverse();
 
         // t_map :: slots(t.id) -> slots(new_b)
-        let t_map = t.m.compose_partial(&fresh_inv);
+        let t_map = t.m.compose_intersect(&fresh_inv);
 
         // b_map :: slots(b.id) -> slots(new_b)
-        let b_map = b.m.compose_partial(&fresh_inv);
+        let b_map = b.m.compose_intersect(&fresh_inv);
 
         let v = Value {
             out_id: new_b,
@@ -226,10 +226,10 @@ fn map_lookup(
     // v.b_map :: slots(b.id) -> slots(v.out_id)
 
     // s_b :: slots(v.out_id) -> slots(b)
-    let s_b: SlotMap = v.b_map.inverse().compose_partial(&b.m);
+    let s_b: SlotMap = v.b_map.inverse().compose_intersect(&b.m);
 
     // s_t :: slots(v.out_id) -> slots(t)
-    let s_t: SlotMap = v.t_map.inverse().compose_partial(&t.m);
+    let s_t: SlotMap = v.t_map.inverse().compose_intersect(&t.m);
 
     // s_res :: slots(v.out_id) -> X
     let s_res = s_b.union(&s_t);

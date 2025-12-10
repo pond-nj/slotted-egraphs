@@ -86,17 +86,17 @@ pub(crate) enum PendingType {
 pub struct EClass<L: Language, N: Analysis<L>> {
     // The set of equivalent ENodes that make up this eclass.
     // for (sh, bij) in nodes; sh.apply_slotmap(bij) represents the actual ENode.
-    nodes: BTreeMap<L, ProvenSourceNode>,
+    pub nodes: BTreeMap<L, ProvenSourceNode>,
 
     // All other slots are considered "redundant" (or they have to be qualified by a ENode::Lam).
     // Should not contain Slot(0).
-    slots: SmallHashSet<Slot>,
+    pub slots: SmallHashSet<Slot>,
 
     // Shows which Shapes refer to this EClass.
     usages: BTreeSet<L>,
 
     // Expresses the self-symmetries of this e-class.
-    pub(crate) group: Group<ProvenPerm>,
+    pub group: Group<ProvenPerm>,
 
     // TODO remove this if explanations are disabled.
     syn_enode: L,
@@ -136,6 +136,47 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
         for pp in &self.group.generators() {
             write!(f, " -- {:?}\n", pp.elem)?;
         }
+
+        Ok(())
+    }
+
+    pub fn dumpEClassEG<T: fmt::Write>(
+        &self,
+        f: &mut T,
+        i: Id,
+        map: &mut BTreeMap<AppliedId, RecExpr<L>>,
+        groups: &BTreeMap<Id, Vec<Id>>,
+        eg: &EGraph<L, N>,
+    ) -> Result {
+        if self.nodes.len() == 0 {
+            return Ok(());
+        }
+
+        let mut slot_order: Vec<Slot> = self.slots().into();
+        let slot_str = slot_order
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let synExpr = eg.getSynExpr(&i, map);
+        write!(f, "\n{}", synExpr)?;
+        write!(f, "\n{:?}", self.analysis_data)?;
+        write!(f, "\n{:?}({:?})({}):", i, groups[&i], &slot_str)?;
+        write!(f, ">> {:?}\n", eg.getSynNodeNoSubst(&i))?;
+
+        let mut eclassNodes: Vec<_> = eg.enodes(i).into_iter().collect();
+        eclassNodes.sort();
+
+        for node in eclassNodes {
+            write!(f, " - {node:?}\n")?;
+            let (sh, m) = node.weak_shape();
+            write!(f, " -   {sh:?}\n")?;
+        }
+        // let permute = eg.getSlotPermutation(&i);
+        // for p in permute {
+        //     print!(" -- {:?}\n", p);
+        // }
 
         Ok(())
     }
@@ -224,7 +265,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             panic!("node {node:?} not found in {eclass:#?}");
         };
         let l = sh.apply_slotmap(&eclassNode.elem);
-        debug!("before apply_slotmap_partial {l:?}");
+        debug!("before apply_slotmap_intersect {l:?}");
         debug!("eclassAppId.m {:#?}", eclassAppId.m);
         l.apply_slotmap_partial(&eclassAppId.m)
     }
@@ -345,16 +386,37 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     /// Prints the contents of the E-Graph. Helpful for debugging.
+    // pub fn dump<T: fmt::Write>(&self, f: &mut T) -> Result {
+    //     write!(f, "\n == Egraph ==")?;
+    //     let mut eclasses: Vec<(&Id, &EClass<L, N>)> = self.classes.iter().collect();
+    //     eclasses.sort_by_key(|(x, _)| *x);
+
+    //     for (i, c) in eclasses {
+    //         write!(f, "\n{:?}(", i)?;
+    //         c.dumpEClass(f)?;
+    //     }
+    //     write!(f, "")?;
+    //     Ok(())
+    // }
+
     pub fn dump<T: fmt::Write>(&self, f: &mut T) -> Result {
         write!(f, "\n == Egraph ==")?;
-        let mut eclasses: Vec<(&Id, &EClass<L, N>)> = self.classes.iter().collect();
-        eclasses.sort_by_key(|(x, _)| *x);
+        write!(f, "\n size of egraph: {}", self.total_number_of_nodes())?;
+        let mut eclasses = self.ids();
+        eclasses.sort();
 
-        for (i, c) in eclasses {
-            write!(f, "\n{:?}(", i)?;
-            c.dumpEClass(f)?;
+        let mut groups = BTreeMap::<Id, Vec<Id>>::default();
+        for (x, y) in self.unionfind_iter() {
+            groups.entry(y.id).or_insert(vec![]).push(x);
         }
-        write!(f, "")?;
+
+        let mut map = BTreeMap::<AppliedId, RecExpr<L>>::default();
+        for i in eclasses {
+            self.eclass(i)
+                .unwrap()
+                .dumpEClassEG(f, i, &mut map, &groups, self)?;
+        }
+
         Ok(())
     }
 
@@ -370,7 +432,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
-    pub(crate) fn shape(&self, e: &L) -> (L, Bijection) {
+    pub fn shape(&self, e: &L) -> (L, Bijection) {
         let (pnode, bij) = self.proven_shape(e);
         (pnode.elem, bij)
     }
@@ -380,11 +442,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn proven_proven_shape(&self, e: &ProvenNode<L>) -> (ProvenNode<L>, Bijection) {
-        self.proven_proven_pre_shape(&e).weak_shape()
+        // println!("e {e:?}");
+        let tmp = self.proven_proven_pre_shape(&e);
+        // println!("proven_proven_pre_shape {tmp:?}");
+        let tmpWS = tmp.weak_shape();
+        // println!("proven_proven_pre_shape weak_shape {tmpWS:?}");
+        tmpWS
     }
 
     pub(crate) fn proven_proven_pre_shape(&self, e: &ProvenNode<L>) -> ProvenNode<L> {
         let e = self.proven_proven_find_enode(e);
+        // println!("proven_proven_find_enode {e:?}");
         self.proven_proven_get_group_compatible_variants(&e)
             .into_iter()
             .min_by_key(|pn| pn.weak_shape().0.elem.all_slot_occurrences())
@@ -513,7 +581,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         }
 
-        assert!(app.m.keys() == slots);
+        assert!(app.m.keys() == slots, "{:?} vs {slots:?}", app.m);
         app
     }
 
@@ -528,9 +596,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
     ) -> &'a RecExpr<L> {
         if map.contains_key(i) {
+            // println!("{} -> {}", i, map[i]);
             return map.get(i).unwrap();
         }
         let enode = self.get_syn_node(i);
+        // println!("syn enode {i:?} {enode:?}");
         let cs = enode
             .applied_id_occurrences()
             .iter()
@@ -553,7 +623,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
     ) -> &'a RecExpr<L> {
         let appId = self.mk_sem_identity_applied_id(i.clone());
-        debug!("getSynExpr {appId:?}");
+        // println!("identity app id {i:?} -> {appId:?}");
         self.getSynExprRecur(&appId, map)
     }
 
@@ -575,7 +645,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     /// Returns the canonical e-node corresponding to `i`.
     pub fn get_syn_node(&self, i: &AppliedId) -> L {
-        let syn = self.find_enode(&self.classes[&i.id].syn_enode);
+        let syn_enode = &self.classes[&i.id].syn_enode;
+        let syn = self.find_enode(syn_enode);
+
         let _syn_slots = syn.slots();
         // if !i.m.keys().is_superset(&syn_slots) {
         //     println!("i = {:?}", i);

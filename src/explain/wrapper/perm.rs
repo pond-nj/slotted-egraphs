@@ -26,7 +26,7 @@ impl Permutation for Perm {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct ProvenPerm {
+pub struct ProvenPerm {
     pub elem: Perm,
 
     #[cfg(feature = "explanations")]

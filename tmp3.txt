@@ -1,31 +1,38 @@
-unfold_id12_0_in_id58_using_id37
-(new 
-(pred <(int $f413) (int $f414) (int $f415)>) 
-(and <
-(eq (node $f416) (leaf))>) 
-<(composeInit (minLeaf) 
-(pred <(node $f416) (int $f414)>) (and <>) <(1)>) (composeInit (minLeaf) (pred <(node $f416) (int $f415)>) (and <>) <(1)>)>)
 
 
-unfold_id12_0_in_id58_using_id42
-(new (pred 
-<(int $f432) (int $f433) (int $f434)>) 
-(and <(leq (int $f432) (0)) 
-(eq (node $f435) (binode (int $f438) (node $f436) (node $f437)))>) 
-<(composeInit (minLeaf) (pred <(node $f435) (int $f433)>) (and <>) <(1)>) (composeInit (minLeaf) (pred <(node $f435) (int $f434)>) (and <>) <(1)>)>)
+
+with error
+sh New(id60: ($0), id36: ($1, $2), [])
+computed bij ($0 -> $f492, $1 -> $f634, $2 -> $f635)
+bij ($0 -> $f492, $1 -> $f635, $2 -> $f634)
+perm ($f492 -> $f492, $f634 -> $f635, $f635 -> $f634)
+all perms [ProvenPerm { elem: ($f492 -> $f492) }]
+
+CHCData { predNames: {"unfold_id12_0_in_id61_using_id37"}, varTypes: {$f492: Int, $f634: Node, $f635: Node, $f658: Node}, functionalInfo: FunctionalInfo { functional: false, outputIdx: [] } }
+($f492):>> New(id60: ($f492), id86: ($f493), [])
+ - New(id60: ($f492), id36: ($f635, $f634), [])
+ -  New(id60: ($0), id36: ($1, $2), [])
+ - New(id60: ($f492), id86: ($f658), [])
+ -  New(id60: ($0), id86: ($1), [])
+
+without error, id93
+
+CHCData { predNames: {"unfold_id255_0_in_id280_using_id37", "unfold_id12_0_in_id61_using_id37"}, varTypes: {$f492: Int, $f658: Node, $f681: Node, $f682: Node}, functionalInfo: FunctionalInfo { functional: false, outputIdx: [] } }
+($f492):>> New(id60: ($f492), id86: ($f493), [])
+ - New(id60: ($f492), id36: ($f681, $f682), [])
+ -  New(id60: ($0), id36: ($1, $2), [])
+ - New(id60: ($f492), id86: ($f658), [])
+ -  New(id60: ($0), id86: ($1), [])
+
+sh New(id60: ($0), id36: ($1, $2), [])
+computed bij ($0 -> $f492, $1 -> $f681, $2 -> $f682)
+bij ($0 -> $f492, $1 -> $f681, $2 -> $f682)
+perm ($f492 -> $f492, $f681 -> $f681, $f682 -> $f682)
+all perms [ProvenPerm { elem: ($f492 -> $f492) }]
 
 
-// new1(N,K,M)← 
-T = node(a, L, R), 
-N>= 1, N1=N-1, 
-left-drop(N1, L, U), 
-min-leaf(U,M), min-leaf(T,K)
-(new 
-(pred <(int $f326) (int $f327) (int $f328)>) N, M, K
-(and <
-(eq (node $f329) (binode (int $f333) (node $f331) (node $f332))) 
-(geq (int $f326) (1)) N >= 1
-(eq (int $f334) (- (int $f326) (1)))>) N1 = N -1
-<(composeInit (leafDrop) (pred <(int $f334) (node $f331) (node $f330)>) (and <>) <(2)>) leafDrop(N1, L, U)
-(composeInit (minLeaf) (pred <(node $f329) (int $f328)>) (and <>) <(1)>) minLeaf(T, K)
-(composeInit (minLeaf) (pred <(node $f330) (int $f327)>) (and <>) <(1)>)>) minLeaf(U, M)
+sh New(id60: ($0), id86: ($1), [])
+computed bij ($0 -> $f492, $1 -> $f658)
+bij ($0 -> $f492, $1 -> $f658)
+perm ($f492 -> $f492, $f658 -> $f658)
+all perms [ProvenPerm { elem: ($f492 -> $f492) }]
