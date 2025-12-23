@@ -53,6 +53,9 @@ impl AppliedId {
     }
 
     pub(crate) fn check(&self) {
+        if !self.m.is_bijection() {
+            println!("self {self:#?}");
+        }
         assert!(self.m.is_bijection());
     }
 

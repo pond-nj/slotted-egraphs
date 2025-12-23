@@ -207,6 +207,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let cn_bij = &c.nodes[&shape].elem;
         shape.apply_slotmap(cn_bij)
     }
+
+    pub fn getExactENodeInEClass(&self, n: &L, i: &Id) -> L {
+        let (shape, _) = &self.shape(n);
+        let c = &self.classes[&i];
+        let cn_bij = &c.nodes[&shape].elem;
+        shape.apply_slotmap(cn_bij)
+    }
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {

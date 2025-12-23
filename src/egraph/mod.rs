@@ -173,10 +173,11 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
             let (sh, m) = node.weak_shape();
             write!(f, " -   {sh:?}\n")?;
         }
-        // let permute = eg.getSlotPermutation(&i);
-        // for p in permute {
-        //     print!(" -- {:?}\n", p);
-        // }
+        let permute = eg.getSlotPermutation(&i);
+        write!(f, "permute len {}\n", permute.len())?;
+        for p in permute {
+            write!(f, " -- {:?}\n", p)?;
+        }
 
         Ok(())
     }
@@ -250,6 +251,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub fn eclass(&self, i: Id) -> Option<&EClass<L, N>> {
         self.classes.get(&self.find_id(i))
+    }
+
+    pub fn eclasses(&self) -> &BTreeMap<Id, EClass<L, N>> {
+        &self.classes
     }
 
     // get node with this shape using the eclass appId
@@ -444,15 +449,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(crate) fn proven_proven_shape(&self, e: &ProvenNode<L>) -> (ProvenNode<L>, Bijection) {
         // println!("e {e:?}");
         let tmp = self.proven_proven_pre_shape(&e);
-        // println!("proven_proven_pre_shape {tmp:?}");
         let tmpWS = tmp.weak_shape();
         // println!("proven_proven_pre_shape weak_shape {tmpWS:?}");
         tmpWS
     }
 
+    // get the smallest weak shape, where different shapes are from permutation of children eclasses
     pub(crate) fn proven_proven_pre_shape(&self, e: &ProvenNode<L>) -> ProvenNode<L> {
         let e = self.proven_proven_find_enode(e);
-        // println!("proven_proven_find_enode {e:?}");
         self.proven_proven_get_group_compatible_variants(&e)
             .into_iter()
             .min_by_key(|pn| pn.weak_shape().0.elem.all_slot_occurrences())
@@ -500,12 +504,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             return out;
         }
 
+        // permutation information is generated from children eclasses
         let groups: Vec<Vec<ProvenPerm>> = enode
             .elem
             .applied_id_occurrences()
             .iter()
             .map(|x| self.classes[&x.id].group.all_perms().into_iter().collect())
             .collect();
+
+        // why eclass id36 contains 2 in group.all_perms(), but it does not show when printed?
 
         for l in cartesian(&groups) {
             let pn = enode.clone();
@@ -514,7 +521,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // if CHECKS { pn.check_base(enode.base()); }
             out.push(pn);
         }
-
         out
     }
 

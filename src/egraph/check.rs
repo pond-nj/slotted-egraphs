@@ -170,7 +170,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     continue;
                 }
 
-                // println!("real {real:?}");
+                // shape, computed from permutation of slots in appliedId from permutation
+                // in children eclasses
                 let (computed_sh, computed_bij) = self.shape(&real);
                 assert_eq!(&computed_sh, sh);
 
@@ -178,14 +179,24 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 // bij :: shape-slots -> slots(i)
                 let perm = computed_bij.inverse().compose_intersect(&bij);
                 if !c.group.contains(&perm) {
+                    println!("");
+                    println!("egraph {self:?}");
                     println!("sh {sh:?}");
+                    let (_, _) = self.shape(&real);
                     println!("computed bij {:?}", computed_bij);
+                    println!("computed bij inverse {:?}", computed_bij.inverse());
                     println!("bij {:?}", bij);
-                    println!("perm {:?}", perm);
+                    println!(
+                        "computed_bij.inverse().compose_intersect(&bij) = perm {:?}",
+                        perm
+                    );
                     println!("all perms {:?}", c.group.all_perms());
                     println!("eclass {cid} {:?}", c);
+                    println!("c.group {:?}", c.group);
                     println!("");
                 }
+
+                // permutation in this group
                 assert!(c.group.contains(&perm));
 
                 for x in real.applied_id_occurrences() {

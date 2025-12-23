@@ -45,6 +45,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    // node is syn node
     pub(crate) fn refl_pc(&self, i: Id) -> ProvenContains<L> {
         let identity = self.mk_syn_identity_applied_id(i);
         let n = self.get_syn_node(&identity);
@@ -55,11 +56,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    // get smallest weak shape of syn node
     pub(crate) fn pc_from_src_id(&self, i: Id) -> ProvenContains<L> {
         self.pc_find(&self.refl_pc(i))
     }
 
     // "finds" both the node & the id to be "up-to-date".
+    // get smallest weak shape
     pub(crate) fn pc_find(&self, pc: &ProvenContains<L>) -> ProvenContains<L> {
         ProvenContains {
             node: self.proven_proven_pre_shape(&pc.node),

@@ -82,6 +82,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     fn union_leaders(&mut self, l: AppliedId, r: AppliedId, proof: ProvenEq) -> bool {
         // early return, if union should not be made.
         if self.eq(&l, &r) {
+            println!("eq, will not union");
             return false;
         }
 
@@ -105,6 +106,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             return true;
         }
 
+        // if the same id, only update group permutation
         if l.id == r.id {
             let id = l.id;
 
@@ -185,6 +187,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // moves everything from `from` to `to`.
     fn move_to(&mut self, from: &AppliedId, to: &AppliedId, #[allow(unused)] proof: ProvenEq) {
+        println!("choose merged to {to:?}");
         if CHECKS {
             assert_eq!(from.slots(), to.slots());
             #[cfg(feature = "explanations")]
@@ -331,6 +334,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         };
 
+        // move group permutation from from to to
         let set = self.classes[&from.id]
             .group
             .generators()

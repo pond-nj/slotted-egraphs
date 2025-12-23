@@ -101,11 +101,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 proven_perm.check();
             }
 
-            let perm = proven_perm
+            // only keep the map from an element in cap
+            let perm: SlotMap = proven_perm
                 .elem
                 .into_iter()
                 .filter(|(x, _)| cap.contains(x))
                 .collect();
+
+            assert!(perm.len() != 0);
 
             #[cfg(feature = "explanations")]
             let prf = self.disassociate_proven_eq(proven_perm.proof);
@@ -270,6 +273,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // finds self-symmetries caused by the e-node `src_id`.
     fn determine_self_symmetries(&mut self, src_id: Id) {
+        // get smallest weak shape of syn node
         let pc1 = self.pc_from_src_id(src_id);
 
         let i = pc1.target_id();
@@ -310,6 +314,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 if CHECKS {
                     proven_perm.check();
                 }
+                // should be the place that updates this group permutation if children eclasses are permuted
                 let grp = &mut self.classes.get_mut(&i).unwrap().group;
                 if grp.add(proven_perm) {
                     self.touched_class(i, PendingType::Full);

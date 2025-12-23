@@ -1,0 +1,147 @@
+Testing canonical forms:
+--------------------------------------------------
+term_list [('f', 'x', 'y')]
+var_occurrences defaultdict(<class 'list'>, {'x': [('f', 0, ('x', 'y'))], 'y': [('f', 1, ('x', 'y'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'x': Counter({'y': 1}), 'y': Counter({'x': 1})})
+fingerprints {'x': ((('f', 0, ('x', 'y')),), (('y', 1),)), 'y': ((('f', 1, ('x', 'y')),), (('x', 1),))}
+term_list [('f', 'z', 'w')]
+var_occurrences defaultdict(<class 'list'>, {'z': [('f', 0, ('w', 'z'))], 'w': [('f', 1, ('w', 'z'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'z': Counter({'w': 1}), 'w': Counter({'z': 1})})
+fingerprints {'z': ((('f', 0, ('w', 'z')),), (('w', 1),)), 'w': ((('f', 1, ('w', 'z')),), (('z', 1),))}
+
+Test case 1:
+  List1: [('f', 'x', 'y')]
+  List2: [('f', 'z', 'w')]
+  Standard canonical form equality: True
+  Advanced canonical form equality: True
+
+  Standard CF1: ('f', 'v0', 'v1')
+  Standard CF2: ('f', 'v0', 'v1')
+term_list [('f', 'x', 'y'), ('f', 'y', 'x')]
+var_occurrences defaultdict(<class 'list'>, {'x': [('f', 0, ('x', 'y')), ('f', 1, ('x', 'y'))], 'y': [('f', 1, ('x', 'y')), ('f', 0, ('x', 'y'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'x': Counter({'y': 2}), 'y': Counter({'x': 2})})
+fingerprints {'x': ((('f', 0, ('x', 'y')), ('f', 1, ('x', 'y'))), (('y', 2),)), 'y': ((('f', 0, ('x', 'y')), ('f', 1, ('x', 'y'))), (('x', 2),))}
+term_list [('f', 'y', 'z'), ('f', 'z', 'y')]
+var_occurrences defaultdict(<class 'list'>, {'y': [('f', 0, ('y', 'z')), ('f', 1, ('y', 'z'))], 'z': [('f', 1, ('y', 'z')), ('f', 0, ('y', 'z'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'y': Counter({'z': 2}), 'z': Counter({'y': 2})})
+fingerprints {'y': ((('f', 0, ('y', 'z')), ('f', 1, ('y', 'z'))), (('z', 2),)), 'z': ((('f', 0, ('y', 'z')), ('f', 1, ('y', 'z'))), (('y', 2),))}
+
+Test case 2:
+  List1: [('f', 'x', 'y'), ('f', 'y', 'x')]
+  List2: [('f', 'y', 'z'), ('f', 'z', 'y')]
+  Standard canonical form equality: True
+  Advanced canonical form equality: True
+
+  Standard CF1: ('f', 'v0', 'v1')|('f', 'v1', 'v0')
+  Standard CF2: ('f', 'v0', 'v1')|('f', 'v1', 'v0')
+term_list [('f', 'x', 'y'), ('f', 'y', 'x'), ('g', 'x', 'y')]
+var_occurrences defaultdict(<class 'list'>, {'x': [('f', 0, ('x', 'y')), ('f', 1, ('x', 'y')), ('g', 0, ('x', 'y'))], 'y': [('f', 1, ('x', 'y')), ('f', 0, ('x', 'y')), ('g', 1, ('x', 'y'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'x': Counter({'y': 3}), 'y': Counter({'x': 3})})
+fingerprints {'x': ((('f', 0, ('x', 'y')), ('f', 1, ('x', 'y')), ('g', 0, ('x', 'y'))), (('y', 3),)), 'y': ((('f', 0, ('x', 'y')), ('f', 1, ('x', 'y')), ('g', 1, ('x', 'y'))), (('x', 3),))}
+term_list [('f', 'y', 'x'), ('f', 'x', 'y'), ('g', 'x', 'y')]
+var_occurrences defaultdict(<class 'list'>, {'y': [('f', 0, ('x', 'y')), ('f', 1, ('x', 'y')), ('g', 1, ('x', 'y'))], 'x': [('f', 1, ('x', 'y')), ('f', 0, ('x', 'y')), ('g', 0, ('x', 'y'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'y': Counter({'x': 3}), 'x': Counter({'y': 3})})
+fingerprints {'y': ((('f', 0, ('x', 'y')), ('f', 1, ('x', 'y')), ('g', 1, ('x', 'y'))), (('x', 3),)), 'x': ((('f', 0, ('x', 'y')), ('f', 1, ('x', 'y')), ('g', 0, ('x', 'y'))), (('y', 3),))}
+
+Test case 3:
+  List1: [('f', 'x', 'y'), ('f', 'y', 'x'), ('g', 'x', 'y')]
+  List2: [('f', 'y', 'x'), ('f', 'x', 'y'), ('g', 'x', 'y')]
+  Standard canonical form equality: True
+  Advanced canonical form equality: True
+
+  Standard CF1: ('f', 'v0', 'v1')|('f', 'v1', 'v0')|('g', 'v0', 'v1')
+  Standard CF2: ('f', 'v0', 'v1')|('f', 'v1', 'v0')|('g', 'v0', 'v1')
+term_list [('f', 'x', 'y'), ('f', 'x', 'x')]
+var_occurrences defaultdict(<class 'list'>, {'x': [('f', 0, ('x', 'y')), ('f', 0, ('x', 'x')), ('f', 1, ('x', 'x'))], 'y': [('f', 1, ('x', 'y'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'x': Counter({'x': 2, 'y': 1}), 'y': Counter({'x': 1})})
+fingerprints {'x': ((('f', 0, ('x', 'x')), ('f', 0, ('x', 'y')), ('f', 1, ('x', 'x'))), (('x', 2), ('y', 1))), 'y': ((('f', 1, ('x', 'y')),), (('x', 1),))}
+term_list [('f', 'a', 'b'), ('f', 'a', 'a')]
+var_occurrences defaultdict(<class 'list'>, {'a': [('f', 0, ('a', 'b')), ('f', 0, ('a', 'a')), ('f', 1, ('a', 'a'))], 'b': [('f', 1, ('a', 'b'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'a': Counter({'a': 2, 'b': 1}), 'b': Counter({'a': 1})})
+fingerprints {'a': ((('f', 0, ('a', 'a')), ('f', 0, ('a', 'b')), ('f', 1, ('a', 'a'))), (('a', 2), ('b', 1))), 'b': ((('f', 1, ('a', 'b')),), (('a', 1),))}
+
+Test case 4:
+  List1: [('f', 'x', 'y'), ('f', 'x', 'x')]
+  List2: [('f', 'a', 'b'), ('f', 'a', 'a')]
+  Standard canonical form equality: True
+  Advanced canonical form equality: True
+
+  Standard CF1: ('f', 'v0', 'v0')|('f', 'v0', 'v1')
+  Standard CF2: ('f', 'v0', 'v0')|('f', 'v0', 'v1')
+term_list [('f', 'x', 'y'), ('g', 'y', 'z'), ('h', 'z', 'x')]
+var_occurrences defaultdict(<class 'list'>, {'x': [('f', 0, ('x', 'y')), ('h', 1, ('x', 'z'))], 'y': [('f', 1, ('x', 'y')), ('g', 0, ('y', 'z'))], 'z': [('g', 1, ('y', 'z')), ('h', 0, ('x', 'z'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'x': Counter({'y': 1, 'z': 1}), 'y': Counter({'x': 1, 'z': 1}), 'z': Counter({'y': 1, 'x': 1})})
+fingerprints {'x': ((('f', 0, ('x', 'y')), ('h', 1, ('x', 'z'))), (('y', 1), ('z', 1))), 'y': ((('f', 1, ('x', 'y')), ('g', 0, ('y', 'z'))), (('x', 1), ('z', 1))), 'z': ((('g', 1, ('y', 'z')), ('h', 0, ('x', 'z'))), (('x', 1), ('y', 1)))}
+term_list [('g', 'b', 'c'), ('f', 'a', 'b'), ('h', 'c', 'a')]
+var_occurrences defaultdict(<class 'list'>, {'b': [('g', 0, ('b', 'c')), ('f', 1, ('a', 'b'))], 'c': [('g', 1, ('b', 'c')), ('h', 0, ('a', 'c'))], 'a': [('f', 0, ('a', 'b')), ('h', 1, ('a', 'c'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'b': Counter({'c': 1, 'a': 1}), 'c': Counter({'b': 1, 'a': 1}), 'a': Counter({'b': 1, 'c': 1})})
+fingerprints {'b': ((('f', 1, ('a', 'b')), ('g', 0, ('b', 'c'))), (('a', 1), ('c', 1))), 'c': ((('g', 1, ('b', 'c')), ('h', 0, ('a', 'c'))), (('a', 1), ('b', 1))), 'a': ((('f', 0, ('a', 'b')), ('h', 1, ('a', 'c'))), (('b', 1), ('c', 1)))}
+
+Test case 5:
+  List1: [('f', 'x', 'y'), ('g', 'y', 'z'), ('h', 'z', 'x')]
+  List2: [('g', 'b', 'c'), ('f', 'a', 'b'), ('h', 'c', 'a')]
+  Standard canonical form equality: True
+  Advanced canonical form equality: True
+
+  Standard CF1: ('f', 'v0', 'v1')|('g', 'v1', 'v2')|('h', 'v2', 'v0')
+  Standard CF2: ('f', 'v0', 'v1')|('g', 'v1', 'v2')|('h', 'v2', 'v0')
+
+Test case 6:
+  List1: []
+  List2: []
+  Standard canonical form equality: True
+  Advanced canonical form equality: True
+
+  Standard CF1: 
+  Standard CF2: 
+term_list [('f', 'x', 'y')]
+var_occurrences defaultdict(<class 'list'>, {'x': [('f', 0, ('x', 'y'))], 'y': [('f', 1, ('x', 'y'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'x': Counter({'y': 1}), 'y': Counter({'x': 1})})
+fingerprints {'x': ((('f', 0, ('x', 'y')),), (('y', 1),)), 'y': ((('f', 1, ('x', 'y')),), (('x', 1),))}
+term_list [('f', 'x', 'x')]
+var_occurrences defaultdict(<class 'list'>, {'x': [('f', 0, ('x', 'x')), ('f', 1, ('x', 'x'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'x': Counter({'x': 2})})
+fingerprints {'x': ((('f', 0, ('x', 'x')), ('f', 1, ('x', 'x'))), (('x', 2),))}
+
+Test case 7:
+  List1: [('f', 'x', 'y')]
+  List2: [('f', 'x', 'x')]
+  Standard canonical form equality: False
+  Advanced canonical form equality: False
+
+  Standard CF1: ('f', 'v0', 'v1')
+  Standard CF2: ('f', 'v0', 'v0')
+term_list [('p', 'n', 'k', 'm'), ('a', 'u'), ('a', 't'), ('ml', 't', 'k'), ('ml', 'u', 'm')]
+var_occurrences defaultdict(<class 'list'>, {'n': [('p', 0, ('k', 'm', 'n'))], 'k': [('p', 1, ('k', 'm', 'n')), ('ml', 1, ('k', 't'))], 'm': [('p', 2, ('k', 'm', 'n')), ('ml', 1, ('m', 'u'))], 'u': [('a', 0, ('u',)), ('ml', 0, ('m', 'u'))], 't': [('a', 0, ('t',)), ('ml', 0, ('k', 't'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'n': Counter({'k': 1, 'm': 1}), 'k': Counter({'n': 1, 'm': 1, 't': 1}), 'm': Counter({'n': 1, 'k': 1, 'u': 1}), 't': Counter({'k': 1}), 'u': Counter({'m': 1})})
+fingerprints {'n': ((('p', 0, ('k', 'm', 'n')),), (('k', 1), ('m', 1))), 'k': ((('ml', 1, ('k', 't')), ('p', 1, ('k', 'm', 'n'))), (('m', 1), ('n', 1), ('t', 1))), 'm': ((('ml', 1, ('m', 'u')), ('p', 2, ('k', 'm', 'n'))), (('k', 1), ('n', 1), ('u', 1))), 'u': ((('a', 0, ('u',)), ('ml', 0, ('m', 'u'))), (('m', 1),)), 't': ((('a', 0, ('t',)), ('ml', 0, ('k', 't'))), (('k', 1),))}
+term_list [('p', 'n', 'k', 'm'), ('a', 't'), ('a', 'u'), ('ml', 't', 'k'), ('ml', 'u', 'm')]
+var_occurrences defaultdict(<class 'list'>, {'n': [('p', 0, ('k', 'm', 'n'))], 'k': [('p', 1, ('k', 'm', 'n')), ('ml', 1, ('k', 't'))], 'm': [('p', 2, ('k', 'm', 'n')), ('ml', 1, ('m', 'u'))], 't': [('a', 0, ('t',)), ('ml', 0, ('k', 't'))], 'u': [('a', 0, ('u',)), ('ml', 0, ('m', 'u'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'n': Counter({'k': 1, 'm': 1}), 'k': Counter({'n': 1, 'm': 1, 't': 1}), 'm': Counter({'n': 1, 'k': 1, 'u': 1}), 't': Counter({'k': 1}), 'u': Counter({'m': 1})})
+fingerprints {'n': ((('p', 0, ('k', 'm', 'n')),), (('k', 1), ('m', 1))), 'k': ((('ml', 1, ('k', 't')), ('p', 1, ('k', 'm', 'n'))), (('m', 1), ('n', 1), ('t', 1))), 'm': ((('ml', 1, ('m', 'u')), ('p', 2, ('k', 'm', 'n'))), (('k', 1), ('n', 1), ('u', 1))), 't': ((('a', 0, ('t',)), ('ml', 0, ('k', 't'))), (('k', 1),)), 'u': ((('a', 0, ('u',)), ('ml', 0, ('m', 'u'))), (('m', 1),))}
+
+Test case 8:
+  List1: [('p', 'n', 'k', 'm'), ('a', 'u'), ('a', 't'), ('ml', 't', 'k'), ('ml', 'u', 'm')]
+  List2: [('p', 'n', 'k', 'm'), ('a', 't'), ('a', 'u'), ('ml', 't', 'k'), ('ml', 'u', 'm')]
+  Standard canonical form equality: True
+  Advanced canonical form equality: True
+
+  Standard CF1: ('a', 'v0')|('a', 'v1')|('ml', 'v0', 'v2')|('ml', 'v1', 'v3')|('p', 'v4', 'v2', 'v3')
+  Standard CF2: ('a', 'v0')|('a', 'v1')|('ml', 'v0', 'v2')|('ml', 'v1', 'v3')|('p', 'v4', 'v2', 'v3')
+term_list [('f', 'x', 'y'), ('f', 'z', 'z')]
+var_occurrences defaultdict(<class 'list'>, {'x': [('f', 0, ('x', 'y'))], 'y': [('f', 1, ('x', 'y'))], 'z': [('f', 0, ('z', 'z')), ('f', 1, ('z', 'z'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'x': Counter({'y': 1}), 'y': Counter({'x': 1}), 'z': Counter({'z': 2})})
+fingerprints {'x': ((('f', 0, ('x', 'y')),), (('y', 1),)), 'y': ((('f', 1, ('x', 'y')),), (('x', 1),)), 'z': ((('f', 0, ('z', 'z')), ('f', 1, ('z', 'z'))), (('z', 2),))}
+term_list [('f', 'x', 'y'), ('f', 'x', 'x')]
+var_occurrences defaultdict(<class 'list'>, {'x': [('f', 0, ('x', 'y')), ('f', 0, ('x', 'x')), ('f', 1, ('x', 'x'))], 'y': [('f', 1, ('x', 'y'))]})
+var_adjacency defaultdict(<class 'collections.Counter'>, {'x': Counter({'x': 2, 'y': 1}), 'y': Counter({'x': 1})})
+fingerprints {'x': ((('f', 0, ('x', 'x')), ('f', 0, ('x', 'y')), ('f', 1, ('x', 'x'))), (('x', 2), ('y', 1))), 'y': ((('f', 1, ('x', 'y')),), (('x', 1),))}
+
+Test case 9:
+  List1: [('f', 'x', 'y'), ('f', 'z', 'z')]
+  List2: [('f', 'x', 'y'), ('f', 'x', 'x')]
+  Standard canonical form equality: False
+  Advanced canonical form equality: False
+
+  Standard CF1: ('f', 'v0', 'v2')|('f', 'v1', 'v1')
+  Standard CF2: ('f', 'v0', 'v0')|('f', 'v0', 'v1')

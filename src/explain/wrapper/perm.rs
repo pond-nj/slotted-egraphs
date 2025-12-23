@@ -3,7 +3,9 @@ use crate::*;
 use std::hash::{Hash, Hasher};
 use std::ops::Index;
 
-pub(crate) trait Permutation: Index<Slot, Output = Slot> + Clone + Eq + Hash {
+pub(crate) trait Permutation:
+    Index<Slot, Output = Slot> + Clone + Eq + Hash + Debug
+{
     fn iter(&self) -> impl Iterator<Item = (Slot, Slot)>;
     fn compose(&self, other: &Self) -> Self;
     fn inverse(&self) -> Self;

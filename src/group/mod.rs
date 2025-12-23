@@ -23,6 +23,7 @@ struct Next<P: Permutation> {
 
     // the orbit tree.
     // ot[x] is a perm that maps stab to x.
+    // ot[x]: stab -> x
     ot: HashMap<Slot, P>,
 
     g: Group<P>,
@@ -54,6 +55,7 @@ impl<P: Permutation> Group<P> {
     fn generators_impl(&self) -> HashSet<P> {
         match &self.next {
             None => HashSet::default(),
+            // or this orbital with the next generators.
             Some(n) => &n.ot.values().cloned().collect::<HashSet<_>>() | &n.g.generators_impl(),
         }
     }
@@ -123,7 +125,8 @@ impl<P: Permutation> Group<P> {
     }
 
     pub fn add_set(&mut self, mut perms: HashSet<P>) -> bool {
-        // There might be ways to make this faster, by iterating through the stab chain and determining at which layer this perm actually has an effect.
+        // There might be ways to make this faster,
+        // by iterating through the stab chain and determining at which layer this perm actually has an effect.
         // But it's polytime, so fast enough I guess.
 
         perms.retain(|x| !self.contains(&x.to_slotmap()));

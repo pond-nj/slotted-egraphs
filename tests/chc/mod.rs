@@ -17,6 +17,9 @@ pub use rewrite::*;
 mod ematchQuery;
 pub use ematchQuery::*;
 
+mod dedupVec;
+pub use dedupVec::*;
+
 mod leafDrop;
 mod tst;
 
@@ -24,7 +27,6 @@ define_language! {
     // TODO(Pond): now children can only have max one vector
     // TODO: add dont care var?
     pub enum CHC {
-        Var(Slot) = "var",
         // to specify types
         Int(Slot) = "int",
         Node(Slot) = "node",
@@ -57,6 +59,9 @@ define_language! {
         // use to create empty compose eclass for recursive definition
         ComposeInit(AppliedId, AppliedId, AppliedId, Vec<AppliedId>) = "composeInit",
         PredName(String),
+
+        // extraction control, means that we cannot extract this node
+        Lock(AppliedId) = "lock",
     }
 }
 
@@ -275,7 +280,6 @@ impl Analysis<CHC> for CHCAnalysis {
             }
             CHC::Int(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Int),
             CHC::Node(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Node),
-            CHC::Var(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Unknown),
             _ => CHCData {
                 predNames: HashSet::default(),
                 varTypes: aggregateVarType(sh, eg),

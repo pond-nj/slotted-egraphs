@@ -1,38 +1,10 @@
+(new 
+(pred <(int $n) (int $k) (int $m)>) 
+(and <(eq (node $t) (leaf)) (eq (node $u) (leaf))>) 
+<(composeInit (minLeaf) (pred <(node $t) (int $k)>) (true) <(1)>) 
+(composeInit (minLeaf) (pred <(node $u) (int $m)>) (true) <(1)>)>)
 
-
-
-with error
-sh New(id60: ($0), id36: ($1, $2), [])
-computed bij ($0 -> $f492, $1 -> $f634, $2 -> $f635)
-bij ($0 -> $f492, $1 -> $f635, $2 -> $f634)
-perm ($f492 -> $f492, $f634 -> $f635, $f635 -> $f634)
-all perms [ProvenPerm { elem: ($f492 -> $f492) }]
-
-CHCData { predNames: {"unfold_id12_0_in_id61_using_id37"}, varTypes: {$f492: Int, $f634: Node, $f635: Node, $f658: Node}, functionalInfo: FunctionalInfo { functional: false, outputIdx: [] } }
-($f492):>> New(id60: ($f492), id86: ($f493), [])
- - New(id60: ($f492), id36: ($f635, $f634), [])
- -  New(id60: ($0), id36: ($1, $2), [])
- - New(id60: ($f492), id86: ($f658), [])
- -  New(id60: ($0), id86: ($1), [])
-
-without error, id93
-
-CHCData { predNames: {"unfold_id255_0_in_id280_using_id37", "unfold_id12_0_in_id61_using_id37"}, varTypes: {$f492: Int, $f658: Node, $f681: Node, $f682: Node}, functionalInfo: FunctionalInfo { functional: false, outputIdx: [] } }
-($f492):>> New(id60: ($f492), id86: ($f493), [])
- - New(id60: ($f492), id36: ($f681, $f682), [])
- -  New(id60: ($0), id36: ($1, $2), [])
- - New(id60: ($f492), id86: ($f658), [])
- -  New(id60: ($0), id86: ($1), [])
-
-sh New(id60: ($0), id36: ($1, $2), [])
-computed bij ($0 -> $f492, $1 -> $f681, $2 -> $f682)
-bij ($0 -> $f492, $1 -> $f681, $2 -> $f682)
-perm ($f492 -> $f492, $f681 -> $f681, $f682 -> $f682)
-all perms [ProvenPerm { elem: ($f492 -> $f492) }]
-
-
-sh New(id60: ($0), id86: ($1), [])
-computed bij ($0 -> $f492, $1 -> $f658)
-bij ($0 -> $f492, $1 -> $f658)
-perm ($f492 -> $f492, $f658 -> $f658)
-all perms [ProvenPerm { elem: ($f492 -> $f492) }]
+(new (pred <(int $n) (int $k) (int $m)>) 
+(and <(eq (node $u) (leaf)) (eq (node $t) (leaf))>) 
+<(composeInit (minLeaf) (pred <(node $t) (int $k)>) (true) <(1)>) 
+(composeInit (minLeaf) (pred <(node $u) (int $m)>) (true) <(1)>)>)
