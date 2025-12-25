@@ -178,6 +178,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 // computed_bij :: shape-slots -> slots(i)
                 // bij :: shape-slots -> slots(i)
                 let perm = computed_bij.inverse().compose_intersect(&bij);
+
+                // permutation in this group
+                let perm = perm
+                    .iter()
+                    .filter_map(|(x, y)| {
+                        if c.slots.contains(&x) && c.slots.contains(&y) {
+                            Some((x, y))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+
                 if !c.group.contains(&perm) {
                     println!("");
                     println!("egraph {self:?}");
@@ -196,7 +209,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     println!("");
                 }
 
-                // permutation in this group
                 assert!(c.group.contains(&perm));
 
                 for x in real.applied_id_occurrences() {

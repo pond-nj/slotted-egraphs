@@ -253,9 +253,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.classes.get(&self.find_id(i))
     }
 
-    pub fn eclasses(&self) -> &BTreeMap<Id, EClass<L, N>> {
-        &self.classes
-    }
+    // should use .ids() instead
+    // pub fn eclasses(&self) -> &BTreeMap<Id, EClass<L, N>> {
+    //     &self.classes
+    // }
 
     // get node with this shape using the eclass appId
     pub fn getNode(&self, eclassAppId: &AppliedId, node: &L) -> L {

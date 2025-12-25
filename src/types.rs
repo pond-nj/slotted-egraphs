@@ -34,6 +34,26 @@ impl AppliedIdOrStar {
     }
 }
 
+impl From<AppliedIdOrStar> for AppliedId {
+    fn from(appId: AppliedIdOrStar) -> AppliedId {
+        let AppliedIdOrStar::AppliedId(appId) = appId else {
+            panic!();
+        };
+
+        appId.clone()
+    }
+}
+
+impl From<AppliedId> for AppliedIdOrStar {
+    fn from(appId: AppliedId) -> AppliedIdOrStar {
+        AppliedIdOrStar::AppliedId(appId)
+    }
+}
+
+pub fn toAppliedIdOrStarVec(appId: Vec<AppliedId>) -> Vec<AppliedIdOrStar> {
+    appId.into_iter().map(AppliedIdOrStar::AppliedId).collect()
+}
+
 /// A "term" or "expression" from some given [Language] L.
 // The AppliedIds in `node` are ignored (any typically set to AppliedId::null()). They are replaced by the children RecExpr.
 // A non-fancy version of RecExpr that uses the slots as "names".

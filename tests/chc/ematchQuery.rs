@@ -130,7 +130,7 @@ fn ematchQueryCheckEnodeAndChildren(
     let mut allSetOfChildren = vec![];
     match patternEnode {
         CHC::And(_) | CHC::Compose(_) => {
-            let childrenPermute = permute(&patternChildren);
+            let childrenPermute = permute_iter(&patternChildren);
 
             if childrenPermute.len() == 0 {
                 allSetOfChildren.push(patternChildren.to_vec());
@@ -139,7 +139,7 @@ fn ematchQueryCheckEnodeAndChildren(
             allSetOfChildren.extend(childrenPermute);
         }
         CHC::New(..) => {
-            let childrenPermute = permute(&patternChildren[2..]);
+            let childrenPermute = permute_iter(&patternChildren[2..]);
 
             if childrenPermute.len() == 0 {
                 allSetOfChildren.push(patternChildren.to_vec());

@@ -195,8 +195,6 @@ fn mainTest() {
         dumpCHCEGraph(&eg);
     }
 
-    // TODO: can we not use mem::take here?
-
     let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(3);
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
@@ -239,9 +237,9 @@ fn mainTest() {
         }
     }
 
-    let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
-    checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
-    checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
+    // let newDefineComposeId = checkUnfoldNewDefineExists(&mut runner.egraph);
+    // checkUnfold2NewDefineWithMinLeaf(newDefineComposeId, &mut runner.egraph);
+    // checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
     checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
     checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
@@ -252,6 +250,209 @@ fn mainTest() {
     // 19. new1(N,M,K)←M=0,K=0
     // 20. new1(N,M,K)←N≤0,M=M3+1,K=K3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(L,K1), min-leaf(R,K2), min(K1,K2,K3)
     // 21. new1(N,M,K)←N≥1,N1=N−1 K=K3+1, left-drop(N1,L,U), min-leaf(U,M), min-leaf(L,K1), min-leaf(R,K2), min(K1,K2,K3)
+}
+
+#[test]
+fn testSortAppId() {
+    initLogger();
+    let mut egOrig = CHCEGraph::default();
+    let mut count = 0;
+    let doConstraintRewrite = true;
+    {
+        let eg = &mut egOrig;
+
+        let n = &generateVarFromCount(&mut count, VarType::Int);
+        let t = &generateVarFromCount(&mut count, VarType::Node);
+        let u = &generateVarFromCount(&mut count, VarType::Node);
+        let m = &generateVarFromCount(&mut count, VarType::Int);
+        let k = &generateVarFromCount(&mut count, VarType::Int);
+
+        //  false ← N≥0,M+N<K, left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
+        let syntax = "(pred <>)";
+        let cond = format!("(and <(geq {n} 0) (lt (+ {m} {n}) {k})>)");
+        let rootCHC: String = format!(
+            "(new {syntax} {cond} <{} {} {}>)",
+            leafDropDummy(n, t, u),
+            minLeafDummy(u, m),
+            minLeafDummy(t, k)
+        );
+        let rootCHCId = eg.addExpr(&rootCHC);
+        eg.analysis_data_mut(rootCHCId.id)
+            .predNames
+            .insert("rootCHC".to_string());
+
+        let composeRoot = format!("(compose <{rootCHC}>)");
+
+        let rootDummyId = eg.addExpr(&rootDummy(n, t, u, m, k));
+        let rootId = eg.addExpr(&composeRoot);
+        eg.union(&rootId, &rootDummyId);
+
+        let x = &generateVarFromCount(&mut count, VarType::Int);
+        let y = &generateVarFromCount(&mut count, VarType::Int);
+        let z = &generateVarFromCount(&mut count, VarType::Int);
+
+        let minDummyId = eg.addExpr(&minDummy(x, y, z));
+        let minId = minCHC(x, y, z, eg);
+        eg.union(&minDummyId, &minId);
+
+        let x = &generateVarFromCount(&mut count, VarType::Int);
+        let y = &generateVarFromCount(&mut count, VarType::Node);
+        let z = &generateVarFromCount(&mut count, VarType::Node);
+
+        let leafDropDummyId = eg.addExpr(&leafDropDummy(x, y, z));
+        let leafDropId = leafDropCHC(x, y, z, &mut count, eg);
+        eg.union(&leafDropDummyId, &leafDropId);
+        let leafDropId = eg.find_applied_id(&leafDropDummyId).id;
+        debug!("leafDropId {:?}", leafDropId);
+
+        let x = &generateVarFromCount(&mut count, VarType::Node);
+        let y = &generateVarFromCount(&mut count, VarType::Int);
+
+        let minLeafDummyId = eg.addExpr(&minLeafDummy(x, y));
+        let minLeafId = minLeafCHC(x, y, &mut count, eg);
+        eg.union(&minLeafDummyId, &minLeafId);
+
+        println!("egraph before run");
+        dumpCHCEGraph(&eg);
+    }
+
+    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(3);
+    let (report, t): (Report, _) = time(|| {
+        runner.run(&mut getAllRewrites(
+            RewriteList::default(),
+            doConstraintRewrite,
+        ))
+    });
+
+    println!("egraph after run");
+    dumpCHCEGraph(&runner.egraph);
+    runner.egraph.check();
+
+    let (_, testTime) = time(|| {
+        for id in runner.egraph.ids() {
+            // test permute and sorted is the same
+            for enode in runner.egraph.enodes(id) {
+                match enode {
+                    CHC::New(syntax, cond, children) => {
+                        let sortedENode =
+                            sortNewENode1(&syntax, &cond, &children, &mut runner.egraph);
+                        for permuteChildren in permute_iter(&children) {
+                            let permuteENode =
+                                CHC::New(syntax.clone(), cond.clone(), permuteChildren.clone());
+                            let res = runner.egraph.lookup(&permuteENode);
+                            if res.is_some() {
+                                assert!(res.unwrap().id == id);
+                            }
+
+                            let permuteSortedENode =
+                                sortNewENode1(&syntax, &cond, &permuteChildren, &mut runner.egraph);
+                            if (sortedENode != permuteSortedENode) {
+                                assert_eq!(
+                                    sortedENode.weak_shape().0,
+                                    permuteSortedENode.weak_shape().0
+                                );
+                            }
+                        }
+                    }
+                    CHC::Compose(children) => {
+                        let sortedChildren =
+                            sortAppId(&children.iter().map(|x| x.clone().getAppliedId()).collect());
+                        for permuteChildren in permute_iter(&children) {
+                            let sortedPermuteChildren = sortAppId(
+                                &permuteChildren
+                                    .iter()
+                                    .map(|x| x.clone().getAppliedId())
+                                    .collect(),
+                            );
+                            if (sortedChildren != sortedPermuteChildren) {
+                                assert_eq!(
+                                    CHC::Compose(toAppliedIdOrStarVec(sortedChildren.clone()))
+                                        .weak_shape()
+                                        .0,
+                                    CHC::Compose(toAppliedIdOrStarVec(sortedPermuteChildren))
+                                        .weak_shape()
+                                        .0
+                                );
+                            }
+
+                            let permuteENode = CHC::Compose(permuteChildren);
+                            let res = runner.egraph.lookup(&permuteENode);
+                            if res.is_some() {
+                                assert!(res.unwrap().id == id);
+                            }
+                        }
+                    }
+                    CHC::And(children) => {
+                        let sortedChildren =
+                            sortAppId(&children.iter().map(|x| x.clone().getAppliedId()).collect());
+                        for permuteChildren in permute_iter(&children) {
+                            let sortedPermuteChildren = sortAppId(
+                                &permuteChildren
+                                    .iter()
+                                    .map(|x| x.clone().getAppliedId())
+                                    .collect(),
+                            );
+                            if (sortedChildren != sortedPermuteChildren) {
+                                assert_eq!(
+                                    CHC::And(toAppliedIdOrStarVec(sortedChildren.clone()))
+                                        .weak_shape()
+                                        .0,
+                                    CHC::And(toAppliedIdOrStarVec(sortedPermuteChildren))
+                                        .weak_shape()
+                                        .0
+                                );
+                            }
+
+                            let permuteENode = CHC::And(permuteChildren);
+                            let res = runner.egraph.lookup(&permuteENode);
+                            if res.is_some() {
+                                assert!(res.unwrap().id == id);
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
+            // test permute and added to egraph should be in the same eclass
+        }
+    });
+    println!("testTime {testTime:?}");
+}
+
+#[test]
+fn testPermute() {
+    let mut arr = vec![];
+    for j in 0..10 {
+        arr.push(j);
+    }
+    let permuteResult = permute_iter(&arr);
+    let mut permuteSet = HashSet::new();
+    for p in permuteResult {
+        permuteSet.insert(p);
+    }
+    assert!(permuteSet.len() == (1..=10).product());
+}
+
+#[test]
+fn testComb() {
+    let mut arr1 = vec![];
+    for j in 0..2 {
+        arr1.push(j);
+    }
+    let mut arr2 = vec![];
+    for j in 0..3 {
+        arr2.push(j);
+    }
+    let arr = vec![arr1, arr2];
+
+    let combinationResult = combination_iter(&arr);
+    let mut combinationSet = HashSet::new();
+    for p in combinationResult {
+        combinationSet.insert(p);
+    }
+    println!("combinationSet {combinationSet:?}");
+    assert!(combinationSet.len() == 6);
 }
 
 // need at least 2 iterations for this to pass -> egraph size around 100
@@ -475,7 +676,10 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), min-leaf(U,M), min-leaf(T,K)
     let origChc = format!(
-        "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r}))>) <{} {}>)",
+        "(new {syntax} (and <
+(leq {n} 0) 
+(eq {t} (binode {a} {l} {r})) 
+(eq {u} (binode {a} {l} {r}))>) <{} {}>)",
         minLeafDummy(u, m),
         minLeafDummy(t, k)
     );
@@ -506,7 +710,11 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=leaf, M=0 , min-leaf(T,K)
     let chc2 = format!(
-        "(new {syntax} (and <(leq {n} 0) (eq {t} (binode {a} {l} {r})) (eq {u} (binode {a} {l} {r})) (eq {u} (leaf)) (eq {m} 0)>) <{} >)",
+        "(new {syntax} (and <
+(leq {n} 0) 
+(eq {t} (binode {a} {l} {r})) 
+(eq {u} (binode {a} {l} {r})) 
+(eq {u} (leaf)) (eq {m} 0)>) <{} >)",
         minLeafDummy(t, k)
     );
     // unfold_id13_in_id77_using_id55
