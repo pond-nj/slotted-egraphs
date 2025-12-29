@@ -198,7 +198,7 @@ fn map_lookup(
         // max_slots = X
         let max_slots = &(&b.slots() - &singleton_set(x)) | &t.slots();
         let fresh = SlotMap::bijection_from_fresh_to(&max_slots);
-        let slots = fresh.keys();
+        let slots = fresh.keys_set();
 
         let new_b = eg.alloc_empty_eclass(&slots);
 

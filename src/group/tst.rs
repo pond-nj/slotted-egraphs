@@ -43,7 +43,7 @@ fn flip(n: usize, x: usize, y: usize) -> Perm {
 
 fn check_group(generators: impl IntoIterator<Item = Perm>) {
     let generators: HashSet<Perm> = generators.into_iter().collect();
-    let omega: SmallHashSet<_> = generators.iter().next().unwrap().values();
+    let omega: SmallHashSet<_> = generators.iter().next().unwrap().values_set();
     let identity = SlotMap::identity(&omega);
     let l = Group::new(&identity, generators.clone()).all_perms();
     let r = enrich(generators);

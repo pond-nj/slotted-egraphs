@@ -2,13 +2,9 @@ use super::*;
 use crate::*;
 use derive_more::derive;
 use log::debug;
-use nauty_Traces_sys::{
-    densenauty, empty_graph, optionblk, statsblk, ADDONEEDGE, FALSE, SETWORDSNEEDED, TRUE,
-};
 use std::cell::{Ref, RefCell};
-use std::collections::{BTreeSet, HashMap};
+
 use std::f32::consts::E;
-use std::os::raw::c_int;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
@@ -20,35 +16,27 @@ static G_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 use std::collections::HashSet;
 
-fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> Vec<AppliedIdOrStar> {
+fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> OrderVec<AppliedIdOrStar> {
     let n = eg.enodes_applied(appId).first().unwrap().clone();
     if let CHC::And(andChildren) = n {
         return andChildren;
     };
 
     if let CHC::True() = n {
-        return vec![];
+        return vec![].into();
     };
 
     panic!();
 }
 
 fn getVarAppId(s: Slot, vt: VarType, eg: &mut CHCEGraph) -> AppliedId {
-    let mut varENodeStr = None;
     match vt {
-        VarType::Int => {
-            varENodeStr = Some(format!("(int {s})"));
-        }
-        VarType::Node => {
-            varENodeStr = Some(format!("(node {s})"));
-        }
+        VarType::Int => eg.add(CHC::Int(s)),
+        VarType::Node => eg.add(CHC::Node(s)),
         VarType::Unknown => {
-            varENodeStr = Some(format!("(var {s})"));
+            todo!()
         }
     }
-
-    let varId = eg.addExpr(&varENodeStr.unwrap());
-    varId
 }
 
 fn checkVarType(appId: &AppliedId, eg: &CHCEGraph) {
@@ -73,21 +61,21 @@ macro_rules! checkNewENode {
         };
 
         let mut found = false;
-        for s in syntax.m.values() {
-            if cond.m.values().contains(&s) {
+        for s in syntax.m.values_set() {
+            if cond.m.values_set().contains(&s) {
                 found = true;
                 continue;
             }
 
-            for child in children {
-                if child.getAppliedId().m.values().contains(&s) {
+            for child in children.iter() {
+                if child.getAppliedId().m.values_set().contains(&s) {
                     found = true;
                     break;
                 }
             }
         }
 
-        if !found && syntax.m.values().len() != 0 {
+        if !found && syntax.m.values_set().len() != 0 {
             println!("alert enode = {:?}", $enode.weak_shape().0);
         }
     };
@@ -96,22 +84,22 @@ macro_rules! checkNewENode {
 macro_rules! checkNewENodeComponent {
     ($syntax:expr, $cond:expr, $children:expr) => {
         let mut found = false;
-        for s in $syntax.m.values() {
+        for s in $syntax.m.values_set() {
             for condChild in $cond {
-                if condChild.getAppliedId().m.values().contains(&s) {
+                if condChild.getAppliedId().m.values_set().contains(&s) {
                     found = true;
                     continue;
                 }
             }
 
             for child in $children {
-                if child.getAppliedId().m.values().contains(&s) {
+                if child.getAppliedId().m.values_set().contains(&s) {
                     found = true;
                     break;
                 }
             }
         }
-        if !found && $syntax.m.values().len() != 0 {
+        if !found && $syntax.m.values_set().len() != 0 {
             println!(
                 "alert syntax = {:?}, cond = {:?}, children = {:?}",
                 $syntax, $cond, $children
@@ -130,8 +118,8 @@ fn dedupMaintainOrder<T: Eq + std::hash::Hash + Clone>(data: Vec<T>) -> Vec<T> {
 #[derive(Debug, Clone)]
 pub struct UnfoldRecipe {
     syntax1: AppliedId,
-    mergeAndChildren: Vec<AppliedIdOrStar>,
-    unfoldedChildren: Vec<AppliedIdOrStar>,
+    mergeAndChildren: OrderVec<AppliedIdOrStar>,
+    unfoldedChildren: OrderVec<AppliedIdOrStar>,
     new2EClass: AppliedId,
 }
 
@@ -139,7 +127,7 @@ pub struct UnfoldRecipe {
 struct ComposeUnfoldRecipe {
     unfoldRecipe: Vec<Vec<UnfoldRecipe>>,
     exclude: usize,
-    compose1Children: Vec<AppliedId>,
+    compose1Children: OrderVec<AppliedId>,
     rootId: AppliedId,
     compose2Id: AppliedId,
     comp2Idx: usize,
@@ -303,7 +291,7 @@ fn functionalityTransformation(
                     .or_insert(vec![])
                     .push((outputVars, childIdx));
             }
-            let mut newAndChildren: Vec<AppliedIdOrStar> = andChildren.clone();
+            let mut newAndChildren: OrderVec<AppliedIdOrStar> = andChildren.clone();
             let mut filterOutChildIdx = BTreeSet::new();
 
             let getVarType = |toSlot, appId: AppliedId, egraph: &CHCEGraph| {
@@ -348,8 +336,8 @@ fn functionalityTransformation(
                 continue;
             }
 
-            let mut newUnfoldedChildren: Vec<AppliedIdOrStar> = unfoldedChildren
-                .into_iter()
+            let mut newUnfoldedChildren: OrderVec<AppliedIdOrStar> = unfoldedChildren
+                .iter()
                 .enumerate()
                 .filter(|(i, _)| !filterOutChildIdx.contains(i))
                 .map(|(_, c)| c.clone())
@@ -394,7 +382,7 @@ fn functionalityTransformation(
 // note: i1, compose1Children, composeAppId, new1EClass can be null if called from define
 fn unfoldSearchInternal(
     i1: usize,
-    compose1Children: &Vec<AppliedId>,
+    compose1Children: &OrderVec<AppliedId>,
     composeAppId: &AppliedId,
     new1EClass: &AppliedId,
     new1: &CHC,
@@ -453,23 +441,6 @@ fn unfoldSearchInternal(
                         mergeAndChildren.clone(),
                         unfoldedChildren.clone()
                     );
-                    // TODO: change to canonical sorting
-                    mergeAndChildren.sort();
-                    mergeAndChildren.dedup();
-
-                    // TODO: this is not needed here, because len does not change?
-                    // let mut test = unfoldedChildren.clone();
-                    // let testLenBefore = test.len();
-                    // test.sort();
-                    // test.dedup();
-                    // assert_eq!(testLenBefore, test.len());
-                    unfoldedChildren = dedupMaintainOrder(unfoldedChildren);
-
-                    checkNewENodeComponent!(
-                        syntax1,
-                        mergeAndChildren.clone(),
-                        unfoldedChildren.clone()
-                    );
 
                     // prepare for rewrite.
                     // cannot rewrite here because this is searcher only.
@@ -477,7 +448,7 @@ fn unfoldSearchInternal(
                     fromThisEClassRecipe.push(UnfoldRecipe {
                         syntax1: syntax1.clone(),
                         mergeAndChildren,
-                        unfoldedChildren,
+                        unfoldedChildren: unfoldedChildren.into(),
                         new2EClass: new2EClass.clone(),
                     });
                 }
@@ -527,7 +498,7 @@ fn unfoldSearch(
             _ => panic!(),
         };
 
-        let mut compose1Children: Vec<AppliedId> = compose1Children
+        let mut compose1Children: OrderVec<AppliedId> = compose1Children
             .into_iter()
             .map(|appId| {
                 let AppliedIdOrStar::AppliedId(appId) = appId else {
@@ -583,7 +554,7 @@ fn unfoldApplyInternal(
     constrRewriteListCopy: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
     createOrMerge: unfoldOpType, //if true, will merge with information from composeRecipe, if false, will create
     eg: &mut CHCEGraph,
-) -> Vec<AppliedId> {
+) -> OrderVec<AppliedId> {
     let ComposeUnfoldRecipe {
         unfoldRecipe,
         exclude,
@@ -595,7 +566,7 @@ fn unfoldApplyInternal(
     } = composeRecipe;
 
     if createOrMerge == unfoldOpType::unfoldCreateOnly {
-        assert_eq!(compose1Children, vec![]);
+        assert_eq!(compose1Children, vec![].into());
         assert_eq!(rootId, AppliedId::null());
         assert_eq!(exclude, 0);
         assert_eq!(new1EClass, AppliedId::null());
@@ -674,17 +645,53 @@ fn unfoldApplyInternal(
         let mut composeAppId = None;
         let mut composeShape = None;
         match createOrMerge {
+            // merge with the existsing before
             unfoldOpType::unfoldMerge => {
                 let mut unfoldedComposeChildren = compose1Children.clone();
                 unfoldedComposeChildren.remove(exclude);
                 unfoldedComposeChildren.extend(childrenComb);
-                unfoldedComposeChildren.sort();
-                let unfoldedComposeChildren = unfoldedComposeChildren
-                    .into_iter()
-                    .map(|appId| AppliedIdOrStar::AppliedId(appId.clone()))
+                let unfoldedComposeChildren: Vec<_> = sortAppId(&unfoldedComposeChildren)
+                    .iter()
+                    .map(|x| AppliedIdOrStar::AppliedId(x.clone()))
                     .collect();
-                let composeENode = CHC::Compose(unfoldedComposeChildren);
+                let composeENode = CHC::Compose(unfoldedComposeChildren.clone().into());
+
                 let unfoldedCompose = eg.add(composeENode.clone());
+                println!(
+                    "unfoldOpType::unfoldMerge added composeENode {:?}",
+                    composeENode.weak_shape().0
+                );
+
+                // for p in permute_iter(&unfoldedComposeChildren) {
+                //     let pBare = p.iter().map(|x| x.getAppliedId()).collect::<Vec<_>>();
+                //     let pSorted = sortAppId(&pBare);
+                //     assert!(
+                //         unfoldedComposeChildren
+                //             == pSorted
+                //                 .iter()
+                //                 .map(|x| AppliedIdOrStar::AppliedId(x.clone()))
+                //                 .collect::<Vec<_>>()
+                //     );
+
+                //     let permutedComposeShape = CHC::Compose(p).weak_shape().0;
+                //     if permutedComposeShape != composeENode.weak_shape().0 {
+                //         let res = eg.lookup(&permutedComposeShape);
+                //         if !res.is_none() {
+                //             if res.clone().unwrap().id != unfoldedCompose.id {
+                //                 println!("eg {eg:?}");
+                //                 println!(
+                //                     "lookup id {:?}, added id {:?}",
+                //                     res.unwrap(),
+                //                     unfoldedCompose.id
+                //                 );
+                //                 println!("permutedComposeShape {permutedComposeShape:?}");
+                //                 println!("composeENode {:?}", composeENode.weak_shape().0);
+                //                 assert!(false);
+                //             }
+                //         }
+                //     }
+                // }
+
                 checkVarType(&unfoldedCompose, eg);
                 eg.union_justified(&rootId, &unfoldedCompose, Some("unfold".to_owned()));
 
@@ -692,13 +699,57 @@ fn unfoldApplyInternal(
                 composeShape = Some(composeENode);
                 createdComposeAppIds.push(unfoldedCompose);
             }
+            // just create unfold node
             unfoldOpType::unfoldCreateOnly => {
+                // let childrenComb: Vec<_> = childrenComb
+                //     .into_iter()
+                //     .map(|appId| AppliedIdOrStar::AppliedId(appId))
+                //     .collect();
+                let childrenComb = sortAppId(&childrenComb);
                 let childrenComb: Vec<_> = childrenComb
                     .into_iter()
                     .map(|appId| AppliedIdOrStar::AppliedId(appId))
                     .collect();
-                composeShape = Some(CHC::Compose(childrenComb));
+                composeShape = Some(CHC::Compose(childrenComb.clone().into()));
+                println!(
+                    "unfoldOpType::unfoldMerge added composeENode {:?}",
+                    composeShape.clone().unwrap().weak_shape().0
+                );
+
                 composeAppId = Some(eg.add(composeShape.clone().unwrap()));
+                // for p in permute_iter(&childrenComb) {
+                //     let pBare = p.iter().map(|x| x.getAppliedId()).collect::<Vec<_>>();
+                //     let pSorted = sortAppId(&pBare);
+                //     assert!(
+                //         childrenComb
+                //             == pSorted
+                //                 .iter()
+                //                 .map(|x| AppliedIdOrStar::AppliedId(x.clone()))
+                //                 .collect::<Vec<_>>()
+                //     );
+
+                //     let permutedComposeShape = CHC::Compose(p).weak_shape().0;
+                //     if permutedComposeShape != composeShape.clone().unwrap().weak_shape().0 {
+                //         let res = eg.lookup(&permutedComposeShape);
+                //         if !res.is_none() {
+                //             if res.clone().unwrap().id != composeAppId.clone().unwrap().id {
+                //                 println!("eg {eg:?}");
+                //                 println!(
+                //                     "lookup id {:?}, added id {:?}",
+                //                     res.unwrap(),
+                //                     composeAppId.clone().unwrap().id
+                //                 );
+                //                 println!("permutedComposeShape {permutedComposeShape:?}");
+                //                 println!(
+                //                     "composeShape {:?}",
+                //                     composeShape.clone().unwrap().weak_shape().0
+                //                 );
+                //                 assert!(false);
+                //             }
+                //         }
+                //     }
+                // }
+
                 createdComposeAppIds.push(composeAppId.clone().unwrap());
             }
         };
@@ -716,7 +767,7 @@ fn unfoldApplyInternal(
         }
     }
 
-    createdComposeAppIds
+    createdComposeAppIds.into()
 }
 
 fn unfoldApply(
@@ -783,7 +834,7 @@ pub fn expandEqRewrite(
     let mut uf = HashUnionFind::new(vec![]);
 
     let mut eqCount = 0;
-    for andChild in andChildren {
+    for andChild in andChildren.iter() {
         let AppliedIdOrStar::AppliedId(andChild) = andChild else {
             panic!();
         };
@@ -818,8 +869,7 @@ pub fn expandEqRewrite(
             }
         }
     }
-    // TODO: it should be ==
-    // but will there be a bug with this?
+
     if newConstraintChildren.len() == oldLen {
         return constrENode.clone();
     }
@@ -828,18 +878,11 @@ pub fn expandEqRewrite(
         panic!();
     };
 
-    let mut newConstraintChildren: Vec<AppliedIdOrStar> =
+    let newConstraintChildren: OrderVec<AppliedIdOrStar> =
         newConstraintChildren.into_iter().collect();
-    newConstraintChildren.sort();
-    let newConstraint = CHC::And(newConstraintChildren);
-    let newConstraintAppId = eg.add(newConstraint.clone());
 
-    if newConstraintAppId.id == constrAppId.id {
-        return newConstraint;
-    }
-
-    // let (_, newConstraint, newConstraintAppId) =
-    //     sortNewENode2(&syntax, &newConstraintChildren, &newENodeChildren, eg);
+    let (_, newConstraint, newConstraintAppId) =
+        sortNewENode2(&syntax, &newConstraintChildren, &newENodeChildren, eg);
 
     checkVarType(&newConstraintAppId, eg);
     eg.union_justified(
@@ -851,7 +894,12 @@ pub fn expandEqRewrite(
     return newConstraint;
 }
 
-pub fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut CHCEGraph) -> CHC {
+pub fn constructorEqRewrite(
+    constrAppId: &AppliedId,
+    constrENode: &CHC,
+    originalNewENode: &CHC,
+    eg: &mut CHCEGraph,
+) -> CHC {
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
     let CHC::And(andChildrenOrig) = constrENode else {
@@ -910,8 +958,17 @@ pub fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut
         }
     }
 
-    let newConstraint = CHC::And(andChildren.into_iter().collect());
-    let newConstraintAppId = eg.add(newConstraint.clone());
+    let CHC::New(syntax, _, newENodeChildren) = originalNewENode.clone() else {
+        panic!();
+    };
+
+    let (_, newConstraint, newConstraintAppId) = sortNewENode2(
+        &syntax,
+        &andChildren.into_iter().collect(),
+        &newENodeChildren,
+        eg,
+    );
+
     checkVarType(&newConstraintAppId, eg);
     eg.union_justified(
         &constrAppId,
@@ -923,7 +980,7 @@ pub fn constructorEqRewrite(constrAppId: &AppliedId, constrENode: &CHC, eg: &mut
 }
 
 pub fn getEqMapping(
-    andChildrenOrig: &Vec<AppliedIdOrStar>,
+    andChildrenOrig: &OrderVec<AppliedIdOrStar>,
     headVars: &SmallHashSet<Slot>,
     eg: &mut CHCEGraph,
 ) -> SlotMap {
@@ -1077,10 +1134,10 @@ fn newEClassFromEqMapping(
 }
 
 pub fn rewriteConstraintFromEqMapping(
-    andChildrenOrig: &Vec<AppliedIdOrStar>,
+    andChildrenOrig: &OrderVec<AppliedIdOrStar>,
     eqMapping: &SlotMap,
     eg: &mut CHCEGraph,
-) -> Vec<AppliedIdOrStar> {
+) -> OrderVec<AppliedIdOrStar> {
     let mut updatedConstrChildren = vec![];
     // apply rewrite from equivalent and check for any self equal enodes i.e. node(a, l, r) = node(a, l, r)
     for child in andChildrenOrig.iter() {
@@ -1117,17 +1174,14 @@ pub fn rewriteConstraintFromEqMapping(
         updatedConstrChildren.push(AppliedIdOrStar::AppliedId(updatedChild));
     }
 
-    updatedConstrChildren.sort();
-    updatedConstrChildren.dedup();
-
-    updatedConstrChildren
+    updatedConstrChildren.into()
 }
 
 fn rewriteChildrenFromEqMapping(
-    children: &Vec<AppliedIdOrStar>,
+    children: &OrderVec<AppliedIdOrStar>,
     eqMapping: &SlotMap,
     eg: &mut CHCEGraph,
-) -> Vec<AppliedIdOrStar> {
+) -> OrderVec<AppliedIdOrStar> {
     let mut updatedChildren = vec![];
     for child in children.iter() {
         let AppliedIdOrStar::AppliedId(child) = child else {
@@ -1138,10 +1192,7 @@ fn rewriteChildrenFromEqMapping(
         updatedChildren.push(AppliedIdOrStar::AppliedId(updatedChild));
     }
 
-    updatedChildren.sort();
-    updatedChildren.dedup();
-
-    updatedChildren
+    updatedChildren.into()
 }
 
 // a = a1, l = l1, r = r1, t = node(a, l, r), t = node(a1, l1, l1), node(a, l, r) = node(a1, l1, r1) -> a = a1, l = l1, r = r1, t = node(a, l, r)
@@ -1211,24 +1262,17 @@ fn constraintRewrite(
 
             checkNewENode!(newENode);
 
-            println!("constrRewriteComponent {constrRewriteComponent:#?}");
-            println!("constrENode before {constrENode:?}");
-            println!("constrENode before shape {:?}", constrENode.weak_shape().0);
-
             // expand eq rewrite, X = Y, X = Z -> X = Y, X = Z, Y = Z
             // expand eq rewrite, X = node(a, l, r), Y = node(a, l, r) -> X = Y, X = node(a, l, r), Y = node(a, l, r)
             let constrENode = expandEqRewrite(constrAppId, constrENode, newENode, eg);
 
-            println!("constrENode after {constrENode:?}");
-            println!("constrENode after shape {:?}", constrENode.weak_shape().0);
-
             // constructor eq rewrite, node(x, l, r) = node(x', l', r') -> x = x', l = l', r = r'
-            let constrENode = constructorEqRewrite(constrAppId, &constrENode, eg);
+            let constrENode = constructorEqRewrite(constrAppId, &constrENode, newENode, eg);
 
             // deduplicate constraint a = a2, a = a1, l = l1, r = r1, t = node(a, l, r), t = node(a1, l1, r1)
             // -> a = a, l = l, r = r, t = node(a, l, r), t = node(a, l, r)
             // -> t = node(a, l, r)
-            // deduplicate enode calls a = a1, P(a, z), P(a1, z) -> a = a1, P(a, z)
+            // deduplicate predicate calls a = a1, P(a, z), P(a1, z) -> P(a, z)
             let (newConstraint, updatedNewENode) =
                 dedupFromEqRewrite(constrAppId, &constrENode, newENodeAppId, newENode, eg);
 
@@ -1262,14 +1306,14 @@ fn constraintRewrite(
 // TODO: change this to sort by nauty-trace
 fn createSortedDefinedNewENode(
     syntaxVars: &Vec<Slot>,
-    condChildren: &Vec<AppliedIdOrStar>,
-    children: &Vec<AppliedIdOrStar>,
+    condChildren: &OrderVec<AppliedIdOrStar>,
+    children: &OrderVec<AppliedIdOrStar>,
     varTypes: &BTreeMap<Slot, VarType>,
     eg: &mut CHCEGraph,
 ) -> (AppliedId, CHC) {
     let onlyChildren = children.clone().into_iter().map(|a| a.clone()).collect();
-    let emptyPredId = eg.add(CHC::PredSyntax(vec![]));
-    let emptyAndId = eg.add(CHC::And(vec![]));
+    let emptyPredId = eg.add(CHC::PredSyntax(vec![].into()));
+    let emptyAndId = eg.add(CHC::And(vec![].into()));
     let dummyENode = CHC::New(emptyPredId, emptyAndId, onlyChildren);
 
     // get map from children ordering
@@ -1277,14 +1321,14 @@ fn createSortedDefinedNewENode(
 
     let mut updatedSyntaxVars: Vec<_> = syntaxVars.into_iter().map(|s| map.inverse()[*s]).collect();
     updatedSyntaxVars.sort();
-
-    let updatedSyntaxVarsStr = updatedSyntaxVars
-        .into_iter()
-        .map(|s| generateVar(&s.to_string(), varTypes[&map[s]].clone()))
-        .collect::<Vec<_>>()
-        .join(" ");
-    let syntaxStr = format!("(pred <{updatedSyntaxVarsStr}>)");
-    let syntaxAppId = eg.addExpr(&syntaxStr);
+    let syntaxAppId = {
+        let children = updatedSyntaxVars
+            .into_iter()
+            .map(|s| getVarAppId(s, varTypes[&map[s]].clone(), eg))
+            .collect::<Vec<_>>();
+        let syntaxENode = CHC::PredSyntax(children.into());
+        eg.add(syntaxENode)
+    };
 
     let mut updatedCondChildren: Vec<_> = condChildren
         .clone()
@@ -1292,7 +1336,7 @@ fn createSortedDefinedNewENode(
         .map(|a| AppliedIdOrStar::AppliedId(a.getAppliedId().apply_slotmap(&map.inverse())))
         .collect();
     updatedCondChildren.sort();
-    let condAppId = eg.add(CHC::And(updatedCondChildren));
+    let condAppId = eg.add(CHC::And(updatedCondChildren.into()));
 
     let updatedChildren = children
         .clone()
@@ -1304,168 +1348,6 @@ fn createSortedDefinedNewENode(
         syntaxAppId.clone(),
         CHC::New(syntaxAppId, condAppId, updatedChildren),
     )
-}
-
-pub fn sortAppId(appIds: &Vec<AppliedId>) -> Vec<AppliedId> {
-    if appIds.len() == 0 {
-        return vec![];
-    }
-
-    // {f(x, y), f(y, x), g(x, y)}
-    // should have a color order f < g < arg < var
-    // 1(f) - 2(arg) - 3(arg)
-    // 1(f) - 4(arg) - 5(arg)
-    // 6(g) - 7(arg) - 8(arg)
-    // 2(arg) - 9(var)
-    // 4(arg) - 10(var)
-    // 3(arg) - 10(var)
-    // 5(arg) - 9(var)
-    // 7(arg) - 9(var)
-    // 8(arg) - 10(var)
-
-    let mut totalV = 0;
-    // total number of vertices = sum (1 + nums_function_args) + nums_variables
-    let mut allSlots = BTreeSet::new();
-    let mut appIdToV = BTreeMap::new();
-    let mut argsV = vec![];
-    for child in appIds {
-        appIdToV.insert(child, totalV);
-        for i in 0..child.m.len() {
-            argsV.push(totalV + i + 1);
-        }
-        totalV += 1 + child.m.len();
-        allSlots.extend(child.m.values());
-    }
-
-    let mut slotsToV = BTreeMap::new();
-    for s in allSlots {
-        slotsToV.insert(s, totalV);
-        // println!("slotsToV {s} {totalV}");
-        totalV += 1;
-    }
-
-    let m = SETWORDSNEEDED(totalV);
-    let mut g = empty_graph(m, totalV);
-
-    // add edges
-    let mut curr = 0;
-    for (i, child) in appIds.iter().enumerate() {
-        // 1(f) - 2(arg) - 3(arg)
-
-        if child.m.values().len() > 0 {
-            // 1(f) - 2(arg)
-            ADDONEEDGE(&mut g, curr, curr + 1, m);
-            // println!("edge {curr} {}", curr + 1);
-        }
-
-        curr += 1;
-        // if there's no children, this will move to the new appId automatically
-
-        // 2(arg) - 3(arg)
-        for (i, s) in child.m.values().iter().enumerate() {
-            if i != child.m.values().len() - 1 {
-                ADDONEEDGE(&mut g, curr, curr + 1, m);
-                // println!("edge {curr} {}", curr + 1);
-            }
-
-            // 2(arg) - 9(var)
-            ADDONEEDGE(&mut g, curr, slotsToV[&s], m);
-            // println!("edge {curr} {}", slotsToV[&s]);
-            curr += 1;
-        }
-    }
-
-    // color sorted by eclass id then follow by args and vars
-    let mut appIdToVVec = appIdToV
-        .iter()
-        .map(|(AppliedId { id, m }, v)| (id, v))
-        .collect::<Vec<_>>();
-    // sort by id
-    appIdToVVec.sort();
-    let mut lab: Vec<i32> = vec![];
-    let mut ptn = vec![];
-
-    // color for ids
-    let mut groupLen = 0;
-    let mut thisGroupId = appIdToVVec[0].0;
-    for (id, v) in &appIdToVVec {
-        lab.push(**v as i32);
-        if *id == thisGroupId {
-            groupLen += 1;
-        } else {
-            for i in 0..groupLen - 1 {
-                ptn.push(1);
-            }
-            ptn.push(0);
-
-            groupLen = 1;
-            thisGroupId = id;
-        }
-    }
-    for i in 0..groupLen - 1 {
-        ptn.push(1);
-    }
-    ptn.push(0);
-
-    // color for args
-    lab.extend(argsV.iter().map(|i| *i as i32));
-    for i in 0..argsV.len() - 1 {
-        ptn.push(1);
-    }
-    ptn.push(0);
-
-    // color for vars
-    let currLabLen = lab.len();
-    for i in currLabLen..totalV {
-        lab.push(i as i32);
-    }
-    assert!(totalV - currLabLen == slotsToV.len());
-    for i in 0..slotsToV.len() - 1 {
-        ptn.push(1);
-    }
-    ptn.push(0);
-
-    // output structures
-    let mut orbits = vec![0; totalV];
-    let mut canonG = empty_graph(m, totalV);
-    let mut stats = statsblk::default();
-
-    let mut options = optionblk::default();
-    options.getcanon = TRUE; // Compute canonical labeling
-    options.defaultptn = FALSE; // Use custom lab and ptn for colors
-
-    assert_eq!(lab.len(), totalV);
-    assert_eq!(ptn.len(), totalV);
-    assert!(g.len() == (m * totalV));
-    assert!(canonG.len() == (m * totalV));
-    assert!(*lab.iter().max().unwrap() == (totalV - 1) as i32);
-
-    unsafe {
-        densenauty(
-            g.as_mut_ptr(),
-            lab.as_mut_ptr(),
-            ptn.as_mut_ptr(),
-            orbits.as_mut_ptr(),
-            &mut options,
-            &mut stats,
-            m as c_int,
-            totalV as c_int,
-            canonG.as_mut_ptr(),
-        );
-    }
-
-    let mut VToAppIds = BTreeMap::new();
-    for (id, v) in appIdToV {
-        assert!(VToAppIds.insert(v, id).is_none());
-    }
-
-    let mut sortedAppIds = vec![];
-    for i in &lab[0..appIds.len()] {
-        sortedAppIds.push(VToAppIds[&(*i as usize)].clone());
-    }
-    sortedAppIds.dedup();
-
-    sortedAppIds
 }
 
 pub fn sortNewENode1(
@@ -1485,13 +1367,17 @@ pub fn sortNewENode1(
         .map(|x| AppliedIdOrStar::AppliedId(x))
         .collect();
 
-    CHC::New(syntaxAppId.clone(), condAppId.clone(), updatedChildren)
+    CHC::New(
+        syntaxAppId.clone(),
+        condAppId.clone(),
+        updatedChildren.into(),
+    )
 }
 
 pub fn sortNewENode2(
     syntaxAppId: &AppliedId,
-    condChildren: &Vec<AppliedIdOrStar>,
-    predicateChildren: &Vec<AppliedIdOrStar>,
+    condChildren: &OrderVec<AppliedIdOrStar>,
+    predicateChildren: &OrderVec<AppliedIdOrStar>,
     eg: &mut CHCEGraph,
 ) -> (CHC, CHC, AppliedId) {
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
@@ -1513,14 +1399,14 @@ pub fn sortNewENode2(
         .map(|x| AppliedIdOrStar::AppliedId(x))
         .collect();
 
-    let condENode = CHC::And(sortedCondChildren);
+    let condENode = CHC::And(sortedCondChildren.into());
     let condAppId = eg.add(condENode.clone());
 
     (
         CHC::New(
             syntaxAppId.clone(),
             condAppId.clone(),
-            sortedPredicateChildren,
+            sortedPredicateChildren.into(),
         ),
         condENode,
         condAppId,
@@ -1629,8 +1515,8 @@ fn defineUnfoldFold(
                     // TODO: unfold this here
                     let (syntaxAppId, newENode) = createSortedDefinedNewENode(
                         &basicVars.into_iter().collect(),
-                        &vec![],
-                        &children,
+                        &vec![].into(),
+                        &children.into(),
                         &mergeVarTypes,
                         eg,
                     );
@@ -1650,11 +1536,9 @@ fn defineUnfoldFold(
                             saveFolded.clone().apply_slotmap(&m)
                         } else {
                             let mut composeUnfoldReceipt = vec![];
-                            println!("unfoldSearchInternal, newENode {newENodeShape:?}");
-                            println!("origENodeShape {origENodeShape:?}");
                             unfoldSearchInternal(
                                 0,
-                                &vec![],
+                                &vec![].into(),
                                 &AppliedId::null(),
                                 &AppliedId::null(),
                                 &newENode,
@@ -1691,6 +1575,27 @@ fn defineUnfoldFold(
                     eg.analysis_data_mut(foldedAppId.id)
                         .predNames
                         .insert(format!("define_from_{}", origNewENodeAppId.id));
+
+                    // folding
+                    // let replaceAt = group.first().unwrap();
+                    // let mut restChildAppIds = vec![];
+                    // for (idx, c) in childAppIds.iter().enumerate() {
+                    //     if idx == *replaceAt {
+                    //         restChildAppIds.push(AppliedIdOrStar::AppliedId(foldedAppId.clone()));
+                    //     }
+
+                    //     if group.contains(&idx) {
+                    //         continue;
+                    //     }
+                    //     restChildAppIds.push(c.clone());
+                    // }
+                    // let foldedNewENode = CHC::New(
+                    //     origSyntaxAppId.clone(),
+                    //     origConstrAppId.clone(),
+                    //     restChildAppIds,
+                    // );
+                    // let foldedAppId = eg.add(foldedNewENode);
+                    // eg.union_justified(&origNewENodeAppId, &foldedAppId, Some("fold".to_owned()));
                 }
             }
         }

@@ -95,6 +95,12 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .map(|x| produceGetShrinkChildrenArms(&name, x))
         .collect();
 
+    let getSortedArms: Vec<TokenStream2> = ie
+        .variants
+        .iter()
+        .map(|x| produceSortedArms(&name, x))
+        .collect();
+
     let ret = quote! {
         #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)]
         #ie
@@ -190,10 +196,17 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                     #(#getShrinkChildrenArms),*
                 }
             }
+
+            fn sorted(&self) -> Self {
+                match self{
+                    #(#getSortedArms),*
+                }
+            }
         }
     }
     .to_token_stream()
     .into();
+
     ret
 }
 
@@ -450,6 +463,27 @@ fn produceGetShrinkChildrenArms(name: &Ident, v: &Variant) -> TokenStream2 {
             #(
                 #fields .shrinkChildren();
             )*
+        }
+    }
+}
+
+fn produceSortedArms(name: &Ident, v: &Variant) -> TokenStream2 {
+    let variant_name = &v.ident;
+    let n = v.fields.len();
+    let fields: Vec<Ident> = (0..n)
+        .map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site()))
+        .collect();
+    quote! {
+        #name::#variant_name(#(#fields),*) => {
+            #name::#variant_name(#(
+                #fields .sorted(),
+            )*)
+
+            // let mut out: Vec<SyntaxElem> = vec![SyntaxElem::String(String::from(#e))];
+            // #(
+            //     out.extend(#fields.to_syntax());
+            // )*
+            // out
         }
     }
 }

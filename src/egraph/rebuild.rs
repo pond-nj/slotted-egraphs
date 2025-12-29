@@ -146,7 +146,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             debug!("pending lens {}", self.pending.len());
             let pending_batch = std::mem::take(&mut self.pending);
             for (sh, pending_ty) in pending_batch {
-                self.handle_pending(sh, pending_ty);
+                self.handleSorted(&sh);
+                self.handle_pending(&sh, pending_ty);
             }
 
             // expensive invariants check: run once per batch instead of once per item
@@ -164,7 +165,44 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    fn handle_pending(&mut self, sh: L, _pending_ty: PendingType) {
+    pub fn handleSorted(&mut self, sh: &L) {
+        let lenBefore = self.total_number_of_nodes();
+        if self.hashcons.get(&sh).is_none() {
+            return;
+        }
+
+        let i = self.hashcons[&sh];
+
+        let enode = &sh.apply_slotmap(&self.classes[&i].nodes[&sh].elem);
+        let enodeBeforeFind = enode;
+        let enode = self.find_enode(enode);
+        // TODO: this should be blocked in the future
+        // if enode == *enodeBeforeFind {
+        //     return;
+        // }
+        let app_i = self.mk_sem_identity_applied_id(i);
+        assert_eq!(app_i, self.find_applied_id(&app_i));
+
+        let sortedENode = enode.sorted();
+        let lookupSortedRes = self.lookup_internal(&self.shape(&sortedENode));
+        if (lookupSortedRes.is_some() && lookupSortedRes.unwrap() != app_i) {
+            println!("eclass {:?}", self.eclass(app_i.id));
+            println!("enode before find {:?}", enodeBeforeFind);
+            println!("enode before sort {:?}", enode);
+            println!("enode after sort {:?}", sortedENode);
+            println!("app_i {:?}", app_i);
+            let afterSortedAppId = self.add(sortedENode.clone());
+            // assert_ne!(enode, *enodeBeforeFind);
+            self.union_justified(
+                &app_i,
+                &afterSortedAppId,
+                Some("Union Sorted ENode, Rebuild".to_string()),
+            );
+        }
+        assert!(self.total_number_of_nodes() == lenBefore);
+    }
+
+    fn handle_pending(&mut self, sh: &L, _pending_ty: PendingType) {
         // TODO: this is a hack to make the test pass
         if self.hashcons.get(&sh).is_none() {
             return;
@@ -189,17 +227,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // }
 
         let psn = self.classes[&i].nodes[&sh].clone();
-        let node = sh.apply_slotmap(&psn.elem);
-        // TODO: why does this call remove from and then add to again?
+        let enode = &sh.apply_slotmap(&psn.elem);
         self.raw_remove_from_class(i, sh.clone());
         let app_i = self.mk_sem_identity_applied_id(i);
 
-        let enode = &node;
-        let i_orig = &app_i;
         let src_id = psn.src_id;
 
         let mut enode = self.find_enode(&enode);
-        let mut i = self.find_applied_id(i_orig);
+        let mut i = self.find_applied_id(&app_i);
+        assert_eq!(i, app_i);
         // i.m :: slots(i) -> X
         // i_orig.m :: slots(i_orig) -> X
         if !i.slots().is_subset(&enode.slots()) {
@@ -213,7 +249,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // upwards merging found a match!
         // if there's another Enode in Egraph already
-        let lookupRes = self.lookup_internal(&t, true);
+        let lookupRes = self.lookup_internal(&t);
         if lookupRes.is_some() {
             self.handle_congruence(self.pc_from_src_id(src_id));
             return;
@@ -222,16 +258,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let (sh, bij) = t;
         let mut m = i.m.inverse();
 
-        for x in bij.values() {
+        for x in bij.values_set() {
             if !m.contains_key(x) {
                 m.insert(x, Slot::fresh());
             }
         }
         let bij = bij.compose(&m);
-        let t = (sh.clone(), bij);
+        let t = (sh.clone(), bij.clone());
         self.raw_add_to_class(i.id, t.clone(), src_id);
 
-        self.update_analysis(&sh, i_orig.id);
+        self.update_analysis(&sh, app_i.id);
 
         self.determine_self_symmetries(src_id);
     }
@@ -328,9 +364,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let pc2 = self.pc_from_shape(&sh);
 
         let (a, b, prf) = self.pc_congruence(&pc1, &pc2);
-        if a.id != b.id {
-            // debug!("handle_congruence, union a {a:?}, b {b:?}");
-        }
+
         self.union_internal(&a, &b, prf);
     }
 

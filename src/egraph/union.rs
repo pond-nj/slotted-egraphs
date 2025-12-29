@@ -116,7 +116,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let perm = l.m.compose(&r.m.inverse());
             if CHECKS {
                 assert!(perm.is_perm());
-                assert_eq!(&perm.keys(), &self.classes[&id].slots);
+                assert_eq!(&perm.keys_set(), &self.classes[&id].slots);
             }
 
             let proven_perm = ProvenPerm {
@@ -181,8 +181,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     fn assert_ty(&self, m: &SlotMap, keys: &SmallHashSet<Slot>, values: &SmallHashSet<Slot>) {
-        assert!(m.keys().is_subset(keys));
-        assert!(m.values().is_subset(values));
+        assert!(m.keys_set().is_subset(keys));
+        assert!(m.values_set().is_subset(values));
     }
 
     // moves everything from `from` to `to`.
@@ -308,7 +308,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
             if CHECKS {
                 assert!(perm.is_perm());
-                assert_eq!(perm.keys(), self.classes[&to.id].slots);
+                assert_eq!(perm.keys_set(), self.classes[&to.id].slots);
             }
 
             perm

@@ -103,7 +103,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         for (i, child) in re.children.into_iter().enumerate() {
             *(refs[i]) = self.add_expr(child);
         }
-        self.add(n)
+
+        let nSorted = n.sorted();
+        let ret = self.add(n);
+
+        let lenBefore = self.total_number_of_nodes();
+        let sortedAppId = self.add(nSorted);
+
+        if self.total_number_of_nodes() != lenBefore {
+            self.union_justified(&ret, &sortedAppId, Some("add_expr, sorted".to_owned()));
+        }
+
+        ret
     }
 
     pub fn add(&mut self, enode: L) -> AppliedId {
@@ -125,11 +136,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // self.add(x) = y implies that x.slots() is a superset of y.slots().
     // x.slots() - y.slots() are redundant slots.
     pub(in crate::egraph) fn add_internal(&mut self, t: (L, SlotMap)) -> AppliedId {
-        let lookupRes = self.lookup_internal(&t, false);
+        let lookupRes = self.lookup_internal(&t);
         if let Some(x) = lookupRes {
             return x;
         }
-        assert!(self.syn_hashcons.get(&t.0).is_none());
+
+        assert!(
+            self.syn_hashcons.get(&t.0).is_none(),
+            "shape exist in syn hashcons: {:?}",
+            t
+        );
 
         // TODO this code is kinda exactly what add_syn is supposed to do anyways. There's probably a way to write this more concisely.
         // We convert the enode to "syn" so that semantic_add will compute the necessary redundancy proofs.
@@ -154,13 +170,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn lookup(&self, n: &L) -> Option<AppliedId> {
-        self.lookup_internal(&self.shape(n), false)
+        self.lookup_internal(&self.shape(n))
     }
 
     pub(in crate::egraph) fn lookup_internal(
         &self,
         (shape, n_bij): &(L, Bijection),
-        _callFromHandlePending: bool,
     ) -> Option<AppliedId> {
         let i: Option<Id> = self.hashcons.get(&shape).cloned();
         if i.is_none() {
@@ -194,7 +209,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let app_id = self.mk_sem_applied_id(*i, out);
 
         if CHECKS {
-            assert_eq!(&c.slots, &app_id.m.keys());
+            assert_eq!(&c.slots, &app_id.m.keys_set());
         }
 
         Some(app_id)
@@ -225,7 +240,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let old_to_fresh = fresh_to_old.inverse();
 
         // allocate new class & slot set.
-        let fresh_slots = old_to_fresh.values();
+        let fresh_slots = old_to_fresh.values_set();
         // now the variables input to syn_enode are fresh slots
         let syn_enode_fresh = syn_enode.apply_slotmap_fresh(&old_to_fresh);
 

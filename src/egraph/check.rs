@@ -35,7 +35,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         app_id.check();
         assert_eq!(
             self.slots(app_id.id),
-            app_id.m.keys(),
+            app_id.m.keys_set(),
             "checking sem AppliedId failed: Wrong key-set, {app_id:?}"
         );
     }
@@ -62,7 +62,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         app_id.check();
         assert_eq!(
             self.syn_slots(app_id.id),
-            app_id.m.keys(),
+            app_id.m.keys_set(),
             "checking syn AppliedId failed: Wrong key-set, {app_id:?}"
         );
     }
@@ -226,7 +226,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(app_id, &y);
 
             // 2. It needs to have exactly the same slots as the underlying EClass.
-            assert_eq!(&app_id.m.keys(), &eg.classes[&app_id.id].slots);
+            assert_eq!(&app_id.m.keys_set(), &eg.classes[&app_id.id].slots);
         }
+
+        // TODO: check sorted
+        // for (cid, c) in &self.classes {
+        //     for (sh, psn) in &c.nodes {
+        //         let node = sh.apply_slotmap(&psn.elem);
+        //         let (sh, m) = node.weak_shape();
+
+        //         let sortedNode = node.sorted();
+        //         let lookupSortedRes = self.lookup_internal(&self.shape(&sortedNode));
+        //         if lookupSortedRes.is_some() {
+        //             assert_eq!(*cid, lookupSortedRes.unwrap().id);
+        //         }
+        //     }
+        // }
     }
 }

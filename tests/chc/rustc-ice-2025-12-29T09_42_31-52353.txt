@@ -1,0 +1,79 @@
+thread 'main' panicked at /checkout/library/alloc/src/vec/mod.rs:2849:36:
+slice index starts at 51 but ends at 50
+stack backtrace:
+   0:     0x73f9525fcabb - <std[1e8bc1f935b91b92]::backtrace::Backtrace>::create
+   1:     0x73f9525fca05 - <std[1e8bc1f935b91b92]::backtrace::Backtrace>::force_capture
+   2:     0x73f9515ffba3 - std[1e8bc1f935b91b92]::panicking::update_hook::<alloc[cd5d7e5e2db93604]::boxed::Box<rustc_driver_impl[c459b3cab2ad352e]::install_ice_hook::{closure#1}>>::{closure#0}
+   3:     0x73f95260f9a2 - std[1e8bc1f935b91b92]::panicking::panic_with_hook
+   4:     0x73f9525f20b8 - std[1e8bc1f935b91b92]::panicking::panic_handler::{closure#0}
+   5:     0x73f9525e68b9 - std[1e8bc1f935b91b92]::sys::backtrace::__rust_end_short_backtrace::<std[1e8bc1f935b91b92]::panicking::panic_handler::{closure#0}, !>
+   6:     0x73f9525f3bad - __rustc[ef8d9c2cf4986a62]::rust_begin_unwind
+   7:     0x73f94f95ac3c - core[cd8074c71add9792]::panicking::panic_fmt
+   8:     0x73f950fa79a0 - core[cd8074c71add9792]::slice::index::slice_index_fail::do_panic::runtime
+   9:     0x73f94eda0af8 - core[cd8074c71add9792]::slice::index::slice_index_fail
+  10:     0x73f95165329b - <rustc_errors[e39aff7a26434ec0]::styled_buffer::StyledBuffer>::replace
+  11:     0x73f95164304b - <rustc_errors[e39aff7a26434ec0]::emitter::HumanEmitter>::emit_messages_default_inner::{closure#0}
+  12:     0x73f95165a84d - <rustc_errors[e39aff7a26434ec0]::emitter::HumanEmitter as rustc_errors[e39aff7a26434ec0]::emitter::Emitter>::emit_diagnostic
+  13:     0x61af8b2cc6bc - <rustfmt_nightly[4ae17800d87d9de8]::parse::session::SilentOnIgnoredFilesEmitter as rustc_errors[e39aff7a26434ec0]::emitter::Emitter>::emit_diagnostic
+  14:     0x73f95415089e - <rustc_errors[e39aff7a26434ec0]::DiagCtxtInner>::emit_diagnostic::{closure#3}
+  15:     0x73f951625d6f - rustc_errors[e39aff7a26434ec0]::default_track_diagnostic::<core[cd8074c71add9792]::option::Option<rustc_span[935017625644c213]::ErrorGuaranteed>>
+  16:     0x73f95414d3b4 - <rustc_errors[e39aff7a26434ec0]::DiagCtxtInner>::emit_diagnostic
+  17:     0x73f95414d271 - <rustc_errors[e39aff7a26434ec0]::DiagCtxtHandle>::emit_diagnostic
+  18:     0x73f94f7f9cbc - <rustc_span[935017625644c213]::ErrorGuaranteed as rustc_errors[e39aff7a26434ec0]::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+  19:     0x73f952e9cfa4 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_struct_fields
+  20:     0x73f952e9bd0e - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_struct
+  21:     0x73f94ee2b871 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::collect_tokens_for_expr::<<rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_dot_or_call::{closure#0}>
+  22:     0x73f952f21de5 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_prefix
+  23:     0x73f952f1e966 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_assoc_with
+  24:     0x73f952eaf616 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_dot_suffix_expr
+  25:     0x73f952f02476 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_dot_or_call_with::{closure#0}
+  26:     0x73f952f0686e - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::collect_tokens::<rustc_ast[7633bf0be0a6dc7b]::ast::Stmt, <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_stmt_without_recovery::{closure#4}>
+  27:     0x73f952ec60e2 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_stmt_without_recovery
+  28:     0x73f952ebd044 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_block_common
+  29:     0x73f952e872b6 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_for
+  30:     0x73f94ee330ff - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::collect_tokens_for_expr::<<rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_dot_or_call::{closure#0}>
+  31:     0x73f952f21de5 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_prefix
+  32:     0x73f952f1e966 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_assoc_with
+  33:     0x73f952ec6429 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_stmt_without_recovery
+  34:     0x73f952ebd044 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_block_common
+  35:     0x73f952e872b6 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_for
+  36:     0x73f94ee330ff - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::collect_tokens_for_expr::<<rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_dot_or_call::{closure#0}>
+  37:     0x73f952f21de5 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_prefix
+  38:     0x73f952f1e966 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_assoc_with
+  39:     0x73f952ec6429 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_stmt_without_recovery
+  40:     0x73f952ebd044 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_block_common
+  41:     0x73f952e872b6 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_for
+  42:     0x73f94ee330ff - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::collect_tokens_for_expr::<<rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_dot_or_call::{closure#0}>
+  43:     0x73f952f21de5 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_prefix
+  44:     0x73f952f1e966 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_assoc_with
+  45:     0x73f952ec6429 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_stmt_without_recovery
+  46:     0x73f952ebd044 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_block_common
+  47:     0x73f952e872b6 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_for
+  48:     0x73f94ee330ff - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::collect_tokens_for_expr::<<rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_dot_or_call::{closure#0}>
+  49:     0x73f952f21de5 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_prefix
+  50:     0x73f952f1e966 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_expr_assoc_with
+  51:     0x73f952ec6429 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_stmt_without_recovery
+  52:     0x73f952ebd044 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_block_common
+  53:     0x73f952eb5363 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_fn
+  54:     0x73f9539581ea - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_item_kind
+  55:     0x73f9539520da - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_item_common
+  56:     0x73f9539502c9 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_item_
+  57:     0x73f95394f746 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_mod
+  58:     0x73f9503690c3 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_crate_mod
+  59:     0x61af8b245108 - <rustfmt_nightly[4ae17800d87d9de8]::parse::parser::Parser>::parse_crate
+  60:     0x61af8b17ad8f - <rustfmt_nightly[4ae17800d87d9de8]::Session<std[1e8bc1f935b91b92]::io::stdio::Stdout>>::format_input_inner::{closure#0}
+  61:     0x61af8b16cce7 - rustfmt[d135df4c87c6bbc5]::format_and_emit_report::<std[1e8bc1f935b91b92]::io::stdio::Stdout>
+  62:     0x61af8b181a28 - rustfmt[d135df4c87c6bbc5]::execute
+  63:     0x61af8b17d717 - rustfmt[d135df4c87c6bbc5]::main
+  64:     0x61af8b178423 - std[1e8bc1f935b91b92]::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  65:     0x61af8b178b09 - std[1e8bc1f935b91b92]::rt::lang_start::<()>::{closure#0}
+  66:     0x73f953d7c726 - std[1e8bc1f935b91b92]::rt::lang_start_internal
+  67:     0x61af8b18d168 - main
+  68:     0x73f94d62a1ca - <unknown>
+  69:     0x73f94d62a28b - __libc_start_main
+  70:     0x61af8b070849 - <unknown>
+  71:                0x0 - <unknown>
+
+
+rustc version: 1.94.0-nightly (4f14395c3 2025-12-22)
+platform: x86_64-unknown-linux-gnu

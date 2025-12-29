@@ -33,7 +33,7 @@ pub use symbol_table::GlobalSymbol as Symbol;
 #[cfg(feature = "checks")]
 pub const CHECKS: bool = true;
 #[cfg(not(feature = "checks"))]
-const CHECKS: bool = false;
+pub const CHECKS: bool = false;
 
 pub use slotted_egraphs_derive::define_language;
 

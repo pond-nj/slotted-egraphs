@@ -355,7 +355,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if a.id != b.id {
             return false;
         }
-        if a.m.values() != b.m.values() {
+        if a.m.values_set() != b.m.values_set() {
             return false;
         }
         let id = a.id;
@@ -363,7 +363,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let perm = a.m.compose(&b.m.inverse());
         if CHECKS {
             assert!(perm.is_perm());
-            assert_eq!(&perm.values(), &self.classes[&id].slots);
+            assert_eq!(&perm.values_set(), &self.classes[&id].slots);
         }
 
         self.classes[&id].group.contains(&perm)
@@ -582,13 +582,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let slots = self.slots(app.id);
 
         let mut app = app;
-        for k in app.m.keys() {
+        for k in app.m.keys_set() {
             if !slots.contains(&k) {
                 app.m.remove(k);
             }
         }
 
-        assert!(app.m.keys() == slots, "{:?} vs {slots:?}", app.m);
+        assert!(app.m.keys_set() == slots, "{:?} vs {slots:?}", app.m);
         app
     }
 

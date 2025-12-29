@@ -75,10 +75,10 @@ impl SlotMap {
         self.map.iter().map(|(_, y)| y)
     }
 
-    pub fn keys(&self) -> SmallHashSet<Slot> {
+    pub fn keys_set(&self) -> SmallHashSet<Slot> {
         self.iter().map(|(x, _)| x).collect()
     }
-    pub fn values(&self) -> SmallHashSet<Slot> {
+    pub fn values_set(&self) -> SmallHashSet<Slot> {
         self.iter().map(|(_, y)| y).collect()
     }
     pub fn keys_vec(&self) -> Vec<Slot> {
@@ -116,13 +116,17 @@ impl SlotMap {
     }
 
     pub fn is_perm(&self) -> bool {
-        self.is_bijection() && self.keys() == self.values()
+        self.is_bijection() && self.keys_set() == self.values_set()
     }
 
     #[track_caller]
     pub fn compose(&self, other: &SlotMap) -> SlotMap {
         if CHECKS {
-            assert_eq!(self.values(), other.keys(), "SlotMap::compose() failed!");
+            assert_eq!(
+                self.values_set(),
+                other.keys_set(),
+                "SlotMap::compose() failed!"
+            );
         }
 
         self.compose_intersect(other)

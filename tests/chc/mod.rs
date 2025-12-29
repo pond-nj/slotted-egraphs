@@ -23,6 +23,9 @@ pub use dedupVec::*;
 mod leafDrop;
 mod tst;
 
+mod langCHC;
+// pub use langCHC::*;
+
 define_language! {
     // TODO(Pond): now children can only have max one vector
     // TODO: add dont care var?
@@ -31,9 +34,10 @@ define_language! {
         Int(Slot) = "int",
         Node(Slot) = "node",
 
+        // wouldn't sort this
         PredSyntax(Vec<AppliedId>) = "pred",
-        New(AppliedId, AppliedId, Vec<AppliedIdOrStar>) = "new",
-        Compose(Vec<AppliedIdOrStar>) = "compose",
+        New(AppliedId, AppliedId, OrderVec<AppliedIdOrStar>) = "new",
+        Compose(OrderVec<AppliedIdOrStar>) = "compose",
         True() = "true",
         False() = "false",
 
@@ -42,7 +46,7 @@ define_language! {
         Leaf() = "leaf",
 
         // Boolean
-        And(Vec<AppliedIdOrStar>) = "and",
+        And(OrderVec<AppliedIdOrStar>) = "and",
 
         // Arithmetic
         Geq(AppliedId, AppliedId) = "geq",
@@ -57,11 +61,8 @@ define_language! {
 
         // (composeInit predName syntax functional outputIdx)
         // use to create empty compose eclass for recursive definition
-        ComposeInit(AppliedId, AppliedId, AppliedId, Vec<AppliedId>) = "composeInit",
+        ComposeInit(AppliedId, AppliedId, AppliedId, OrderVec<AppliedId>) = "composeInit",
         PredName(String),
-
-        // extraction control, means that we cannot extract this node
-        Lock(AppliedId) = "lock",
     }
 }
 
@@ -292,7 +293,7 @@ impl Analysis<CHC> for CHCAnalysis {
                 let functional = getBoolVal(&functional.id, eg);
 
                 let mut outputIdx: Vec<usize> = vec![];
-                for appId in outputIdxAppIds {
+                for appId in outputIdxAppIds.iter() {
                     let enode = getSingleENode(&appId.id, eg);
                     match enode {
                         CHC::Number(idx) => {
@@ -390,6 +391,7 @@ pub fn dumpCHCEGraph(eg: &CHCEGraph) {
     print!("\n == Egraph ==");
     print!("\n size of egraph: {}", eg.total_number_of_nodes());
     let mut eclasses = eg.ids();
+    print!("\n number of eclasses: {}", eclasses.len());
     eclasses.sort();
 
     let mut groups = BTreeMap::<Id, Vec<Id>>::default();

@@ -1,4 +1,9 @@
 use crate::*;
+use nauty_Traces_sys::{
+    densenauty, empty_graph, optionblk, statsblk, ADDONEEDGE, FALSE, SETWORDSNEEDED, TRUE,
+};
+use std::collections::{BTreeMap, BTreeSet};
+use std::os::raw::c_int;
 
 /// Ids identify e-classes.
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -83,7 +88,7 @@ impl AppliedId {
     pub fn apply_slotmap(&self, m: &SlotMap) -> AppliedId {
         if CHECKS {
             assert!(
-                m.keys().is_superset(&self.slots()),
+                m.keys_set().is_superset(&self.slots()),
                 "AppliedId::apply_slotmap: The SlotMap doesn't map all free slots! map {:#?} vs {:#?}",
                 m,
                 self.slots()
@@ -105,7 +110,7 @@ impl AppliedId {
     }
 
     pub fn slots(&self) -> SmallHashSet<Slot> {
-        self.m.values()
+        self.m.values_set()
     }
 
     // ordered!
@@ -123,4 +128,189 @@ impl AppliedId {
     pub fn fullDump(&self) {
         println!("{:?}: {:?}", self.id, self.m)
     }
+}
+
+// This only works with Vector of AppIds
+pub fn sortAppId<L: LanguageChildren>(appIds: &Vec<L>) -> Vec<L> {
+    if appIds.len() == 0 {
+        return vec![];
+    }
+    let mut appIds = &mut appIds.clone();
+    appIds.sort();
+    appIds.dedup();
+    let appIds = &*appIds;
+    println!("sortAppId len appIds {:?}", appIds.len());
+    for i in appIds {
+        print!("{:?} ", i.len());
+    }
+    println!("");
+
+    // TODO: should we dedup first here?
+
+    // println!("appIds {:?}", appIds);
+
+    // {f(x, y), f(y, x), g(x, y)}
+    // should have a color order f < g < arg < var
+    // 1(f) - 2(arg) - 3(arg)
+    // 1(f) - 4(arg) - 5(arg)
+    // 6(g) - 7(arg) - 8(arg)
+    // 2(arg) - 9(var)
+    // 4(arg) - 10(var)
+    // 3(arg) - 10(var)
+    // 5(arg) - 9(var)
+    // 7(arg) - 9(var)
+    // 8(arg) - 10(var)
+
+    let mut totalV = 0;
+    // total number of vertices = sum (1 + nums_function_args) + nums_variables
+    let mut allSlots: BTreeSet<Slot> = BTreeSet::new();
+    // must be vec because there might be duplicates
+    let mut appIdToV = Vec::new();
+    let mut argsV = vec![];
+    for child in appIds {
+        appIdToV.push((child, totalV));
+        for i in 0..child.len() {
+            argsV.push(totalV + i + 1);
+        }
+        totalV += 1 + child.len();
+        allSlots.extend(child.public_slot_occurrences_iter());
+    }
+
+    let mut slotsToV = BTreeMap::new();
+    for s in allSlots {
+        slotsToV.insert(s, totalV);
+        // println!("slotsToV {s} {totalV}");
+        totalV += 1;
+    }
+
+    let m = SETWORDSNEEDED(totalV);
+    let mut g = empty_graph(m, totalV);
+
+    // add edges
+    let mut curr = 0;
+    for (i, child) in appIds.iter().enumerate() {
+        // 1(f) - 2(arg) - 3(arg)
+
+        if child.len() > 0 {
+            // 1(f) - 2(arg)
+            ADDONEEDGE(&mut g, curr, curr + 1, m);
+            // println!("edge {curr} {}", curr + 1);
+        }
+
+        curr += 1;
+        // if there's no children, this will move to the new appId automatically
+
+        // 2(arg) - 3(arg)
+        for (i, s) in child.public_slot_occurrences_iter().enumerate() {
+            if i != child.len() - 1 {
+                ADDONEEDGE(&mut g, curr, curr + 1, m);
+                // println!("edge {curr} {}", curr + 1);
+            }
+
+            // 2(arg) - 9(var)
+            ADDONEEDGE(&mut g, curr, slotsToV[&s], m);
+            // println!("edge {curr} {}", slotsToV[&s]);
+            curr += 1;
+        }
+    }
+
+    // color sorted by eclass id then follow by args and vars
+    let mut appIdToVVec = appIdToV
+        .iter()
+        .map(|(x, v)| (x.id(), v))
+        .collect::<Vec<_>>();
+    // sort by id
+    appIdToVVec.sort();
+    let mut lab: Vec<i32> = vec![];
+    let mut ptn = vec![];
+
+    // color for ids
+    let mut groupLen = 0;
+    let mut thisGroupId = appIdToVVec[0].0;
+    for (id, v) in &appIdToVVec {
+        lab.push(**v as i32);
+        if *id == thisGroupId {
+            groupLen += 1;
+        } else {
+            for i in 0..groupLen - 1 {
+                ptn.push(1);
+            }
+            ptn.push(0);
+
+            groupLen = 1;
+            thisGroupId = *id;
+        }
+    }
+    assert!(groupLen > 0);
+    for i in 0..groupLen - 1 {
+        ptn.push(1);
+    }
+    ptn.push(0);
+    // println!("currLabLen after ids color {}", lab.len());
+
+    // color for args
+    if argsV.len() > 0 {
+        lab.extend(argsV.iter().map(|i| *i as i32));
+        for _ in 0..argsV.len() - 1 {
+            ptn.push(1);
+        }
+        ptn.push(0);
+    }
+
+    // color for vars
+    let currLabLen = lab.len();
+    for i in currLabLen..totalV {
+        lab.push(i as i32);
+    }
+    // println!("totalV {totalV}");
+    // println!("currLabLen {currLabLen}");
+    assert_eq!(totalV - currLabLen, slotsToV.len());
+    if slotsToV.len() > 0 {
+        for i in 0..slotsToV.len() - 1 {
+            ptn.push(1);
+        }
+        ptn.push(0);
+    }
+
+    // output structures
+    let mut orbits = vec![0; totalV];
+    let mut canonG = empty_graph(m, totalV);
+    let mut stats = statsblk::default();
+
+    let mut options = optionblk::default();
+    options.getcanon = TRUE; // Compute canonical labeling
+    options.defaultptn = FALSE; // Use custom lab and ptn for colors
+
+    assert_eq!(lab.len(), totalV);
+    assert_eq!(ptn.len(), totalV);
+    assert!(g.len() == (m * totalV));
+    assert!(canonG.len() == (m * totalV));
+    assert!(*lab.iter().max().unwrap() == (totalV - 1) as i32);
+
+    unsafe {
+        densenauty(
+            g.as_mut_ptr(),
+            lab.as_mut_ptr(),
+            ptn.as_mut_ptr(),
+            orbits.as_mut_ptr(),
+            &mut options,
+            &mut stats,
+            m as c_int,
+            totalV as c_int,
+            canonG.as_mut_ptr(),
+        );
+    }
+
+    let mut VToAppIds = BTreeMap::new();
+    for (id, v) in appIdToV {
+        assert!(VToAppIds.insert(v, id).is_none());
+    }
+
+    let mut sortedAppIds = vec![];
+    for i in &lab[0..appIds.len()] {
+        sortedAppIds.push(VToAppIds[&(*i as usize)].clone());
+    }
+    sortedAppIds.dedup();
+
+    sortedAppIds
 }

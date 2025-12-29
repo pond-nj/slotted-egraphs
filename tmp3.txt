@@ -1,10 +1,7 @@
-(new 
-(pred <(int $n) (int $k) (int $m)>) 
-(and <(eq (node $t) (leaf)) (eq (node $u) (leaf))>) 
-<(composeInit (minLeaf) (pred <(node $t) (int $k)>) (true) <(1)>) 
-(composeInit (minLeaf) (pred <(node $u) (int $m)>) (true) <(1)>)>)
+({"star_0_0": id138: ($0, $2, $1), "star_0_1": id193: ($0, $2, $1)}, id475)
 
-(new (pred <(int $n) (int $k) (int $m)>) 
-(and <(eq (node $u) (leaf)) (eq (node $t) (leaf))>) 
-<(composeInit (minLeaf) (pred <(node $t) (int $k)>) (true) <(1)>) 
-(composeInit (minLeaf) (pred <(node $u) (int $m)>) (true) <(1)>)>)
+"(new {syntax} 
+(and <(eq {t} (leaf)) 
+(eq {u} (leaf))>) <{} {}>)",
+        minLeafDummy(u, m),
+        minLeafDummy(t, k)

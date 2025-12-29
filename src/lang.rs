@@ -2,10 +2,12 @@ use core::panic;
 use std::{
     collections::BTreeSet,
     hash::{DefaultHasher, Hash, Hasher},
+    path::Iter,
 };
 
 use crate::*;
 use either::Either;
+use std::ops::{Deref, DerefMut};
 
 use log::debug;
 
@@ -79,7 +81,7 @@ pub fn checkChildrenTypeEq(a: &Vec<LanguageChildrenType>, b: &Vec<LanguageChildr
     true
 }
 
-pub trait LanguageChildren: Debug + Clone + Hash + Eq {
+pub trait LanguageChildren: Debug + Clone + Hash + Eq + PartialEq + Ord {
     // TODO: add private_slot_occurrences aswell!
     fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot>;
     fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot>;
@@ -95,6 +97,15 @@ pub trait LanguageChildren: Debug + Clone + Hash + Eq {
     fn expandChildren(&mut self);
     fn shrinkChildren(&mut self);
     fn defaultNull() -> Self;
+    fn sorted(&self) -> Self;
+
+    fn len(&self) -> usize {
+        todo!()
+    }
+
+    fn id(&self) -> Id {
+        todo!()
+    }
 
     fn weak_shape_impl(&mut self, _m: &mut (SlotMap, u32)) {
         todo!()
@@ -164,6 +175,18 @@ impl LanguageChildren for AppliedId {
         AppliedId::null()
     }
 
+    fn sorted(&self) -> Self {
+        self.clone()
+    }
+
+    fn len(&self) -> usize {
+        self.m.len()
+    }
+
+    fn id(&self) -> Id {
+        self.id
+    }
+
     // apply map to self mapping if applicable, otherwise create new slots to map to
     fn weak_shape_impl(&mut self, map: &mut (SlotMap, u32)) {
         for s in self.m.values_mut() {
@@ -219,6 +242,10 @@ impl LanguageChildren for Slot {
         Slot::fresh()
     }
 
+    fn sorted(&self) -> Self {
+        self.clone()
+    }
+
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         getOrAddSlot(self, m);
     }
@@ -261,6 +288,10 @@ macro_rules! bare_language_child {
 
             fn defaultNull() -> Self {
                 todo!()
+            }
+
+            fn sorted(&self) -> Self {
+                self.clone()
             }
 
             fn weak_shape_impl(&mut self, _m: &mut (SlotMap, u32)) {}
@@ -356,6 +387,24 @@ impl LanguageChildren for AppliedIdOrStar {
         AppliedIdOrStar::AppliedId(AppliedId::null())
     }
 
+    fn sorted(&self) -> Self {
+        self.clone()
+    }
+
+    fn len(&self) -> usize {
+        match self {
+            AppliedIdOrStar::AppliedId(x) => x.len(),
+            AppliedIdOrStar::Star(_) => todo!(),
+        }
+    }
+
+    fn id(&self) -> Id {
+        match self {
+            AppliedIdOrStar::AppliedId(x) => x.id(),
+            AppliedIdOrStar::Star(_) => todo!(),
+        }
+    }
+
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         match self {
             AppliedIdOrStar::AppliedId(x) => x.weak_shape_impl(m),
@@ -423,6 +472,10 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
         todo!()
     }
 
+    fn sorted(&self) -> Self {
+        todo!()
+    }
+
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         let s = self.slot;
         // add mapping from self.slot to a new slot in m
@@ -432,19 +485,158 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
     }
 }
 
-impl<L: LanguageChildren> LanguageChildren for Vec<L> {
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+
+pub struct OrderVec<L>(Vec<L>);
+
+impl<L> Deref for OrderVec<L> {
+    type Target = Vec<L>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<L> DerefMut for OrderVec<L> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<L> IntoIterator for OrderVec<L> {
+    type Item = L;
+    type IntoIter = std::vec::IntoIter<L>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<L> From<Vec<L>> for OrderVec<L> {
+    fn from(v: Vec<L>) -> Self {
+        Self(v)
+    }
+}
+
+impl<L> FromIterator<L> for OrderVec<L> {
+    fn from_iter<I: IntoIterator<Item = L>>(iter: I) -> Self {
+        let v = Vec::from_iter(iter);
+
+        OrderVec(v)
+    }
+}
+
+impl<L: LanguageChildren> LanguageChildren for OrderVec<L> {
     fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
-        self.into_iter()
+        self.iter_mut()
             .flat_map(|x| x.all_slot_occurrences_iter_mut())
     }
 
     fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
-        self.into_iter()
+        self.iter_mut()
             .flat_map(|x| x.public_slot_occurrences_iter_mut())
     }
 
     fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut AppliedId> {
-        self.into_iter()
+        self.iter_mut()
+            .flat_map(|x| x.applied_id_occurrences_iter_mut())
+    }
+
+    // immut:
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        self.iter().flat_map(|x| x.all_slot_occurrences_iter())
+    }
+
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        self.iter().flat_map(|x| x.public_slot_occurrences_iter())
+    }
+
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item = &AppliedId> {
+        self.iter().flat_map(|x| x.applied_id_occurrences_iter())
+    }
+
+    // syntax:
+    fn to_syntax(&self) -> Vec<SyntaxElem> {
+        vec![SyntaxElem::Vec(
+            self.iter().flat_map(|x| x.to_syntax()).collect(),
+        )]
+    }
+
+    fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+        let mut out = Vec::new();
+        if elems.is_empty() {
+            return None;
+        }
+
+        match elems {
+            [SyntaxElem::Vec(v)] => {
+                for x in v {
+                    let arr = [x.clone()];
+                    if let Some(y) = L::from_syntax(&arr) {
+                        out.push(y);
+                    } else {
+                        return None;
+                    }
+                }
+
+                Some(out.into())
+            }
+            _ => panic!("expect vec but get something else : {elems:?}"),
+        }
+
+        // (Pond): If you want to use * for vec, please use it like this: <*>
+
+        // Some(out)
+    }
+
+    fn get_type(&self) -> LanguageChildrenType {
+        let mut out = Vec::new();
+        for x in self.iter() {
+            out.push(x.get_type());
+        }
+        LanguageChildrenType::Vec(out)
+    }
+
+    fn expandChildren(&mut self) {
+        self.push(L::defaultNull());
+    }
+    fn shrinkChildren(&mut self) {
+        self.pop();
+    }
+
+    fn defaultNull() -> Self {
+        vec![].into()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn sorted(&self) -> Self {
+        sortAppId(self).into()
+    }
+
+    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
+        for x in self.iter_mut() {
+            x.weak_shape_impl(m);
+        }
+    }
+}
+
+// wouldn't sort this
+impl<L: LanguageChildren> LanguageChildren for Vec<L> {
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        self.iter_mut()
+            .flat_map(|x| x.all_slot_occurrences_iter_mut())
+    }
+
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        self.iter_mut()
+            .flat_map(|x| x.public_slot_occurrences_iter_mut())
+    }
+
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut AppliedId> {
+        self.iter_mut()
             .flat_map(|x| x.applied_id_occurrences_iter_mut())
     }
 
@@ -497,7 +689,7 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
 
     fn get_type(&self) -> LanguageChildrenType {
         let mut out = Vec::new();
-        for x in self {
+        for x in self.iter() {
             out.push(x.get_type());
         }
         LanguageChildrenType::Vec(out)
@@ -514,8 +706,12 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
         vec![]
     }
 
+    fn sorted(&self) -> Self {
+        self.clone()
+    }
+
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
-        for x in self {
+        for x in self.iter_mut() {
             x.weak_shape_impl(m);
         }
     }
@@ -554,6 +750,10 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     fn getChildrenType(&self) -> Vec<LanguageChildrenType>;
     fn expandChildren(&mut self);
     fn shrinkChildren(&mut self);
+
+    fn sorted(&self) -> Self {
+        self.clone()
+    }
 
     #[track_caller]
     #[doc(hidden)]
@@ -650,7 +850,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     fn apply_slotmap(&self, m: &SlotMap) -> Self {
         if CHECKS {
             assert!(
-                m.keys().is_superset(&self.slots()),
+                m.keys_set().is_superset(&self.slots()),
                 "Language::apply_slotmap: The SlotMap doesn't map all free slots!, slotmap: {m:?}, free slots: {:?}", self.slots()
             );
         }
