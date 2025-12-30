@@ -207,7 +207,7 @@ pub fn lookup_rec_expr<L: Language, N: Analysis<L>>(
 
 pub fn pattern_to_re<L: Language>(pat: &Pattern<L>) -> RecExpr<L> {
     let Pattern::ENode(n, children) = &pat else {
-        panic!()
+        panic!("Pattern to RecExpr: top pattern is not an ENode");
     };
     let children: Vec<RecExpr<L>> = children.iter().map(|x| pattern_to_re(x)).collect();
     RecExpr {

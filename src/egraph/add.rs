@@ -173,6 +173,25 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.lookup_internal(&self.shape(n))
     }
 
+    // TODO: this can't sort mew ENode?
+    pub fn lookupRecExpr(&self, re: RecExpr<L>) -> Option<AppliedId> {
+        let mut n = re.node.clone();
+        let mut refs: Vec<&mut AppliedId> = n.applied_id_occurrences_mut();
+        if CHECKS {
+            assert_eq!(re.children.len(), refs.len());
+        }
+        for (i, child) in (re.children.clone()).into_iter().enumerate() {
+            let childRes = self.lookupRecExpr(child);
+            if childRes.is_none() {
+                return None;
+            }
+            *(refs[i]) = childRes.unwrap();
+        }
+        let n = n.sorted();
+        let ret = self.lookup(&n);
+        ret
+    }
+
     pub(in crate::egraph) fn lookup_internal(
         &self,
         (shape, n_bij): &(L, Bijection),

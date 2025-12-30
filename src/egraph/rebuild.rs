@@ -186,11 +186,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let sortedENode = enode.sorted();
         let lookupSortedRes = self.lookup_internal(&self.shape(&sortedENode));
         if (lookupSortedRes.is_some() && lookupSortedRes.unwrap() != app_i) {
-            println!("eclass {:?}", self.eclass(app_i.id));
-            println!("enode before find {:?}", enodeBeforeFind);
-            println!("enode before sort {:?}", enode);
-            println!("enode after sort {:?}", sortedENode);
-            println!("app_i {:?}", app_i);
+            // println!("eclass {:?}", self.eclass(app_i.id));
+            // println!("enode before find {:?}", enodeBeforeFind);
+            // println!("enode before sort {:?}", enode);
+            // println!("enode after sort {:?}", sortedENode);
+            // println!("app_i {:?}", app_i);
             let afterSortedAppId = self.add(sortedENode.clone());
             // assert_ne!(enode, *enodeBeforeFind);
             self.union_justified(

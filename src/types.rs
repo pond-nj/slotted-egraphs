@@ -139,15 +139,11 @@ pub fn sortAppId<L: LanguageChildren>(appIds: &Vec<L>) -> Vec<L> {
     appIds.sort();
     appIds.dedup();
     let appIds = &*appIds;
-    println!("sortAppId len appIds {:?}", appIds.len());
-    for i in appIds {
-        print!("{:?} ", i.len());
-    }
-    println!("");
-
-    // TODO: should we dedup first here?
-
-    // println!("appIds {:?}", appIds);
+    // println!("sortAppId len appIds {:?}", appIds.len());
+    // for i in appIds {
+    //     print!("{:?} ", i.len());
+    // }
+    // println!("");
 
     // {f(x, y), f(y, x), g(x, y)}
     // should have a color order f < g < arg < var
@@ -313,4 +309,15 @@ pub fn sortAppId<L: LanguageChildren>(appIds: &Vec<L>) -> Vec<L> {
     sortedAppIds.dedup();
 
     sortedAppIds
+}
+
+pub fn weakShapeAppIds<L: LanguageChildren>(appIds: &Vec<L>) -> (Vec<L>, SlotMap) {
+    let m = &mut (SlotMap::new(), 0);
+    let mut appIds = appIds.clone();
+
+    for a in appIds.iter_mut() {
+        a.weak_shape_impl(m);
+    }
+
+    (appIds, m.0.inverse())
 }

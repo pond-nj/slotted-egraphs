@@ -487,7 +487,7 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 
-pub struct OrderVec<L>(Vec<L>);
+pub struct OrderVec<L>(pub Vec<L>);
 
 impl<L> Deref for OrderVec<L> {
     type Target = Vec<L>;

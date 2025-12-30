@@ -21,7 +21,7 @@ mod dedupVec;
 pub use dedupVec::*;
 
 mod leafDrop;
-mod tst;
+mod unitTest;
 
 mod langCHC;
 // pub use langCHC::*;
@@ -36,6 +36,7 @@ define_language! {
 
         // wouldn't sort this
         PredSyntax(Vec<AppliedId>) = "pred",
+        // TODO: if we change new enode predicate body, would it be better for sorting?
         New(AppliedId, AppliedId, OrderVec<AppliedIdOrStar>) = "new",
         Compose(OrderVec<AppliedIdOrStar>) = "compose",
         True() = "true",
