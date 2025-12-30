@@ -1,6 +1,10 @@
 use std::{cell::RefCell, time::Duration};
 
 use super::*;
+use std::thread;
+
+// 32MiB
+const STACK_SIZE: usize = 32 * 1024 * 1024;
 
 use log::debug;
 
@@ -174,8 +178,7 @@ fn rootCHC(n: &str, m: &str, k: &str, t: &str, u: &str, eg: &mut CHCEGraph) -> A
     composeAppId
 }
 
-#[test]
-fn mainTest() {
+fn mainTestSpawn() {
     initLogger();
     let mut egOrig = CHCEGraph::default();
     let mut count = 0;
@@ -220,7 +223,7 @@ fn mainTest() {
         dumpCHCEGraph(&eg);
     }
 
-    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(3);
+    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(2);
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
             RewriteList::default(),
@@ -249,6 +252,19 @@ fn mainTest() {
     // 19. new1(N,M,K)←M=0,K=0
     // 20. new1(N,M,K)←N≤0,M=M3+1,K=K3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(L,K1), min-leaf(R,K2), min(K1,K2,K3)
     // 21. new1(N,M,K)←N≥1,N1=N−1 K=K3+1, left-drop(N1,L,U), min-leaf(U,M), min-leaf(L,K1), min-leaf(R,K2), min(K1,K2,K3)
+}
+
+#[test]
+fn mainTest() {
+    println!("mainTestSpawn");
+
+    let child = thread::Builder::new()
+        .stack_size(STACK_SIZE)
+        .spawn(mainTestSpawn)
+        .expect("Failed to spawn thread");
+
+    // Wait for the thread to finish
+    child.join().expect("Thread panicked");
 }
 
 fn checkResult(keyword: &str, expr: &String, eg: &CHCEGraph, canLookup: bool) -> Id {
@@ -381,15 +397,15 @@ fn checkUnfoldNewDefineFoldExists(
     // check folding
 
     // false ← N≥0,M+N<K, new1(n, k, m).
-    // let foldedCHC = format!(
-    //     "(new (pred <>) (and <(geq {n} 0) (lt (+ {m} {n}) {k})>) <{}>)",
-    //     compose
-    // );
-    // let foldedCHCRes = checkResult("foldedCHCRes", &foldedCHC, eg, true);
+    let foldedCHC = format!(
+        "(new (pred <>) (and <(geq {n} 0) (lt (+ {m} {n}) {k})>) <{}>)",
+        compose
+    );
+    let foldedCHCRes = checkResult("foldedCHCRes", &foldedCHC, eg, true);
 
-    // let foldedCompose = format!("(compose <{foldedCHC}>)");
-    // let foldedComposeRes = checkResult("foldedComposeRes", &foldedCHC, eg, true);
-    // assert_eq!(eg.find_id(rootCompose), eg.find_id(foldedComposeRes));
+    let foldedCompose = format!("(compose <{foldedCHC}>)");
+    let foldedComposeRes = checkResult("foldedComposeRes", &foldedCompose, eg, true);
+    assert_eq!(eg.find_id(rootCompose), eg.find_id(foldedComposeRes));
 
     return (chc1, chc2, chc3, composeId);
 }

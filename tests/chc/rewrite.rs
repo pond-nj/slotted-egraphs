@@ -1115,7 +1115,7 @@ fn newEClassFromEqMapping(
 
     for childENode in eg.enodes_applied(originalEClass) {
         let updatedChildENode = childENode.apply_slotmap_partial(&eqMapping);
-        // TODO: do we need speedup here, it's not tested
+        // TODO: do we need speedup here?
         // TODO: what's the effected of this statement?
         // let lookupRes = eg.lookup(&updatedChildENode);
         // if lookupRes.is_some() {
@@ -1255,7 +1255,6 @@ fn constraintRewrite(
     let functionalityComponentsListCopy = Rc::clone(functionalityComponentsList);
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
     let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
-        println!("start constraintRewrite");
         for constrRewriteComponent in Rc::clone(&constrRewriteListCopy).borrow().iter() {
             let ConstrRewriteComponent {
                 constrAppId,
@@ -1297,8 +1296,6 @@ fn constraintRewrite(
         }
 
         constrRewriteListCopy.borrow_mut().clear();
-
-        println!("done constraintRewrite");
     });
     RewriteT {
         name: "constraintRewrite".to_owned(),

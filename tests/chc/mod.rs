@@ -7,6 +7,7 @@ use log::{debug, LevelFilter};
 use slotted_egraphs::*;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::rc::Rc;
+use std::thread;
 use std::{default, io::Write};
 use std::{string, vec};
 use tracing_subscriber::{fmt, prelude::*};
@@ -24,7 +25,6 @@ mod leafDrop;
 mod unitTest;
 
 mod langCHC;
-// pub use langCHC::*;
 
 define_language! {
     // TODO(Pond): now children can only have max one vector
@@ -366,8 +366,9 @@ pub fn dumpCHCEClass(
         .collect::<Vec<_>>()
         .join(", ");
 
-    let synExpr = eg.getSynExpr(&i, map);
-    print!("\n{}", synExpr);
+    // TODO: this function uses too much memory
+    // let synExpr = eg.getSynExpr(&i, map);
+    // print!("\n{}", synExpr);
     print!("\n{:?}", eg.analysis_data(i));
     print!("\n{:?}({:?})({}):", i, groups[&i], &slot_str);
     print!(">> {:?}\n", eg.getSynNodeNoSubst(&i));
@@ -400,6 +401,7 @@ pub fn dumpCHCEGraph(eg: &CHCEGraph) {
         groups.entry(y.id).or_insert(vec![]).push(x);
     }
 
+    // TODO: it's possible that map is using too much memory
     let mut map = BTreeMap::<AppliedId, RecExpr<CHC>>::default();
     for i in eclasses {
         dumpCHCEClass(i, &mut map, &groups, eg);
