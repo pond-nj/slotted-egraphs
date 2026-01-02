@@ -5,6 +5,8 @@ use std::thread;
 
 // 32MiB
 const STACK_SIZE: usize = 32 * 1024 * 1024;
+const ITER_LIMIT: usize = 2;
+const DO_CONST_REWRITE: bool = true;
 
 use log::debug;
 
@@ -178,56 +180,49 @@ fn rootCHC(n: &str, m: &str, k: &str, t: &str, u: &str, eg: &mut CHCEGraph) -> A
     composeAppId
 }
 
-fn mainTestSpawn() {
-    initLogger();
-    let mut egOrig = CHCEGraph::default();
-    let mut count = 0;
-    let doConstraintRewrite = true;
-    let mut rootId = None;
-    {
-        let eg = &mut egOrig;
+fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {
+    let n = &generateVarFromCount(count, VarType::Int);
+    let t = &generateVarFromCount(count, VarType::Node);
+    let u = &generateVarFromCount(count, VarType::Node);
+    let m = &generateVarFromCount(count, VarType::Int);
+    let k = &generateVarFromCount(count, VarType::Int);
 
-        let n = &generateVarFromCount(&mut count, VarType::Int);
-        let t = &generateVarFromCount(&mut count, VarType::Node);
-        let u = &generateVarFromCount(&mut count, VarType::Node);
-        let m = &generateVarFromCount(&mut count, VarType::Int);
-        let k = &generateVarFromCount(&mut count, VarType::Int);
+    let rootDummyId = eg.addExpr(&rootDummy(n, t, u, m, k));
+    let rootId = rootCHC(n, m, k, t, u, &mut eg);
+    eg.union(&rootId, &rootDummyId);
 
-        let rootDummyId = eg.addExpr(&rootDummy(n, t, u, m, k));
-        rootId = Some(rootCHC(n, m, k, t, u, eg));
-        eg.union(&rootId.clone().unwrap(), &rootDummyId);
+    let x = &generateVarFromCount(count, VarType::Int);
+    let y = &generateVarFromCount(count, VarType::Int);
+    let z = &generateVarFromCount(count, VarType::Int);
 
-        let x = &generateVarFromCount(&mut count, VarType::Int);
-        let y = &generateVarFromCount(&mut count, VarType::Int);
-        let z = &generateVarFromCount(&mut count, VarType::Int);
+    let minDummyId = eg.addExpr(&minDummy(x, y, z));
+    let minId = minCHC(x, y, z, &mut eg);
+    eg.union(&minDummyId, &minId);
 
-        let minDummyId = eg.addExpr(&minDummy(x, y, z));
-        let minId = minCHC(x, y, z, eg);
-        eg.union(&minDummyId, &minId);
+    let x = &generateVarFromCount(count, VarType::Int);
+    let y = &generateVarFromCount(count, VarType::Node);
+    let z = &generateVarFromCount(count, VarType::Node);
 
-        let x = &generateVarFromCount(&mut count, VarType::Int);
-        let y = &generateVarFromCount(&mut count, VarType::Node);
-        let z = &generateVarFromCount(&mut count, VarType::Node);
+    let leafDropDummyId = eg.addExpr(&leafDropDummy(x, y, z));
+    let leafDropId = leafDropCHC(x, y, z, count, &mut eg);
+    eg.union(&leafDropDummyId, &leafDropId);
 
-        let leafDropDummyId = eg.addExpr(&leafDropDummy(x, y, z));
-        let leafDropId = leafDropCHC(x, y, z, &mut count, eg);
-        eg.union(&leafDropDummyId, &leafDropId);
+    let x = &generateVarFromCount(count, VarType::Node);
+    let y = &generateVarFromCount(count, VarType::Int);
 
-        let x = &generateVarFromCount(&mut count, VarType::Node);
-        let y = &generateVarFromCount(&mut count, VarType::Int);
+    let minLeafDummyId = eg.addExpr(&minLeafDummy(x, y));
+    let minLeafId = minLeafCHC(x, y, count, &mut eg);
+    eg.union(&minLeafDummyId, &minLeafId);
 
-        let minLeafDummyId = eg.addExpr(&minLeafDummy(x, y));
-        let minLeafId = minLeafCHC(x, y, &mut count, eg);
-        eg.union(&minLeafDummyId, &minLeafId);
+    dumpCHCEGraph(&eg);
 
-        dumpCHCEGraph(&eg);
-    }
-
-    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(2);
+    let mut runner: CHCRunner = Runner::default()
+        .with_egraph(eg)
+        .with_iter_limit(ITER_LIMIT);
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
             RewriteList::default(),
-            doConstraintRewrite,
+            DO_CONST_REWRITE,
         ))
     });
 
@@ -238,9 +233,18 @@ fn mainTestSpawn() {
     dumpCHCEGraph(&runner.egraph);
     runner.egraph.check();
 
+    (rootId, runner)
+}
+
+fn mainTestSpawn() {
+    initLogger();
+    let mut egOrig = CHCEGraph::default();
+    let mut count = 0;
+    let doConstraintRewrite = true;
+    let (rootId, mut runner) = buildLeafDropCHC(egOrig, &mut count);
     checkSelfCycle(&runner.egraph);
     let (unfold1, unfold2, unfold3, newDefineComposeId) =
-        checkUnfoldNewDefineFoldExists(rootId.unwrap().id, &mut runner.egraph);
+        checkUnfoldNewDefineFoldExists(rootId.id, &mut runner.egraph);
     checkUnfold2NewDefineWithMinLeaf(unfold2, unfold3, newDefineComposeId, &mut runner.egraph);
     checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
@@ -972,75 +976,8 @@ fn testSortAppId() {
     initLogger();
     let mut egOrig = CHCEGraph::default();
     let mut count = 0;
-    let doConstraintRewrite = true;
-    {
-        let eg = &mut egOrig;
 
-        let n = &generateVarFromCount(&mut count, VarType::Int);
-        let t = &generateVarFromCount(&mut count, VarType::Node);
-        let u = &generateVarFromCount(&mut count, VarType::Node);
-        let m = &generateVarFromCount(&mut count, VarType::Int);
-        let k = &generateVarFromCount(&mut count, VarType::Int);
-
-        //  false ← N≥0,M+N<K, left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
-        let syntax = "(pred <>)";
-        let cond = format!("(and <(geq {n} 0) (lt (+ {m} {n}) {k})>)");
-        let rootCHC: String = format!(
-            "(new {syntax} {cond} <{} {} {}>)",
-            leafDropDummy(n, t, u),
-            minLeafDummy(u, m),
-            minLeafDummy(t, k)
-        );
-        let rootCHCId = eg.addExpr(&rootCHC);
-        eg.analysis_data_mut(rootCHCId.id)
-            .predNames
-            .insert("rootCHC".to_string());
-
-        let composeRoot = format!("(compose <{rootCHC}>)");
-
-        let rootDummyId = eg.addExpr(&rootDummy(n, t, u, m, k));
-        let rootId = eg.addExpr(&composeRoot);
-        eg.union(&rootId, &rootDummyId);
-
-        let x = &generateVarFromCount(&mut count, VarType::Int);
-        let y = &generateVarFromCount(&mut count, VarType::Int);
-        let z = &generateVarFromCount(&mut count, VarType::Int);
-
-        let minDummyId = eg.addExpr(&minDummy(x, y, z));
-        let minId = minCHC(x, y, z, eg);
-        eg.union(&minDummyId, &minId);
-
-        let x = &generateVarFromCount(&mut count, VarType::Int);
-        let y = &generateVarFromCount(&mut count, VarType::Node);
-        let z = &generateVarFromCount(&mut count, VarType::Node);
-
-        let leafDropDummyId = eg.addExpr(&leafDropDummy(x, y, z));
-        let leafDropId = leafDropCHC(x, y, z, &mut count, eg);
-        eg.union(&leafDropDummyId, &leafDropId);
-        let leafDropId = eg.find_applied_id(&leafDropDummyId).id;
-
-        let x = &generateVarFromCount(&mut count, VarType::Node);
-        let y = &generateVarFromCount(&mut count, VarType::Int);
-
-        let minLeafDummyId = eg.addExpr(&minLeafDummy(x, y));
-        let minLeafId = minLeafCHC(x, y, &mut count, eg);
-        eg.union(&minLeafDummyId, &minLeafId);
-
-        println!("egraph before run");
-        dumpCHCEGraph(&eg);
-    }
-
-    let mut runner: CHCRunner = Runner::default().with_egraph(egOrig).with_iter_limit(3);
-    let (report, t): (Report, _) = time(|| {
-        runner.run(&mut getAllRewrites(
-            RewriteList::default(),
-            doConstraintRewrite,
-        ))
-    });
-
-    println!("egraph after run");
-    dumpCHCEGraph(&runner.egraph);
-    runner.egraph.check();
+    let (rootId, mut runner) = buildLeafDropCHC(egOrig, &mut count);
 
     let (_, testTime) = time(|| {
         for id in runner.egraph.ids() {
