@@ -441,6 +441,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn shape(&self, e: &L) -> (L, Bijection) {
         let (pnode, bij) = self.proven_shape(e);
         (pnode.elem, bij)
+
+        // TODO: it's a lot faster if we use this, but it's wrong
+        // let (pnode, bij) = e.weak_shape();
+        // (pnode, bij)
     }
 
     pub(crate) fn proven_shape(&self, e: &L) -> (ProvenNode<L>, Bijection) {
@@ -485,6 +489,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         &self,
         enode: &ProvenNode<L>,
     ) -> Vec<ProvenNode<L>> {
+        // println!("doing proven_proven_get_group_compatible_variants");
         // should only be called with an up-to-date e-node.
         if CHECKS {
             for x in enode.elem.applied_id_occurrences() {
@@ -515,6 +520,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // why eclass id36 contains 2 in group.all_perms(), but it does not show when printed?
 
+        // TODO: this logic runs very slowly
+        // doing cartesian product accross different children
+        // this step is very slow
+        // println!("xx");
         for l in cartesian(&groups) {
             let pn = enode.clone();
             let pn = self.chain_pn_map(&pn, |i, pai| self.chain_pai_pp(&pai, l[i]));
@@ -522,6 +531,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // if CHECKS { pn.check_base(enode.base()); }
             out.push(pn);
         }
+
+        // println!("done proven_proven_get_group_compatible_variants");
         out
     }
 
@@ -690,6 +701,14 @@ fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item = Vec<&'a T>> + u
     let n = input.len();
     let mut indices = vec![0; n];
     let mut done = false;
+
+    let mut expectOutLen = 1;
+    for i in 0..n {
+        expectOutLen *= input[i].len();
+    }
+
+    println!("cartesian expectOutLen {}", expectOutLen);
+
     let f = move || {
         if done {
             return None;

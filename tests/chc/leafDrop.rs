@@ -5,7 +5,8 @@ use std::thread;
 
 // 32MiB
 const STACK_SIZE: usize = 32 * 1024 * 1024;
-const ITER_LIMIT: usize = 2;
+const ITER_LIMIT: usize = 3;
+const TIME_LIMIT_SECS: u64 = 3600;
 const DO_CONST_REWRITE: bool = true;
 
 use log::debug;
@@ -218,7 +219,8 @@ fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner
 
     let mut runner: CHCRunner = Runner::default()
         .with_egraph(eg)
-        .with_iter_limit(ITER_LIMIT);
+        .with_iter_limit(ITER_LIMIT)
+        .with_time_limit(Duration::from_secs(TIME_LIMIT_SECS));
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
             RewriteList::default(),

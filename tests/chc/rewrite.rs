@@ -231,6 +231,7 @@ fn functionalityTransformation(
     constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
     functionalityComponentsList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
 ) -> CHCRewrite {
+    println!("doing functionalityTransformation");
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
 
     let functionalityComponentsListClone = Rc::clone(&functionalityComponentsList);
@@ -399,7 +400,8 @@ fn unfoldSearchInternal(
     let and1Children = getAnyAndChildren(&cond1, eg);
     for (comp2Idx, compose2Id) in new1Children.iter().enumerate() {
         let compose2Id = compose2Id.getAppliedId();
-        for compose2 in eg.enodes_applied(&compose2Id) {
+        let compose2Vec = eg.enodes_applied(&compose2Id);
+        for compose2 in compose2Vec {
             if let CHC::ComposeInit(..) = compose2 {
                 continue;
             }
@@ -412,7 +414,8 @@ fn unfoldSearchInternal(
             for new2EClass in compose2Children.iter() {
                 let new2EClass = new2EClass.getAppliedId();
                 let mut fromThisEClassRecipe: Vec<UnfoldRecipe> = vec![];
-                for new2 in eg.enodes_applied(&new2EClass) {
+                let new2Vec = eg.enodes_applied(&new2EClass);
+                for new2 in new2Vec {
                     let tmp2 = new2.clone();
                     checkNewENode!(tmp2);
                     let CHC::New(syntax2, cond2, new2Children) = new2 else {
@@ -821,12 +824,16 @@ fn unfold(
 }
 
 // TODO: caching of processed node here?
+// TODO: this function takes a long time
+// expand eq rewrite, X = Y, X = Z -> X = Y, X = Z, Y = Z
+// expand eq rewrite, X = node(a, l, r), Y = node(a, l, r) -> X = Y, X = node(a, l, r), Y = node(a, l, r)
 pub fn expandEqRewrite(
     constrAppId: &AppliedId,
     constrENode: &CHC,
     originalNewENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> CHC {
+    println!("doing expandEqRewrite");
     let CHC::And(andChildren) = constrENode else {
         panic!();
     };
@@ -837,6 +844,7 @@ pub fn expandEqRewrite(
     let mut uf = HashUnionFind::new(vec![]);
 
     let mut eqCount = 0;
+    // println!("1");
     for andChild in andChildren.iter() {
         let AppliedIdOrStar::AppliedId(andChild) = andChild else {
             panic!();
@@ -858,6 +866,7 @@ pub fn expandEqRewrite(
     newConstraintChildren.extend(andChildren.clone());
     let oldLen = newConstraintChildren.len();
 
+    // println!("2");
     for group in groups.iter_mut() {
         group.sort();
         for i in 0..group.len() {
@@ -885,25 +894,32 @@ pub fn expandEqRewrite(
     let newConstraintChildren: OrderVec<AppliedIdOrStar> =
         newConstraintChildren.into_iter().collect();
 
+    // println!("3");
     let (_, newConstraint, newConstraintAppId) =
         sortNewENode2(&syntax, &newConstraintChildren, &newENodeChildren, eg);
 
     checkVarType(&newConstraintAppId, eg);
+
+    // println!("4");
     eg.union_justified(
         constrAppId,
         &newConstraintAppId,
         Some("expandEq".to_owned()),
     );
 
+    // println!("5");
     return newConstraint;
 }
 
+// TODO: this function is taking a long time
+// constructor eq rewrite, node(x, l, r) = node(x', l', r') -> x = x', l = l', r = r'
 pub fn constructorEqRewrite(
     constrAppId: &AppliedId,
     constrENode: &CHC,
     originalNewENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> CHC {
+    println!("doing constructorEqRewrite");
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
     let CHC::And(andChildrenOrig) = constrENode else {
@@ -918,13 +934,15 @@ pub fn constructorEqRewrite(
         };
 
         // TODO: change from enodes_applied to static iterator
-        for eqNode in eg.enodes_applied(&child) {
+        let childENodes = eg.enodes_applied(&child);
+        for eqNode in childENodes {
             let CHC::Eq(eqChild1, eqChild2) = eqNode else {
                 continue;
             };
 
             let mut nodeFromChild1 = vec![];
-            for binodeNode in eg.enodes_applied(&eqChild1) {
+            let binodeNodeVec = eg.enodes_applied(&eqChild1);
+            for binodeNode in binodeNodeVec {
                 let CHC::BiNode(val, l, r) = binodeNode else {
                     continue;
                 };
@@ -932,7 +950,8 @@ pub fn constructorEqRewrite(
             }
 
             let mut nodeFromChild2 = vec![];
-            for binodeNode in eg.enodes_applied(&eqChild2) {
+            let binodeNodeVec2 = eg.enodes_applied(&eqChild2);
+            for binodeNode in binodeNodeVec2 {
                 let CHC::BiNode(val, l, r) = binodeNode else {
                     continue;
                 };
@@ -995,7 +1014,8 @@ pub fn getEqMapping(
             panic!();
         };
 
-        for eqNode in eg.enodes_applied(&child) {
+        let eqNodeVec = eg.enodes_applied(&child);
+        for eqNode in eqNodeVec {
             let CHC::Eq(eqChild1, eqChild2) = eqNode else {
                 continue;
             };
@@ -1003,7 +1023,8 @@ pub fn getEqMapping(
             let mut vt = None;
 
             let mut leftSideSlots = vec![];
-            for singleNode in eg.enodes_applied(&eqChild1) {
+            let singleNodeVec = eg.enodes_applied(&eqChild1);
+            for singleNode in singleNodeVec {
                 match singleNode {
                     CHC::Node(s) => {
                         leftSideSlots.push(s);
@@ -1022,7 +1043,8 @@ pub fn getEqMapping(
             }
 
             let mut rightSideSlots = vec![];
-            for singleNode in eg.enodes_applied(&eqChild2) {
+            let singleNodeVec = eg.enodes_applied(&eqChild2);
+            for singleNode in singleNodeVec {
                 match singleNode {
                     CHC::Node(s) => {
                         rightSideSlots.push(s);
@@ -1113,16 +1135,21 @@ fn newEClassFromEqMapping(
         return originalEClass.clone();
     }
 
-    for childENode in eg.enodes_applied(originalEClass) {
+    let childENodeVec = eg.enodes_applied(originalEClass);
+    for childENode in childENodeVec {
         let updatedChildENode = childENode.apply_slotmap_partial(&eqMapping);
         // TODO: do we need speedup here?
         // TODO: what's the effected of this statement?
-        // let lookupRes = eg.lookup(&updatedChildENode);
-        // if lookupRes.is_some() {
-        //     return lookupRes.unwrap();
-        // }
+        let lookupRes = eg.lookup(&updatedChildENode);
+        if lookupRes.is_some() {
+            updatedChild = lookupRes;
+            break;
+        }
 
         let newUpdatedChild = eg.add(updatedChildENode);
+        // if lookupRes.is_some() {
+        //     assert!(lookupRes.unwrap() == newUpdatedChild);
+        // }
 
         if !updatedChild.is_none() {
             eg.union_justified(
@@ -1153,7 +1180,8 @@ pub fn rewriteConstraintFromEqMapping(
         let updatedChild = newEClassFromEqMapping(child, &eqMapping, eg);
 
         let mut skip = false;
-        for selfEqENode in eg.enodes_applied(&updatedChild) {
+        let selfEqENodeVec = eg.enodes_applied(&updatedChild);
+        for selfEqENode in selfEqENodeVec {
             match selfEqENode {
                 CHC::Eq(left, right) => {
                     if left == right {
@@ -1209,6 +1237,7 @@ pub fn dedupFromEqRewrite(
     newENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> (CHC, CHC) {
+    println!("doing dedupFromEqRewrite");
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
     let CHC::And(andChildrenOrig) = constrENode.clone() else {
@@ -1380,28 +1409,36 @@ pub fn sortNewENode2(
     predicateChildren: &OrderVec<AppliedIdOrStar>,
     eg: &mut CHCEGraph,
 ) -> (CHC, CHC, AppliedId) {
+    println!("doing sortNewENode2");
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.extend(condChildren.iter().map(|a| a.getAppliedId()));
     aggrAppId.push(syntaxAppId.clone());
     let aggrAppId = sortAppId(&aggrAppId);
 
+    // println!("a");
     let condChildrenSet = BTreeSet::from_iter(condChildren.iter().map(|a| a.getAppliedId()));
 
+    // println!("b");
     let sortedPredicateChildren: Vec<_> = aggrAppId
         .iter()
         .filter(|x| *x != syntaxAppId && !condChildrenSet.contains(x))
         .map(|x| AppliedIdOrStar::AppliedId(x.clone()))
         .collect();
 
+    // println!("c");
     let sortedCondChildren: Vec<_> = aggrAppId
         .into_iter()
         .filter(|x| x != syntaxAppId && condChildrenSet.contains(x))
         .map(|x| AppliedIdOrStar::AppliedId(x))
         .collect();
 
+    // println!("d");
     let condENode = CHC::And(sortedCondChildren.into());
     let condAppId = eg.add(condENode.clone());
 
+    // println!("e");
+
+    // println!("done sortNewENode2");
     (
         CHC::New(
             syntaxAppId.clone(),

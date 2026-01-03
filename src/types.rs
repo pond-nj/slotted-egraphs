@@ -131,14 +131,25 @@ impl AppliedId {
 }
 
 // This only works with Vector of AppIds
-pub fn sortAppId<L: LanguageChildren>(appIds: &Vec<L>) -> Vec<L> {
-    if appIds.len() == 0 {
+pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
+    if appIdsOrigs.len() == 0 {
         return vec![];
     }
-    let mut appIds = &mut appIds.clone();
-    appIds.sort();
-    appIds.dedup();
-    let appIds = &*appIds;
+    println!("sortAppId len appIds {:?}", appIdsOrigs.len());
+
+    let mut appIdsSorted = appIdsOrigs.clone();
+    appIdsSorted.sort();
+    appIdsSorted.dedup();
+
+    // TODO: remove this
+    // println!("done sortAppId");
+    // return appIdsSorted;
+
+    let appIdsSet = appIdsSorted.iter().map(|x| x.id()).collect::<BTreeSet<_>>();
+    if appIdsSet.len() == appIdsSorted.len() {
+        return appIdsSorted;
+    }
+
     // println!("sortAppId len appIds {:?}", appIds.len());
     // for i in appIds {
     //     print!("{:?} ", i.len());
@@ -163,7 +174,7 @@ pub fn sortAppId<L: LanguageChildren>(appIds: &Vec<L>) -> Vec<L> {
     // must be vec because there might be duplicates
     let mut appIdToV = Vec::new();
     let mut argsV = vec![];
-    for child in appIds {
+    for child in appIdsSorted.iter() {
         appIdToV.push((child, totalV));
         for i in 0..child.len() {
             argsV.push(totalV + i + 1);
@@ -184,7 +195,7 @@ pub fn sortAppId<L: LanguageChildren>(appIds: &Vec<L>) -> Vec<L> {
 
     // add edges
     let mut curr = 0;
-    for (i, child) in appIds.iter().enumerate() {
+    for (i, child) in appIdsSorted.iter().enumerate() {
         // 1(f) - 2(arg) - 3(arg)
 
         if child.len() > 0 {
@@ -303,11 +314,12 @@ pub fn sortAppId<L: LanguageChildren>(appIds: &Vec<L>) -> Vec<L> {
     }
 
     let mut sortedAppIds = vec![];
-    for i in &lab[0..appIds.len()] {
+    for i in &lab[0..appIdsSorted.len()] {
         sortedAppIds.push(VToAppIds[&(*i as usize)].clone());
     }
     sortedAppIds.dedup();
 
+    println!("done sortAppId");
     sortedAppIds
 }
 
