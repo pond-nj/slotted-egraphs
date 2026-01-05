@@ -473,7 +473,7 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
     }
 
     fn sorted(&self) -> Self {
-        todo!()
+        self.clone()
     }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {

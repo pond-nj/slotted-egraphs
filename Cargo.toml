@@ -10,8 +10,8 @@ repository = "https://github.com/memoryleak47/slotted-egraphs/"
 explanations = []
 checks = []
 profiling = []
-# default = ["checks"]
-default = []
+default = ["checks"]
+# default = []
 
 [package.metadata.docs.rs]
 features = ["explanations"]

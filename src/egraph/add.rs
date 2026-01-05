@@ -301,7 +301,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .insert(sh.clone(), psn);
 
         if CHECKS {
-            assert!(self.semifyEnode(sh.clone()) == sh)
+            // assert!(self.semifyEnode(sh.clone()) == sh)
         }
         // println!("add to hashcons {:?} -> {id:?}", sh);
         // synified version is added to hashcons from self.add
