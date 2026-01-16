@@ -195,7 +195,7 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
 
     // add edges
     let mut curr = 0;
-    for (i, child) in appIdsSorted.iter().enumerate() {
+    for (_i, child) in appIdsSorted.iter().enumerate() {
         // 1(f) - 2(arg) - 3(arg)
 
         if child.len() > 0 {

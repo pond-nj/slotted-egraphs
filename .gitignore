@@ -4,3 +4,4 @@ Cargo.lock
 run.sh
 runArith.sh
 tmp
+tmp*.txt

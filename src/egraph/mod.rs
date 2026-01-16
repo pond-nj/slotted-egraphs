@@ -705,7 +705,7 @@ fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item = Vec<&'a T>> + u
         expectOutLen *= input[i].len();
     }
 
-    println!("cartesian expectOutLen {}", expectOutLen);
+    // println!("cartesian expectOutLen {}", expectOutLen);
 
     let f = move || {
         if done {
