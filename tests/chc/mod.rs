@@ -21,18 +21,21 @@ pub use ematchQuery::*;
 mod dedupVec;
 pub use dedupVec::*;
 
+// test
 mod leafDrop;
+mod pairingPaperArray2;
 mod unitTest;
 
-mod langCHC;
+mod testUtils;
 
 define_language! {
     // TODO(Pond): now children can only have max one vector
-    // TODO: add dont care var?
     pub enum CHC {
         // to specify types
-        Int(Slot) = "int",
-        Node(Slot) = "node",
+        // TODO: this doesn't allow dynamic type, e.g. if we want list of type T
+        IntType(Slot) = "intType",
+        NodeType(Slot) = "nodeType",
+        ListType(Slot) = "listType",
 
         // wouldn't sort this
         PredSyntax(Vec<AppliedId>) = "pred",
@@ -45,6 +48,8 @@ define_language! {
         // node(x, l, r) has subtree l and r and element x at this node
         BiNode(AppliedId, AppliedId, AppliedId) = "binode",
         Leaf() = "leaf",
+        List(AppliedId, AppliedId) = "list",
+        EmptyList() = "emptyList",
 
         // Boolean
         And(OrderVec<AppliedIdOrStar>) = "and",
@@ -55,8 +60,8 @@ define_language! {
         Less(AppliedId, AppliedId) = "lt",
         Greater(AppliedId, AppliedId) = "gt",
         Eq(AppliedId, AppliedId) = "eq",
-        Add(AppliedId, AppliedId) = "+",
-        Minus(AppliedId, AppliedId) = "-",
+        Add(AppliedId, AppliedId) = "add",
+        Minus(AppliedId, AppliedId) = "minus",
 
         Number(u32),
 
@@ -280,8 +285,9 @@ impl Analysis<CHC> for CHCAnalysis {
                     functionalInfo: FunctionalInfo::default(),
                 }
             }
-            CHC::Int(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Int),
-            CHC::Node(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Node),
+            CHC::IntType(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Int),
+            CHC::NodeType(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Node),
+            CHC::ListType(_) => CHCDataForPrimitiveVar(sh, eg, VarType::List),
             _ => CHCData {
                 predNames: HashSet::default(),
                 varTypes: aggregateVarType(sh, eg),

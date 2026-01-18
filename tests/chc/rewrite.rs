@@ -31,11 +31,12 @@ fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> OrderVec<AppliedIdOrS
 
 fn getVarAppId(s: Slot, vt: VarType, eg: &mut CHCEGraph) -> AppliedId {
     match vt {
-        VarType::Int => eg.add(CHC::Int(s)),
-        VarType::Node => eg.add(CHC::Node(s)),
+        VarType::Int => eg.add(CHC::IntType(s)),
+        VarType::Node => eg.add(CHC::NodeType(s)),
         VarType::Unknown => {
             todo!()
         }
+        VarType::List => eg.add(CHC::ListType(s)),
     }
 }
 
@@ -1026,11 +1027,11 @@ pub fn getEqMapping(
             let singleNodeVec = eg.enodes_applied(&eqChild1);
             for singleNode in singleNodeVec {
                 match singleNode {
-                    CHC::Node(s) => {
+                    CHC::NodeType(s) => {
                         leftSideSlots.push(s);
                         vt = Some(VarType::Node);
                     }
-                    CHC::Int(s) => {
+                    CHC::IntType(s) => {
                         leftSideSlots.push(s);
                         vt = Some(VarType::Int);
                     }
@@ -1046,11 +1047,11 @@ pub fn getEqMapping(
             let singleNodeVec = eg.enodes_applied(&eqChild2);
             for singleNode in singleNodeVec {
                 match singleNode {
-                    CHC::Node(s) => {
+                    CHC::NodeType(s) => {
                         rightSideSlots.push(s);
                         assert!(vt.unwrap() == VarType::Node);
                     }
-                    CHC::Int(s) => {
+                    CHC::IntType(s) => {
                         rightSideSlots.push(s);
                         assert!(vt.unwrap() == VarType::Int);
                     }

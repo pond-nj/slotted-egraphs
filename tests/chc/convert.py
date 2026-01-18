@@ -46,9 +46,10 @@ def parseProlog(lines):
     }
     """
     ret = defaultdict(list)
-    predNameToHeadArgs = {}
+
     for line in lines:
         rule = {}
+        changeVar = {}
         line = line.strip()
         if line.startswith("%"):
             continue
@@ -59,44 +60,74 @@ def parseProlog(lines):
         if line[-1] == ".":
             line = line[:-1]
 
-        head, body = line.split(":-")
-        head = head.strip()
-        body = body.strip()
+        print("line", line)
+
+        if not ":-" in line:
+            assert re.match(r"^(\w*)\((.*)\)$", line)
+            head = line
+            body = ""
+        else:
+            head, body = line.split(":-")
+            head = head.strip()
+            body = body.strip()
 
         headPred = head.split("(")[0]
-        headArgs = list(
-            map(lambda x: x.strip(), head.split("(")[1].split(")")[0].split(","))
-        )
+        if "(" in head:
+            assert re.match(r"^(\w*)\((.*)\)$", head)
+            headArgs = list(
+                map(lambda x: x.strip(), head.split("(")[1].split(")")[0].split(","))
+            )
+        else:
+            headArgs = []
+        constr = []
+        newHeadArgs = []
+        changeVar = {}
+        for i, h in enumerate(headArgs):
+            newHeadArgs.append(f"new_{i}")
+            changeVar[h] = f"new_{i}"
 
         body = parseBody(body)
-        print("body", body)
-        constr = []
+
         dependencies = []
         for b in body:
             print(b)
             b = b.strip()
-            if re.match(r"^(\w*)\((.*)\)$", b):
-                dependencies.append(b)
+            res = re.match(r"^(\w*)\((.*)\)$", b)
+            if res:
+                bPred = res.group(1)
+                bArgs = res.group(2).split(",")
+                for i, v in enumerate(bArgs):
+                    v = v.strip()
+                    if v in changeVar:
+                        bArgs[i] = changeVar[v]
+                        continue
+
+                    if not re.match(r"^\w+$", v) and not v in changeVar:
+                        changeVar[v] = "new_" + str(len(changeVar))
+                        bArgs[i] = changeVar[v]
+
+                dependencies.append(bPred + "(" + ", ".join(bArgs) + ")")
             else:
                 constr.append(b)
+
+        newConstr = []
+        for v in changeVar:
+            newConstr.append(f"{v} = {changeVar[v]}")
+        newConstr.extend(constr)
+
         rule = {
-            "headArgs": headArgs,
-            "constr": constr,
+            "headArgs": newHeadArgs,
+            "constr": newConstr,
             "dependencies": dependencies,
             "line": line,
         }
         ret[headPred].append(rule)
-        if headPred not in predNameToHeadArgs:
-            predNameToHeadArgs[headPred] = headArgs
-        else:
-            print(predNameToHeadArgs[headPred])
-            print(headArgs)
-            assert predNameToHeadArgs[headPred] == headArgs
     return ret
 
 
 class OP(Enum):
     eq = "="
+    neq = "=\\="
     add = "+"
     minus = "-"
     leq = "=<"
@@ -112,7 +143,6 @@ def constrGetNextTerm(constr):
     constr = constr.strip()
     i = 0
     bracket_count = 0
-    firstType = None
 
     firstIsVarNotOp = False
     if constr[0].isalpha() or constr[0].isdigit():
@@ -122,7 +152,11 @@ def constrGetNextTerm(constr):
         if constr[i] == " " and bracket_count == 0:
             break
 
-        if firstIsVarNotOp and (not constr[i].isalpha() and not constr[i].isdigit()):
+        if (
+            firstIsVarNotOp
+            and (not constr[i].isalpha() and not constr[i].isdigit())
+            and bracket_count == 0
+        ):
             break
 
         if (
@@ -167,6 +201,9 @@ def parseConstr(constr):
     if constr == "":
         return []
 
+    if constr.isnumeric():
+        return [int(constr)]
+
     if re.match(r"^\w+$", constr):
         return [constr]
 
@@ -177,12 +214,17 @@ def parseConstr(constr):
     if first[0] == "[" and first[1] != "]":
         assert first[-1] == "]"
         first = first[1:-1]
-        assert "|" in first
-        assert first.count("|") == 1
-        left, right = first.split("|")
-        tree.append(OP.list)
-        tree.append(unwrapParse(left))
-        tree.append(unwrapParse(right))
+        if "|" in first:
+            assert first.count("|") == 1
+            left, right = first.split("|")
+            tree.append(OP.list)
+            tree.append(unwrapParse(left))
+            tree.append(unwrapParse(right))
+        else:
+            assert re.match(r"^\w+$", first)
+            tree.append(OP.list)
+            tree.append(unwrapParse(first))
+            tree.append(OP.emptyList)
     elif first.startswith("node"):
         assert first.endswith(")")
         first = first[:-1]
@@ -199,7 +241,7 @@ def parseConstr(constr):
         try:
             op = OP(opStr)
             tree.append(op)
-            tree.append(first)
+            tree.append(unwrapParse(first))
             tree.append(unwrapParse(constr))
         except KeyError:
             raise Exception(f"opStr {opStr} not found")
@@ -208,6 +250,7 @@ def parseConstr(constr):
 
 
 def constrTreeToENodeExpr(tree, varSet):
+    print("tree", tree)
     expr = "("
     children = []
     assert isinstance(tree[0], OP)
@@ -216,7 +259,9 @@ def constrTreeToENodeExpr(tree, varSet):
         if isinstance(t, list):
             children.append(constrTreeToENodeExpr(t, varSet))
         elif isinstance(t, OP):
-            children.append(t.name)
+            children.append("(" + t.name + ")")
+        elif isinstance(t, int):
+            children.append(str(t))
         else:
             children.append("{" + t + "}")
             varSet.add(t)
@@ -234,6 +279,7 @@ def getVar(dependencies, varSet):
         predName, args = split
         vars = args.split(",")
         for v in vars:
+            v = v.strip()
             varSet.add(v)
 
 
@@ -244,13 +290,13 @@ def buildRust(prologStruct):
         headArgs = rules[0]["headArgs"]
 
         def headArgsToFnInput(headArgs):
-            return ", ".join([f"{arg}: &str" for arg in headArgs])
+            return [f"{arg}: &str" for arg in headArgs]
 
         def headArgsToSyntax(headArgs):
             return " ".join([f"{{{arg}}}" for arg in headArgs])
 
         # fn appendDummy(x: &str, y: &str, z: &str) -> String {
-        rust += f"fn {predName}Dummy({headArgsToFnInput(headArgs)}) -> String {{\n"
+        rust += f"fn {predName}Dummy({", ".join(headArgsToFnInput(headArgs))}) -> String {{\n"
         #     let syntax = format!("(pred <{x} {y} {z}>)");
         rust += f'    let syntax = format!("(pred <{headArgsToSyntax(headArgs)}>)");\n'
         #     format!("(composeInit append {syntax} (true) <2>)")
@@ -260,13 +306,17 @@ def buildRust(prologStruct):
         rust += "\n"
 
         # fn appendCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {
-
-        rust += f"fn {predName}CHC({headArgsToFnInput(headArgs)}, count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {{\n"
+        fnInput = headArgsToFnInput(headArgs)
+        fnInput.append("count: &mut u32")
+        fnInput.append("eg: &mut CHCEGraph")
+        rust += f"fn {predName}CHC({", ".join(fnInput)}) -> AppliedId {{\n"
 
         #     let syntax = format!("(pred <{x} {y} {z}>)");
         rust += (
             f'    let syntax = format!("(pred <{headArgsToSyntax(headArgs)}>)");\n\n'
         )
+        #     let syntaxAppId = eg.addExpr(&syntax);
+        rust += f"    let syntaxAppId = eg.addExpr(&syntax);\n"
 
         for i, rule in enumerate(rules):
             rust += "    // {}\n".format(rule["line"])
@@ -274,7 +324,11 @@ def buildRust(prologStruct):
             allVar = set()
             for c in rule["constr"]:
                 constrTree = parseConstr(c)
+                print("c", c)
+                print("constrTree", constrTree)
                 andChildren.append(constrTreeToENodeExpr(constrTree, allVar))
+
+            assert not "[]" in allVar
 
             getVar(rule["dependencies"], allVar)
 
@@ -287,16 +341,24 @@ def buildRust(prologStruct):
             rust += f'    let cond{i} = format!("(and <{" ".join(andChildren)}>)");\n'
 
             if len(rule["dependencies"]) == 0:
-                rust += f'    let chc{i} = format!("(new {{syntax}} cond{i} <>)");\n'
+                rust += (
+                    f'    let chc{i} = format!("(new {{syntax}} {{cond{i}}} <>)");\n'
+                )
             else:
                 dependencies = rule["dependencies"]
                 dependenciesDummy = []
                 for d in dependencies:
                     split = d.split("(")
                     assert len(split) == 2
-                    predName, args = split
-                    dependenciesDummy.append(f"{predName}Dummy({args}")
-                rust += f'    let chc{i} = format!("(new {{syntax}} cond{i} <{{}}>)", {", ".join(dependenciesDummy)});\n'
+                    dPredName, args = split
+                    dependenciesDummy.append(f"{dPredName}Dummy({args}")
+
+                rust += f'    let chc{i} = format!("(new {{syntax}} {{cond{i}}} <{" ".join(["{}" for _ in dependenciesDummy])}>)", {", ".join(dependenciesDummy)});\n'
+
+            #     let chc1AppId = eg.addExpr(&chc1);
+            rust += f"    let chc{i}AppId = eg.addExpr(&chc{i});\n"
+            #     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
+            rust += f"    eg.shrink_slots(&chc{i}AppId, &syntaxAppId.slots(), ());\n"
 
             rust += "\n"
 
@@ -316,21 +378,34 @@ def buildRust(prologStruct):
 
         rust += "    composeId\n"
 
-        rust += "}\n"
+        rust += "}\n\n"
     return rust
 
 
-# file = open("input.prolog", "r")
-# lines = file.readlines()
+def groupLines(lines):
+    newLines = []
+    currLine = ""
+    for line in lines:
+        line = line.replace("\n", "")
+        for c in line:
+            if c == ".":
+                newLines.append(currLine + c)
+                currLine = ""
+            else:
+                currLine += c
+    if currLine != "":
+        newLines.append(currLine)
 
-# separate body but
+    return newLines
 
-# Example usage
+
 f = open("prologInp.txt", "r")
 lines = f.readlines()
-struct = parseProlog(lines)
+newLines = groupLines(lines)
+struct = parseProlog(newLines)
 pprint.pprint(struct)
-print(buildRust(struct))
+rust = buildRust(struct)
+print(rust)
 
 # output
 
@@ -342,16 +417,22 @@ print(buildRust(struct))
 #     // append(X, Y, Z) :- X = [], Y = Z.
 #     // append(X, Y, Z) :- X = [T|X1], Z = [T|Z1], append(X1, Y, Z1).
 #     let syntax = format!("(pred <{x} {y} {z}>)");
+#     let syntaxAppId = eg.addExpr(&syntax);
 
 #     // append(X, Y, Z) :- X = [], Y = Z.
 #     let cond1 = format!("(and <(eq {x} (emptyList)) (eq {y} {z})>)");
 #     let chc1 = format!("(new {syntax} {cond1} <>)");
+#     let chc1AppId = eg.addExpr(&chc1);
+#     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
+
 #     // append(X, Y, Z) :- X = [T|X1], Z = [T|Z1], append(X1, Y, Z1).
 #     let t = &generateVarFromCount(count, VarType::Int);
 #     let x1 = &generateVarFromCount(count, VarType::List);
 #     let z1 = &generateVarFromCount(count, VarType::List);
 #     let cond2 = format!("(and <(eq {x} (list {t} {x1})) (eq {z} (list {t} {z1}))>)");
 #     let chc2 = format!("(new {syntax} {cond2} <{}>)", appendDummy(x1, y, z1));
+#     let chc2AppId = eg.addExpr(&chc2);
+#     eg.shrink_slots(&chc2AppId, &syntaxAppId.slots(), ());
 
 #     let composeAppend = format!("(compose <{chc1} {chc2}>)");
 #     let composeAppendId = eg.addExpr(&composeAppend);

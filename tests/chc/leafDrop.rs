@@ -5,29 +5,11 @@ use std::thread;
 
 // 32MiB
 const STACK_SIZE: usize = 32 * 1024 * 1024;
-const ITER_LIMIT: usize = 3;
+const ITER_LIMIT: usize = 1;
 const TIME_LIMIT_SECS: u64 = 3600;
 const DO_CONST_REWRITE: bool = true;
 
 use log::debug;
-
-macro_rules! checkRes {
-    ($keyword: expr, $res:expr) => {
-        assert!(
-            $res.len() > 0,
-            "{} is empty, expected at least one element.",
-            $keyword
-        );
-
-        let allIds = $res.iter().map(|x| &x.1).collect::<BTreeSet<_>>();
-
-        assert!(
-            allIds.len() == 1,
-            "Expected all elements to have the same ID. Found IDs: {:?}",
-            allIds
-        );
-    };
-}
 
 fn minDummy(x: &str, y: &str, z: &str) -> String {
     let syntax = format!("(pred <{x} {y} {z}>)");
@@ -85,7 +67,7 @@ fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedI
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
 
     // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
-    let cond2 = format!("(and <(eq {x} (binode {a} {l} {r})) (eq {y} (+ {m3} 1))>)");
+    let cond2 = format!("(and <(eq {x} (binode {a} {l} {r})) (eq {y} (add {m3} 1))>)");
     let chc2 = format!(
         "(new {syntax} {cond2} <{} {} {}>)",
         minLeafDummy(&l, &m1),
@@ -106,6 +88,8 @@ fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedI
 
 fn leafDropDummy(x: &str, y: &str, z: &str) -> String {
     let syntax = format!("(pred <{x} {y} {z}>)");
+    // functional = true
+    // outputIndex = 2
     format!("(composeInit leafDrop {syntax} (true) <2>)")
 }
 
@@ -138,7 +122,8 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     let r1 = generateVarFromCount(count, VarType::Node);
     let a1 = generateVarFromCount(count, VarType::Int);
     let n1 = generateVarFromCount(count, VarType::Int);
-    let cond3 = format!("(and <(eq {y} (binode {a1} {l1} {r1})) (geq {x} 1) (eq {n1} (- {x} 1))>)");
+    let cond3 =
+        format!("(and <(eq {y} (binode {a1} {l1} {r1})) (geq {x} 1) (eq {n1} (minus {x} 1))>)");
     let chc3 = format!("(new {syntax} {cond3} <{}>)", leafDropDummy(&n1, &l1, z));
     let chc3AppId = eg.addExpr(&chc3);
     eg.shrink_slots(&chc3AppId, &syntaxAppId.slots(), ());
@@ -160,7 +145,7 @@ fn rootDummy(n: &str, t: &str, u: &str, m: &str, k: &str) -> String {
 fn rootCHC(n: &str, m: &str, k: &str, t: &str, u: &str, eg: &mut CHCEGraph) -> AppliedId {
     //  false ← N≥0,M+N<K, left-drop(N,T,U), min-leaf(U,M), min-leaf(T,K)
     let syntax = "(pred <>)";
-    let cond = format!("(and <(geq {n} 0) (lt (+ {m} {n}) {k})>)");
+    let cond = format!("(and <(geq {n} 0) (lt (add {m} {n}) {k})>)");
     let rootCHC: String = format!(
         "(new {syntax} {cond} <{} {} {}>)",
         leafDropDummy(n, t, u),
@@ -390,7 +375,7 @@ fn checkUnfoldNewDefineFoldExists(
         "(new {syntax} (and <
 (eq {t} (binode {a} {l} {r})) 
 (geq {n} 1) 
-(eq {n1} (- {n} 1))>) <{} {} {}>)",
+(eq {n1} (minus {n} 1))>) <{} {} {}>)",
         leafDropDummy(n1, l, u),
         minLeafDummy(u, m),
         minLeafDummy(t, k)
@@ -404,7 +389,7 @@ fn checkUnfoldNewDefineFoldExists(
 
     // false ← N≥0,M+N<K, new1(n, k, m).
     let foldedCHC = format!(
-        "(new (pred <>) (and <(geq {n} 0) (lt (+ {m} {n}) {k})>) <{}>)",
+        "(new (pred <>) (and <(geq {n} 0) (lt (add {m} {n}) {k})>) <{}>)",
         compose
     );
     let foldedCHCRes = checkResult("foldedCHCRes", &foldedCHC, eg, true);
@@ -486,7 +471,7 @@ fn checkUnfold2NewDefineWithMinLeaf(
 (eq {t} (leaf)) 
 (eq {u} (leaf)) 
 (eq {u} (binode {a} {l} {r})) 
-(eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
+(eq {m} (add {m3} 1))>) <{} {} {} {}>)",
         minLeafDummy(&l, &m1),
         minLeafDummy(&r, &m2),
         minDummy(&m1, &m2, &m3),
@@ -585,7 +570,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
             "(new {syntax} (and <
 (leq {n} 0)
 (eq {t} (binode {a} {l} {r}))
-(eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
+(eq {m} (add {m3} 1))>) <{} {} {} {}>)",
             minLeafDummy(l, m1),
             minLeafDummy(r, m2),
             minDummy(m1, m2, m3),
@@ -601,7 +586,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 (eq {t} (binode {a} {l} {r})) 
 (eq {u} (binode {a} {l} {r})) 
 (eq {u} (binode {a1} {l1} {r1})) 
-(eq {m} (+ {m3} 1))>) <{} {} {} {}>)",
+(eq {m} (add {m3} 1))>) <{} {} {} {}>)",
             minLeafDummy(l1, m1),
             minLeafDummy(r1, m2),
             minDummy(m1, m2, m3),
@@ -648,7 +633,7 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
 
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
     let chc = format!(
-        "(new {syntax} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (- {n} 1))>) <{} {} {}>)",
+        "(new {syntax} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (minus {n} 1))>) <{} {} {}>)",
         leafDropDummy(n1, l1, u),
         minLeafDummy(u, m),
         minLeafDummy(t, k)
@@ -657,7 +642,7 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
 
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), T = leaf, K = 0
     let chc2 = format!(
-        "(new {syntax} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (- {n} 1)) (eq {t} (leaf)) (eq {k} 0)>) <{} {}>)",
+        "(new {syntax} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (minus {n} 1)) (eq {t} (leaf)) (eq {k} 0)>) <{} {}>)",
         leafDropDummy(n1, l1, u),
         minLeafDummy(u, m),
     );
@@ -673,7 +658,7 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M),
     //  T=node(A1,L1,R1), K=M3+1, min-leaf(L1,M1), min-leaf(R1,M2), min(M1,M2,M3)
     let chc3 = format!(
-        "(new {syntax} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (- {n} 1)) (eq {t} (binode {a2} {l2} {r2})) (eq {k} (+ {m3} 1))>) <{} {} {} {} {}>)",
+        "(new {syntax} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (minus {n} 1)) (eq {t} (binode {a2} {l2} {r2})) (eq {k} (add {m3} 1))>) <{} {} {} {} {}>)",
         leafDropDummy(n1, l1, u),
         minLeafDummy(u, m),
         minLeafDummy(l2, m1),
@@ -733,7 +718,7 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let m3 = &generateVarFromCount(&mut count, VarType::Int);
     // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, T = node(A,L,R), K=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
     let toUnfoldChc2 = format!(
-        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0) (eq {t} (binode {a} {l} {r})) (eq {k} (+ {m3} 1))>) <{} {} {}>)",
+        "(new {syntax} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0) (eq {t} (binode {a} {l} {r})) (eq {k} (add {m3} 1))>) <{} {} {}>)",
         minLeafDummy(&l, &m1),
         minLeafDummy(&r, &m2),
         minDummy(&m1, &m2, &m3),
@@ -787,7 +772,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 (eq {t} (binode {a} {l} {r})) 
 (eq {u} (binode {a} {l} {r})) 
 (eq {u} (binode {a1} {l1} {r1})) 
-(eq {m} (+ {m3} 1))>) 
+(eq {m} (add {m3} 1))>) 
 <{} {} {} {}>)",
         minLeafDummy(l1, m1),
         minLeafDummy(r1, m2),
@@ -803,7 +788,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
             "(new {syntax} (and <
     (leq {n} 0)
     (eq {t} (binode {a} {l} {r}))
-    (eq {m} (+ {m3} 1))
+    (eq {m} (add {m3} 1))
     (eq {t} (leaf))
     (eq {k} 0)
     (eq (leaf) (binode {a} {l} {r}))
@@ -821,7 +806,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     (eq {t} (binode {a} {l} {r}))
     (eq {u} (binode {a} {l} {r}))
     (eq {u} (binode {a1} {l1} {r1}))
-    (eq {m} (+ {m3} 1))
+    (eq {m} (add {m3} 1))
     (eq {t} (leaf))
     (eq {k} 0)>) <{} {} {}>)",
             minLeafDummy(l1, m1),
@@ -860,8 +845,8 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         (and <
         (leq {n} 0)
         (eq {t} (binode {a} {l} {r}))
-        (eq {m} (+ {m3} 1))
-        (eq {k} (+ {m32} 1))>)
+        (eq {m} (add {m3} 1))
+        (eq {k} (add {m32} 1))>)
         <{} {} {} {} {} {}>)",
             minLeafDummy(l, m1),
             minLeafDummy(r, m2),
@@ -878,8 +863,8 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         (and <
         (leq {n} 0)
         (eq {t} (binode {a} {l} {r}))
-        (eq {m} (+ {m3} 1))
-        (eq {k} (+ {m32} 1))
+        (eq {m} (add {m3} 1))
+        (eq {k} (add {m32} 1))
         (eq {m1} {m12})
         (eq {m2} {m22})
         >)
@@ -897,8 +882,8 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 (and <
 (leq {n} 0)
 (eq {t} (binode {a} {l} {r}))
-(eq {m} (+ {m3} 1))
-(eq {k} (+ {m32} 1))
+(eq {m} (add {m3} 1))
+(eq {k} (add {m32} 1))
 >)
 <{} {} {} {}>)",
             minLeafDummy(l, m1),
@@ -914,8 +899,8 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 (and <
 (leq {n} 0)
 (eq {t} (binode {a} {l} {r}))
-(eq {m} (+ {m3} 1))
-(eq {k} (+ {m32} 1))
+(eq {m} (add {m3} 1))
+(eq {k} (add {m32} 1))
 (eq {m3} {m32})
 >)
 <{} {} {}>)",
@@ -931,8 +916,8 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         // (and <
         // (leq {n} 0)
         // (eq {t} (binode {a} {l} {r}))
-        // (eq {m} (+ {m3} 1))
-        // (eq {k} (+ {m32} 1))
+        // (eq {m} (add {m3} 1))
+        // (eq {k} (add {m32} 1))
         // (eq {m3} {m32})
         // >)
         // <{} {} {}>)",
@@ -953,9 +938,9 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 (eq {t} (binode {a} {l} {r}))
 (eq {u} (binode {a} {l} {r}))
 (eq {u} (binode {a1} {l1} {r1}))
-(eq {m} (+ {m3} 1))
+(eq {m} (add {m3} 1))
 (eq {t} (binode {a2} {l2} {r2}))
-(eq {k} (+ {m32} 1))>) <{} {} {} {} {} {}>)",
+(eq {k} (add {m32} 1))>) <{} {} {} {} {} {}>)",
             minLeafDummy(l1, m1),
             minLeafDummy(r1, m2),
             minDummy(m1, m2, m3),
