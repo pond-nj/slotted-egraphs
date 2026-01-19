@@ -1,7 +1,7 @@
 // #t append(list, list, list).
 // append([], X, X).
 // append([T|X], Y, [T|Z]) :- append(X, Y, Z).
-//
+// 
 // #t whl1(int, int, list, list, int, int, list, list).
 // whl1(A,B,X,Y,A,B,X,Y) :- A >= B.
 // whl1(A,B,X,Y,A2,B2,X2,Y2) :- A =< B-1, A1=A+1, append(X, [A], X1), append(Y, X, Y1), whl1(A1,B,X1,Y1,A2,B2,X2,Y2).
@@ -22,7 +22,8 @@
 // sum_list([H|T], S) :- sum_list(T, S1), S = H + S1.
 // #t incorrect().
 // incorrect :- N1 =\= N2, sum_list(X1, N1), sum_list(X2, N2), whl1(A,B,X,Y,A1,B1,X1,Y1), ifte(A, B,X,Y,A2,B2,X2,Y2).
-//
+// 
+
 
 use std::{cell::RefCell, time::Duration};
 
@@ -42,13 +43,7 @@ fn appendDummy(new_0: &str, new_1: &str, new_2: &str) -> String {
     format!("(composeInit append {syntax} (TODO) <TODO>)")
 }
 
-fn appendCHC(
-    new_0: &str,
-    new_1: &str,
-    new_2: &str,
-    count: &mut u32,
-    eg: &mut CHCEGraph,
-) -> AppliedId {
+fn appendCHC(new_0: &str, new_1: &str, new_2: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {
     let syntax = format!("(pred <{new_0} {new_1} {new_2}>)");
 
     let syntaxAppId = eg.addExpr(&syntax);
@@ -64,9 +59,8 @@ fn appendCHC(
     let T = &generateVarFromCount(count, VarType::Unknown);
     let Z = &generateVarFromCount(count, VarType::Unknown);
     let Y = &generateVarFromCount(count, VarType::List);
-    let cond1 =
-        format!("(and <(eq (list {T} {X}) {new_0}) (eq {Y} {new_1}) (eq (list {T} {Z}) {new_2})>)");
-    let chc1 = format!("(new {syntax} {cond1} <{}>)", appendDummy(X, new_1, Z));
+    let cond1 = format!("(and <(eq (list {T} {X}) {new_0}) (eq {Y} {new_1}) (eq (list {T} {Z}) {new_2})>)");
+    let chc1 = format!("(new {syntax} {cond1} <{}>)", appendDummy(X, new_1,  Z));
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
 
@@ -77,35 +71,13 @@ fn appendCHC(
     composeId
 }
 
-fn whl1Dummy(
-    new_0: &str,
-    new_1: &str,
-    new_2: &str,
-    new_3: &str,
-    new_4: &str,
-    new_5: &str,
-    new_6: &str,
-    new_7: &str,
-) -> String {
-    let syntax =
-        format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
+fn whl1Dummy(new_0: &str, new_1: &str, new_2: &str, new_3: &str, new_4: &str, new_5: &str, new_6: &str, new_7: &str) -> String {
+    let syntax = format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
     format!("(composeInit whl1 {syntax} (TODO) <TODO>)")
 }
 
-fn whl1CHC(
-    new_0: &str,
-    new_1: &str,
-    new_2: &str,
-    new_3: &str,
-    new_4: &str,
-    new_5: &str,
-    new_6: &str,
-    new_7: &str,
-    count: &mut u32,
-    eg: &mut CHCEGraph,
-) -> AppliedId {
-    let syntax =
-        format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
+fn whl1CHC(new_0: &str, new_1: &str, new_2: &str, new_3: &str, new_4: &str, new_5: &str, new_6: &str, new_7: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {
+    let syntax = format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
 
     let syntaxAppId = eg.addExpr(&syntax);
     // whl1(A,B,X,Y,A,B,X,Y) :- A >= B
@@ -113,9 +85,7 @@ fn whl1CHC(
     let A = &generateVarFromCount(count, VarType::Int);
     let B = &generateVarFromCount(count, VarType::Int);
     let Y = &generateVarFromCount(count, VarType::List);
-    let cond0 = format!(
-        "(and <(eq {A} {new_4}) (eq {B} {new_5}) (eq {X} {new_6}) (eq {Y} {new_7}) (geq {A} {B})>)"
-    );
+    let cond0 = format!("(and <(eq {A} {new_4}) (eq {B} {new_5}) (eq {X} {new_6}) (eq {Y} {new_7}) (geq {A} {B})>)");
     let chc0 = format!("(new {syntax} {cond0} <>)");
     let chc0AppId = eg.addExpr(&chc0);
     eg.shrink_slots(&chc0AppId, &syntaxAppId.slots(), ());
@@ -134,53 +104,24 @@ fn whl1CHC(
     let X2 = &generateVarFromCount(count, VarType::List);
     let B2 = &generateVarFromCount(count, VarType::Int);
     let cond1 = format!("(and <(eq {A} {new_0}) (eq {B} {new_1}) (eq {X} {new_2}) (eq {Y} {new_3}) (eq {A2} {new_4}) (eq {B2} {new_5}) (eq {X2} {new_6}) (eq {Y2} {new_7}) (eq (list {A} (emptyList)) {new_8}) (leq {A} (minus {B} 1)) (eq {A1} (add {A} 1))>)");
-    let chc1 = format!(
-        "(new {syntax} {cond1} <{} {} {}>)",
-        appendDummy(new_2, new_8, X1),
-        appendDummy(new_3, new_2, Y1),
-        whl1Dummy(A1, new_1, X1, Y1, new_4, new_5, new_6, new_7)
-    );
+    let chc1 = format!("(new {syntax} {cond1} <{} {} {}>)", appendDummy(new_2, new_8,  X1), appendDummy(new_3, new_2,  Y1), whl1Dummy(A1, new_1, X1, Y1, new_4, new_5, new_6, new_7));
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
 
     let composeStr = format!("(compose <{chc0} {chc1}>)");
     let composeId = eg.addExpr(&composeStr);
-    let dummyId = eg.addExpr(&whl1Dummy(
-        new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7,
-    ));
+    let dummyId = eg.addExpr(&whl1Dummy(new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7));
     eg.union(&composeId, &dummyId);
     composeId
 }
 
-fn ifteDummy(
-    new_0: &str,
-    new_1: &str,
-    new_2: &str,
-    new_3: &str,
-    new_4: &str,
-    new_5: &str,
-    new_6: &str,
-    new_7: &str,
-) -> String {
-    let syntax =
-        format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
+fn ifteDummy(new_0: &str, new_1: &str, new_2: &str, new_3: &str, new_4: &str, new_5: &str, new_6: &str, new_7: &str) -> String {
+    let syntax = format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
     format!("(composeInit ifte {syntax} (TODO) <TODO>)")
 }
 
-fn ifteCHC(
-    new_0: &str,
-    new_1: &str,
-    new_2: &str,
-    new_3: &str,
-    new_4: &str,
-    new_5: &str,
-    new_6: &str,
-    new_7: &str,
-    count: &mut u32,
-    eg: &mut CHCEGraph,
-) -> AppliedId {
-    let syntax =
-        format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
+fn ifteCHC(new_0: &str, new_1: &str, new_2: &str, new_3: &str, new_4: &str, new_5: &str, new_6: &str, new_7: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {
+    let syntax = format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
 
     let syntaxAppId = eg.addExpr(&syntax);
     // ifte(A,B,X,Y,A,B,X,Y ) :- A >= B
@@ -188,9 +129,7 @@ fn ifteCHC(
     let A = &generateVarFromCount(count, VarType::Int);
     let B = &generateVarFromCount(count, VarType::Int);
     let Y = &generateVarFromCount(count, VarType::List);
-    let cond0 = format!(
-        "(and <(eq {A} {new_4}) (eq {B} {new_5}) (eq {X} {new_6}) (eq {Y} {new_7}) (geq {A} {B})>)"
-    );
+    let cond0 = format!("(and <(eq {A} {new_4}) (eq {B} {new_5}) (eq {X} {new_6}) (eq {Y} {new_7}) (geq {A} {B})>)");
     let chc0 = format!("(new {syntax} {cond0} <>)");
     let chc0AppId = eg.addExpr(&chc0);
     eg.shrink_slots(&chc0AppId, &syntaxAppId.slots(), ());
@@ -207,52 +146,24 @@ fn ifteCHC(
     let Y2 = &generateVarFromCount(count, VarType::List);
     let B2 = &generateVarFromCount(count, VarType::Int);
     let cond1 = format!("(and <(eq {A} {new_0}) (eq {B} {new_1}) (eq {X} {new_2}) (eq {Y} {new_3}) (eq {A2} {new_4}) (eq {B2} {new_5}) (eq {X2} {new_6}) (eq {Y2} {new_7}) (eq (list {A} (emptyList)) {new_8}) (leq {A} (minus {B} 1))>)");
-    let chc1 = format!(
-        "(new {syntax} {cond1} <{} {}>)",
-        appendDummy(new_2, new_8, X1),
-        whl2Dummy(new_0, new_1, X1, new_3, new_4, new_5, new_6, new_7)
-    );
+    let chc1 = format!("(new {syntax} {cond1} <{} {}>)", appendDummy(new_2, new_8,  X1), whl2Dummy(new_0, new_1, X1, new_3, new_4, new_5, new_6, new_7));
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
 
     let composeStr = format!("(compose <{chc0} {chc1}>)");
     let composeId = eg.addExpr(&composeStr);
-    let dummyId = eg.addExpr(&ifteDummy(
-        new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7,
-    ));
+    let dummyId = eg.addExpr(&ifteDummy(new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7));
     eg.union(&composeId, &dummyId);
     composeId
 }
 
-fn whl2Dummy(
-    new_0: &str,
-    new_1: &str,
-    new_2: &str,
-    new_3: &str,
-    new_4: &str,
-    new_5: &str,
-    new_6: &str,
-    new_7: &str,
-) -> String {
-    let syntax =
-        format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
+fn whl2Dummy(new_0: &str, new_1: &str, new_2: &str, new_3: &str, new_4: &str, new_5: &str, new_6: &str, new_7: &str) -> String {
+    let syntax = format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
     format!("(composeInit whl2 {syntax} (TODO) <TODO>)")
 }
 
-fn whl2CHC(
-    new_0: &str,
-    new_1: &str,
-    new_2: &str,
-    new_3: &str,
-    new_4: &str,
-    new_5: &str,
-    new_6: &str,
-    new_7: &str,
-    count: &mut u32,
-    eg: &mut CHCEGraph,
-) -> AppliedId {
-    let syntax =
-        format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
+fn whl2CHC(new_0: &str, new_1: &str, new_2: &str, new_3: &str, new_4: &str, new_5: &str, new_6: &str, new_7: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {
+    let syntax = format!("(pred <{new_0} {new_1} {new_2} {new_3} {new_4} {new_5} {new_6} {new_7}>)");
 
     let syntaxAppId = eg.addExpr(&syntax);
     // whl2(A,B,X,Y,A2,B,X,Y2) :- A >= B-1, A2=A+1,    append(Y, X, Y2)
@@ -263,10 +174,7 @@ fn whl2CHC(
     let A = &generateVarFromCount(count, VarType::Int);
     let Y2 = &generateVarFromCount(count, VarType::List);
     let cond0 = format!("(and <(eq {A} {new_0}) (eq {B} {new_5}) (eq {X} {new_6}) (eq {Y} {new_3}) (eq {A2} {new_4}) (eq {Y2} {new_7}) (geq {A} (minus {B} 1)) (eq {A2} (add {A} 1))>)");
-    let chc0 = format!(
-        "(new {syntax} {cond0} <{}>)",
-        appendDummy(new_3, new_6, new_7)
-    );
+    let chc0 = format!("(new {syntax} {cond0} <{}>)", appendDummy(new_3, new_6, new_7));
     let chc0AppId = eg.addExpr(&chc0);
     eg.shrink_slots(&chc0AppId, &syntaxAppId.slots(), ());
 
@@ -284,20 +192,13 @@ fn whl2CHC(
     let X2 = &generateVarFromCount(count, VarType::List);
     let B2 = &generateVarFromCount(count, VarType::Int);
     let cond1 = format!("(and <(eq {A} {new_0}) (eq {B} {new_1}) (eq {X} {new_2}) (eq {Y} {new_3}) (eq {A2} {new_4}) (eq {B2} {new_5}) (eq {X2} {new_6}) (eq {Y2} {new_7}) (eq (list {A1} (emptyList)) {new_8}) (leq {A} (minus {B} 2)) (eq {A1} (add {A} 1))>)");
-    let chc1 = format!(
-        "(new {syntax} {cond1} <{} {} {}>)",
-        appendDummy(new_2, new_8, X1),
-        appendDummy(new_3, new_2, Y1),
-        whl2Dummy(A1, new_1, X1, Y1, new_4, new_5, new_6, new_7)
-    );
+    let chc1 = format!("(new {syntax} {cond1} <{} {} {}>)", appendDummy(new_2, new_8,  X1), appendDummy(new_3, new_2,  Y1), whl2Dummy(A1, new_1, X1, Y1, new_4, new_5, new_6, new_7));
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
 
     let composeStr = format!("(compose <{chc0} {chc1}>)");
     let composeId = eg.addExpr(&composeStr);
-    let dummyId = eg.addExpr(&whl2Dummy(
-        new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7,
-    ));
+    let dummyId = eg.addExpr(&whl2Dummy(new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7));
     eg.union(&composeId, &dummyId);
     composeId
 }
@@ -322,9 +223,8 @@ fn sum_listCHC(new_0: &str, new_1: &str, count: &mut u32, eg: &mut CHCEGraph) ->
     let H = &generateVarFromCount(count, VarType::Unknown);
     let S = &generateVarFromCount(count, VarType::Int);
     let S1 = &generateVarFromCount(count, VarType::Unknown);
-    let cond1 =
-        format!("(and <(eq (list {H} {T}) {new_0}) (eq {S} {new_1}) (eq {S} (add {H} {S1}))>)");
-    let chc1 = format!("(new {syntax} {cond1} <{}>)", sum_listDummy(T, S1));
+    let cond1 = format!("(and <(eq (list {H} {T}) {new_0}) (eq {S} {new_1}) (eq {S} (add {H} {S1}))>)");
+    let chc1 = format!("(new {syntax} {cond1} <{}>)", sum_listDummy(T,  S1));
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
 
@@ -360,13 +260,7 @@ fn incorrectCHC(count: &mut u32, eg: &mut CHCEGraph) -> AppliedId {
     let N1 = &generateVarFromCount(count, VarType::Unknown);
     let B2 = &generateVarFromCount(count, VarType::Int);
     let cond0 = format!("(and <(neq {N1} {N2})>)");
-    let chc0 = format!(
-        "(new {syntax} {cond0} <{} {} {} {}>)",
-        sum_listDummy(X1, N1),
-        sum_listDummy(X2, N2),
-        whl1Dummy(A, B, X, Y, A1, B1, X1, Y1),
-        ifteDummy(A, B, X, Y, A2, B2, X2, Y2)
-    );
+    let chc0 = format!("(new {syntax} {cond0} <{} {} {} {}>)", sum_listDummy(X1,  N1), sum_listDummy(X2,  N2), whl1Dummy(A, B, X, Y, A1, B1, X1, Y1), ifteDummy(A,  B, X, Y, A2, B2, X2, Y2));
     let chc0AppId = eg.addExpr(&chc0);
     eg.shrink_slots(&chc0AppId, &syntaxAppId.slots(), ());
 
@@ -393,12 +287,8 @@ fn buildCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {
     let new_5 = &generateVarFromCount(count, VarType::Int);
     let new_6 = &generateVarFromCount(count, VarType::List);
     let new_7 = &generateVarFromCount(count, VarType::List);
-    let whl1DummyId = eg.addExpr(&whl1Dummy(
-        new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7,
-    ));
-    let whl1Id = whl1CHC(
-        new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7, count, &mut eg,
-    );
+    let whl1DummyId = eg.addExpr(&whl1Dummy(new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7));
+    let whl1Id = whl1CHC(new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7, count, &mut eg);
     eg.union(&whl1Id, &whl1DummyId);
 
     let new_0 = &generateVarFromCount(count, VarType::Int);
@@ -409,12 +299,8 @@ fn buildCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {
     let new_5 = &generateVarFromCount(count, VarType::Int);
     let new_6 = &generateVarFromCount(count, VarType::List);
     let new_7 = &generateVarFromCount(count, VarType::List);
-    let ifteDummyId = eg.addExpr(&ifteDummy(
-        new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7,
-    ));
-    let ifteId = ifteCHC(
-        new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7, count, &mut eg,
-    );
+    let ifteDummyId = eg.addExpr(&ifteDummy(new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7));
+    let ifteId = ifteCHC(new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7, count, &mut eg);
     eg.union(&ifteId, &ifteDummyId);
 
     let new_0 = &generateVarFromCount(count, VarType::Int);
@@ -425,12 +311,8 @@ fn buildCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {
     let new_5 = &generateVarFromCount(count, VarType::Int);
     let new_6 = &generateVarFromCount(count, VarType::List);
     let new_7 = &generateVarFromCount(count, VarType::List);
-    let whl2DummyId = eg.addExpr(&whl2Dummy(
-        new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7,
-    ));
-    let whl2Id = whl2CHC(
-        new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7, count, &mut eg,
-    );
+    let whl2DummyId = eg.addExpr(&whl2Dummy(new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7));
+    let whl2Id = whl2CHC(new_0, new_1, new_2, new_3, new_4, new_5, new_6, new_7, count, &mut eg);
     eg.union(&whl2Id, &whl2DummyId);
 
     let new_0 = &generateVarFromCount(count, VarType::List);
@@ -443,7 +325,7 @@ fn buildCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {
     let incorrectId = incorrectCHC(count, &mut eg);
     eg.union(&incorrectId, &incorrectDummyId);
 
-    dumpCHCEGraph(&eg);
+dumpCHCEGraph(&eg);
 
     let mut runner: CHCRunner = Runner::default()
         .with_egraph(eg)
@@ -455,11 +337,12 @@ fn buildCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {
             DO_CONST_REWRITE,
         ))
     });
-    println!("egraph after run");
+        println!("egraph after run");
     dumpCHCEGraph(&runner.egraph);
     runner.egraph.check();
     (incorrectId, runner)
 }
+
 
 fn mainTestSpawn() {
     initLogger();

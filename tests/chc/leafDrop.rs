@@ -273,41 +273,6 @@ fn checkResult(keyword: &str, expr: &String, eg: &CHCEGraph, canLookup: bool) ->
     res[0].1
 }
 
-fn checkSelfCycle(eg: &CHCEGraph) {
-    'idloop: for composeId in eg.ids() {
-        let composeENodes = eg.enodes(composeId);
-        for composeENode in composeENodes {
-            match composeENode {
-                CHC::Compose(children) => {
-                    if children.len() != 1 {
-                        continue;
-                    }
-
-                    let AppliedIdOrStar::AppliedId(child) = &children[0] else {
-                        panic!();
-                    };
-
-                    for newENode in eg.enodes(child.id) {
-                        let CHC::New(syntax, constr, predChildren) = newENode else {
-                            panic!();
-                        };
-
-                        if predChildren.len() != 1 {
-                            continue;
-                        }
-
-                        assert_ne!(predChildren[0].getAppliedId().id, composeId);
-                    }
-                }
-                CHC::ComposeInit(..) => {
-                    continue;
-                }
-                _ => continue 'idloop,
-            }
-        }
-    }
-}
-
 // need at least 2 iterations for this to pass -> egraph size around 100
 fn checkUnfoldNewDefineFoldExists(
     rootCompose: Id,

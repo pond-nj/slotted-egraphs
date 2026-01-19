@@ -6,6 +6,7 @@ from collections import defaultdict
 from enum import Enum
 import pprint
 import re
+import unionfind
 
 
 def parseBody(expression):
@@ -46,6 +47,7 @@ def parseProlog(lines):
     }
     """
     ret = defaultdict(list)
+    headType = {}
 
     for line in lines:
         rule = {}
@@ -54,13 +56,25 @@ def parseProlog(lines):
         if line.startswith("%"):
             continue
 
+        if line.startswith("#t"):
+            res = re.match(r"^#t\s*(\w*)\((.*)\).$", line)
+            assert res
+            predName = res.group(1)
+            if res.group(2) == "":
+                headType[predName] = []
+            else:
+                types = res.group(2).split(",")
+                for i in range(len(types)):
+                    types[i] = types[i].strip()
+                    assert types[i] in ["int", "node", "list"]
+                headType[predName] = types
+
+            continue
         if line == "":
             continue
 
         if line[-1] == ".":
             line = line[:-1]
-
-        print("line", line)
 
         if not ":-" in line:
             assert re.match(r"^(\w*)\((.*)\)$", line)
@@ -72,6 +86,7 @@ def parseProlog(lines):
             body = body.strip()
 
         headPred = head.split("(")[0]
+        assert headPred in headType
         if "(" in head:
             assert re.match(r"^(\w*)\((.*)\)$", head)
             headArgs = list(
@@ -79,9 +94,12 @@ def parseProlog(lines):
             )
         else:
             headArgs = []
+        assert len(headArgs) == len(headType[headPred])
+
         constr = []
         newHeadArgs = []
         changeVar = {}
+
         for i, h in enumerate(headArgs):
             newHeadArgs.append(f"new_{i}")
             changeVar[h] = f"new_{i}"
@@ -90,7 +108,6 @@ def parseProlog(lines):
 
         dependencies = []
         for b in body:
-            print(b)
             b = b.strip()
             res = re.match(r"^(\w*)\((.*)\)$", b)
             if res:
@@ -122,7 +139,7 @@ def parseProlog(lines):
             "line": line,
         }
         ret[headPred].append(rule)
-    return ret
+    return ret, headType
 
 
 class OP(Enum):
@@ -194,63 +211,72 @@ def unwrapParse(t):
 
 
 def parseConstr(constr):
+    origConstr = constr
     constr = constr.strip()
     tree = []
-    print("parseConstr", constr)
 
     if constr == "":
+        print(f"parseConstr {origConstr} -> []")
         return []
 
     if constr.isnumeric():
+        print(f"parseConstr {origConstr} -> [{int(constr)}]")
         return [int(constr)]
 
     if re.match(r"^\w+$", constr):
+        print(f"parseConstr {origConstr} -> [{constr}]")
         return [constr]
 
     if constr == "[]":
+        print(f"parseConstr {origConstr} -> [{OP.emptyList}]")
         return [OP.emptyList]
 
-    first, constr = constrGetNextTerm(constr)
-    if first[0] == "[" and first[1] != "]":
-        assert first[-1] == "]"
-        first = first[1:-1]
-        if "|" in first:
-            assert first.count("|") == 1
-            left, right = first.split("|")
-            tree.append(OP.list)
-            tree.append(unwrapParse(left))
-            tree.append(unwrapParse(right))
+    if constr[0] == "[" and constr[-1] == "]":
+        constr = constr[1:-1]
+        if "|" in constr:
+            assert constr.count("|") == 1
+            left, right = constr.split("|")
+            print(
+                f"parseConstr {origConstr} -> [{OP.list}, {unwrapParse(left)}, {unwrapParse(right)}]"
+            )
+            return [OP.list, unwrapParse(left), unwrapParse(right)]
         else:
-            assert re.match(r"^\w+$", first)
-            tree.append(OP.list)
-            tree.append(unwrapParse(first))
-            tree.append(OP.emptyList)
-    elif first.startswith("node"):
-        assert first.endswith(")")
-        first = first[:-1]
-        assert first.startswith("node(")
-        first = first[5:]
-        tree.append(OP.node)
-        first = first.split(",")
-        assert len(first) == 3
-        tree.append(unwrapParse(first[0]))
-        tree.append(unwrapParse(first[1]))
-        tree.append(unwrapParse(first[2]))
-    else:
-        opStr, constr = constrGetNextTerm(constr)
-        try:
-            op = OP(opStr)
-            tree.append(op)
-            tree.append(unwrapParse(first))
-            tree.append(unwrapParse(constr))
-        except KeyError:
-            raise Exception(f"opStr {opStr} not found")
+            assert re.match(r"^\w+$", constr)
+            print(
+                f"parseConstr {origConstr} -> [{OP.list}, {unwrapParse(constr)}, {OP.emptyList}]"
+            )
+            return [OP.list, unwrapParse(constr), OP.emptyList]
 
+    res = re.match(r"^node\((.*)\)$", constr)
+    if res:
+        print("match found")
+        args = res.group(1).split(",")
+        assert len(args) == 3
+        print(
+            f"parseConstr {origConstr} -> [{OP.binode}, {unwrapParse(args[0])}, {unwrapParse(args[1])}, {unwrapParse(args[2])}]"
+        )
+        return [
+            OP.binode,
+            unwrapParse(args[0]),
+            unwrapParse(args[1]),
+            unwrapParse(args[2]),
+        ]
+
+    first, constr = constrGetNextTerm(constr)
+    opStr, constr = constrGetNextTerm(constr)
+    try:
+        op = OP(opStr)
+        tree.append(op)
+        tree.append(unwrapParse(first))
+        tree.append(unwrapParse(constr))
+    except KeyError:
+        raise Exception(f"opStr {opStr} not found")
+
+    print(f"parseConstr {origConstr} -> {tree}")
     return tree
 
 
 def constrTreeToENodeExpr(tree, varSet):
-    print("tree", tree)
     expr = "("
     children = []
     assert isinstance(tree[0], OP)
@@ -268,6 +294,7 @@ def constrTreeToENodeExpr(tree, varSet):
     expr += " ".join(children)
 
     expr += ")"
+    print(f"constrTreeToENodeExpr {tree} -> {expr}")
     return expr
 
 
@@ -284,8 +311,27 @@ def getVar(dependencies, varSet):
 
 
 # get return from parseProlog
-def buildRust(prologStruct):
+def buildRust(lines, prologStruct, headType):
     rust = ""
+    for line in lines:
+        rust += "// " + line
+    rust += "\n"
+
+    rust += """
+use std::{cell::RefCell, time::Duration};
+
+use super::*;
+use std::thread;
+
+// 32MiB
+const STACK_SIZE: usize = 32 * 1024 * 1024;
+const ITER_LIMIT: usize = 1;
+const TIME_LIMIT_SECS: u64 = 3600;
+const DO_CONST_REWRITE: bool = true;
+
+use log::debug;
+
+"""
     for predName, rules in prologStruct.items():
         headArgs = rules[0]["headArgs"]
 
@@ -322,20 +368,63 @@ def buildRust(prologStruct):
             rust += "    // {}\n".format(rule["line"])
             andChildren = []
             allVar = set()
+            uf = unionfind.UnionFind()
+            m = {}
+            type = {}
             for c in rule["constr"]:
                 constrTree = parseConstr(c)
-                print("c", c)
-                print("constrTree", constrTree)
+                res = re.match(r"^(\w+)\s*=\s*(\w+)$", c)
+                if res:
+                    l = res.group(1)
+                    r = res.group(2)
+                    if not l in m:
+                        m[l] = len(m)
+                        uf.extend()
+                        assert uf.find(m[l]) == m[l]
+                    if not r in m:
+                        m[r] = len(m)
+                        uf.extend()
+                        assert uf.find(m[r]) == m[r]
+                    uf.union(m[l], m[r])
                 andChildren.append(constrTreeToENodeExpr(constrTree, allVar))
+
+            for d in rule["dependencies"]:
+                split = d.split("(")
+                assert len(split) == 2
+                dPredName, args = split
+                args = args.split(",")
+
+                assert len(args) == len(headType[dPredName])
+
+                for j, v in enumerate(args):
+                    v = v.strip()
+                    type[v] = headType[dPredName][j]
+
+            print(rule)
+            print(f"line {rule['line']}")
+            print(f"type {type}")
+            assert False
+
+            groups = defaultdict(list)
+            for v in m:
+                groups[uf.find(m[v])].append(v)
+
+            for group in groups.values():
+                for v in group:
+                    if v in headArgs:
+                        for t in group:
+                            type[t] = headType[predName][headArgs.index(v)]
+                        break
 
             assert not "[]" in allVar
 
             getVar(rule["dependencies"], allVar)
 
             for v in allVar - set(headArgs):
-                rust += (
-                    f"    let {v} = &generateVarFromCount(count, VarType::Unknown);\n"
-                )
+                if v in type:
+                    rust += f"    let {v} = &generateVarFromCount(count, VarType::{type[v].capitalize()});\n"
+                else:
+                    rust += f"    let {v} = &generateVarFromCount(count, VarType::Unknown);\n"
 
             #     let cond1 = format!("(and <(eq {x} (emptyList)) (eq {y} {z})>)");
             rust += f'    let cond{i} = format!("(and <{" ".join(andChildren)}>)");\n'
@@ -379,6 +468,78 @@ def buildRust(prologStruct):
         rust += "    composeId\n"
 
         rust += "}\n\n"
+
+    # fn buildCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {
+    rust += (
+        "fn buildCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {\n"
+    )
+    #     let n = &generateVarFromCount(count, VarType::Int);
+    #     let t = &generateVarFromCount(count, VarType::Node);
+    #     let u = &generateVarFromCount(count, VarType::Node);
+    #     let m = &generateVarFromCount(count, VarType::Int);
+    #     let k = &generateVarFromCount(count, VarType::Int);
+
+    for predName, rules in prologStruct.items():
+        for i, v in enumerate(rules[0]["headArgs"]):
+            rust += f"    let {v} = &generateVarFromCount(count, VarType::{headType[predName][i].capitalize()});\n"
+
+        #     let rootDummyId = eg.addExpr(&rootDummy(n, t, u, m, k));
+        rust += f'    let {predName}DummyId = eg.addExpr(&{predName}Dummy({", ".join(rules[0]["headArgs"])}));\n'
+
+        #     let rootId = rootCHC(n, m, k, t, u, &mut eg);
+        inp = rules[0]["headArgs"]
+        inp.append("count")
+        inp.append("&mut eg")
+        rust += f'    let {predName}Id = {predName}CHC({", ".join(inp)});\n'
+        #     eg.union(&rootId, &rootDummyId);
+        rust += f"    eg.union(&{predName}Id, &{predName}DummyId);\n\n"
+
+    rust += "dumpCHCEGraph(&eg);\n"
+
+    rust += """
+    let mut runner: CHCRunner = Runner::default()
+        .with_egraph(eg)
+        .with_iter_limit(ITER_LIMIT)
+        .with_time_limit(Duration::from_secs(TIME_LIMIT_SECS));
+    let (report, t): (Report, _) = time(|| {
+        runner.run(&mut getAllRewrites(
+            RewriteList::default(),
+            DO_CONST_REWRITE,
+        ))
+    });
+    """
+
+    rust += '    println!("egraph after run");\n'
+    rust += "    dumpCHCEGraph(&runner.egraph);\n"
+
+    rust += "    runner.egraph.check();\n"
+
+    rust += "    (incorrectId, runner)\n"
+    # }
+    rust += "}\n\n"
+
+    rust += """
+fn mainTestSpawn() {
+    initLogger();
+    let mut egOrig = CHCEGraph::default();
+    let mut count = 0;
+    let doConstraintRewrite = true;
+    let (rootId, mut runner) = buildCHC(egOrig, &mut count);
+    checkSelfCycle(&runner.egraph);
+}
+
+#[test]
+fn mainTest() {
+    let child = thread::Builder::new()
+        .stack_size(STACK_SIZE)
+        .spawn(mainTestSpawn)
+        .expect("Failed to spawn thread");
+
+    // Wait for the thread to finish
+    child.join().expect("Thread panicked");
+}
+"""
+
     return rust
 
 
@@ -399,13 +560,15 @@ def groupLines(lines):
     return newLines
 
 
-f = open("prologInp.txt", "r")
+fname = "prologInp.txt"
+f = open(fname, "r")
 lines = f.readlines()
 newLines = groupLines(lines)
-struct = parseProlog(newLines)
+struct, headType = parseProlog(newLines)
 pprint.pprint(struct)
-rust = buildRust(struct)
-print(rust)
+rust = buildRust(lines, struct, headType)
+with open(f"{fname}_rust", "w") as f:
+    f.write(rust)
 
 # output
 

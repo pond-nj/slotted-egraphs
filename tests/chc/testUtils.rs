@@ -1,3 +1,5 @@
+use super::*;
+
 #[macro_export]
 macro_rules! checkRes {
     ($keyword: expr, $res:expr) => {
@@ -15,4 +17,39 @@ macro_rules! checkRes {
             allIds
         );
     };
+}
+
+pub fn checkSelfCycle(eg: &CHCEGraph) {
+    'idloop: for composeId in eg.ids() {
+        let composeENodes = eg.enodes(composeId);
+        for composeENode in composeENodes {
+            match composeENode {
+                CHC::Compose(children) => {
+                    if children.len() != 1 {
+                        continue;
+                    }
+
+                    let AppliedIdOrStar::AppliedId(child) = &children[0] else {
+                        panic!();
+                    };
+
+                    for newENode in eg.enodes(child.id) {
+                        let CHC::New(syntax, constr, predChildren) = newENode else {
+                            panic!();
+                        };
+
+                        if predChildren.len() != 1 {
+                            continue;
+                        }
+
+                        assert_ne!(predChildren[0].getAppliedId().id, composeId);
+                    }
+                }
+                CHC::ComposeInit(..) => {
+                    continue;
+                }
+                _ => continue 'idloop,
+            }
+        }
+    }
 }

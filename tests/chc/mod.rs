@@ -27,6 +27,7 @@ mod pairingPaperArray2;
 mod unitTest;
 
 mod testUtils;
+pub use testUtils::*;
 
 define_language! {
     // TODO(Pond): now children can only have max one vector
@@ -60,6 +61,7 @@ define_language! {
         Less(AppliedId, AppliedId) = "lt",
         Greater(AppliedId, AppliedId) = "gt",
         Eq(AppliedId, AppliedId) = "eq",
+        Neq(AppliedId, AppliedId) = "neq",
         Add(AppliedId, AppliedId) = "add",
         Minus(AppliedId, AppliedId) = "minus",
 
