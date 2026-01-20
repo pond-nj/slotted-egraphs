@@ -135,26 +135,15 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
     if appIdsOrigs.len() == 0 {
         return vec![];
     }
-    println!("sortAppId len appIds {:?}", appIdsOrigs.len());
 
     let mut appIdsSorted = appIdsOrigs.clone();
     appIdsSorted.sort();
     appIdsSorted.dedup();
 
-    // TODO: remove this
-    // println!("done sortAppId");
-    // return appIdsSorted;
-
     let appIdsSet = appIdsSorted.iter().map(|x| x.id()).collect::<BTreeSet<_>>();
     if appIdsSet.len() == appIdsSorted.len() {
         return appIdsSorted;
     }
-
-    // println!("sortAppId len appIds {:?}", appIds.len());
-    // for i in appIds {
-    //     print!("{:?} ", i.len());
-    // }
-    // println!("");
 
     // {f(x, y), f(y, x), g(x, y)}
     // should have a color order f < g < arg < var
@@ -216,7 +205,6 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
 
             // 2(arg) - 9(var)
             ADDONEEDGE(&mut g, curr, slotsToV[&s], m);
-            // println!("edge {curr} {}", slotsToV[&s]);
             curr += 1;
         }
     }

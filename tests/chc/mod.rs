@@ -119,8 +119,14 @@ pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
         }
     }
 
-    if appIds.len() != 0 {
-        assert!(varTypes.len() != 0);
+    if appIds.iter().any(|app| app.len() != 0) {
+        if varTypes.len() == 0 {
+            for app in appIds {
+                println!("app {:?}", app);
+                println!("{:?}", eg.eclass(app.id));
+            }
+            panic!();
+        }
     }
 
     assert_eq!(sh.slots(), varTypes.keys().copied().collect());
@@ -157,7 +163,10 @@ fn getBoolVal(eclassId: &Id, eg: &CHCEGraph) -> bool {
             true
         }
         CHC::False() => false,
-        _ => panic!(),
+        _ => {
+            println!("{:#?}", enodes);
+            panic!()
+        }
     }
 }
 

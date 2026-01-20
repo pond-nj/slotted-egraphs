@@ -47,7 +47,12 @@ def parseProlog(lines):
     }
     """
     ret = defaultdict(list)
-    headType = {}
+    metadata = {
+        "headType": {},
+        "functional": {},
+    }
+    headType = metadata["headType"]
+    functional = metadata["functional"]
 
     for line in lines:
         rule = {}
@@ -57,7 +62,8 @@ def parseProlog(lines):
             continue
 
         if line.startswith("#t"):
-            res = re.match(r"^#t\s*(\w*)\((.*)\).$", line)
+            print("line", line)
+            res = re.match(r"^#t\s*(\w*)\((.*)\) (true|false) <(.*)>.$", line)
             assert res
             predName = res.group(1)
             if res.group(2) == "":
@@ -68,6 +74,11 @@ def parseProlog(lines):
                     types[i] = types[i].strip()
                     assert types[i] in ["int", "node", "list"]
                 headType[predName] = types
+
+            functional[predName] = {
+                "isTrue": res.group(3) == "true",
+                "idx": res.group(4).split(),
+            }
 
             continue
         if line == "":
@@ -139,7 +150,10 @@ def parseProlog(lines):
             "line": line,
         }
         ret[headPred].append(rule)
-    return ret, headType
+    return (
+        ret,
+        metadata,
+    )
 
 
 class OP(Enum):
@@ -311,7 +325,10 @@ def getVar(dependencies, varSet):
 
 
 # get return from parseProlog
-def buildRust(lines, prologStruct, headType):
+def buildRust(lines, prologStruct, metadata):
+    headType = metadata["headType"]
+    functional = metadata["functional"]
+
     rust = ""
     for line in lines:
         rust += "// " + line
@@ -346,7 +363,7 @@ use log::debug;
         #     let syntax = format!("(pred <{x} {y} {z}>)");
         rust += f'    let syntax = format!("(pred <{headArgsToSyntax(headArgs)}>)");\n'
         #     format!("(composeInit append {syntax} (true) <2>)")
-        rust += f'    format!("(composeInit {predName} {{syntax}} (TODO) <TODO>)")\n'
+        rust += f'    format!("(composeInit {predName} {{syntax}} ({str(functional[predName]["isTrue"]).lower()}) <{" ".join(functional[predName]["idx"])}>)")\n'
         # }
         rust += "}\n"
         rust += "\n"
@@ -389,10 +406,10 @@ use log::debug;
                 andChildren.append(constrTreeToENodeExpr(constrTree, allVar))
 
             for d in rule["dependencies"]:
-                split = d.split("(")
-                assert len(split) == 2
-                dPredName, args = split
-                args = args.split(",")
+                res = re.match(r"^(\w+)\((.*)\)$", d)
+                assert res
+                dPredName = res.group(1)
+                args = res.group(2).split(",")
 
                 assert len(args) == len(headType[dPredName])
 
@@ -400,10 +417,9 @@ use log::debug;
                     v = v.strip()
                     type[v] = headType[dPredName][j]
 
-            print(rule)
-            print(f"line {rule['line']}")
-            print(f"type {type}")
-            assert False
+            pprint.pprint(rule)
+            pprint.pprint(f"line {rule['line']}")
+            pprint.pprint(f"type {type}")
 
             groups = defaultdict(list)
             for v in m:
@@ -447,7 +463,7 @@ use log::debug;
             #     let chc1AppId = eg.addExpr(&chc1);
             rust += f"    let chc{i}AppId = eg.addExpr(&chc{i});\n"
             #     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
-            rust += f"    eg.shrink_slots(&chc{i}AppId, &syntaxAppId.slots(), ());\n"
+            rust += f"    eg.shrink_slots(&eg.find_applied_id(&chc{i}AppId), &syntaxAppId.slots(), ());\n"
 
             rust += "\n"
 
@@ -506,8 +522,10 @@ use log::debug;
             RewriteList::default(),
             DO_CONST_REWRITE,
         ))
-    });
+    });\n
     """
+    rust += '    println!("use time {t:?}");\n'
+    rust += '    println!("report {report:?}");\n\n'
 
     rust += '    println!("egraph after run");\n'
     rust += "    dumpCHCEGraph(&runner.egraph);\n"
@@ -564,9 +582,9 @@ fname = "prologInp.txt"
 f = open(fname, "r")
 lines = f.readlines()
 newLines = groupLines(lines)
-struct, headType = parseProlog(newLines)
+struct, metadata = parseProlog(newLines)
 pprint.pprint(struct)
-rust = buildRust(lines, struct, headType)
+rust = buildRust(lines, struct, metadata)
 with open(f"{fname}_rust", "w") as f:
     f.write(rust)
 

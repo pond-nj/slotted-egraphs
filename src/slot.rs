@@ -33,13 +33,17 @@ pub enum VarType {
     Unknown,
     Int,
     Node,
+    List,
 }
 
 pub fn generateVar(s: &str, varType: VarType) -> String {
     let x = match varType {
-        VarType::Int => "int",
-        VarType::Node => "node",
-        VarType::Unknown => "var",
+        VarType::Int => "intType",
+        VarType::Node => "nodeType",
+        VarType::Unknown => {
+            panic!()
+        }
+        VarType::List => "listType",
     };
     format!("({x} {})", s)
 }
