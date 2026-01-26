@@ -15,19 +15,17 @@ use tracing_subscriber::{fmt, prelude::*};
 mod rewrite;
 pub use rewrite::*;
 
-mod ematchQuery;
-pub use ematchQuery::*;
+mod utils;
+pub use utils::*;
 
-mod dedupVec;
-pub use dedupVec::*;
+mod ast;
+pub use ast::*;
 
 // test
 mod leafDrop;
+mod pairingPaperArray;
 mod pairingPaperArray2;
 mod unitTest;
-
-mod testUtils;
-pub use testUtils::*;
 
 define_language! {
     // TODO(Pond): now children can only have max one vector

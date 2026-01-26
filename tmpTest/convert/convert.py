@@ -6,299 +6,20 @@ from collections import defaultdict
 from enum import Enum
 import pprint
 import re
-import unionfind
-
-
-def parseBody(expression):
-    """Split a Prolog expression into individual components."""
-    result = []
-    current = ""
-    bracket_count = 0
-
-    for char in expression:
-        if char == "(":
-            bracket_count += 1
-            current += char
-        elif char == ")":
-            bracket_count -= 1
-            current += char
-        elif char == "," and bracket_count == 0:
-            # Only split on commas outside of brackets
-            result.append(current.strip())
-            current = ""
-        else:
-            current += char
-
-    # Add the last component
-    if current.strip():
-        result.append(current.strip())
-
-    return result
-
-
-def parseProlog(lines):
-    """
-    list of dict[predName -> list[rule]]
-    where rule = {
-        "headArgs",
-        "constr",
-        "dependencies",
-        "line",
-    }
-    """
-    ret = defaultdict(list)
-    metadata = {
-        "headType": {},
-        "functional": {},
-    }
-    headType = metadata["headType"]
-    functional = metadata["functional"]
-
-    for line in lines:
-        rule = {}
-        changeVar = {}
-        line = line.strip()
-        if line.startswith("%"):
-            continue
-
-        if line.startswith("#t"):
-            print("line", line)
-            res = re.match(r"^#t\s*(\w*)\((.*)\) (true|false) <(.*)>.$", line)
-            assert res
-            predName = res.group(1)
-            if res.group(2) == "":
-                headType[predName] = []
-            else:
-                types = res.group(2).split(",")
-                for i in range(len(types)):
-                    types[i] = types[i].strip()
-                    assert types[i] in ["int", "node", "list"]
-                headType[predName] = types
-
-            functional[predName] = {
-                "isTrue": res.group(3) == "true",
-                "idx": res.group(4).split(),
-            }
-
-            continue
-        if line == "":
-            continue
-
-        if line[-1] == ".":
-            line = line[:-1]
-
-        if not ":-" in line:
-            assert re.match(r"^(\w*)\((.*)\)$", line)
-            head = line
-            body = ""
-        else:
-            head, body = line.split(":-")
-            head = head.strip()
-            body = body.strip()
-
-        headPred = head.split("(")[0]
-        assert headPred in headType
-        if "(" in head:
-            assert re.match(r"^(\w*)\((.*)\)$", head)
-            headArgs = list(
-                map(lambda x: x.strip(), head.split("(")[1].split(")")[0].split(","))
-            )
-        else:
-            headArgs = []
-        assert len(headArgs) == len(headType[headPred])
-
-        constr = []
-        newHeadArgs = []
-        changeVar = {}
-
-        for i, h in enumerate(headArgs):
-            newHeadArgs.append(f"new_{i}")
-            changeVar[h] = f"new_{i}"
-
-        body = parseBody(body)
-
-        dependencies = []
-        for b in body:
-            b = b.strip()
-            res = re.match(r"^(\w*)\((.*)\)$", b)
-            if res:
-                bPred = res.group(1)
-                bArgs = res.group(2).split(",")
-                for i, v in enumerate(bArgs):
-                    v = v.strip()
-                    if v in changeVar:
-                        bArgs[i] = changeVar[v]
-                        continue
-
-                    if not re.match(r"^\w+$", v) and not v in changeVar:
-                        changeVar[v] = "new_" + str(len(changeVar))
-                        bArgs[i] = changeVar[v]
-
-                dependencies.append(bPred + "(" + ", ".join(bArgs) + ")")
-            else:
-                constr.append(b)
-
-        newConstr = []
-        for v in changeVar:
-            newConstr.append(f"{v} = {changeVar[v]}")
-        newConstr.extend(constr)
-
-        rule = {
-            "headArgs": newHeadArgs,
-            "constr": newConstr,
-            "dependencies": dependencies,
-            "line": line,
-        }
-        ret[headPred].append(rule)
-    return (
-        ret,
-        metadata,
-    )
-
-
-class OP(Enum):
-    eq = "="
-    neq = "=\\="
-    add = "+"
-    minus = "-"
-    leq = "=<"
-    geq = ">="
-    less = "<"
-    greater = ">"
-    emptyList = "[]"
-    list = "list"
-    binode = "node"
-
-
-def constrGetNextTerm(constr):
-    constr = constr.strip()
-    i = 0
-    bracket_count = 0
-
-    firstIsVarNotOp = False
-    if constr[0].isalpha() or constr[0].isdigit():
-        firstIsVarNotOp = True
-
-    while i < len(constr):
-        if constr[i] == " " and bracket_count == 0:
-            break
-
-        if (
-            firstIsVarNotOp
-            and (not constr[i].isalpha() and not constr[i].isdigit())
-            and bracket_count == 0
-        ):
-            break
-
-        if (
-            not firstIsVarNotOp
-            and (constr[i].isalpha() or constr[i].isdigit())
-            and bracket_count == 0
-        ):
-            break
-
-        if constr[i] == "(":
-            bracket_count += 1
-        elif constr[i] == ")":
-            bracket_count -= 1
-        elif constr[i] == "[":
-            bracket_count += 1
-        elif constr[i] == "]":
-            bracket_count -= 1
-        i += 1
-    print(
-        "constrGetNextTerm",
-        f"{{{constr}}}",
-        "->",
-        f"{{{constr[:i]}}}",
-        f"{{{constr[i:]}}}",
-    )
-    return constr[:i], constr[i:]
-
-
-def unwrapParse(t):
-    res = parseConstr(t)
-    if len(res) == 1:
-        return res[0]
-
-    return res
-
-
-def parseConstr(constr):
-    origConstr = constr
-    constr = constr.strip()
-    tree = []
-
-    if constr == "":
-        print(f"parseConstr {origConstr} -> []")
-        return []
-
-    if constr.isnumeric():
-        print(f"parseConstr {origConstr} -> [{int(constr)}]")
-        return [int(constr)]
-
-    if re.match(r"^\w+$", constr):
-        print(f"parseConstr {origConstr} -> [{constr}]")
-        return [constr]
-
-    if constr == "[]":
-        print(f"parseConstr {origConstr} -> [{OP.emptyList}]")
-        return [OP.emptyList]
-
-    if constr[0] == "[" and constr[-1] == "]":
-        constr = constr[1:-1]
-        if "|" in constr:
-            assert constr.count("|") == 1
-            left, right = constr.split("|")
-            print(
-                f"parseConstr {origConstr} -> [{OP.list}, {unwrapParse(left)}, {unwrapParse(right)}]"
-            )
-            return [OP.list, unwrapParse(left), unwrapParse(right)]
-        else:
-            assert re.match(r"^\w+$", constr)
-            print(
-                f"parseConstr {origConstr} -> [{OP.list}, {unwrapParse(constr)}, {OP.emptyList}]"
-            )
-            return [OP.list, unwrapParse(constr), OP.emptyList]
-
-    res = re.match(r"^node\((.*)\)$", constr)
-    if res:
-        print("match found")
-        args = res.group(1).split(",")
-        assert len(args) == 3
-        print(
-            f"parseConstr {origConstr} -> [{OP.binode}, {unwrapParse(args[0])}, {unwrapParse(args[1])}, {unwrapParse(args[2])}]"
-        )
-        return [
-            OP.binode,
-            unwrapParse(args[0]),
-            unwrapParse(args[1]),
-            unwrapParse(args[2]),
-        ]
-
-    first, constr = constrGetNextTerm(constr)
-    opStr, constr = constrGetNextTerm(constr)
-    try:
-        op = OP(opStr)
-        tree.append(op)
-        tree.append(unwrapParse(first))
-        tree.append(unwrapParse(constr))
-    except KeyError:
-        raise Exception(f"opStr {opStr} not found")
-
-    print(f"parseConstr {origConstr} -> {tree}")
-    return tree
+from prologToAST import groupLines, parseProlog
+from ast import ConstrOP
+import unionfind as unionfind
 
 
 def constrTreeToENodeExpr(tree, varSet):
     expr = "("
     children = []
-    assert isinstance(tree[0], OP)
+    assert isinstance(tree[0], ConstrOP)
     children.append(tree[0].name)
     for t in tree[1:]:
         if isinstance(t, list):
             children.append(constrTreeToENodeExpr(t, varSet))
-        elif isinstance(t, OP):
+        elif isinstance(t, ConstrOP):
             children.append("(" + t.name + ")")
         elif isinstance(t, int):
             children.append(str(t))
@@ -310,18 +31,6 @@ def constrTreeToENodeExpr(tree, varSet):
     expr += ")"
     print(f"constrTreeToENodeExpr {tree} -> {expr}")
     return expr
-
-
-def getVar(dependencies, varSet):
-    for d in dependencies:
-        assert d[-1] == ")"
-        split = d[:-1].split("(")
-        assert len(split) == 2
-        predName, args = split
-        vars = args.split(",")
-        for v in vars:
-            v = v.strip()
-            varSet.add(v)
 
 
 # get return from parseProlog
@@ -561,21 +270,16 @@ fn mainTest() {
     return rust
 
 
-def groupLines(lines):
-    newLines = []
-    currLine = ""
-    for line in lines:
-        line = line.replace("\n", "")
-        for c in line:
-            if c == ".":
-                newLines.append(currLine + c)
-                currLine = ""
-            else:
-                currLine += c
-    if currLine != "":
-        newLines.append(currLine)
-
-    return newLines
+def getVar(dependencies, varSet):
+    for d in dependencies:
+        assert d[-1] == ")"
+        split = d[:-1].split("(")
+        assert len(split) == 2
+        predName, args = split
+        vars = args.split(",")
+        for v in vars:
+            v = v.strip()
+            varSet.add(v)
 
 
 fname = "prologInp.txt"

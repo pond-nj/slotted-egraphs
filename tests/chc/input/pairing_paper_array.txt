@@ -1,0 +1,29 @@
+#t append(list, list, list) true <2>.
+append([], X, X).
+append([T|X], Y, [T|Z]) :- append(X, Y, Z).
+
+#t whl1(int, int, list, list, int, int, list, list) true <4 5 6 7>.
+whl1(A,B,X,Y,A,B,X,Y) :- A >= B.
+whl1(A,B,X,Y,A2,B2,X2,Y2) :- A =< B-1, A1=A+1, append(X, [A], X1), append(Y, X, Y1), whl1(A1,B,X1,Y1,A2,B2,X2,Y2).
+
+#t ifte(int, int, list, list, int, int, list, list) true <4 5 6 7>.
+ifte(A,B,X,Y,A,B,X,Y ) :- A >= B.
+ifte(A,B,X,Y,A2,B2,X2,Y2) :- A =< B-1,
+    append(X, [A], X1), whl2(A,B,X1,Y,A2,B2,X2,Y2).
+
+#t whl2(int, int, list, list, int, int, list, list) true <4 5 6 7>.
+whl2(A,B,X,Y,A2,B,X,Y2) :- A >= B-1, A2=A+1,
+    append(Y, X, Y2).
+whl2(A,B,X,Y,A2,B2,X2,Y2) :- A =< B-2,
+    A1 = A + 1,
+    append(X, [A1], X1),
+    append(Y, X, Y1),
+    whl2(A1,B,X1,Y1,A2,B2,X2,Y2).
+
+#t sum_list(list, int) true <1>.
+sum_list([], 0).
+sum_list([H|T], S) :- sum_list(T, S1), S = H + S1.
+
+#t incorrect() false <>.
+incorrect :- N1 =\= N2, sum_list(X1, N1), sum_list(X2, N2), whl1(A,B,X,Y,A1,B1,X1,Y1), ifte(A, B,X,Y,A2,B2,X2,Y2).
+

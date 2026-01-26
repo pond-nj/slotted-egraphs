@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 log = "0.4.28"
+regex = "1.12.2"

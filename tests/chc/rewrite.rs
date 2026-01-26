@@ -549,16 +549,16 @@ fn unfoldSearch(
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub enum unfoldOpType {
-    unfoldMerge, //merge is for normal unfold, which will unfold and merge with the old compose
-    unfoldCreateOnly, //create is for unfold occur in define, which will only create unfolded nodes, there's no old compose.
+pub enum UnfoldOpType {
+    UnfoldMerge, //merge is for normal unfold, which will unfold and merge with the old compose
+    UnfoldCreateOnly, //create is for unfold occur in define, which will only create unfolded nodes, there's no old compose.
 }
 
 fn unfoldApplyInternal(
     composeRecipe: ComposeUnfoldRecipe,
     unfoldListCopy2: &Rc<RefCell<UnfoldList>>,
     constrRewriteListCopy: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
-    createOrMerge: unfoldOpType, //if true, will merge with information from composeRecipe, if false, will create
+    createOrMerge: UnfoldOpType, //if true, will merge with information from composeRecipe, if false, will create
     eg: &mut CHCEGraph,
 ) -> Vec<AppliedId> {
     let ComposeUnfoldRecipe {
@@ -571,7 +571,7 @@ fn unfoldApplyInternal(
         new1EClass,
     } = composeRecipe;
 
-    if createOrMerge == unfoldOpType::unfoldCreateOnly {
+    if createOrMerge == UnfoldOpType::UnfoldCreateOnly {
         assert_eq!(compose1Children, vec![].into());
         assert_eq!(rootId, AppliedId::null());
         assert_eq!(exclude, 0);
@@ -597,14 +597,14 @@ fn unfoldApplyInternal(
             checkVarType(&mergeAndAppId, eg);
 
             match createOrMerge {
-                unfoldOpType::unfoldCreateOnly => {
+                UnfoldOpType::UnfoldCreateOnly => {
                     eg.analysis_data_mut(mergeAndAppId.id)
                         .predNames
                         .insert(format!(
                             "and_from_unfold_define_{compose2Id}_{comp2Idx}_using_{new2EClass}",
                         ));
                 }
-                unfoldOpType::unfoldMerge => {
+                UnfoldOpType::UnfoldMerge => {
                     eg.analysis_data_mut(mergeAndAppId.id)
                         .predNames
                         .insert(format!(
@@ -619,7 +619,7 @@ fn unfoldApplyInternal(
             let unfoldedENodeId = eg.add(unfoldedENode.clone());
             eg.shrink_slots(&unfoldedENodeId, &syntax1.slots(), ());
 
-            let tag = if createOrMerge == unfoldOpType::unfoldMerge {
+            let tag = if createOrMerge == UnfoldOpType::UnfoldMerge {
                 format!(
                     "unfold_{compose2Id}_{comp2Idx}_in_{}_using_{new2EClass}",
                     new1EClass.id
@@ -653,7 +653,7 @@ fn unfoldApplyInternal(
         let mut composeShape = None;
         match createOrMerge {
             // merge with the existsing before
-            unfoldOpType::unfoldMerge => {
+            UnfoldOpType::UnfoldMerge => {
                 let mut unfoldedComposeChildren = compose1Children.clone();
                 unfoldedComposeChildren.remove(exclude);
                 unfoldedComposeChildren.extend(childrenComb);
@@ -665,7 +665,7 @@ fn unfoldApplyInternal(
 
                 let unfoldedCompose = eg.add(composeENode.clone());
                 println!(
-                    "unfoldOpType::unfoldMerge added composeENode {:?}",
+                    "UnfoldOpType::UnfoldMerge added composeENode {:?}",
                     composeENode.weak_shape().0
                 );
 
@@ -707,7 +707,7 @@ fn unfoldApplyInternal(
                 createdComposeAppIds.push(unfoldedCompose);
             }
             // just create unfold node
-            unfoldOpType::unfoldCreateOnly => {
+            UnfoldOpType::UnfoldCreateOnly => {
                 // let childrenComb: Vec<_> = childrenComb
                 //     .into_iter()
                 //     .map(|appId| AppliedIdOrStar::AppliedId(appId))
@@ -719,7 +719,7 @@ fn unfoldApplyInternal(
                     .collect();
                 composeShape = Some(CHC::Compose(childrenComb.clone().into()));
                 println!(
-                    "unfoldOpType::unfoldMerge added composeENode {:?}",
+                    "UnfoldOpType::UnfoldMerge added composeENode {:?}",
                     composeShape.clone().unwrap().weak_shape().0
                 );
 
@@ -789,7 +789,7 @@ fn unfoldApply(
             composeRecipe,
             unfoldListCopy2,
             constrRewriteListCopy,
-            unfoldOpType::unfoldMerge,
+            UnfoldOpType::UnfoldMerge,
             eg,
         );
     }
@@ -1600,7 +1600,7 @@ fn defineUnfoldFold(
                                 composeUnfoldReceipt.into_iter().next().unwrap(),
                                 &unfoldListClone,
                                 &Rc::clone(&constrRewriteListCopy),
-                                unfoldOpType::unfoldCreateOnly,
+                                UnfoldOpType::UnfoldCreateOnly,
                                 eg,
                             );
 

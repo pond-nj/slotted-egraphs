@@ -1,189 +1,8 @@
+use super::*;
 use regex::Regex;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
-
-#[derive(Clone, Debug)]
-enum ConstrOP {
-    Eq,
-    Neq,
-    Add,
-    Minus,
-    Leq,
-    Geq,
-    Less,
-    Greater,
-    EmptyList,
-    List,
-    Binode,
-}
-
-impl ConstrOP {
-    fn name(&self) -> &str {
-        match self {
-            ConstrOP::Eq => "=",
-            ConstrOP::Neq => "=\\=",
-            ConstrOP::Add => "+",
-            ConstrOP::Minus => "-",
-            ConstrOP::Leq => "=<",
-            ConstrOP::Geq => ">=",
-            ConstrOP::Less => "<",
-            ConstrOP::Greater => ">",
-            ConstrOP::EmptyList => "[]",
-            ConstrOP::List => "list",
-            ConstrOP::Binode => "node",
-        }
-    }
-}
-
-// #[derive(Clone, Debug)]
-// struct Var {
-//     val: Val,
-// }
-
-#[derive(Clone)]
-enum Var {
-    Str(String),
-    Int(i32),
-}
-
-impl std::fmt::Debug for Var {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match &self {
-            Var::Str(s) => write!(f, "{}", s),
-            Var::Int(i) => write!(f, "{}", i),
-        }
-    }
-}
-
-#[derive(Clone)]
-enum Term {
-    Var(Var),
-    Constr(Constr),
-}
-
-impl std::fmt::Debug for Term {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Term::Var(v) => write!(f, "{:?}", v),
-            Term::Constr(c) => write!(f, "{:?}", c),
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-struct Constr {
-    op: ConstrOP,
-    args: Vec<Term>,
-}
-
-impl std::fmt::Display for Constr {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}(", self.op.name())?;
-        for (i, arg) in self.args.iter().enumerate() {
-            if i > 0 {
-                write!(f, ", ")?;
-            }
-            match arg {
-                Term::Var(v) => write!(f, "{:?}", v)?,
-                Term::Constr(c) => write!(f, "{}", c)?,
-            }
-        }
-        write!(f, ")")
-    }
-}
-
-#[derive(Clone)]
-struct Args {
-    args: Vec<Term>,
-}
-
-impl std::fmt::Debug for Args {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self.args)
-    }
-}
-
-impl Args {
-    fn new(args: Vec<Term>) -> Args {
-        Args { args }
-    }
-
-    fn iter(&self) -> std::slice::Iter<Term> {
-        self.args.iter()
-    }
-}
-
-#[derive(Clone, Debug)]
-struct PredApp {
-    pred_name: String,
-    args: Args,
-}
-
-impl std::fmt::Display for PredApp {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}(", self.pred_name)?;
-        for (i, arg) in self.args.iter().enumerate() {
-            if i > 0 {
-                write!(f, ", ")?;
-            }
-            write!(f, "{:?}", arg)?;
-        }
-        write!(f, ")")
-    }
-}
-
-#[derive(Clone, Debug)]
-struct CHC {
-    head: PredApp,
-    constr: Vec<Constr>,
-    pred_apps: Vec<PredApp>,
-    original: String,
-}
-
-impl CHC {
-    fn rename_head(&mut self) {
-        let mut count = 0;
-        let mut new_args = Vec::new();
-        for _ in self.head.args.iter() {
-            count += 1;
-            new_args.push(Term::Var(Var::Str(format!("new{}", count - 1))));
-        }
-        let new_head = PredApp {
-            pred_name: self.head.pred_name.clone(),
-            args: Args::new(new_args),
-        };
-
-        for (i, v) in self.head.args.iter().enumerate() {
-            self.constr.push(Constr {
-                op: ConstrOP::Eq,
-                args: vec![v.clone(), Term::Var(Var::Str(format!("new{}", i)))],
-            });
-        }
-
-        self.head = new_head;
-    }
-}
-
-impl std::fmt::Display for CHC {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "CHC({}, [", self.head)?;
-        for (i, c) in self.constr.iter().enumerate() {
-            if i > 0 {
-                write!(f, ", ")?;
-            }
-            write!(f, "{}", c)?;
-        }
-        write!(f, "], [")?;
-        for (i, p) in self.pred_apps.iter().enumerate() {
-            if i > 0 {
-                write!(f, ", ")?;
-            }
-            write!(f, "{}", p)?;
-        }
-        write!(f, "])")
-    }
-}
 
 fn group_lines(lines: Vec<String>) -> Vec<String> {
     let mut new_lines = Vec::new();
@@ -232,12 +51,12 @@ fn parse_body(expression: &str) -> Vec<String> {
     result
 }
 
-fn parse_prolog(lines: Vec<String>) -> Vec<CHC> {
+fn parse_prolog(lines: &Vec<String>) -> Vec<CHCRule> {
     let mut chcs = Vec::new();
     let head_re = Regex::new(r"^(\w*)\((.*)\)$").unwrap();
 
-    for mut line in lines {
-        line = line.trim().to_string();
+    for line in lines {
+        let mut line = line.trim().to_string();
         if line.starts_with("%") {
             continue;
         }
@@ -319,7 +138,7 @@ fn parse_prolog(lines: Vec<String>) -> Vec<CHC> {
             }
         }
 
-        chcs.push(CHC {
+        chcs.push(CHCRule {
             head: PredApp {
                 pred_name: head_pred,
                 args: Args::new(head_args),
@@ -332,7 +151,7 @@ fn parse_prolog(lines: Vec<String>) -> Vec<CHC> {
     chcs
 }
 
-fn parse(fname: &str) -> Vec<CHC> {
+pub fn parse(fname: &str) -> CHCAst {
     let path = Path::new(fname);
     let file = File::open(&path).expect("Failed to open file");
     let lines: Vec<String> = io::BufReader::new(file)
@@ -341,7 +160,71 @@ fn parse(fname: &str) -> Vec<CHC> {
         .collect();
 
     let new_lines = group_lines(lines);
-    parse_prolog(new_lines)
+    let rules = parse_prolog(&new_lines);
+
+    let props = parse_properties(&new_lines);
+    CHCAst {
+        rules,
+        preds: props,
+    }
+}
+
+fn parse_properties(lines: &Vec<String>) -> BTreeMap<String, PredProp> {
+    let mut props = BTreeMap::new();
+
+    for line in lines {
+        let line = &line.trim().to_string();
+        if !line.starts_with("#t") {
+            continue;
+        }
+
+        let re = Regex::new(r"^#t\s*(\w*)\((.*)\) (true|false) <(.*)>.$").unwrap();
+        let caps: regex::Captures<'_> = re
+            .captures(&line)
+            .expect("Line does not match expected format");
+
+        let pred_name = caps.get(1).unwrap().as_str().to_string();
+
+        let mut types = Vec::<ArgType>::new();
+
+        let arg_type_str = caps.get(2).unwrap().as_str();
+        let arg_types: Vec<String> = arg_type_str
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .collect();
+        for t in &arg_types {
+            if t == "" {
+                continue;
+            }
+
+            match t.as_str() {
+                "int" => types.push(ArgType::Int),
+                "node" => types.push(ArgType::Node),
+                "list" => types.push(ArgType::List),
+                _ => panic!("Unknown arg type {}", t),
+            }
+        }
+
+        let is_true = caps.get(3).unwrap().as_str() == "true";
+        let idx: Vec<String> = caps
+            .get(4)
+            .unwrap()
+            .as_str()
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
+
+        props.insert(
+            pred_name.clone(),
+            PredProp {
+                types,
+                functional: is_true,
+                outputIdx: idx.iter().map(|s| s.parse::<usize>().unwrap()).collect(),
+            },
+        );
+    }
+
+    props
 }
 
 fn parse_constr(constr: &str) -> Option<Term> {
@@ -349,11 +232,11 @@ fn parse_constr(constr: &str) -> Option<Term> {
     let mut constr = constr.trim().to_string();
 
     if constr.parse::<i32>().is_ok() {
-        return Some(Term::Var(Var::Int(constr.parse::<i32>().unwrap())));
+        return Some(Term::Var(CHCVar::Int(constr.parse::<i32>().unwrap())));
     }
 
     if Regex::new(r"^\w+$").unwrap().is_match(&constr) {
-        return Some(Term::Var(Var::Str(constr)));
+        return Some(Term::Var(CHCVar::Str(constr)));
     }
 
     if constr == "[]" {
@@ -466,17 +349,4 @@ fn constr_get_next_term(constr: &str) -> (String, String) {
     }
 
     (constr[..i].to_string(), constr[i..].to_string())
-}
-
-fn main() {
-    // let mut struct_chcs = parse("prologInp.txt");
-
-    // for chc in struct_chcs.iter_mut() {
-    //     chc.rename_head();
-    // }
-
-    // for chc in &struct_chcs {
-    //     println!("{:#?}", chc);
-    // }
-    println!("{:?}", ConstrOP::Eq);
 }
