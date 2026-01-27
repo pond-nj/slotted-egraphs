@@ -163,6 +163,12 @@ pub fn parse(fname: &str) -> CHCAst {
     let rules = parse_prolog(&new_lines);
 
     let props = parse_properties(&new_lines);
+
+    let pred_from_rules: BTreeSet<String> =
+        rules.iter().map(|r| r.head.pred_name.clone()).collect();
+    let pred_from_props: BTreeSet<String> = props.keys().cloned().collect();
+    assert_eq!(pred_from_rules, pred_from_props);
+
     CHCAst {
         rules,
         preds: props,
@@ -199,8 +205,8 @@ fn parse_properties(lines: &Vec<String>) -> BTreeMap<String, PredProp> {
 
             match t.as_str() {
                 "int" => types.push(ArgType::Int),
-                "node" => types.push(ArgType::Node),
-                "list" => types.push(ArgType::List),
+                "node" => types.push(ArgType::Node(Box::new(ArgType::Unknown))),
+                "list" => types.push(ArgType::List(Box::new(ArgType::Unknown))),
                 _ => panic!("Unknown arg type {}", t),
             }
         }

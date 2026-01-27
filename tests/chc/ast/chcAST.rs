@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    ops::Index,
+};
 
 use regex::Regex;
 
@@ -39,9 +42,39 @@ impl ConstrOP {
         let first = s.chars().next().unwrap().to_lowercase().collect::<String>();
         first + &s[1..]
     }
+
+    fn childrenSameType(&self) -> bool {
+        match self {
+            ConstrOP::Eq | ConstrOP::Neq => true,
+            ConstrOP::Add | ConstrOP::Minus => true,
+            ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Less | ConstrOP::Greater => true,
+            ConstrOP::EmptyList | ConstrOP::List | ConstrOP::Binode => false,
+        }
+    }
+
+    fn childrenMustBeType(&self) -> Option<ArgType> {
+        match self {
+            ConstrOP::Eq | ConstrOP::Neq => None,
+            ConstrOP::Add | ConstrOP::Minus => Some(ArgType::Int),
+            ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Less | ConstrOP::Greater => {
+                Some(ArgType::Int)
+            }
+            ConstrOP::EmptyList | ConstrOP::List | ConstrOP::Binode => None,
+        }
+    }
+
+    fn getType(&self) -> ArgType {
+        match self {
+            ConstrOP::Eq | ConstrOP::Neq => ArgType::Bool,
+            ConstrOP::Add | ConstrOP::Minus => ArgType::Int,
+            ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Less | ConstrOP::Greater => ArgType::Bool,
+            ConstrOP::EmptyList | ConstrOP::List => ArgType::List(Box::new(ArgType::Unknown)),
+            ConstrOP::Binode => ArgType::Node(Box::new(ArgType::Unknown)),
+        }
+    }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum CHCVar {
     Str(String),
     Int(i32),
@@ -99,6 +132,210 @@ impl Constr {
                 .join(" ")
         )
     }
+
+    pub fn propagateTypeUp(&self, typeMap: &mut BTreeMap<CHCVar, ArgType>) -> ArgType {
+        let mut types = Vec::new();
+        for a in self.args.iter() {
+            match a {
+                Term::Var(v) => {
+                    // children might not have type specified yet, if its type must be inferred from another constraint
+                    // so we have to run this propagateType many times
+                    if let Some(t) = typeMap.get(v) {
+                        types.push(t.clone());
+                    } else {
+                        types.push(ArgType::Unknown);
+                    }
+                }
+                Term::Constr(c) => {
+                    let t = c.propagateTypeUp(typeMap);
+                    types.push(t);
+                }
+            }
+        }
+
+        let allTypes: BTreeSet<ArgType> = types.iter().cloned().collect();
+        let allTypesEq =
+            allTypes.len() == 1 || (allTypes.len() == 2 && allTypes.contains(&ArgType::Unknown));
+
+        if self.op.childrenSameType() {
+            assert!(allTypesEq, "{:?} {:?}", self, allTypes);
+            let mustBeType = self.op.childrenMustBeType();
+
+            let mut notUnknown: BTreeSet<ArgType> = BTreeSet::new();
+            types.iter().for_each(|t| {
+                if *t == ArgType::Unknown {
+                    notUnknown.insert(t.clone());
+                }
+            });
+            if mustBeType.is_some() {
+                notUnknown.insert(mustBeType.unwrap());
+            }
+            assert!(notUnknown.len() <= 1);
+
+            let inferType: Option<ArgType> = if notUnknown.len() == 1 {
+                Some(notUnknown.iter().next().unwrap().clone())
+            } else {
+                None
+            };
+
+            if inferType.is_none() {
+                return ArgType::Bool;
+            }
+
+            let inferType = inferType.unwrap();
+            for (i, t) in types.iter().enumerate() {
+                // before, we already check that all types are the same
+                if t != &ArgType::Unknown {
+                    continue;
+                }
+
+                self.args[i].propagateTypeDown(inferType.clone(), typeMap);
+            }
+
+            return self.op.getType();
+        }
+
+        match self.op {
+            ConstrOP::EmptyList => self.op.getType(),
+            ConstrOP::List => {
+                assert!(self.args.len() == 2);
+
+                let mut allTypes: BTreeSet<ArgType> = BTreeSet::new();
+                let headType = types[0].clone();
+                if headType != ArgType::Unknown {
+                    allTypes.insert(headType.clone());
+                }
+                let tailType = types[1].clone();
+                match &tailType {
+                    ArgType::List(t) => {
+                        if t.as_ref() != &ArgType::Unknown {
+                            allTypes.insert(t.as_ref().clone());
+                        }
+                    }
+                    _ => {}
+                }
+                assert!(allTypes.len() <= 1);
+
+                let inferType = if allTypes.len() == 1 {
+                    Some(allTypes.iter().next().unwrap().clone())
+                } else {
+                    None
+                };
+
+                if inferType.is_none() {
+                    return self.op.getType();
+                }
+
+                let inferType = inferType.unwrap();
+                if headType == ArgType::Unknown {
+                    self.args[0].propagateTypeDown(inferType.clone(), typeMap);
+                }
+
+                if tailType == ArgType::Unknown
+                    || tailType == ArgType::List(Box::new(ArgType::Unknown))
+                {
+                    self.args[1]
+                        .propagateTypeDown(ArgType::List(Box::new(inferType.clone())), typeMap);
+                }
+
+                ArgType::List(Box::new(inferType.clone()))
+            }
+            ConstrOP::Binode => {
+                assert!(self.args.len() == 3);
+                let elType = types[0].clone();
+                let leftType = types[1].clone();
+                let rightType = types[2].clone();
+
+                let mut allTypes = BTreeSet::new();
+                if elType != ArgType::Unknown {
+                    allTypes.insert(elType.clone());
+                }
+                match &leftType {
+                    ArgType::Node(t) => {
+                        if t.as_ref() != &ArgType::Unknown {
+                            allTypes.insert(t.as_ref().clone());
+                        }
+                    }
+                    _ => {}
+                }
+                match &rightType {
+                    ArgType::Node(t) => {
+                        if t.as_ref() != &ArgType::Unknown {
+                            allTypes.insert(t.as_ref().clone());
+                        }
+                    }
+                    _ => {}
+                }
+
+                assert!(allTypes.len() <= 1);
+
+                let infterType = if allTypes.len() == 1 {
+                    Some(allTypes.iter().next().unwrap().clone())
+                } else {
+                    None
+                };
+
+                if infterType.is_none() {
+                    return self.op.getType();
+                }
+
+                let inferType = infterType.unwrap();
+                if elType == ArgType::Unknown {
+                    self.args[0].propagateTypeDown(inferType.clone(), typeMap);
+                }
+                if leftType == ArgType::Unknown {
+                    self.args[1]
+                        .propagateTypeDown(ArgType::Node(Box::new(inferType.clone())), typeMap);
+                }
+                if rightType == ArgType::Unknown {
+                    self.args[2]
+                        .propagateTypeDown(ArgType::Node(Box::new(inferType.clone())), typeMap);
+                }
+
+                ArgType::Node(Box::new(inferType.clone()))
+            }
+            _ => panic!("Shouldn't reach here"),
+        }
+    }
+
+    pub fn propagateTypeDown(&self, thisType: ArgType, typeMap: &mut BTreeMap<CHCVar, ArgType>) {
+        match self.op {
+            ConstrOP::Eq | ConstrOP::Neq | ConstrOP::EmptyList => {}
+            ConstrOP::Add
+            | ConstrOP::Minus
+            | ConstrOP::Leq
+            | ConstrOP::Geq
+            | ConstrOP::Less
+            | ConstrOP::Greater => {
+                for a in self.args.iter() {
+                    a.propagateTypeDown(ArgType::Int, typeMap);
+                }
+            }
+            ConstrOP::Binode => {
+                assert!(self.args.len() == 3);
+                let ArgType::Node(elType) = thisType else {
+                    panic!("should be type node");
+                };
+                let elType = elType.as_ref();
+                assert!(elType != &ArgType::Unknown);
+
+                self.args[0].propagateTypeDown(elType.clone(), typeMap);
+                self.args[1].propagateTypeDown(ArgType::Node(Box::new(elType.clone())), typeMap);
+                self.args[2].propagateTypeDown(ArgType::Node(Box::new(elType.clone())), typeMap);
+            }
+            ConstrOP::List => {
+                assert!(self.args.len() == 2);
+                let ArgType::List(elType) = thisType else {
+                    panic!("should be type list");
+                };
+                let elType = elType.as_ref();
+                assert!(elType != &ArgType::Unknown);
+
+                self.args[0].propagateTypeDown(elType.clone(), typeMap);
+                self.args[1].propagateTypeDown(ArgType::List(Box::new(elType.clone())), typeMap);
+            }
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -124,10 +361,31 @@ impl Term {
         }
     }
 
+    pub fn getVar(&self) -> Option<&CHCVar> {
+        match self {
+            Term::Var(v) => Some(v),
+            _ => None,
+        }
+    }
+
     pub fn toSExpr(&self) -> String {
         match self {
             Term::Var(v) => v.toSExpr(),
             Term::Constr(c) => c.toSExpr(),
+        }
+    }
+
+    pub fn propagateTypeDown(&self, thisType: ArgType, typeMap: &mut BTreeMap<CHCVar, ArgType>) {
+        match self {
+            Term::Var(v) => {
+                if let Some(t) = typeMap.get(v) {
+                    assert!(t == &thisType);
+                }
+                typeMap.insert(v.clone(), thisType);
+            }
+            Term::Constr(c) => {
+                c.propagateTypeDown(thisType, typeMap);
+            }
         }
     }
 }
@@ -160,6 +418,14 @@ impl Args {
 impl Into<Args> for Vec<Term> {
     fn into(self) -> Args {
         Args { args: self }
+    }
+}
+
+impl Index<usize> for Args {
+    type Output = Term;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.args[index]
     }
 }
 
@@ -256,6 +522,13 @@ impl PredApp {
                 .join(" ")
         )
     }
+
+    pub fn retrieveTypes(&self, typeMap: &mut BTreeMap<CHCVar, ArgType>, props: &PredProp) {
+        let types = &props.types;
+        for (i, t) in types.iter().enumerate() {
+            typeMap.insert(self.args[i].clone().getVar().unwrap().clone(), t.clone());
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -266,12 +539,13 @@ pub struct CHCRule {
     pub original: String,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub enum ArgType {
     Int,
-    Node,
+    Node(Box<ArgType>),
     Unknown,
-    List,
+    Bool,
+    List(Box<ArgType>),
 }
 
 #[derive(Clone, Debug)]
@@ -288,29 +562,20 @@ pub struct CHCAst {
 }
 
 impl CHCRule {
-    pub fn rename_head(&mut self) {
-        let mut count = 0;
-        let mut new_args = Vec::new();
-        for _ in self.head.args.iter() {
-            count += 1;
-            new_args.push(Term::Var(CHCVar::Str(format!("new{}", count - 1))));
-        }
-        let new_head = PredApp {
-            pred_name: self.head.pred_name.clone(),
-            args: Args::new(new_args),
-        };
-
-        for (i, v) in self.head.args.iter().enumerate() {
-            self.constr.push(Constr {
-                op: ConstrOP::Eq,
-                args: vec![v.clone(), Term::Var(CHCVar::Str(format!("new{}", i)))],
-            });
-        }
-
-        self.head = new_head;
+    // TODO: turn prop into typeMap: var -> type first
+    pub fn noTermInPredApp(&self) -> bool {
+        self.pred_apps.iter().all(|p| p.args.isAllVar()) && self.head.args.isAllVar()
     }
 
     pub fn toSExpr(&self, prop: &BTreeMap<String, PredProp>) -> String {
+        let mut varToType = BTreeMap::new();
+        for (i, v) in self.head.args.iter().enumerate() {
+            let v = v.getVar().unwrap();
+            varToType.insert(
+                v.clone(),
+                prop.get(&self.head.pred_name).unwrap().types[i].clone(),
+            );
+        }
         format!(
             "(new {} {} {})",
             self.head.toHeadSExpr(),
@@ -331,6 +596,28 @@ impl CHCRule {
                     .join(" ")
             )
         )
+    }
+
+    pub fn getTypeInfo(&self, prop: &BTreeMap<String, PredProp>) -> BTreeMap<CHCVar, ArgType> {
+        assert!(self.noTermInPredApp());
+        let mut typeMap = BTreeMap::new();
+
+        for (i, v) in self.head.args.iter().enumerate() {
+            let v = v.getVar().unwrap();
+            typeMap.insert(
+                v.clone(),
+                prop.get(&self.head.pred_name).unwrap().types[i].clone(),
+            );
+        }
+
+        for p in self.pred_apps.iter() {
+            for (i, v) in p.args.iter().enumerate() {
+                let v = v.getVar().unwrap();
+                typeMap.insert(v.clone(), prop.get(&p.pred_name).unwrap().types[i].clone());
+            }
+        }
+
+        typeMap
     }
 }
 
