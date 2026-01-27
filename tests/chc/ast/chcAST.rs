@@ -120,6 +120,18 @@ impl std::fmt::Display for Constr {
     }
 }
 
+fn canUnionTypes(types: &BTreeSet<ArgType>) -> Option<ArgType> {
+    let mut res = Some(ArgType::Unknown);
+    for t in types {
+        res = res.unwrap().union(&t);
+        if res.is_none() {
+            return None;
+        }
+    }
+
+    res
+}
+
 impl Constr {
     pub fn toSExpr(&self) -> String {
         format!(
@@ -154,38 +166,28 @@ impl Constr {
         }
 
         let allTypes: BTreeSet<ArgType> = types.iter().cloned().collect();
-        let allTypesEq =
-            allTypes.len() == 1 || (allTypes.len() == 2 && allTypes.contains(&ArgType::Unknown));
-
         if self.op.childrenSameType() {
-            assert!(allTypesEq, "{:?} {:?}", self, allTypes);
+            let mut inferType = canUnionTypes(&allTypes);
+            assert!(
+                inferType.is_some(),
+                "not all Types are the same: {:?} {:?}",
+                self,
+                allTypes
+            );
             let mustBeType = self.op.childrenMustBeType();
-
-            let mut notUnknown: BTreeSet<ArgType> = BTreeSet::new();
-            types.iter().for_each(|t| {
-                if *t == ArgType::Unknown {
-                    notUnknown.insert(t.clone());
-                }
-            });
             if mustBeType.is_some() {
-                notUnknown.insert(mustBeType.unwrap());
+                inferType = inferType.unwrap().union(&mustBeType.unwrap());
             }
-            assert!(notUnknown.len() <= 1);
+            assert!(inferType.is_some());
 
-            let inferType: Option<ArgType> = if notUnknown.len() == 1 {
-                Some(notUnknown.iter().next().unwrap().clone())
-            } else {
-                None
-            };
-
-            if inferType.is_none() {
+            if inferType == Some(ArgType::Unknown) {
                 return ArgType::Bool;
             }
 
             let inferType = inferType.unwrap();
             for (i, t) in types.iter().enumerate() {
                 // before, we already check that all types are the same
-                if t != &ArgType::Unknown {
+                if t == &inferType {
                     continue;
                 }
 
@@ -269,17 +271,17 @@ impl Constr {
 
                 assert!(allTypes.len() <= 1);
 
-                let infterType = if allTypes.len() == 1 {
+                let inferType = if allTypes.len() == 1 {
                     Some(allTypes.iter().next().unwrap().clone())
                 } else {
                     None
                 };
 
-                if infterType.is_none() {
+                if inferType.is_none() {
                     return self.op.getType();
                 }
 
-                let inferType = infterType.unwrap();
+                let inferType = inferType.unwrap();
                 if elType == ArgType::Unknown {
                     self.args[0].propagateTypeDown(inferType.clone(), typeMap);
                 }
@@ -326,7 +328,7 @@ impl Constr {
             ConstrOP::List => {
                 assert!(self.args.len() == 2);
                 let ArgType::List(elType) = thisType else {
-                    panic!("should be type list");
+                    panic!("should be type list {:?}", thisType);
                 };
                 let elType = elType.as_ref();
                 assert!(elType != &ArgType::Unknown);
@@ -376,6 +378,7 @@ impl Term {
     }
 
     pub fn propagateTypeDown(&self, thisType: ArgType, typeMap: &mut BTreeMap<CHCVar, ArgType>) {
+        println!("propagateTypeDown {:?} {:?}", self, thisType);
         match self {
             Term::Var(v) => {
                 if let Some(t) = typeMap.get(v) {
@@ -546,6 +549,41 @@ pub enum ArgType {
     Unknown,
     Bool,
     List(Box<ArgType>),
+}
+
+impl ArgType {
+    pub fn union(&self, other: &ArgType) -> Option<ArgType> {
+        if self == other {
+            return Some(self.clone());
+        }
+
+        if self == &ArgType::Unknown {
+            return Some(other.clone());
+        }
+
+        if other == &ArgType::Unknown {
+            return Some(self.clone());
+        }
+
+        assert!(self != &ArgType::Unknown && other != &ArgType::Unknown);
+        match (self, other) {
+            (ArgType::Node(t1), ArgType::Node(t2)) => {
+                let res = t1.union(t2);
+                if res.is_none() {
+                    return None;
+                }
+                Some(ArgType::Node(Box::new(res.unwrap())))
+            }
+            (ArgType::List(t1), ArgType::List(t2)) => {
+                let res = t1.union(t2);
+                if res.is_none() {
+                    return None;
+                }
+                Some(ArgType::List(Box::new(res.unwrap())))
+            }
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Debug)]

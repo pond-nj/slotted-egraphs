@@ -63,7 +63,7 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             let mut typeMap = BTreeMap::new();
             head.retrieveTypes(&mut typeMap, &props);
             for b in pred_apps.iter() {
-                b.retrieveTypes(&mut typeMap, &props);
+                b.retrieveTypes(&mut typeMap, &chcs.preds.get(&b.pred_name).unwrap());
             }
             for c in constr.iter() {
                 c.propagateTypeUp(&mut typeMap);
