@@ -57,6 +57,7 @@ pub fn generateVarFromCount(count: &mut u32, varType: VarType) -> String {
 pub fn isNonBasicVar(varType: &VarType) -> bool {
     match varType {
         VarType::Node => true,
+        VarType::List => true,
         _ => false,
     }
 }

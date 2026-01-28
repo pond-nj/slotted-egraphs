@@ -1,3 +1,4 @@
+use super::*;
 use std::{
     collections::{BTreeMap, BTreeSet},
     ops::Index,
@@ -81,10 +82,22 @@ pub enum CHCVar {
 }
 
 impl CHCVar {
-    pub fn toSExpr(&self) -> String {
+    pub fn toSExpr(&self, typeMap: &BTreeMap<CHCVar, ArgType>) -> String {
         match self {
-            CHCVar::Str(s) => format!("${s}"),
+            CHCVar::Str(s) => match typeMap.get(self).unwrap() {
+                ArgType::Int => format!("(intType ${s})"),
+                ArgType::Node(_) => format!("(nodeType ${s})"),
+                ArgType::List(_) => format!("(listType ${s})"),
+                _ => panic!("Unknown type {:?}", typeMap.get(self).unwrap()),
+            },
             CHCVar::Int(i) => i.to_string(),
+        }
+    }
+
+    pub fn toSlot(&self) -> Slot {
+        match self {
+            CHCVar::Str(s) => Slot::named(s),
+            CHCVar::Int(i) => panic!(),
         }
     }
 }
@@ -133,13 +146,13 @@ fn canUnionTypes(types: &BTreeSet<ArgType>) -> Option<ArgType> {
 }
 
 impl Constr {
-    pub fn toSExpr(&self) -> String {
+    pub fn toSExpr(&self, typeMap: &BTreeMap<CHCVar, ArgType>) -> String {
         format!(
             "({} {})",
             self.op.toSExpr(),
             self.args
                 .iter()
-                .map(|a| a.toSExpr())
+                .map(|a| a.toSExpr(typeMap))
                 .collect::<Vec<_>>()
                 .join(" ")
         )
@@ -370,15 +383,14 @@ impl Term {
         }
     }
 
-    pub fn toSExpr(&self) -> String {
+    pub fn toSExpr(&self, typeMap: &BTreeMap<CHCVar, ArgType>) -> String {
         match self {
-            Term::Var(v) => v.toSExpr(),
-            Term::Constr(c) => c.toSExpr(),
+            Term::Var(v) => v.toSExpr(typeMap),
+            Term::Constr(c) => c.toSExpr(typeMap),
         }
     }
 
     pub fn propagateTypeDown(&self, thisType: ArgType, typeMap: &mut BTreeMap<CHCVar, ArgType>) {
-        println!("propagateTypeDown {:?} {:?}", self, thisType);
         match self {
             Term::Var(v) => {
                 let mut updateToType = Some(thisType);
@@ -498,28 +510,26 @@ impl PredApp {
         newConstr
     }
 
-    pub fn toHeadSExpr(&self) -> String {
+    pub fn toHeadSExpr(&self, typeMap: &BTreeMap<CHCVar, ArgType>) -> String {
         assert!(self.args.isAllVar());
 
         format!(
             "(pred <{}>)",
             self.args
                 .iter()
-                .map(|a| a.toSExpr())
+                .map(|a| a.toSExpr(typeMap))
                 .collect::<Vec<_>>()
                 .join(" ")
         )
     }
 
-    pub fn toTailSExpr(&self, props: &BTreeMap<String, PredProp>) -> String {
+    pub fn toTailSExpr(&self, props: &PredProp, typeMap: &BTreeMap<CHCVar, ArgType>) -> String {
         let predName = self.pred_name.clone();
-        let syntax = self.toHeadSExpr();
+        let syntax = self.toHeadSExpr(typeMap);
         format!(
             "(composeInit {predName} {syntax} ({}) <{}>)",
-            props.get(&predName).unwrap().functional,
+            props.functional,
             props
-                .get(&predName)
-                .unwrap()
                 .outputIdx
                 .iter()
                 .map(|i| format!("{}", i))
@@ -607,7 +617,11 @@ impl CHCRule {
         self.pred_apps.iter().all(|p| p.args.isAllVar()) && self.head.args.isAllVar()
     }
 
-    pub fn toSExpr(&self, prop: &BTreeMap<String, PredProp>) -> String {
+    pub fn toSExpr(
+        &self,
+        prop: &BTreeMap<String, PredProp>,
+        typeMap: &BTreeMap<CHCVar, ArgType>,
+    ) -> String {
         let mut varToType = BTreeMap::new();
         for (i, v) in self.head.args.iter().enumerate() {
             let v = v.getVar().unwrap();
@@ -618,12 +632,12 @@ impl CHCRule {
         }
         format!(
             "(new {} {} {})",
-            self.head.toHeadSExpr(),
+            self.head.toHeadSExpr(typeMap),
             format!(
                 "(and <{}>)",
                 self.constr
                     .iter()
-                    .map(|c| c.toSExpr())
+                    .map(|c| c.toSExpr(typeMap))
                     .collect::<Vec<_>>()
                     .join(" ")
             ),
@@ -631,7 +645,7 @@ impl CHCRule {
                 "<{}>",
                 self.pred_apps
                     .iter()
-                    .map(|p| p.toTailSExpr(prop))
+                    .map(|p| p.toTailSExpr(prop.get(&p.pred_name).unwrap(), typeMap))
                     .collect::<Vec<_>>()
                     .join(" ")
             )

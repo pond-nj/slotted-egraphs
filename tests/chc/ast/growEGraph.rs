@@ -50,6 +50,8 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
     let dummyEClass = ();
     for (predName, rules) in rulesByPred {
         let props = chcs.preds.get(&predName).unwrap();
+        let mut composeChildren = Vec::new();
+        let mut dummyCompose = None;
         for rule in rules {
             let CHCRule {
                 head,
@@ -59,7 +61,6 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             } = &rule;
 
             println!("original {}", original);
-            println!("rule {}", rule.toSExpr(&chcs.preds));
             let mut typeMap = BTreeMap::new();
             head.retrieveTypes(&mut typeMap, &props);
             for b in pred_apps.iter() {
@@ -68,8 +69,27 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             for c in constr.iter() {
                 c.propagateTypeUp(&mut typeMap);
             }
-            println!("typeMap {:?}\n", typeMap);
+            println!("typeMap {:?}", typeMap);
+
+            let expr = rule.toSExpr(&chcs.preds, &typeMap);
+            println!("rule {}\n", expr);
+            composeChildren.push(expr.clone());
+            let newENodeId = eg.addExpr(&expr);
+
+            let headSlots: Vec<_> = head
+                .args
+                .iter()
+                .map(|a| a.getVar().unwrap().toSlot())
+                .collect();
+            eg.shrink_slots(&newENodeId, &headSlots.into_iter().collect(), dummyEClass);
+
+            dummyCompose = Some(head.toTailSExpr(props, &typeMap));
         }
+        let composeExpr = format!("(compose <{}>)", composeChildren.join(" "));
+
+        let dummyAppId = eg.addExpr(&dummyCompose.unwrap());
+        let composeAppId = eg.addExpr(&composeExpr);
+        eg.union(&composeAppId, &dummyAppId);
     }
     // ()
 }

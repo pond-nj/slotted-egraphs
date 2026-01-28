@@ -212,7 +212,6 @@ fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner
             DO_CONST_REWRITE,
         ))
     });
-
     println!("use time {t:?}");
     println!("report {report:?}");
 
