@@ -68,7 +68,7 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             for c in constr.iter() {
                 c.propagateTypeUp(&mut typeMap);
             }
-            println!("typeMap {:?}", typeMap);
+            println!("typeMap {:?}\n", typeMap);
         }
     }
     // ()

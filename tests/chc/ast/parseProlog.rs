@@ -207,6 +207,7 @@ fn parse_properties(lines: &Vec<String>) -> BTreeMap<String, PredProp> {
                 "int" => types.push(ArgType::Int),
                 "node" => types.push(ArgType::Node(Box::new(ArgType::Unknown))),
                 "list" => types.push(ArgType::List(Box::new(ArgType::Unknown))),
+                "list(int)" => types.push(ArgType::List(Box::new(ArgType::Int))),
                 _ => panic!("Unknown arg type {}", t),
             }
         }

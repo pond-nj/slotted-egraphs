@@ -381,10 +381,12 @@ impl Term {
         println!("propagateTypeDown {:?} {:?}", self, thisType);
         match self {
             Term::Var(v) => {
+                let mut updateToType = Some(thisType);
                 if let Some(t) = typeMap.get(v) {
-                    assert!(t == &thisType);
+                    updateToType = t.union(&updateToType.unwrap());
+                    assert!(updateToType.is_some());
                 }
-                typeMap.insert(v.clone(), thisType);
+                typeMap.insert(v.clone(), updateToType.unwrap());
             }
             Term::Constr(c) => {
                 c.propagateTypeDown(thisType, typeMap);
