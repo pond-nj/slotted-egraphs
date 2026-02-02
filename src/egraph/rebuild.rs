@@ -1,5 +1,5 @@
 use crate::*;
-use log::debug;
+use log::{debug, info};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // proof.l should be i.
@@ -137,12 +137,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn rebuild(&mut self) {
-        println!("doing rebuild");
+        info!("doing rebuild");
         if CHECKS {
             self.check();
         }
 
-        debug!("start pending loops");
+        info!("start pending loops");
         while !self.pending.is_empty() {
             debug!("pending lens {}", self.pending.len());
             let pending_batch = std::mem::take(&mut self.pending);
@@ -156,18 +156,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 self.check();
             }
         }
+        info!("end pending loops");
 
-        debug!("end pending loops");
-
-        debug!("modify_queue {:?}", self.modify_queue);
+        info!("start modify_queue");
         while let Some(i) = self.modify_queue.pop() {
             let i = self.find_id(i);
             N::modify(self, i);
         }
-        println!("done rebuild");
+        info!("end modify_queue");
+        info!("done rebuild");
     }
 
     pub fn handleSorted(&mut self, sh: &L) {
+        info!("start handleSorted");
         let lenBefore = self.total_number_of_nodes();
         if self.hashcons.get(&sh).is_none() {
             return;
@@ -176,7 +177,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let i = self.hashcons[&sh];
 
         let enode = &sh.apply_slotmap(&self.classes[&i].nodes[&sh].elem);
-        let enodeBeforeFind = enode;
+        // let enodeBeforeFind = enode;
         let enode = self.find_enode(enode);
         // TODO: this should be blocked in the future
         // if enode == *enodeBeforeFind {
@@ -202,10 +203,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             );
         }
         assert!(self.total_number_of_nodes() == lenBefore);
+        info!("end handleSorted");
     }
 
     fn handle_pending(&mut self, sh: &L, _pending_ty: PendingType) {
         // TODO: this is a hack to make the test pass
+        info!("start handle_pending");
         if self.hashcons.get(&sh).is_none() {
             return;
         }
@@ -254,6 +257,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let lookupRes = self.lookup_internal(&t);
         if lookupRes.is_some() {
             self.handle_congruence(self.pc_from_src_id(src_id));
+            info!("end handle_pending by congruence");
             return;
         }
 
@@ -272,6 +276,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.update_analysis(&sh, app_i.id);
 
         self.determine_self_symmetries(src_id);
+        info!("end handle_pending");
     }
 
     fn update_analysis(&mut self, sh: &L, i: Id) {

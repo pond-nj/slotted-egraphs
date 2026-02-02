@@ -127,9 +127,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // create a duplicate Enode with reset mapped slot in AppliedId,
     // the information of mapping to old one is in the returned Bijection
     fn shape_called_from_add(&self, enode: L) -> (L, Bijection) {
-        // debug!("shape_called_from_add input {:?}", enode);
         let ret = self.shape(&enode);
-        // debug!("ret {ret:?}");
         ret
     }
 
@@ -290,7 +288,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         (sh, bij): (L, Bijection),
         src_id: Id,
     ) {
-        // debug!("add to {id:?} {:?}", sh);
+        debug!("add to {id:?} {:?}", sh);
         let psn = ProvenSourceNode { elem: bij, src_id };
 
         let tmp1 = self
@@ -361,7 +359,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             syn_enode: syn_enode.clone(),
             analysis_data: N::make(&self, &syn_enode),
         };
-        // debug!("classes insert {:?}", c_id);
         self.classes.insert(c_id, c);
 
         {

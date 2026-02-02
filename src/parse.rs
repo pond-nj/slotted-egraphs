@@ -1,5 +1,5 @@
 use crate::*;
-use log::debug;
+use log::{debug, error};
 
 #[derive(Debug, Clone)]
 pub enum ParseError {
@@ -53,7 +53,7 @@ fn crop_ident(s: &str) -> Result<(/*ident*/ &str, /*rest*/ &str), ParseError> {
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
     let mut tokens = Vec::new();
 
-    // debug!("from {}", s);
+    debug!("from {}", s);
 
     loop {
         s = s.trim_start();
@@ -102,7 +102,7 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
         }
     }
 
-    // debug!("to tokens {:?}", tokens);
+    debug!("to tokens {:?}", tokens);
     Ok(tokens)
 }
 
@@ -201,7 +201,7 @@ fn parse_pattern_nosubst<'a, L: Language>(
         tok = &tok[1..];
 
         let Token::Ident(op) = &tok[0] else {
-            debug!(
+            error!(
                 "Error: parse_pattern_nosubst: expected Ident, got {:?}",
                 tok[0]
             );
@@ -227,7 +227,7 @@ fn parse_pattern_nosubst<'a, L: Language>(
             .map(nested_syntax_elem_to_syntax_elem)
             .collect();
         let node = L::from_syntax(&syntax_elems_mock).ok_or_else(|| {
-            debug!("FromSyntaxFailed 1: {:?}", syntax_elems_mock);
+            error!("FromSyntaxFailed 1: {:?}", syntax_elems_mock);
             ParseError::FromSyntaxFailed(syntax_elems_mock)
         })?;
 
@@ -240,7 +240,7 @@ fn parse_pattern_nosubst<'a, L: Language>(
         Ok((re, tok))
     } else {
         let Token::Ident(op) = &tok[0] else {
-            debug!(
+            error!(
                 "Error: parse_pattern_nosubst: expected Ident2, got {:?}",
                 tok[0]
             );
@@ -250,7 +250,7 @@ fn parse_pattern_nosubst<'a, L: Language>(
 
         let elems = [SyntaxElem::String(op.to_string())];
         let node = L::from_syntax(&elems).ok_or_else(|| {
-            debug!("FromSyntaxFailed 2: {:?}", elems);
+            error!("FromSyntaxFailed 2: {:?}", elems);
             ParseError::FromSyntaxFailed(to_vec(&elems))
         })?;
         let pat = Pattern::ENode(node, Vec::new());

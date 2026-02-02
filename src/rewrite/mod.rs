@@ -10,7 +10,7 @@ pub use pattern::*;
 mod subst_method;
 pub use subst_method::*;
 
-use log::debug;
+use log::{debug, info};
 
 /// An equational rewrite rule.
 pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
@@ -71,9 +71,9 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
     let mut appliedTimes = vec![];
     for ((i, rw), t) in rewrites.iter().enumerate().zip(ts.into_iter()) {
         let (_, applyTime) = time(|| {
-            println!("{i} doing apply for {}", rw.name);
+            info!("{i} doing apply for {}", rw.name);
             (*rw.applier)(t, eg);
-            println!("{i} done apply for {}", rw.name);
+            info!("{i} done apply for {}", rw.name);
             debug!(
                 "egraph size after {} is {}",
                 rw.name,

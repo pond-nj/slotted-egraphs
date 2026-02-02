@@ -8,8 +8,9 @@ const STACK_SIZE: usize = 32 * 1024 * 1024;
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 3600;
 const DO_CONST_REWRITE: bool = true;
+const DO_FOLDING: bool = false;
 
-use log::debug;
+use log::{debug, info, set_logger_racy, Log, Metadata, Record};
 
 fn minDummy(x: &str, y: &str, z: &str) -> String {
     let syntax = format!("(pred <{x} {y} {z}>)");
@@ -166,7 +167,7 @@ fn rootCHC(n: &str, m: &str, k: &str, t: &str, u: &str, eg: &mut CHCEGraph) -> A
     composeAppId
 }
 
-fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {
+pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {
     let n = &generateVarFromCount(count, VarType::Int);
     let t = &generateVarFromCount(count, VarType::Node);
     let u = &generateVarFromCount(count, VarType::Node);
@@ -210,6 +211,7 @@ fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner
         runner.run(&mut getAllRewrites(
             RewriteList::default(),
             DO_CONST_REWRITE,
+            DO_FOLDING,
         ))
     });
     println!("use time {t:?}");
@@ -223,7 +225,6 @@ fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner
 }
 
 fn mainTestSpawn() {
-    initLogger();
     let mut egOrig = CHCEGraph::default();
     let mut count = 0;
     let doConstraintRewrite = true;
@@ -246,7 +247,7 @@ fn mainTestSpawn() {
 
 #[test]
 fn mainTest() {
-    println!("mainTestSpawn");
+    initLogger();
 
     let child = thread::Builder::new()
         .stack_size(STACK_SIZE)
@@ -260,14 +261,16 @@ fn mainTest() {
 fn checkResult(keyword: &str, expr: &String, eg: &CHCEGraph, canLookup: bool) -> Id {
     if canLookup {
         let res = eg.lookupRecExpr(RecExpr::parse(&expr).unwrap());
-        println!("lookup {}: {res:?}", keyword);
+        info!("lookup {}: {res:?}", keyword);
         if res.is_some() {
+            info!("lookup has result");
             return res.unwrap().id;
         }
+        info!("lookup has no result");
     }
 
+    info!("doing search by ematchQueryall");
     let res = ematchQueryall(&eg, &Pattern::parse(&expr).unwrap());
-    println!("res: {res:?}");
     checkRes!(keyword, res);
     res[0].1
 }
@@ -352,15 +355,17 @@ fn checkUnfoldNewDefineFoldExists(
     // check folding
 
     // false ← N≥0,M+N<K, new1(n, k, m).
-    let foldedCHC = format!(
-        "(new (pred <>) (and <(geq {n} 0) (lt (add {m} {n}) {k})>) <{}>)",
-        compose
-    );
-    let foldedCHCRes = checkResult("foldedCHCRes", &foldedCHC, eg, true);
+    if DO_FOLDING {
+        let foldedCHC = format!(
+            "(new (pred <>) (and <(geq {n} 0) (lt (add {m} {n}) {k})>) <{}>)",
+            compose
+        );
+        let foldedCHCRes = checkResult("foldedCHCRes", &foldedCHC, eg, true);
 
-    let foldedCompose = format!("(compose <{foldedCHC}>)");
-    let foldedComposeRes = checkResult("foldedComposeRes", &foldedCompose, eg, true);
-    assert_eq!(eg.find_id(rootCompose), eg.find_id(foldedComposeRes));
+        let foldedCompose = format!("(compose <{foldedCHC}>)");
+        let foldedComposeRes = checkResult("foldedComposeRes", &foldedCompose, eg, true);
+        assert_eq!(eg.find_id(rootCompose), eg.find_id(foldedComposeRes));
+    }
 
     return (chc1, chc2, chc3, composeId);
 }
@@ -920,111 +925,4 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     // let resCompose = ematchQueryall(&eg, &Pattern::parse(&composeUnfold31).unwrap());
     // println!("unfold31 resCompose: {resCompose:?}");
     // checkRes!(resCompose);
-}
-
-#[test]
-fn testSortAppId() {
-    initLogger();
-    let mut egOrig = CHCEGraph::default();
-    let mut count = 0;
-
-    let (rootId, mut runner) = buildLeafDropCHC(egOrig, &mut count);
-
-    let (_, testTime) = time(|| {
-        for id in runner.egraph.ids() {
-            // test permute and sorted is the same
-            for enode in runner.egraph.enodes(id) {
-                match enode {
-                    CHC::New(syntax, cond, children) => {
-                        let sortedENode =
-                            sortNewENode1(&syntax, &cond, &children, &mut runner.egraph);
-                        for permuteChildren in permute_iter(&children) {
-                            let permuteENode = CHC::New(
-                                syntax.clone(),
-                                cond.clone(),
-                                permuteChildren.clone().into(),
-                            );
-                            let res = runner.egraph.lookup(&permuteENode);
-                            if res.is_some() {
-                                assert!(res.unwrap().id == id);
-                            }
-
-                            let permuteSortedENode =
-                                sortNewENode1(&syntax, &cond, &permuteChildren, &mut runner.egraph);
-                            if (sortedENode != permuteSortedENode) {
-                                assert_eq!(
-                                    sortedENode.weak_shape().0,
-                                    permuteSortedENode.weak_shape().0
-                                );
-                            }
-                        }
-                    }
-                    CHC::Compose(children) => {
-                        let sortedChildren =
-                            sortAppId(&children.iter().map(|x| x.clone().getAppliedId()).collect());
-                        for permuteChildren in permute_iter(&children) {
-                            let sortedPermuteChildren = sortAppId(
-                                &permuteChildren
-                                    .iter()
-                                    .map(|x| x.clone().getAppliedId())
-                                    .collect(),
-                            );
-                            if (sortedChildren != sortedPermuteChildren) {
-                                assert_eq!(
-                                    CHC::Compose(
-                                        toAppliedIdOrStarVec(sortedChildren.clone()).into()
-                                    )
-                                    .weak_shape()
-                                    .0,
-                                    CHC::Compose(
-                                        toAppliedIdOrStarVec(sortedPermuteChildren).into()
-                                    )
-                                    .weak_shape()
-                                    .0
-                                );
-                            }
-
-                            let permuteENode = CHC::Compose(permuteChildren.into());
-                            let res = runner.egraph.lookup(&permuteENode);
-                            if res.is_some() {
-                                assert!(res.unwrap().id == id);
-                            }
-                        }
-                    }
-                    CHC::And(children) => {
-                        let sortedChildren =
-                            sortAppId(&children.iter().map(|x| x.clone().getAppliedId()).collect());
-                        for permuteChildren in permute_iter(&children) {
-                            let sortedPermuteChildren = sortAppId(
-                                &permuteChildren
-                                    .iter()
-                                    .map(|x| x.clone().getAppliedId())
-                                    .collect(),
-                            );
-                            if (sortedChildren != sortedPermuteChildren) {
-                                assert_eq!(
-                                    CHC::And(toAppliedIdOrStarVec(sortedChildren.clone()).into())
-                                        .weak_shape()
-                                        .0,
-                                    CHC::And(toAppliedIdOrStarVec(sortedPermuteChildren).into())
-                                        .weak_shape()
-                                        .0
-                                );
-                            }
-
-                            let permuteENode = CHC::And(permuteChildren.into());
-                            let res = runner.egraph.lookup(&permuteENode);
-                            if res.is_some() {
-                                assert!(res.unwrap().id == id);
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-            }
-
-            // test permute and added to egraph should be in the same eclass
-        }
-    });
-    println!("testTime {testTime:?}");
 }

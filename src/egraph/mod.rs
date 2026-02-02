@@ -152,7 +152,7 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
             return Ok(());
         }
 
-        let mut slot_order: Vec<Slot> = self.slots().into();
+        let slot_order: Vec<Slot> = self.slots().into();
         let slot_str = slot_order
             .iter()
             .map(|x| x.to_string())
@@ -170,7 +170,7 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
 
         for node in eclassNodes {
             write!(f, " - {node:?}\n")?;
-            let (sh, m) = node.weak_shape();
+            let (sh, _) = node.weak_shape();
             write!(f, " -   {sh:?}\n")?;
         }
         let permute = eg.getSlotPermutation(&i);
@@ -578,15 +578,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // make sure the pointer appliedId contains mapping for syn_enode in the children eclass
+    #[allow(dead_code)]
     pub(crate) fn synify_enode(&self, enode: L) -> L {
         enode.map_applied_ids(|app| self.synify_app_id(app))
     }
 
+    #[allow(dead_code)]
     pub(crate) fn semifyEnode(&self, enode: L) -> L {
         enode.map_applied_ids(|app| self.semify_app_id(app))
     }
 
     // undo the synify enode, remove the keys to just the slots of that eclass
+    #[allow(dead_code)]
     pub(crate) fn semify_app_id(&self, app: AppliedId) -> AppliedId {
         let slots = self.slots(app.id);
 
@@ -700,10 +703,10 @@ fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item = Vec<&'a T>> + u
     let mut indices = vec![0; n];
     let mut done = false;
 
-    let mut expectOutLen = 1;
-    for i in 0..n {
-        expectOutLen *= input[i].len();
-    }
+    // let mut expectOutLen = 1;
+    // for i in 0..n {
+    //     expectOutLen *= input[i].len();
+    // }
 
     // println!("cartesian expectOutLen {}", expectOutLen);
 

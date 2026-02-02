@@ -5,6 +5,7 @@ use super::*;
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 300;
 const DO_CONST_REWRITE: bool = true;
+const DO_FOLDING: bool = true;
 
 #[test]
 fn mainTest() {
@@ -22,6 +23,7 @@ fn mainTest() {
         runner.run(&mut getAllRewrites(
             RewriteList::default(),
             DO_CONST_REWRITE,
+            DO_FOLDING,
         ))
     });
     println!("use time {t:?}");

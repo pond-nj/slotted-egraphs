@@ -6,13 +6,16 @@ use log::{debug, LevelFilter};
 static _INIT_LOGGER: Once = Once::new();
 
 pub fn initLogger() {
-    // _INIT_LOGGER.call_once(|| {
-    //     // This closure runs exactly once, globally.
-    //     env_logger::builder()
-    //         .format_timestamp(None)
-    //         .format_level(false)
-    //         .format_target(true)
-    //         .filter_level(LevelFilter::Debug)
-    //         .init();
-    // });
+    _INIT_LOGGER.call_once(|| {
+        println!("self initLogger");
+        env_logger::builder()
+            .format_timestamp(None)
+            .format_level(true)
+            .format_target(true)
+            .filter_level(LevelFilter::Info)
+            .init();
+        // if res.is_err() {
+        //     println!("initLogger failed");
+        // }
+    });
 }

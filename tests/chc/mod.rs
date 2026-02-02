@@ -2,7 +2,6 @@
 #![allow(non_snake_case)]
 
 use crate::*;
-use env_logger::Builder;
 use log::{debug, LevelFilter};
 use slotted_egraphs::*;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
@@ -10,7 +9,6 @@ use std::rc::Rc;
 use std::thread;
 use std::{default, io::Write};
 use std::{string, vec};
-use tracing_subscriber::{fmt, prelude::*};
 
 mod rewrite;
 pub use rewrite::*;
@@ -23,6 +21,8 @@ pub use ast::*;
 
 // test
 mod leafDrop;
+pub use leafDrop::*;
+
 mod pairingPaperArray;
 mod pairingPaperArray2;
 mod unitTest;
@@ -35,6 +35,7 @@ define_language! {
         IntType(Slot) = "intType",
         NodeType(Slot) = "nodeType",
         ListType(Slot) = "listType",
+        // TODO: if add new ADT type, must also change some function in rewrite phase - definition
 
         // wouldn't sort this
         PredSyntax(Vec<AppliedId>) = "pred",
@@ -358,70 +359,6 @@ fn weakShapeCHC(enode: &CHC) -> (CHC, SlotMap) {
         }
         _ => enode.weak_shape(),
     }
-}
-
-pub fn dumpCHCEClass(
-    i: Id,
-    map: &mut BTreeMap<AppliedId, RecExpr<CHC>>,
-    groups: &BTreeMap<Id, Vec<Id>>,
-    eg: &CHCEGraph,
-) {
-    let nodes = eg.enodes(i);
-    if nodes.len() == 0 {
-        return;
-    }
-
-    let mut slot_order: Vec<Slot> = eg.slots(i).into();
-    let mut slot_sorted = slot_order.clone();
-    slot_sorted.sort();
-    assert!(slot_order == slot_sorted);
-    let slot_str = slot_order
-        .iter()
-        .map(|x| x.to_string())
-        .collect::<Vec<_>>()
-        .join(", ");
-
-    // TODO: this function uses too much memory
-    // let synExpr = eg.getSynExpr(&i, map);
-    // print!("\n{}", synExpr);
-    print!("\n{:?}", eg.analysis_data(i));
-    print!("\n{:?}({:?})({}):", i, groups[&i], &slot_str);
-    print!(">> {:?}\n", eg.getSynNodeNoSubst(&i));
-
-    let mut eclassNodes: Vec<_> = eg.enodes(i).into_iter().collect();
-    eclassNodes.sort();
-
-    for node in eclassNodes {
-        print!(" - {node:?}\n");
-        let (sh, m) = node.weak_shape();
-        print!(" -   {sh:?}\n");
-        let (sh, m) = weakShapeCHC(&node);
-        print!(" - or  {sh:?}\n");
-    }
-    let permute = eg.getSlotPermutation(&i);
-    for p in permute {
-        print!(" -- {:?}\n", p);
-    }
-}
-
-pub fn dumpCHCEGraph(eg: &CHCEGraph) {
-    print!("\n == Egraph ==");
-    print!("\n size of egraph: {}", eg.total_number_of_nodes());
-    let mut eclasses = eg.ids();
-    print!("\n number of eclasses: {}", eclasses.len());
-    eclasses.sort();
-
-    let mut groups = BTreeMap::<Id, Vec<Id>>::default();
-    for (x, y) in eg.unionfind_iter() {
-        groups.entry(y.id).or_insert(vec![]).push(x);
-    }
-
-    // TODO: it's possible that map is using too much memory
-    let mut map = BTreeMap::<AppliedId, RecExpr<CHC>>::default();
-    for i in eclasses {
-        dumpCHCEClass(i, &mut map, &groups, eg);
-    }
-    print!("");
 }
 
 pub fn merge(s1: &str, s2: &str, eg: &mut CHCEGraph) -> Id {

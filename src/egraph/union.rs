@@ -1,7 +1,7 @@
-use std::{backtrace::Backtrace, time::Instant};
+use std::{backtrace::Backtrace, collections::BTreeMap, time::Instant};
 
 use crate::*;
-use log::debug;
+use log::{debug, info};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn union(&mut self, l: &AppliedId, r: &AppliedId) -> bool {
@@ -31,7 +31,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // this doesn't take a long time
         let a = pattern_subst(self, &from_pat, subst);
         let b = pattern_subst(self, &to_pat, subst);
-        println!("Union because {justification:?}, {a:?} with {b:?}");
+        debug!("Union because {justification:?}, {a:?} with {b:?}");
 
         #[allow(unused)]
         let syn_a = self.synify_app_id(a.clone());
@@ -82,7 +82,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     fn union_leaders(&mut self, l: AppliedId, r: AppliedId, proof: ProvenEq) -> bool {
         // early return, if union should not be made.
         if self.eq(&l, &r) {
-            println!("eq, will not union");
+            debug!("eq, will not union");
             return false;
         }
 
@@ -187,7 +187,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // moves everything from `from` to `to`.
     fn move_to(&mut self, from: &AppliedId, to: &AppliedId, #[allow(unused)] proof: ProvenEq) {
-        println!("choose merged to {to:?}");
+        debug!("choose merged to {to:?}");
         if CHECKS {
             assert_eq!(from.slots(), to.slots());
             #[cfg(feature = "explanations")]
@@ -348,5 +348,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // touched because the class is now dead and no e-nodes should point to it.
         self.touched_class(from.id, PendingType::Full);
+    }
+
+    pub fn buildEqvIds(&self) -> BTreeMap<Id, Vec<Id>> {
+        let mut eqvIds = BTreeMap::<Id, Vec<Id>>::default();
+        for (x, y) in self.unionfind_iter() {
+            eqvIds.entry(y.id).or_insert(vec![]).push(x);
+        }
+
+        eqvIds
     }
 }

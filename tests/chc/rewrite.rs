@@ -1,14 +1,13 @@
 use super::*;
 use crate::*;
 use derive_more::derive;
-use log::debug;
+use log::{debug, info, trace, warn};
 use std::cell::{Ref, RefCell};
 
 use std::f32::consts::E;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
-use tracing_subscriber::filter::combinator::And;
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 use vec_collections::VecSet;
 
@@ -486,7 +485,7 @@ fn unfoldSearch(
     for toBeUnfolded in Rc::clone(&unfoldListCopy).borrow().iter() {
         debug!("unfold: get toBeUnfolded before getShape {toBeUnfolded:#?}");
         let (toBeUnfolded, m) = toBeUnfolded.find(eg).getShape();
-        println!("unfold: get toBeUnfolded {toBeUnfolded:#?}");
+        debug!("unfold: get toBeUnfolded {toBeUnfolded:#?}");
         let UnfoldListComponent {
             composeAppId,
             composeShape,
@@ -555,7 +554,7 @@ pub enum UnfoldOpType {
 }
 
 fn unfoldApplyInternal(
-    composeRecipe: ComposeUnfoldRecipe,
+    composeRecipe: &ComposeUnfoldRecipe,
     unfoldListCopy2: &Rc<RefCell<UnfoldList>>,
     constrRewriteListCopy: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
     createOrMerge: UnfoldOpType, //if true, will merge with information from composeRecipe, if false, will create
@@ -572,10 +571,10 @@ fn unfoldApplyInternal(
     } = composeRecipe;
 
     if createOrMerge == UnfoldOpType::UnfoldCreateOnly {
-        assert_eq!(compose1Children, vec![].into());
-        assert_eq!(rootId, AppliedId::null());
-        assert_eq!(exclude, 0);
-        assert_eq!(new1EClass, AppliedId::null());
+        assert_eq!(compose1Children, &vec![].into());
+        assert_eq!(rootId, &AppliedId::null());
+        assert_eq!(exclude, &0);
+        assert_eq!(new1EClass, &AppliedId::null());
     }
 
     let mut createdComposeAppIds = vec![];
@@ -642,7 +641,7 @@ fn unfoldApplyInternal(
 
             createdNewENodes.push((unfoldedENodeId.clone(), unfoldedENode.clone()));
 
-            println!("adding unfoldedENode {tag} {unfoldedENodeId:?}");
+            debug!("adding unfoldedENode {tag} {unfoldedENodeId:?}");
             eg.analysis_data_mut(unfoldedENodeId.id)
                 .predNames
                 .insert(tag);
@@ -655,7 +654,7 @@ fn unfoldApplyInternal(
             // merge with the existsing before
             UnfoldOpType::UnfoldMerge => {
                 let mut unfoldedComposeChildren = compose1Children.clone();
-                unfoldedComposeChildren.remove(exclude);
+                unfoldedComposeChildren.remove(*exclude);
                 unfoldedComposeChildren.extend(childrenComb);
                 let unfoldedComposeChildren: Vec<_> = sortAppId(&unfoldedComposeChildren)
                     .iter()
@@ -664,7 +663,7 @@ fn unfoldApplyInternal(
                 let composeENode = CHC::Compose(unfoldedComposeChildren.clone().into());
 
                 let unfoldedCompose = eg.add(composeENode.clone());
-                println!(
+                debug!(
                     "UnfoldOpType::UnfoldMerge added composeENode {:?}",
                     composeENode.weak_shape().0
                 );
@@ -718,7 +717,7 @@ fn unfoldApplyInternal(
                     .map(|appId| AppliedIdOrStar::AppliedId(appId))
                     .collect();
                 composeShape = Some(CHC::Compose(childrenComb.clone().into()));
-                println!(
+                debug!(
                     "UnfoldOpType::UnfoldMerge added composeENode {:?}",
                     composeShape.clone().unwrap().weak_shape().0
                 );
@@ -784,7 +783,7 @@ fn unfoldApply(
     eg: &mut CHCEGraph,
 ) {
     Rc::clone(&unfoldListCopy2).borrow_mut().clear();
-    for composeRecipe in composeRecipes {
+    for composeRecipe in composeRecipes.iter() {
         unfoldApplyInternal(
             composeRecipe,
             unfoldListCopy2,
@@ -834,7 +833,7 @@ pub fn expandEqRewrite(
     originalNewENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> CHC {
-    println!("doing expandEqRewrite");
+    info!("doing expandEqRewrite");
     let CHC::And(andChildren) = constrENode else {
         panic!();
     };
@@ -845,7 +844,6 @@ pub fn expandEqRewrite(
     let mut uf = HashUnionFind::new(vec![]);
 
     let mut eqCount = 0;
-    // println!("1");
     for andChild in andChildren.iter() {
         let AppliedIdOrStar::AppliedId(andChild) = andChild else {
             panic!();
@@ -867,7 +865,6 @@ pub fn expandEqRewrite(
     newConstraintChildren.extend(andChildren.clone());
     let oldLen = newConstraintChildren.len();
 
-    // println!("2");
     for group in groups.iter_mut() {
         group.sort();
         for i in 0..group.len() {
@@ -895,20 +892,18 @@ pub fn expandEqRewrite(
     let newConstraintChildren: OrderVec<AppliedIdOrStar> =
         newConstraintChildren.into_iter().collect();
 
-    // println!("3");
     let (_, newConstraint, newConstraintAppId) =
         sortNewENode2(&syntax, &newConstraintChildren, &newENodeChildren, eg);
 
     checkVarType(&newConstraintAppId, eg);
 
-    // println!("4");
     eg.union_justified(
         constrAppId,
         &newConstraintAppId,
         Some("expandEq".to_owned()),
     );
 
-    // println!("5");
+    info!("done expandEqRewrite");
     return newConstraint;
 }
 
@@ -920,7 +915,7 @@ pub fn constructorEqRewrite(
     originalNewENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> CHC {
-    println!("doing constructorEqRewrite");
+    info!("doing constructorEqRewrite");
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
     let CHC::And(andChildrenOrig) = constrENode else {
@@ -1001,6 +996,7 @@ pub fn constructorEqRewrite(
         Some("constructorEqRewrite".to_owned()),
     );
 
+    info!("done constructorEqRewrite");
     newConstraint
 }
 
@@ -1238,7 +1234,7 @@ pub fn dedupFromEqRewrite(
     newENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> (CHC, CHC) {
-    println!("doing dedupFromEqRewrite");
+    info!("doing dedupFromEqRewrite");
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
     let CHC::And(andChildrenOrig) = constrENode.clone() else {
@@ -1274,6 +1270,7 @@ pub fn dedupFromEqRewrite(
         Some("dedupFromEqRewrite".to_owned()),
     );
 
+    info!("done dedupFromEqRewrite");
     (newConstraint, updatedNew)
 }
 
@@ -1410,36 +1407,30 @@ pub fn sortNewENode2(
     predicateChildren: &OrderVec<AppliedIdOrStar>,
     eg: &mut CHCEGraph,
 ) -> (CHC, CHC, AppliedId) {
-    println!("doing sortNewENode2");
+    info!("doing sortNewENode2");
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.extend(condChildren.iter().map(|a| a.getAppliedId()));
     aggrAppId.push(syntaxAppId.clone());
     let aggrAppId = sortAppId(&aggrAppId);
 
-    // println!("a");
     let condChildrenSet = BTreeSet::from_iter(condChildren.iter().map(|a| a.getAppliedId()));
 
-    // println!("b");
     let sortedPredicateChildren: Vec<_> = aggrAppId
         .iter()
         .filter(|x| *x != syntaxAppId && !condChildrenSet.contains(x))
         .map(|x| AppliedIdOrStar::AppliedId(x.clone()))
         .collect();
 
-    // println!("c");
     let sortedCondChildren: Vec<_> = aggrAppId
         .into_iter()
         .filter(|x| x != syntaxAppId && condChildrenSet.contains(x))
         .map(|x| AppliedIdOrStar::AppliedId(x))
         .collect();
 
-    // println!("d");
     let condENode = CHC::And(sortedCondChildren.into());
     let condAppId = eg.add(condENode.clone());
 
-    // println!("e");
-
-    // println!("done sortNewENode2");
+    info!("done sortNewENode2");
     (
         CHC::New(
             syntaxAppId.clone(),
@@ -1456,6 +1447,7 @@ fn defineUnfoldFold(
     processedDefinedList: &Rc<RefCell<BTreeSet<CHC>>>,
     newDefineMap: &Rc<RefCell<BTreeMap<FoldPattern, AppliedId>>>,
     constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
+    doFolding: bool,
 ) -> CHCRewrite {
     let processedDefinedListClone = Rc::clone(processedDefinedList);
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
@@ -1560,10 +1552,10 @@ fn defineUnfoldFold(
                     let mut newDefineMapClone = newDefineMapClone.borrow_mut();
                     let defineAppId =
                         if let Some(savedFolded) = newDefineMapClone.get(&sortedToBeFoldShape) {
-                            println!("get savedfolded");
+                            trace!("get savedfolded");
                             savedFolded.clone().apply_slotmap(&map)
                         } else {
-                            let newENode = {
+                            let definedENode = {
                                 let mapInverse = map.inverse();
                                 let mut syntaxVars: Vec<_> =
                                     basicVars.into_iter().map(|s| mapInverse[s]).collect();
@@ -1591,19 +1583,40 @@ fn defineUnfoldFold(
                                 &vec![].into(),
                                 &AppliedId::null(),
                                 &AppliedId::null(),
-                                &newENode,
+                                &definedENode,
                                 &mut composeUnfoldReceipt,
                                 eg,
                             );
 
-                            let newComposeAppIds = unfoldApplyInternal(
-                                composeUnfoldReceipt.into_iter().next().unwrap(),
-                                &unfoldListClone,
-                                &Rc::clone(&constrRewriteListCopy),
-                                UnfoldOpType::UnfoldCreateOnly,
-                                eg,
-                            );
+                            // TODO: it should be more than one
+                            let mut newComposeAppIds = vec![];
+                            for composeRecipe in composeUnfoldReceipt.iter() {
+                                newComposeAppIds.extend(unfoldApplyInternal(
+                                    composeRecipe,
+                                    &unfoldListClone,
+                                    &Rc::clone(&constrRewriteListCopy),
+                                    UnfoldOpType::UnfoldCreateOnly,
+                                    eg,
+                                ));
+                            }
+                            if composeUnfoldReceipt.len() > 1 {
+                                // printENode(&definedENode, eg);
+                                // println!("composeUnfoldReceipt {:#?}", composeUnfoldReceipt);
+                                // assert!(composeUnfoldReceipt.len() == 1);
+                                warn!("composeUnfoldReceipt len > 1 but also use the first one");
+                            }
+                            // let newComposeAppIds = unfoldApplyInternal(
+                            //     &composeUnfoldReceipt[0],
+                            //     &unfoldListClone,
+                            //     &Rc::clone(&constrRewriteListCopy),
+                            //     UnfoldOpType::UnfoldCreateOnly,
+                            //     eg,
+                            // );
 
+                            // if (newComposeAppIds.is_empty()) {
+                            //     println!("unfold result is empty");
+                            //     println!("composeRecipes {:?}");
+                            // }
                             let first = newComposeAppIds.first().unwrap();
                             for newComposeAppId in newComposeAppIds[1..].iter() {
                                 eg.union_justified(
@@ -1616,7 +1629,7 @@ fn defineUnfoldFold(
                             assert!(unfoldListClone.borrow().len() > 0);
 
                             let saveAppId = eg.find_applied_id(first).apply_slotmap(&map.inverse());
-                            println!("defineMap {saveAppId:?} <- {sortedToBeFoldShape:?}");
+                            debug!("defineMap {saveAppId:?} <- {sortedToBeFoldShape:?}");
                             newDefineMapClone.insert(sortedToBeFoldShape.into(), saveAppId);
 
                             eg.find_applied_id(first)
@@ -1627,37 +1640,44 @@ fn defineUnfoldFold(
                         .insert(format!("define_from_{}", origNewENodeAppId.id));
 
                     // vv folding vv
-                    let replaceAt = group.first().unwrap();
-                    println!("sortedToBeFold {sortedToBeFold:?}");
-                    println!("fold group to {defineAppId:?}");
-                    let mut restChildAppIds = vec![];
-                    for (idx, c) in childAppIds.iter().enumerate() {
-                        if idx == *replaceAt {
-                            // TODO: defineAppId must be mapped to originalENode namespace
-                            restChildAppIds.push(AppliedIdOrStar::AppliedId(defineAppId.clone()));
-                        }
+                    if doFolding {
+                        let replaceAt = group.first().unwrap();
+                        debug!("sortedToBeFold {sortedToBeFold:?}");
+                        debug!("fold group to {defineAppId:?}");
+                        let mut restChildAppIds = vec![];
+                        for (idx, c) in childAppIds.iter().enumerate() {
+                            if idx == *replaceAt {
+                                // TODO: defineAppId must be mapped to originalENode namespace
+                                restChildAppIds
+                                    .push(AppliedIdOrStar::AppliedId(defineAppId.clone()));
+                            }
 
-                        if group.contains(&idx) {
-                            continue;
+                            if group.contains(&idx) {
+                                continue;
+                            }
+                            restChildAppIds.push(c.clone());
                         }
-                        restChildAppIds.push(c.clone());
+                        debug!("origNewENode {origNewENode:?}");
+                        let foldedNewENode = sortNewENode1(
+                            origSyntaxAppId,
+                            origConstrAppId,
+                            &restChildAppIds.into(),
+                            eg,
+                        );
+                        debug!("foldedNewENode {foldedNewENode:?}");
+                        let foldedAppId = eg.add(foldedNewENode);
+                        eg.analysis_data_mut(foldedAppId.id)
+                            .predNames
+                            .insert(format!(
+                                "folded_{}_with_{}",
+                                origNewENodeAppId, defineAppId.id
+                            ));
+                        eg.union_justified(
+                            &origNewENodeAppId,
+                            &foldedAppId,
+                            Some("fold".to_owned()),
+                        );
                     }
-                    println!("origNewENode {origNewENode:?}");
-                    let foldedNewENode = sortNewENode1(
-                        origSyntaxAppId,
-                        origConstrAppId,
-                        &restChildAppIds.into(),
-                        eg,
-                    );
-                    println!("foldedNewENode {foldedNewENode:?}");
-                    let foldedAppId = eg.add(foldedNewENode);
-                    eg.analysis_data_mut(foldedAppId.id)
-                        .predNames
-                        .insert(format!(
-                            "folded_{}_with_{}",
-                            origNewENodeAppId, defineAppId.id
-                        ));
-                    eg.union_justified(&origNewENodeAppId, &foldedAppId, Some("fold".to_owned()));
                 }
             }
         }
@@ -1684,7 +1704,11 @@ fn eqSwap() -> CHCRewrite {
 }
 
 // TODO: swapping unfold and define creates some error which should not be
-pub fn getAllRewrites(rewriteList: RewriteList, doConstraintRewrite: bool) -> Vec<CHCRewrite> {
+pub fn getAllRewrites(
+    rewriteList: RewriteList,
+    doConstraintRewrite: bool,
+    doFolding: bool,
+) -> Vec<CHCRewrite> {
     let RewriteList {
         unfoldList,
         constrRewriteList,
@@ -1721,7 +1745,13 @@ pub fn getAllRewrites(rewriteList: RewriteList, doConstraintRewrite: bool) -> Ve
     }
 
     rewrites.extend([
-        defineUnfoldFold(&unfoldList, &definedList, &newDefineMap, &constrRewriteList),
+        defineUnfoldFold(
+            &unfoldList,
+            &definedList,
+            &newDefineMap,
+            &constrRewriteList,
+            doFolding,
+        ),
         trueToAnd(),
         eqSwap(),
     ]);

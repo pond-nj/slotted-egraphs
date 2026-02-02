@@ -1,4 +1,5 @@
 use crate::*;
+use log::info;
 use nauty_Traces_sys::{
     densenauty, empty_graph, optionblk, statsblk, ADDONEEDGE, FALSE, SETWORDSNEEDED, TRUE,
 };
@@ -144,6 +145,7 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
     if appIdsSet.len() == appIdsSorted.len() {
         return appIdsSorted;
     }
+    info!("start sortAppId");
 
     // {f(x, y), f(y, x), g(x, y)}
     // should have a color order f < g < arg < var
@@ -227,7 +229,7 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
         if *id == thisGroupId {
             groupLen += 1;
         } else {
-            for i in 0..groupLen - 1 {
+            for _ in 0..groupLen - 1 {
                 ptn.push(1);
             }
             ptn.push(0);
@@ -237,7 +239,7 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
         }
     }
     assert!(groupLen > 0);
-    for i in 0..groupLen - 1 {
+    for _ in 0..groupLen - 1 {
         ptn.push(1);
     }
     ptn.push(0);
@@ -261,7 +263,7 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
     // println!("currLabLen {currLabLen}");
     assert_eq!(totalV - currLabLen, slotsToV.len());
     if slotsToV.len() > 0 {
-        for i in 0..slotsToV.len() - 1 {
+        for _ in 0..slotsToV.len() - 1 {
             ptn.push(1);
         }
         ptn.push(0);
@@ -307,7 +309,7 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
     }
     sortedAppIds.dedup();
 
-    println!("done sortAppId");
+    info!("done sortAppId");
     sortedAppIds
 }
 

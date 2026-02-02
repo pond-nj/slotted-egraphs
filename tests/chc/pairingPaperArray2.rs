@@ -38,6 +38,7 @@ const STACK_SIZE: usize = 32 * 1024 * 1024;
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 3600;
 const DO_CONST_REWRITE: bool = true;
+const DO_FOLDING: bool = true;
 
 use log::debug;
 
@@ -457,6 +458,7 @@ fn buildCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRunner) {
         runner.run(&mut getAllRewrites(
             RewriteList::default(),
             DO_CONST_REWRITE,
+            DO_FOLDING,
         ))
     });
 

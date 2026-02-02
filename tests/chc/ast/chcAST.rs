@@ -423,7 +423,7 @@ impl Args {
         Args { args }
     }
 
-    pub fn iter(&self) -> std::slice::Iter<Term> {
+    pub fn iter(&self) -> std::slice::Iter<'_, Term> {
         self.args.iter()
     }
 
