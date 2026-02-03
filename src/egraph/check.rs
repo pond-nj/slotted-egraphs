@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::*;
-use log::debug;
+use log::{debug, error};
 use vec_collections::AbstractVecSet;
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
@@ -192,21 +192,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     .collect();
 
                 if !c.group.contains(&perm) {
-                    println!("");
-                    println!("egraph {self:?}");
-                    println!("sh {sh:?}");
+                    error!("");
+                    error!("egraph {self:?}");
+                    error!("sh {sh:?}");
                     let (_, _) = self.shape(&real);
-                    println!("computed bij {:?}", computed_bij);
-                    println!("computed bij inverse {:?}", computed_bij.inverse());
-                    println!("bij {:?}", bij);
-                    println!(
+                    error!("computed bij {:?}", computed_bij);
+                    error!("computed bij inverse {:?}", computed_bij.inverse());
+                    error!("bij {:?}", bij);
+                    error!(
                         "computed_bij.inverse().compose_intersect(&bij) = perm {:?}",
                         perm
                     );
-                    println!("all perms {:?}", c.group.all_perms());
-                    println!("eclass {cid} {:?}", c);
-                    println!("c.group {:?}", c.group);
-                    println!("");
+                    error!("all perms {:?}", c.group.all_perms());
+                    error!("eclass {cid} {:?}", c);
+                    error!("c.group {:?}", c.group);
+                    error!("");
                 }
 
                 assert!(c.group.contains(&perm));

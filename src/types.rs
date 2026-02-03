@@ -1,5 +1,5 @@
 use crate::*;
-use log::info;
+use log::{error, info};
 use nauty_Traces_sys::{
     densenauty, empty_graph, optionblk, statsblk, ADDONEEDGE, FALSE, SETWORDSNEEDED, TRUE,
 };
@@ -80,7 +80,7 @@ impl AppliedId {
 
     pub(crate) fn check(&self) {
         if !self.m.is_bijection() {
-            println!("self {self:#?}");
+            error!("self {self:#?}");
         }
         assert!(self.m.is_bijection());
     }

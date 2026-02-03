@@ -1,18 +1,22 @@
 use std::time::Duration;
 
+use log::{info, logger};
+
 use super::*;
 
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 300;
 const DO_CONST_REWRITE: bool = true;
-const DO_FOLDING: bool = true;
+const DO_FOLDING: bool = false;
 
 #[test]
 fn mainTest() {
+    initLogger();
     let mut eg = CHCEGraph::default();
     growEGraph("tests/chc/input/pairing_paper_array.txt", &mut eg);
+    eg.rebuild();
 
-    println!("Egraph before");
+    info!("Egraph before");
     dumpCHCEGraph(&eg);
 
     let mut runner: CHCRunner = Runner::default()
@@ -26,9 +30,9 @@ fn mainTest() {
             DO_FOLDING,
         ))
     });
-    println!("use time {t:?}");
-    println!("report {report:?}");
+    info!("use time {t:?}");
+    info!("report {report:?}");
 
-    println!("Egraph after");
+    info!("Egraph after");
     dumpCHCEGraph(&runner.egraph);
 }

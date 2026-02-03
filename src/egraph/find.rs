@@ -34,6 +34,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let mut lock = self.unionfind.borrow_mut();
         assert!(i.0 <= lock.len());
+        debug!("set unionfind {i:?} -> {pai:?}");
         if lock.len() == i.0 {
             lock.push(pai);
         } else {

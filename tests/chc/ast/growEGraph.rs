@@ -1,3 +1,5 @@
+use log::info;
+
 use super::*;
 
 // fn createDummy(predName: &str, args: &Vec<String>, props: &BTreeMap<String, PredProp>) -> String {
@@ -47,11 +49,12 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             .push(rule.clone());
     }
 
-    let dummyEClass = ();
+    let none = ();
     for (predName, rules) in rulesByPred {
         let props = chcs.preds.get(&predName).unwrap();
         let mut composeChildren = Vec::new();
         let mut dummyCompose = None;
+        let mut headSlots: Option<Vec<_>> = None;
         for rule in rules {
             let CHCRule {
                 head,
@@ -60,7 +63,7 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
                 original,
             } = &rule;
 
-            println!("original {}", original);
+            info!("original {}", original);
             let mut typeMap = BTreeMap::new();
             head.retrieveTypes(&mut typeMap, &props);
             for b in pred_apps.iter() {
@@ -69,19 +72,35 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             for c in constr.iter() {
                 c.propagateTypeUp(&mut typeMap);
             }
-            println!("typeMap {:?}", typeMap);
+            debug!("typeMap {:?}", typeMap);
 
             let expr = rule.toSExpr(&chcs.preds, &typeMap);
-            println!("rule {}\n", expr);
+            info!("rule {}\n", expr);
             composeChildren.push(expr.clone());
             let newENodeId = eg.addExpr(&expr);
 
-            let headSlots: Vec<_> = head
+            let thisHeadSlots = head
                 .args
                 .iter()
                 .map(|a| a.getVar().unwrap().toSlot())
                 .collect();
-            eg.shrink_slots(&newENodeId, &headSlots.into_iter().collect(), dummyEClass);
+
+            if let Some(headSlots) = &headSlots {
+                if CHECKS {
+                    assert_eq!(headSlots, &thisHeadSlots);
+                }
+            } else {
+                headSlots = Some(thisHeadSlots);
+            };
+            eg.shrink_slots(
+                &eg.find_applied_id(&newENodeId),
+                &headSlots.clone().unwrap().into_iter().collect(),
+                none,
+            );
+
+            eg.analysis_data_mut(eg.find_applied_id(&newENodeId).id)
+                .predNames
+                .insert(predName.clone());
 
             dummyCompose = Some(head.toTailSExpr(props, &typeMap));
         }
@@ -90,6 +109,18 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
         let dummyAppId = eg.addExpr(&dummyCompose.unwrap());
         let composeAppId = eg.addExpr(&composeExpr);
         eg.union(&composeAppId, &dummyAppId);
+        eg.shrink_slots(
+            &eg.find_applied_id(&composeAppId),
+            &headSlots.unwrap().into_iter().collect(),
+            none,
+        );
+
+        eg.analysis_data_mut(eg.find_applied_id(&composeAppId).id)
+            .predNames
+            .insert(predName.clone());
     }
+
+    debug!("end of growEGraph");
+    eg.printUnionFind();
     // ()
 }

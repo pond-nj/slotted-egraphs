@@ -28,7 +28,10 @@ use std::{
     io,
 };
 
-use log::debug;
+mod print;
+
+use log::{debug, error, trace};
+pub use print::*;
 
 // invariants:
 // 1. If two ENodes (that are in the EGraph) have equal .shape(), they have to be in the same eclass.
@@ -102,89 +105,6 @@ pub struct EClass<L: Language, N: Analysis<L>> {
     syn_enode: L,
 
     analysis_data: N::Data,
-}
-
-impl<L: Language, N: Analysis<L>> EClass<L, N> {
-    pub fn dumpEClass<T: fmt::Write>(&self, f: &mut T) -> Result {
-        // if self.nodes.len() == 0 {
-        //     write!(f, "\n Empty Eclass")?;
-        //     return Ok(());
-        // }
-
-        let mut slot_order: Vec<Slot> = self.slots.iter().cloned().collect();
-        slot_order.sort();
-        let slot_str = slot_order
-            .iter()
-            .map(|x| x.to_string())
-            .collect::<Vec<_>>()
-            .join(", ");
-        write!(f, "\n{:?}", self.analysis_data)?;
-        write!(f, "\n({}):", &slot_str)?;
-
-        write!(f, ">> {:?}\n", &self.syn_enode)?;
-
-        for (sh, psn) in &self.nodes {
-            let node = sh.apply_slotmap(&psn.elem);
-
-            #[cfg(feature = "explanations")]
-            write!(f, " - {n:?}    [originally {:?}]", psn.src_id);
-
-            #[cfg(not(feature = "explanations"))]
-            write!(f, " - {node:?}\n")?;
-            write!(f, " -  {sh:?}\n")?;
-        }
-        for pp in &self.group.generators() {
-            write!(f, " -- {:?}\n", pp.elem)?;
-        }
-
-        Ok(())
-    }
-
-    pub fn dumpEClassEG<T: fmt::Write>(
-        &self,
-        f: &mut T,
-        i: Id,
-        map: &mut BTreeMap<AppliedId, RecExpr<L>>,
-        groups: &BTreeMap<Id, Vec<Id>>,
-        eg: &EGraph<L, N>,
-    ) -> Result {
-        if self.nodes.len() == 0 {
-            return Ok(());
-        }
-
-        let slot_order: Vec<Slot> = self.slots().into();
-        let slot_str = slot_order
-            .iter()
-            .map(|x| x.to_string())
-            .collect::<Vec<_>>()
-            .join(", ");
-
-        let synExpr = eg.getSynExpr(&i, map);
-        write!(f, "\n{}", synExpr)?;
-        write!(f, "\n{:?}", self.analysis_data)?;
-        write!(f, "\n{:?}({:?})({}):", i, groups[&i], &slot_str)?;
-        write!(f, ">> {:?}\n", eg.getSynNodeNoSubst(&i))?;
-
-        let mut eclassNodes: Vec<_> = eg.enodes(i).into_iter().collect();
-        eclassNodes.sort();
-
-        for node in eclassNodes {
-            write!(f, " - {node:?}\n")?;
-            let (sh, _) = node.weak_shape();
-            write!(f, " -   {sh:?}\n")?;
-        }
-        let permute = eg.getSlotPermutation(&i);
-        write!(f, "permute len {}\n", permute.len())?;
-        for p in permute {
-            write!(f, " -- {:?}\n", p)?;
-        }
-
-        Ok(())
-    }
-
-    pub fn slots(&self) -> SmallHashSet<Slot> {
-        self.slots.clone()
-    }
 }
 
 impl<L: Language, N: Analysis<L> + Default> Default for EGraph<L, N> {
@@ -289,10 +209,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // Generates fresh slots for redundant slots.
     pub fn enodes_applied(&self, i: &AppliedId) -> Vec<L> {
+        // assert!(self.is_alive(i.id));
         let class = &self.classes[&i.id];
         let class_slots = &class.slots;
 
         let mut result = Vec::with_capacity(class.nodes.len());
+        if class.nodes.len() == 0 {
+            error!("class.nodes is empty");
+            error!("class {}: {:?}", i.id, class);
+            error!("unionfind {} -> {:?}", i.id, self.unionfind_get(i.id));
+            assert!(class.nodes.len() > 0);
+        }
 
         for (x, psn) in &class.nodes {
             let mut x = x.apply_slotmap(&psn.elem);
@@ -405,27 +332,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     //     Ok(())
     // }
 
-    pub fn dump<T: fmt::Write>(&self, f: &mut T) -> Result {
-        write!(f, "\n == Egraph ==")?;
-        write!(f, "\n size of egraph: {}", self.total_number_of_nodes())?;
-        let mut eclasses = self.ids();
-        eclasses.sort();
-
-        let mut groups = BTreeMap::<Id, Vec<Id>>::default();
-        for (x, y) in self.unionfind_iter() {
-            groups.entry(y.id).or_insert(vec![]).push(x);
-        }
-
-        let mut map = BTreeMap::<AppliedId, RecExpr<L>>::default();
-        for i in eclasses {
-            self.eclass(i)
-                .unwrap()
-                .dumpEClassEG(f, i, &mut map, &groups, self)?;
-        }
-
-        Ok(())
-    }
-
     // The resulting e-nodes are written as they exist in the e-class.
     pub(crate) fn usages(&self, i: Id) -> Vec<L> {
         let mut out = Vec::new();
@@ -461,11 +367,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // get the smallest weak shape, where different shapes are from permutation of children eclasses
     pub(crate) fn proven_proven_pre_shape(&self, e: &ProvenNode<L>) -> ProvenNode<L> {
+        trace!("doing proven_proven_pre_shape");
         let e = self.proven_proven_find_enode(e);
-        self.proven_proven_get_group_compatible_variants(&e)
+        let ret = self
+            .proven_proven_get_group_compatible_variants(&e)
             .into_iter()
             .min_by_key(|pn| pn.weak_shape().0.elem.all_slot_occurrences())
-            .unwrap()
+            .unwrap();
+        trace!("done proven_proven_pre_shape");
+        ret
     }
 
     // We want to compute the shape of an e-node n := f(c[$x, $y], c[$y, $x]), where c[$x, $y] = c[$y, $x].

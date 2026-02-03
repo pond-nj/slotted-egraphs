@@ -1,5 +1,5 @@
 use crate::*;
-use log::{debug, info};
+use log::{debug, info, trace};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // proof.l should be i.
@@ -10,6 +10,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         cap: &SmallHashSet<Slot>,
         #[allow(unused)] proof: ProvenEq,
     ) {
+        debug!("start record_redundancy_witness");
         if CHECKS {
             assert!(self.is_alive(i));
 
@@ -39,6 +40,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(elem, elem2);
         }
 
+        trace!("call unionfind_set from record_redundancy_witness");
         self.unionfind_set(
             i,
             ProvenAppliedId {
@@ -48,6 +50,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 proof: prf,
             },
         );
+        debug!("done record_redundancy_witness");
     }
 
     // We expect `from` to be on the lhs of this equation.
@@ -55,6 +58,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         #[cfg(feature = "explanations")]
         if CHECKS {
             assert_eq!(from.id, proof.l.id);
+        }
+        if CHECKS {
+            assert!(self.is_alive(from.id));
         }
 
         // stuff that sends to cap from 'from'
@@ -71,8 +77,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // cap :: set slots(from.id)
             let new_cap: SmallHashSet<Slot> = cap.iter().map(|x| m_inv[*x]).collect();
 
-            // Pond:
-            assert!(new_cap == origcap);
+            if CHECKS {
+                assert!(new_cap == origcap);
+            }
 
             (from.id, new_cap)
         };
@@ -281,16 +288,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     fn update_analysis(&mut self, sh: &L, i: Id) {
         // call make on this Enode
-        debug!("sh {sh:?}");
+        trace!("sh {sh:?}");
         let v = N::make(self, sh);
-        debug!("sh data {v:#?}");
-        debug!("i eclass {:?} {:?}", i, self.eclass(i).unwrap());
+        trace!("sh data {v:#?}");
+        trace!("i eclass {:?} {:?}", i, self.eclass(i).unwrap());
 
         // let c = self.classes.get_mut(&i).unwrap();
         // let old = c.analysis_data.clone();
         let oldData = self.analysis_data(i).clone();
         // merge with old data
-        debug!("merge call from update_analysis");
+        trace!("merge call from update_analysis");
         let new = N::merge(oldData.clone(), v, i, None, self);
         let updateData = self.analysis_data_mut(i);
         // c.analysis_data = new.clone();

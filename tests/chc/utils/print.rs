@@ -34,7 +34,7 @@ pub fn dumpCHCEClass(
     for node in eclassNodes {
         print!(" - {node:?}\n");
         let (sh, m) = node.weak_shape();
-        print!(" -   {sh:?}\n");
+        print!(" >-  {sh:?}\n");
         let (sh, m) = weakShapeCHC(&node);
         print!(" - or  {sh:?}\n");
     }

@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use vec_collections::AbstractVecSet;
 
 use crate::*;
-use log::debug;
+use log::{debug, trace};
 
 // syntactic add:
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
@@ -139,25 +139,31 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             return x;
         }
 
-        assert!(
-            self.syn_hashcons.get(&t.0).is_none(),
-            "shape exist in syn hashcons: {:?}",
-            t
-        );
+        if CHECKS {
+            assert!(
+                self.syn_hashcons.get(&t.0).is_none(),
+                "shape exist in syn hashcons: {:?}",
+                t
+            );
+        }
 
         // TODO this code is kinda exactly what add_syn is supposed to do anyways. There's probably a way to write this more concisely.
         // We convert the enode to "syn" so that semantic_add will compute the necessary redundancy proofs.
         // change private slot, apply slot map to Enode
         let enode = t.0.refresh_private().apply_slotmap(&t.1);
-        assert!(self.syn_hashcons.get(&enode.weak_shape().0).is_none());
+        if CHECKS {
+            assert!(self.syn_hashcons.get(&enode.weak_shape().0).is_none());
+        }
         // println!("enode before = {:?}", enode.weak_shape().0);
         // assert!(self.semifyEnode(enode.clone()) == self.synify_enode(enode.clone()));
         // TODO: Pond why we dont need this?
         // let enode = self.synify_enode(enode);
         // let enode = self.semifyEnode(enode);
         // println!("enode after = {:?}", enode.weak_shape().0);
-        assert!(self.hashcons.get(&enode.weak_shape().0).is_none());
-        assert!(self.syn_hashcons.get(&enode.weak_shape().0).is_none());
+        if CHECKS {
+            assert!(self.hashcons.get(&enode.weak_shape().0).is_none());
+            assert!(self.syn_hashcons.get(&enode.weak_shape().0).is_none());
+        }
 
         // make takes up most of the time here
         let syn = self.mk_singleton_class(enode);
@@ -381,6 +387,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let syn_app_id = self.mk_syn_identity_applied_id(c_id);
         let pai = self.refl_pai(&syn_app_id);
+        trace!("call unionfind_set from alloc_eclass");
         self.unionfind_set(c_id, pai);
 
         c_id

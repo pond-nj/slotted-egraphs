@@ -1,5 +1,5 @@
 use crate::*;
-use log::{debug, error};
+use log::{debug, error, trace};
 
 #[derive(Debug, Clone)]
 pub enum ParseError {
@@ -52,8 +52,7 @@ fn crop_ident(s: &str) -> Result<(/*ident*/ &str, /*rest*/ &str), ParseError> {
 
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
     let mut tokens = Vec::new();
-
-    debug!("from {}", s);
+    trace!("from {}", s);
 
     loop {
         s = s.trim_start();
@@ -102,7 +101,7 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
         }
     }
 
-    debug!("to tokens {:?}", tokens);
+    trace!("to tokens {:?}", tokens);
     Ok(tokens)
 }
 

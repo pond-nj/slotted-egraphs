@@ -1,5 +1,5 @@
 use super::*;
-use log::debug;
+use log::{debug, trace};
 
 pub fn ematchQueryall(eg: &CHCEGraph, pattern: &Pattern<CHC>) -> Vec<(Subst, Id)> {
     debug!("=== Call ematchQueryall ===");
@@ -25,7 +25,8 @@ fn ematchQueryAllInEclassInternal(
     i: AppliedId,
     eg: &CHCEGraph,
 ) -> Vec<State> {
-    debug!("try match in eclass {i:?} with pattern {pattern}");
+    assert!(false);
+    trace!("try match in eclass {i:?} with pattern {pattern}");
     match &pattern {
         Pattern::PVar(v) => {
             let mut st = st;

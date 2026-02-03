@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use crate::{rewrite::pattern, *};
 use core::panic;
-use log::debug;
+use log::{debug, trace};
 use log_derive::{logfn, logfn_inputs};
 
 pub type Subst = HashMap<String, AppliedId>;
@@ -69,7 +69,7 @@ fn ematchAllInEclassInternal<L: Language, N: Analysis<L>>(
     i: AppliedId,
     eg: &EGraph<L, N>,
 ) -> Vec<State> {
-    debug!("try match in eclass {i:?} with pattern {pattern}");
+    trace!("try match in eclass {i:?} with pattern {pattern}");
     match &pattern {
         Pattern::PVar(v) => {
             let mut st = st;
@@ -130,7 +130,7 @@ fn ematchAllInEclassInternal<L: Language, N: Analysis<L>>(
                 // debug!("At return, Search {} in {:?}", pattern, i);
                 // debug!("ret {:?}", ret);
             } else {
-                debug!("try match in eclass {i:?} not found");
+                trace!("try match in eclass {i:?} not found");
             }
             ret
         }
