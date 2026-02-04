@@ -1,4 +1,4 @@
-use log::info;
+use log::{info, trace};
 
 use super::*;
 
@@ -17,6 +17,17 @@ use super::*;
 //             .join(" ")
 //     )
 // }
+
+fn checkComposeMerge(eg: &CHCEGraph) {
+    for id in eg.ids() {
+        let enodes = eg.enodes(id);
+        if enodes.iter().any(|e| matches!(e, CHC::ComposeInit(..))) {
+            assert!(enodes.iter().any(|e| matches!(e, CHC::Compose(..))));
+        }
+    }
+
+    trace!("checkComposeMerge done");
+}
 
 pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
     let mut chcs = parse(fname);
@@ -122,5 +133,10 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
 
     debug!("end of growEGraph");
     eg.printUnionFind();
+    dumpCHCEGraph(eg);
+
+    if CHECKS {
+        checkComposeMerge(eg);
+    }
     // ()
 }

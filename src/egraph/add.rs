@@ -135,6 +135,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // x.slots() - y.slots() are redundant slots.
     pub(in crate::egraph) fn add_internal(&mut self, t: (L, SlotMap)) -> AppliedId {
         let lookupRes = self.lookup_internal(&t);
+        trace!("lookup {t:?} -> {lookupRes:?}");
         if let Some(x) = lookupRes {
             return x;
         }
@@ -152,7 +153,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // change private slot, apply slot map to Enode
         let enode = t.0.refresh_private().apply_slotmap(&t.1);
         if CHECKS {
-            assert!(self.syn_hashcons.get(&enode.weak_shape().0).is_none());
+            let synHashconsResult = self.syn_hashcons.get(&enode.weak_shape().0);
+            assert!(
+                synHashconsResult.is_none(),
+                "found enode {:?} in syn hashcons: {:?}",
+                enode,
+                synHashconsResult
+            );
         }
         // println!("enode before = {:?}", enode.weak_shape().0);
         // assert!(self.semifyEnode(enode.clone()) == self.synify_enode(enode.clone()));
@@ -272,6 +279,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // we use semantic_add so that the redundancy, symmetry and congruence checks run on it.
         let t = syn_enode_fresh.weak_shape();
+        // let t = self.shape(&syn_enode_fresh);
         self.raw_add_to_class(i, t.clone(), i);
         self.pending.insert(t.0, PendingType::Full);
         self.modify_queue.push(i);
@@ -294,7 +302,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         (sh, bij): (L, Bijection),
         src_id: Id,
     ) {
-        debug!("add to {id:?} {:?}", sh);
+        trace!("add to class {id:?} {:?}", sh);
         let psn = ProvenSourceNode { elem: bij, src_id };
 
         let tmp1 = self
@@ -307,9 +315,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if CHECKS {
             // assert!(self.semifyEnode(sh.clone()) == sh)
         }
-        // println!("add to hashcons {:?} -> {id:?}", sh);
         // synified version is added to hashcons from self.add
         // non-synified version is added to hashcons from self.handle_pending
+        trace!("insert to hashcons {sh:?} -> {id:?}");
         let tmp2 = self.hashcons.insert(sh.clone(), id);
         if CHECKS {
             // hashcons should contain semify enode
@@ -382,6 +390,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let app_id = self.mk_syn_applied_id(c_id, bij.inverse());
             // by applying app_id to this Eclass, there will be one Enode in the eclass that matches shape
             // because this appliedId is created from inverse of bijection
+            trace!("insert to syn_hashcons {sh:?} -> {app_id:?}");
             self.syn_hashcons.insert(sh, app_id);
         }
 

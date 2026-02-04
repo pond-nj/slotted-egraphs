@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::*;
-use log::{debug, error};
+use log::{debug, error, trace};
 use vec_collections::AbstractVecSet;
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
@@ -173,6 +173,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 // shape, computed from permutation of slots in appliedId from permutation
                 // in children eclasses
                 let (computed_sh, computed_bij) = self.shape(&real);
+                let weak_shape = real.weak_shape();
+                trace!(
+                    "weak_shape {real:?} -> {:?} {:?}",
+                    weak_shape.0,
+                    weak_shape.1
+                );
+                trace!("weak shape of {sh:?} <-> {:?}", sh.orig_weak_shape());
                 assert_eq!(&computed_sh, sh);
 
                 // computed_bij :: shape-slots -> slots(i)

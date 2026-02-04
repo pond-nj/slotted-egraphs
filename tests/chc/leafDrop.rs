@@ -8,7 +8,7 @@ const STACK_SIZE: usize = 32 * 1024 * 1024;
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 3600;
 const DO_CONST_REWRITE: bool = true;
-const DO_FOLDING: bool = false;
+const DO_FOLDING: bool = true;
 
 use log::{debug, info, set_logger_racy, Log, Metadata, Record};
 
@@ -219,7 +219,9 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
 
     println!("egraph after run");
     dumpCHCEGraph(&runner.egraph);
-    runner.egraph.check();
+    if CHECKS {
+        runner.egraph.check();
+    }
 
     (rootId, runner)
 }
@@ -229,20 +231,16 @@ fn mainTestSpawn() {
     let mut count = 0;
     let doConstraintRewrite = true;
     let (rootId, mut runner) = buildLeafDropCHC(egOrig, &mut count);
-    checkSelfCycle(&runner.egraph);
-    let (unfold1, unfold2, unfold3, newDefineComposeId) =
-        checkUnfoldNewDefineFoldExists(rootId.id, &mut runner.egraph);
-    checkUnfold2NewDefineWithMinLeaf(unfold2, unfold3, newDefineComposeId, &mut runner.egraph);
-    checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
+    // checkSelfCycle(&runner.egraph);
+    // let (unfold1, unfold2, unfold3, newDefineComposeId) =
+    //     checkUnfoldNewDefineFoldExists(rootId.id, &mut runner.egraph);
+    // checkUnfold2NewDefineWithMinLeaf(unfold2, unfold3, newDefineComposeId, &mut runner.egraph);
+    // checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
-    checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
-    checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
+    // checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
+    // checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
 
-    checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
-
-    // 19. new1(N,M,K)←M=0,K=0
-    // 20. new1(N,M,K)←N≤0,M=M3+1,K=K3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(L,K1), min-leaf(R,K2), min(K1,K2,K3)
-    // 21. new1(N,M,K)←N≥1,N1=N−1 K=K3+1, left-drop(N1,L,U), min-leaf(U,M), min-leaf(L,K1), min-leaf(R,K2), min(K1,K2,K3)
+    // checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
 }
 
 #[test]

@@ -424,15 +424,23 @@ fn unfoldSearchInternal(
     };
 
     let and1Children = getAnyAndChildren(&cond1, eg);
+    trace!("unfoldSearch new1 {new1:?}");
     for (new1UnfoldIdx, compose2Id) in new1Children.iter().enumerate() {
         let compose2Id = compose2Id.getAppliedId();
         let compose2Vec = eg.enodes_applied(&compose2Id);
+        trace!("unfoldSearch compose2Vec {compose2Vec:?}");
+        assert!(
+            compose2Vec.iter().any(|c| matches!(c, CHC::Compose(..))),
+            "a class with ComposeInit does not have Compose, {}",
+            compose2Id
+        );
         for compose2 in compose2Vec {
             if let CHC::ComposeInit(..) = compose2 {
                 continue;
             }
 
             let compose2 = eg.find_enode(&compose2);
+            trace!("unfoldSearch compose2 {compose2:?}");
             let CHC::Compose(compose2Children) = compose2 else {
                 panic!();
             };
@@ -507,6 +515,8 @@ fn unfoldSearchInternal(
             composeUnfoldReceipt.push(x);
         }
     }
+
+    assert!(composeUnfoldReceipt.len() > 0);
 }
 
 fn unfoldSearch(

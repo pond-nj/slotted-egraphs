@@ -1,6 +1,6 @@
 use core::panic;
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     hash::{DefaultHasher, Hash, Hasher},
     path::Iter,
 };
@@ -9,7 +9,7 @@ use crate::*;
 use either::Either;
 use std::ops::{Deref, DerefMut};
 
-use log::debug;
+use log::{debug, trace};
 
 #[derive(Debug, Clone)]
 pub enum SyntaxElem {
@@ -896,10 +896,56 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
 
     // reset the slots name to canonical one
     #[doc(hidden)]
-    fn weak_shape(&self) -> (Self, Bijection) {
+    fn orig_weak_shape(&self) -> (Self, Bijection) {
         let mut c = self.clone();
         let bij = c.weak_shape_inplace();
         (c, bij)
+    }
+
+    fn weak_shape(&self) -> (Self, Bijection) {
+        let appIds: Vec<AppliedId> = self
+            .applied_id_occurrences()
+            .into_iter()
+            .map(|x| (*x).clone())
+            .collect();
+
+        if appIds.len() == 0 {
+            let mut c = self.clone();
+            let bij = c.weak_shape_inplace();
+            return (c, bij);
+        }
+        let (lab, appIdToV, slotsToV) = canonicalLabelAppIds(&appIds);
+
+        let mut vToSlots = BTreeMap::new();
+        for (s, v) in slotsToV.iter() {
+            assert!(vToSlots.insert(*v, s.clone()).is_none());
+        }
+
+        let mut slotsToNewIdx: SlotMap = SlotMap::new();
+        for i in lab[(lab.len() - slotsToV.len())..].iter() {
+            slotsToNewIdx.insert(
+                vToSlots[&(*i as usize)],
+                Slot::numeric(slotsToNewIdx.len() as u32),
+            )
+        }
+
+        let mut shaped: Vec<AppliedId> = vec![];
+        for appId in appIds {
+            shaped.push(AppliedId {
+                id: appId.id,
+                m: appId.m.compose_intersect(&slotsToNewIdx),
+            });
+        }
+
+        let mut eNew = self.clone();
+        let mut appIdsMut = eNew.applied_id_occurrences_mut();
+        let n = appIdsMut.len();
+        for i in 0..n {
+            *appIdsMut[i] = shaped[i].clone();
+        }
+
+        trace!("shape {self:?} -> {:?} {:?}", eNew, slotsToNewIdx.inverse());
+        (eNew, slotsToNewIdx.inverse())
     }
 
     // returned new Enode with replaced private slot

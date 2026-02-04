@@ -32,8 +32,12 @@ pub use symbol_table::GlobalSymbol as Symbol;
 // Whether to enable invariant-checks.
 #[cfg(feature = "checks")]
 pub const CHECKS: bool = true;
+#[cfg(feature = "details")]
+pub const DETAILS: bool = true;
 #[cfg(not(feature = "checks"))]
 pub const CHECKS: bool = false;
+#[cfg(not(feature = "details"))]
+pub const DETAILS: bool = false;
 
 pub use slotted_egraphs_derive::define_language;
 

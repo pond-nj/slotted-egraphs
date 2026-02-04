@@ -1,5 +1,5 @@
 use crate::*;
-use log::{error, info};
+use log::{error, info, trace};
 use nauty_Traces_sys::{
     densenauty, empty_graph, optionblk, statsblk, ADDONEEDGE, FALSE, SETWORDSNEEDED, TRUE,
 };
@@ -131,33 +131,29 @@ impl AppliedId {
     }
 }
 
-// This only works with Vector of AppIds
-pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
-    if appIdsOrigs.len() == 0 {
-        return vec![];
+// TODO: can we not change L here into AppliedId?
+pub fn canonicalLabelAppIds<L: LanguageChildren>(
+    appIdsVec: &Vec<L>,
+) -> (Vec<i32>, Vec<(&L, usize)>, BTreeMap<Slot, usize>) {
+    if appIdsVec.len() == 0 {
+        return (vec![], vec![], BTreeMap::new());
     }
-
-    let mut appIdsSorted = appIdsOrigs.clone();
-    appIdsSorted.sort();
-    appIdsSorted.dedup();
-
-    let appIdsSet = appIdsSorted.iter().map(|x| x.id()).collect::<BTreeSet<_>>();
-    if appIdsSet.len() == appIdsSorted.len() {
-        return appIdsSorted;
-    }
-    info!("start sortAppId");
-
     // {f(x, y), f(y, x), g(x, y)}
     // should have a color order f < g < arg < var
     // 1(f) - 2(arg) - 3(arg)
-    // 1(f) - 4(arg) - 5(arg)
-    // 6(g) - 7(arg) - 8(arg)
-    // 2(arg) - 9(var)
-    // 4(arg) - 10(var)
-    // 3(arg) - 10(var)
-    // 5(arg) - 9(var)
-    // 7(arg) - 9(var)
+    // TODO: this is wrong: 1 here should get another v according to the implementation
+    // 4(f) - 5(arg) - 6(arg)
+    // 7(g) - 8(arg) - 9(arg)
+    // x - 10(var)
+    // y - 11(var)
+    // 2(arg) - 10(var)
+    // 5(arg) - 11(var)
+    // 3(arg) - 11(var)
+    // 6(arg) - 10(var)
     // 8(arg) - 10(var)
+    // 9(arg) - 11(var)
+
+    trace!("canonicalLabelAppIds appIdsVec {appIdsVec:?}");
 
     let mut totalV = 0;
     // total number of vertices = sum (1 + nums_function_args) + nums_variables
@@ -165,7 +161,7 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
     // must be vec because there might be duplicates
     let mut appIdToV = Vec::new();
     let mut argsV = vec![];
-    for child in appIdsSorted.iter() {
+    for child in appIdsVec.iter() {
         appIdToV.push((child, totalV));
         for i in 0..child.len() {
             argsV.push(totalV + i + 1);
@@ -186,7 +182,7 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
 
     // add edges
     let mut curr = 0;
-    for (_i, child) in appIdsSorted.iter().enumerate() {
+    for (_i, child) in appIdsVec.iter().enumerate() {
         // 1(f) - 2(arg) - 3(arg)
 
         if child.len() > 0 {
@@ -205,7 +201,7 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
                 // println!("edge {curr} {}", curr + 1);
             }
 
-            // 2(arg) - 9(var)
+            // 2(arg) - 10(var)
             ADDONEEDGE(&mut g, curr, slotsToV[&s], m);
             curr += 1;
         }
@@ -288,6 +284,7 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
         densenauty(
             g.as_mut_ptr(),
             lab.as_mut_ptr(),
+            // if ptn[i] = 0, then a group (colour class) ends at position i
             ptn.as_mut_ptr(),
             orbits.as_mut_ptr(),
             &mut options,
@@ -297,6 +294,31 @@ pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
             canonG.as_mut_ptr(),
         );
     }
+
+    // the value of lab on return is the canonical labelling
+    // of the graph. Precisely, it lists the vertices of g in the order in which they need to
+    // be relabelled to give canong
+    trace!("appIdsVec {appIdsVec:?}");
+    trace!("lab {lab:?}");
+    (lab, appIdToV, slotsToV)
+}
+
+// This only works with Vector of AppIds
+pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
+    if appIdsOrigs.len() == 0 {
+        return vec![];
+    }
+
+    let mut appIdsSorted = appIdsOrigs.clone();
+    appIdsSorted.sort();
+    appIdsSorted.dedup();
+
+    let appIdsSet = appIdsSorted.iter().map(|x| x.id()).collect::<BTreeSet<_>>();
+    if appIdsSet.len() == appIdsSorted.len() {
+        return appIdsSorted;
+    }
+    info!("start sortAppId");
+    let (lab, appIdToV, _) = canonicalLabelAppIds(&appIdsSorted);
 
     let mut VToAppIds = BTreeMap::new();
     for (id, v) in appIdToV {

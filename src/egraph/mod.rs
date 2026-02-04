@@ -7,6 +7,7 @@ mod add;
 pub use add::*;
 
 mod union;
+use nauty_Traces_sys::{empty_graph, ADDONEEDGE, SETWORDSNEEDED};
 pub use union::*;
 
 mod rebuild;
@@ -344,13 +345,85 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
-    pub fn shape(&self, e: &L) -> (L, Bijection) {
-        let (pnode, bij) = self.proven_shape(e);
-        (pnode.elem, bij)
+    // pub fn shape(&self, e: &L) -> (L, Bijection) {
+    //     let (pnode, bij) = self.proven_shape(e);
+    //     (pnode.elem, bij)
+    // }
 
-        // TODO: it's a lot faster if we use this, but it's wrong
-        // let (pnode, bij) = e.weak_shape();
-        // (pnode, bij)
+    pub fn shape(&self, eOrig: &L) -> (L, Bijection) {
+        let e = eOrig;
+        let appIds: Vec<AppliedId> = e
+            .applied_id_occurrences()
+            .into_iter()
+            .map(|x| (*x).clone())
+            .collect();
+
+        if appIds.len() == 0 {
+            trace!(
+                "shape {eOrig:?} -> {:?} {:?}",
+                e.weak_shape().0,
+                e.weak_shape().1
+            );
+            return e.weak_shape();
+        }
+        let allPerms: Vec<Vec<ProvenPerm>> = appIds
+            .iter()
+            .map(|x| self.classes[&x.id].group.all_perms().into_iter().collect())
+            .collect();
+        let (lab, appIdToV, slotsToV) = canonicalLabelAppIds(&appIds);
+
+        let mut vToSlots = BTreeMap::new();
+        for (s, v) in slotsToV.iter() {
+            assert!(vToSlots.insert(*v, s.clone()).is_none());
+        }
+
+        let mut slotsToNewIdx: SlotMap = SlotMap::new();
+        for i in lab[(lab.len() - slotsToV.len())..].iter() {
+            slotsToNewIdx.insert(
+                vToSlots[&(*i as usize)],
+                Slot::numeric(slotsToNewIdx.len() as u32),
+            )
+        }
+
+        let mut shaped: Vec<AppliedId> = vec![];
+        for appId in appIds {
+            let perms: Vec<_> = self.classes[&appId.id]
+                .group
+                .all_perms()
+                .into_iter()
+                .collect();
+            trace!("id {} allPerms {:?}", appId.id, perms);
+            trace!("appId.m {:?}", appId.m);
+            if CHECKS {
+                assert!(slotsToNewIdx.keys_set().is_superset(&appId.m.values_set()));
+            }
+            shaped.push(
+                perms
+                    .into_iter()
+                    .map(|p| AppliedId {
+                        id: appId.id,
+                        m: p.elem
+                            .composePartial(&appId.m)
+                            .compose_intersect(&slotsToNewIdx),
+                    })
+                    .min()
+                    .unwrap(),
+            );
+        }
+
+        let mut eNew = e.clone();
+        let mut appIdsMut = eNew.applied_id_occurrences_mut();
+        let n = appIdsMut.len();
+        for i in 0..n {
+            *appIdsMut[i] = shaped[i].clone();
+        }
+
+        trace!(
+            "shape {eOrig:?} -> {:?} {:?}",
+            eNew,
+            slotsToNewIdx.inverse()
+        );
+        (eNew, slotsToNewIdx.inverse())
     }
 
     pub(crate) fn proven_shape(&self, e: &L) -> (ProvenNode<L>, Bijection) {
@@ -367,7 +440,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // get the smallest weak shape, where different shapes are from permutation of children eclasses
     pub(crate) fn proven_proven_pre_shape(&self, e: &ProvenNode<L>) -> ProvenNode<L> {
-        trace!("doing proven_proven_pre_shape");
+        trace!("doing proven_proven_pre_shape on {:?}", e.elem);
+        // TODO: I want to print enode that takes a long time on shape as an expression
+        // But this will also call shape
+        // if DETAILS {
+        //     let map = &mut BTreeMap::<AppliedId, RecExpr<L>>::new();
+        //     let expr = self.getENodeExprRecur(&e.elem, map);
+        //     trace!("enode expr: {expr:?}");
+        // }
         let e = self.proven_proven_find_enode(e);
         let ret = self
             .proven_proven_get_group_compatible_variants(&e)
@@ -427,6 +507,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .iter()
             .map(|x| self.classes[&x.id].group.all_perms().into_iter().collect())
             .collect();
+
+        println!("cartesian: ");
+        for g in groups.iter() {
+            print!("{} ", g.len());
+        }
+        print!(
+            "\n = {}\n",
+            groups.iter().map(|x| x.len()).product::<usize>()
+        );
 
         // println!("doing cartesian on groups {groups:?}");
         for l in cartesian(&groups) {
@@ -517,6 +606,29 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     #[cfg(feature = "explanations")]
     pub(crate) fn semify_enode(&self, enode: L) -> L {
         enode.map_applied_ids(|app| self.semify_app_id(app))
+    }
+
+    #[allow(unused)]
+    fn getENodeExprRecur<'a>(
+        self: &'a Self,
+        enode: &L,
+        map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
+    ) -> &'a RecExpr<L> {
+        let cs: Vec<RecExpr<L>> = (*enode)
+            .applied_id_occurrences()
+            .iter()
+            .map(|x| self.get_syn_expr(x))
+            .collect::<Vec<_>>();
+
+        let ret = RecExpr {
+            node: nullify_app_ids(enode),
+            children: cs,
+        };
+
+        let eclassId = self.lookup(enode).unwrap();
+        map.insert(eclassId.clone(), ret);
+
+        map.get(&eclassId).unwrap()
     }
 
     fn getSynExprRecur<'a>(

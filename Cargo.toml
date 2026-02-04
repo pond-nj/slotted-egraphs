@@ -9,8 +9,11 @@ repository = "https://github.com/memoryleak47/slotted-egraphs/"
 [features]
 explanations = []
 checks = []
+details = []
 profiling = []
 default = ["checks"]
+# default = ["checks", "details"]
+# default = ["details"]
 # default = []
 
 [package.metadata.docs.rs]
@@ -38,7 +41,8 @@ criterion = { version = "0.5", features = ["html_reports"] }
 rand = "0.8.5"
 
 [profile.release]
-debug = true
+debug = "line-tables-only"
+
 
 [profile.bench]
 debug = true

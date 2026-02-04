@@ -1,7 +1,54 @@
-({"star_0_0": id138: ($0, $2, $1), "star_0_1": id193: ($0, $2, $1)}, id475)
+[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f136, $f6 -> $f137)
+[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f139, $f6 -> $f138)
+[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f142, $f6 -> $f148)
+[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f143, $f6 -> $f149)
+[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f144, $f74 -> $f134)
+[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f145, $f74 -> $f135)
+[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f140, $f74 -> $f146)
+[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f141, $f74 -> $f147)
+[TRACE slotted_egraphs::egraph] id id27 allPerms [ProvenPerm { elem: ($f112 -> $f112, $f113 -> $f113) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f112 -> $f144, $f113 -> $f145)
+[TRACE slotted_egraphs::egraph] id id29 allPerms [ProvenPerm { elem: ($f115 -> $f115, $f116 -> $f116) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f115 -> $f144, $f116 -> $f150)
 
-"(new {syntax} 
-(and <(eq {t} (leaf)) 
-(eq {u} (leaf))>) <{} {}>)",
-        minLeafDummy(u, m),
-        minLeafDummy(t, k)
+[TRACE slotted_egraphs::types] appIdsVec [id4: ($f136, $f137), id4: ($f139, $f138), id4: ($f142, $f148), id4: ($f143, $f149), id21: ($f144, $f134), id21: ($f145, $f135), id21: ($f140, $f146), id21: ($f141, $f147), id27: ($f144, $f145), id29: ($f144, $f150)]
+[TRACE slotted_egraphs::types] lab [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 25, 28, 26, 29, 2, 5, 8, 11, 14, 17, 20, 23, 13, 16, 19, 22, 1, 4, 7, 10, 40, 41, 46, 32, 35, 38, 39, 36, 37, 33, 34, 45, 44, 30, 31, 43, 42]
+And(OrderVec([AppliedId(id4: ($3, $9)), AppliedId(id4: ($4, $10)), AppliedId(id4: ($5, $12)), AppliedId(id4: ($6, $11)), AppliedId(id21: ($0, $13)), AppliedId(id21: ($1, $14)), AppliedId(id21: ($7, $16)), AppliedId(id21: ($8, $15)), AppliedId(id27: ($0, $1)), AppliedId(id29: ($0, $2))]))
+
+[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f136, $f6 -> $f137)
+[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f139, $f6 -> $f138)
+[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f142, $f6 -> $f148)
+[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f143, $f6 -> $f149)
+[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f134, $f74 -> $f144)
+[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f135, $f74 -> $f145)
+[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f140, $f74 -> $f146)
+[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f141, $f74 -> $f147)
+[TRACE slotted_egraphs::egraph] id id27 allPerms [ProvenPerm { elem: ($f112 -> $f112, $f113 -> $f113) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f112 -> $f144, $f113 -> $f145)
+[TRACE slotted_egraphs::egraph] id id29 allPerms [ProvenPerm { elem: ($f115 -> $f115, $f116 -> $f116) }]
+[TRACE slotted_egraphs::egraph] appId.m ($f115 -> $f144, $f116 -> $f150)
+
+[id4: ($f136, $f137), id4: ($f139, $f138), id4: ($f142, $f148), id4: ($f143, $f149), id21: ($f134, $f144), id21: ($f135, $f145), id21: ($f140, $f146), id21: ($f141, $f147), id27: ($f144, $f145), id29: ($f144, $f150)]
+lab [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 25, 28, 26, 29, 2, 5, 8, 11, 14, 17, 20, 23, 13, 16, 19, 22, 1, 4, 7, 10, 40, 41, 46, 32, 35, 38, 39, 30, 31, 36, 37, 33, 34, 45, 44, 43, 42]
+And(OrderVec([AppliedId(id4: ($3, $11)), AppliedId(id4: ($4, $12)), AppliedId(id4: ($5, $14)), AppliedId(id4: ($6, $13)), AppliedId(id21: ($0, $7)), AppliedId(id21: ($1, $8)), AppliedId(id21: ($9, $16)), AppliedId(id21: ($10, $15)), AppliedId(id27: ($0, $1)), AppliedId(id29: ($0, $2))]))
+
+
+compose
+[id4: ($f136, $f137), id4: ($f139, $f138), id4: ($f142, $f148), id4: ($f143, $f149), id21: ($f144, $f134), id21: ($f145, $f135), id21: ($f140, $f146), id21: ($f141, $f147), id27: ($f144, $f145), id29: ($f144, $f150)]
+[id4: ($f136, $f137), id4: ($f139, $f138), id4: ($f142, $f148), id4: ($f143, $f149), id21: ($f134, $f144), id21: ($f135, $f145), id21: ($f140, $f146), id21: ($f141, $f147), id27: ($f144, $f145), id29: ($f144, $f150)]

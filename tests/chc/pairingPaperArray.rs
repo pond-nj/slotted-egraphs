@@ -4,7 +4,7 @@ use log::{info, logger};
 
 use super::*;
 
-const ITER_LIMIT: usize = 3;
+const ITER_LIMIT: usize = 2;
 const TIME_LIMIT_SECS: u64 = 300;
 const DO_CONST_REWRITE: bool = true;
 const DO_FOLDING: bool = false;

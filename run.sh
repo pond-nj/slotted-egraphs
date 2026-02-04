@@ -8,3 +8,7 @@ RUST_BACKTRACE=1 cargo test chc::pairingPaperArray::mainTest -- --nocapture &> t
 #  RUST_LOG=DEBUG RUST_BACKTRACE=1 heaptrack ./target/debug/deps/entry-36fa62a2ee92b610 chc::leafDrop::testSortAppId --nocapture &> tmp2.txt  
 # target/debug/deps/entry-78c4a838346e1ec6
 # RUST_LOG=DEBUG RUST_BACKTRACE=1 heaptrack ./target/debug/deps/entry-78c4a838346e1ec6 chc::leafDrop::mainTest --nocapture &> tmp2.txt  
+
+
+# flamegraph -- target/debug/deps/entry-0f36484c7ec5a013 --nocapture chc::pairingPaperArray::mainTest
+# flamegraph -- target/debug/deps/entry-0f36484c7ec5a013 --nocapture chc::leafDrop::mainTest

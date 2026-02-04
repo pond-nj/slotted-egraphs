@@ -137,6 +137,7 @@ impl SlotMap {
     // -> out :: X -> Z
     //
     // In other words, compose_intersect first runs "self" and then "other", for any given input Slot.
+    // if there is no Y -> _ in other, then X -> Y will be dropped
     pub fn compose_intersect(&self, other: &SlotMap) -> SlotMap {
         let mut out = SlotMap::new();
         for (x, y) in self.iter() {

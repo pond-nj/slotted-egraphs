@@ -5,3 +5,6 @@ run.sh
 runArith.sh
 tmp
 tmp*.txt
+*.svg
+*.old
+*.data
