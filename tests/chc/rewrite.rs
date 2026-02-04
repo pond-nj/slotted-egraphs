@@ -1609,9 +1609,12 @@ fn defineUnfoldFold(
 
                     let toBeFold = group
                         .iter()
-                        .map(|idx| AppliedIdOrStar::AppliedId(childAppIds[*idx].getAppliedId()))
+                        .map(|idx| childAppIds[*idx].getAppliedId())
                         .collect::<Vec<_>>();
-                    let sortedToBeFold = sortAppId(&toBeFold);
+                    let sortedToBeFold: Vec<AppliedIdOrStar> = sortAppId(&toBeFold)
+                        .into_iter()
+                        .map(|x| AppliedIdOrStar::AppliedId(x))
+                        .collect();
                     // 0 -> $f
                     let (sortedToBeFoldShape, map) = weakShapeAppIds(&sortedToBeFold);
 

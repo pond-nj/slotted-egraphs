@@ -366,11 +366,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             );
             return e.weak_shape();
         }
-        let allPerms: Vec<Vec<ProvenPerm>> = appIds
-            .iter()
-            .map(|x| self.classes[&x.id].group.all_perms().into_iter().collect())
-            .collect();
-        let (lab, appIdToV, slotsToV) = canonicalLabelAppIds(&appIds);
+        // let allPerms: Vec<Vec<ProvenPerm>> = appIds
+        //     .iter()
+        //     .map(|x| self.classes[&x.id].group.all_perms().into_iter().collect())
+        //     .collect();
+        let (lab, _, slotsToV) = canonicalLabelAppIds(&appIds);
 
         let mut vToSlots = BTreeMap::new();
         for (s, v) in slotsToV.iter() {
@@ -426,10 +426,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         (eNew, slotsToNewIdx.inverse())
     }
 
+    #[allow(unused)]
     pub(crate) fn proven_shape(&self, e: &L) -> (ProvenNode<L>, Bijection) {
         self.proven_proven_shape(&self.refl_pn(e))
     }
 
+    #[allow(unused)]
     pub(crate) fn proven_proven_shape(&self, e: &ProvenNode<L>) -> (ProvenNode<L>, Bijection) {
         // println!("e {e:?}");
         let tmp = self.proven_proven_pre_shape(&e);
@@ -439,6 +441,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // get the smallest weak shape, where different shapes are from permutation of children eclasses
+    #[allow(unused)]
     pub(crate) fn proven_proven_pre_shape(&self, e: &ProvenNode<L>) -> ProvenNode<L> {
         trace!("doing proven_proven_pre_shape on {:?}", e.elem);
         // TODO: I want to print enode that takes a long time on shape as an expression

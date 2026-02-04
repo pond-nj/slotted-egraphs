@@ -132,9 +132,10 @@ impl AppliedId {
 }
 
 // TODO: can we not change L here into AppliedId?
-pub fn canonicalLabelAppIds<L: LanguageChildren>(
-    appIdsVec: &Vec<L>,
-) -> (Vec<i32>, Vec<(&L, usize)>, BTreeMap<Slot, usize>) {
+pub fn canonicalLabelAppIds(
+    appIdsVec: &Vec<AppliedId>,
+    // allPerms: &Option<Vec<Vec<ProvenPerm>>>,
+) -> (Vec<i32>, Vec<(&AppliedId, usize)>, BTreeMap<Slot, usize>) {
     if appIdsVec.len() == 0 {
         return (vec![], vec![], BTreeMap::new());
     }
@@ -173,7 +174,6 @@ pub fn canonicalLabelAppIds<L: LanguageChildren>(
     let mut slotsToV = BTreeMap::new();
     for s in allSlots {
         slotsToV.insert(s, totalV);
-        // println!("slotsToV {s} {totalV}");
         totalV += 1;
     }
 
@@ -206,6 +206,16 @@ pub fn canonicalLabelAppIds<L: LanguageChildren>(
             curr += 1;
         }
     }
+
+    // if allPerms.is_some() {
+    //     let allPerms = allPerms.unwrap();
+    //     assert!(allPerms.len() == appIdToV.len());
+    //     for (i, perms) in allPerms.iter().enumerate() {
+    //         for p in perms {
+    //             let newArgs = p.elem.composePartial(appIdsVec[i].m);
+    //         }
+    //     }
+    // }
 
     // color sorted by eclass id then follow by args and vars
     let mut appIdToVVec = appIdToV
@@ -304,7 +314,7 @@ pub fn canonicalLabelAppIds<L: LanguageChildren>(
 }
 
 // This only works with Vector of AppIds
-pub fn sortAppId<L: LanguageChildren>(appIdsOrigs: &Vec<L>) -> Vec<L> {
+pub fn sortAppId(appIdsOrigs: &Vec<AppliedId>) -> Vec<AppliedId> {
     if appIdsOrigs.len() == 0 {
         return vec![];
     }

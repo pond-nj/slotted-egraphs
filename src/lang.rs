@@ -526,7 +526,7 @@ impl<L> FromIterator<L> for OrderVec<L> {
     }
 }
 
-impl<L: LanguageChildren> LanguageChildren for OrderVec<L> {
+impl<L: LanguageChildren + Into<AppliedId> + From<AppliedId>> LanguageChildren for OrderVec<L> {
     fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
         self.iter_mut()
             .flat_map(|x| x.all_slot_occurrences_iter_mut())
@@ -613,7 +613,14 @@ impl<L: LanguageChildren> LanguageChildren for OrderVec<L> {
     }
 
     fn sorted(&self) -> Self {
-        sortAppId(self).into()
+        let appIds: Vec<AppliedId> = self
+            .0
+            .clone()
+            .into_iter()
+            .map(|x| x.into())
+            .collect::<Vec<_>>();
+        let res: Vec<AppliedId> = sortAppId(&appIds);
+        res.into_iter().map(|x| x.into()).collect()
     }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
@@ -914,7 +921,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
             let bij = c.weak_shape_inplace();
             return (c, bij);
         }
-        let (lab, appIdToV, slotsToV) = canonicalLabelAppIds(&appIds);
+        let (lab, _, slotsToV) = canonicalLabelAppIds(&appIds);
 
         let mut vToSlots = BTreeMap::new();
         for (s, v) in slotsToV.iter() {
