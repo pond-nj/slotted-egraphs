@@ -135,7 +135,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
                 proven_perm.check();
             }
-            let grp = &mut self.classes.get_mut(&id).unwrap().group;
+            let grp = &mut self.classes.get_mut(&id).unwrap().groupMut();
             if grp.contains(&proven_perm.to_slotmap()) {
                 return false;
             }
@@ -146,11 +146,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
             true
         } else {
-            let slot_size = |i| self.classes[&i].syn_enode.slots().len();
+            let slot_size = |i| self.classes[&i].syn_enode().slots().len();
 
             let size = |i| {
                 let c = &self.classes[&i];
-                c.nodes.len() + c.usages.len()
+                c.nodes.len() + c.usages().len()
             };
 
             // we intend to deprecate `l` in favor of `r`.
@@ -339,13 +339,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // move group permutation from from to to
         let set = self.classes[&from.id]
-            .group
+            .group()
             .generators()
             .into_iter()
             .map(change_proven_permutation_from_from_to_to)
             .collect();
 
-        if self.classes.get_mut(&to.id).unwrap().group.add_set(set) {
+        if self
+            .classes
+            .get_mut(&to.id)
+            .unwrap()
+            .groupMut()
+            .add_set(set)
+        {
             self.touched_class(to.id, PendingType::Full);
         }
 

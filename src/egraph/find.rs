@@ -1,5 +1,5 @@
 use crate::*;
-use log::debug;
+use log::{debug, trace};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // map is vector inside union_find
@@ -34,7 +34,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let mut lock = self.unionfind.borrow_mut();
         assert!(i.0 <= lock.len());
-        debug!("set unionfind {i:?} -> {pai:?}");
+        trace!("set unionfind {i:?} -> {pai:?}");
         if lock.len() == i.0 {
             lock.push(pai);
         } else {

@@ -153,7 +153,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         ProgressMeasure {
             number_of_classes: self.classes.len(),
             number_of_live_classes: ids.len(),
-            sum_of_symmetries: ids.iter().map(|x| self.classes[x].group.count()).sum(),
+            sum_of_symmetries: ids.iter().map(|x| self.classes[x].group().count()).sum(),
             sum_of_slots: ids.iter().map(|x| self.slots(*x).len()).sum(),
         }
     }

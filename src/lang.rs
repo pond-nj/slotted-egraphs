@@ -909,6 +909,14 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
         (c, bij)
     }
 
+    #[cfg(not(feature = "newShape"))]
+    fn weak_shape(&self) -> (Self, Bijection) {
+        let mut c = self.clone();
+        let bij = c.weak_shape_inplace();
+        (c, bij)
+    }
+
+    #[cfg(feature = "newShape")]
     fn weak_shape(&self) -> (Self, Bijection) {
         let appIds: Vec<AppliedId> = self
             .applied_id_occurrences()
@@ -921,7 +929,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
             let bij = c.weak_shape_inplace();
             return (c, bij);
         }
-        let (lab, _, slotsToV) = canonicalLabelAppIds(&appIds);
+        let (lab, _, slotsToV) = canonicalLabelAppIds(&appIds, None);
 
         let mut vToSlots = BTreeMap::new();
         for (s, v) in slotsToV.iter() {
@@ -952,6 +960,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
         }
 
         trace!("shape {self:?} -> {:?} {:?}", eNew, slotsToNewIdx.inverse());
+        trace!("orig_weak_shape {:?}", self.orig_weak_shape());
         (eNew, slotsToNewIdx.inverse())
     }
 

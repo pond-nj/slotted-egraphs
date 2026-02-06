@@ -31,6 +31,9 @@ use std::{
 
 mod print;
 
+mod eclass;
+pub use eclass::*;
+
 use log::{debug, error, trace};
 pub use print::*;
 
@@ -83,31 +86,6 @@ pub(crate) enum PendingType {
     Full,         // the e-node, it's strong shape & the analysis need to be updated.
 }
 
-/// Each E-Class can be understood "semantically" or "syntactically":
-/// - semantically means that it respects the equations already in the e-graph, and hence doesn't differentiate between equal things.
-/// - syntactically means that it only talks about the single representative term associated to each E-Class, recursively obtainable using syn_enode.
-#[derive(Clone)]
-pub struct EClass<L: Language, N: Analysis<L>> {
-    // The set of equivalent ENodes that make up this eclass.
-    // for (sh, bij) in nodes; sh.apply_slotmap(bij) represents the actual ENode.
-    pub nodes: BTreeMap<L, ProvenSourceNode>,
-
-    // All other slots are considered "redundant" (or they have to be qualified by a ENode::Lam).
-    // Should not contain Slot(0).
-    pub slots: SmallHashSet<Slot>,
-
-    // Shows which Shapes refer to this EClass.
-    usages: BTreeSet<L>,
-
-    // Expresses the self-symmetries of this e-class.
-    pub group: Group<ProvenPerm>,
-
-    // TODO remove this if explanations are disabled.
-    syn_enode: L,
-
-    analysis_data: N::Data,
-}
-
 impl<L: Language, N: Analysis<L> + Default> Default for EGraph<L, N> {
     fn default() -> Self {
         EGraph::new(N::default())
@@ -155,7 +133,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // slot of syn_enode
     pub(crate) fn syn_slots(&self, id: Id) -> SmallHashSet<Slot> {
-        self.classes[&id].syn_enode.slots()
+        self.classes[&id].syn_enode().slots()
     }
 
     pub fn analysis_data(&self, i: Id) -> &N::Data {
@@ -294,7 +272,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(&perm.values_set(), &self.classes[&id].slots);
         }
 
-        self.classes[&id].group.contains(&perm)
+        self.classes[&id].group().contains(&perm)
     }
 
     // refreshes all internal slots of l.
@@ -336,7 +314,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // The resulting e-nodes are written as they exist in the e-class.
     pub(crate) fn usages(&self, i: Id) -> Vec<L> {
         let mut out = Vec::new();
-        for x in &self.classes[&i].usages {
+        for x in self.classes[&i].usages() {
             let j = self.lookup(x).unwrap().id;
             let bij = &self.classes[&j].nodes[&x].elem;
             let x = x.apply_slotmap(bij);
@@ -345,11 +323,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
-    // pub fn shape(&self, e: &L) -> (L, Bijection) {
-    //     let (pnode, bij) = self.proven_shape(e);
-    //     (pnode.elem, bij)
-    // }
+    #[cfg(not(feature = "newShape"))]
+    pub fn shape(&self, e: &L) -> (L, Bijection) {
+        let (pnode, bij) = self.proven_shape(e);
+        (pnode.elem, bij)
+    }
 
+    #[cfg(feature = "newShape")]
     pub fn shape(&self, eOrig: &L) -> (L, Bijection) {
         let e = eOrig;
         let appIds: Vec<AppliedId> = e
@@ -366,11 +346,23 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             );
             return e.weak_shape();
         }
-        // let allPerms: Vec<Vec<ProvenPerm>> = appIds
-        //     .iter()
-        //     .map(|x| self.classes[&x.id].group.all_perms().into_iter().collect())
-        //     .collect();
-        let (lab, _, slotsToV) = canonicalLabelAppIds(&appIds);
+        let allPerms: Vec<Vec<ProvenPerm>> = appIds
+            .iter()
+            .map(|x| {
+                self.classes[&x.id]
+                    .group()
+                    .all_perms()
+                    .into_iter()
+                    .collect()
+            })
+            .collect();
+        let (lab, _, slotsToV) = canonicalLabelAppIds(&appIds, Some(&allPerms));
+
+        trace!(
+            "allPerms {:?}\n orig_weak_shape {:?}",
+            allPerms,
+            eOrig.orig_weak_shape()
+        );
 
         let mut vToSlots = BTreeMap::new();
         for (s, v) in slotsToV.iter() {
@@ -388,7 +380,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut shaped: Vec<AppliedId> = vec![];
         for appId in appIds {
             let perms: Vec<_> = self.classes[&appId.id]
-                .group
+                .group()
                 .all_perms()
                 .into_iter()
                 .collect();
@@ -423,6 +415,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             eNew,
             slotsToNewIdx.inverse()
         );
+        trace!("orig_weak_shape {:?}", eOrig.orig_weak_shape());
         (eNew, slotsToNewIdx.inverse())
     }
 
@@ -497,7 +490,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .elem
             .ids()
             .iter()
-            .all(|i| self.classes[i].group.is_trivial())
+            .all(|i| self.classes[i].group().is_trivial())
         {
             out.push(enode.clone());
             return out;
@@ -508,14 +501,20 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .elem
             .applied_id_occurrences()
             .iter()
-            .map(|x| self.classes[&x.id].group.all_perms().into_iter().collect())
+            .map(|x| {
+                self.classes[&x.id]
+                    .group()
+                    .all_perms()
+                    .into_iter()
+                    .collect()
+            })
             .collect();
 
-        println!("cartesian: ");
+        trace!("cartesian: ");
         for g in groups.iter() {
-            print!("{} ", g.len());
+            trace!("{} ", g.len());
         }
-        print!(
+        trace!(
             "\n = {}\n",
             groups.iter().map(|x| x.len()).product::<usize>()
         );
@@ -689,7 +688,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     /// Returns the canonical e-node corresponding to `i`.
     pub fn get_syn_node(&self, i: &AppliedId) -> L {
-        let syn_enode = &self.classes[&i.id].syn_enode;
+        let syn_enode = &self.classes[&i.id].syn_enode();
         let syn = self.find_enode(syn_enode);
 
         let _syn_slots = syn.slots();
@@ -703,12 +702,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn getSynNodeNoSubst(&self, i: &Id) -> &L {
-        &self.classes[i].syn_enode
+        &self.classes[i].syn_enode()
     }
 
     pub fn getSlotPermutation(&self, i: &Id) -> Vec<SlotMap> {
         let c = self.eclass(*i).unwrap();
-        c.group.generators().into_iter().map(|x| x.elem).collect()
+        c.group().generators().into_iter().map(|x| x.elem).collect()
     }
 }
 

@@ -1,54 +1,24 @@
-[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f136, $f6 -> $f137)
-[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f139, $f6 -> $f138)
-[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f142, $f6 -> $f148)
-[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f143, $f6 -> $f149)
-[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f144, $f74 -> $f134)
-[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f145, $f74 -> $f135)
-[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f140, $f74 -> $f146)
-[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f141, $f74 -> $f147)
-[TRACE slotted_egraphs::egraph] id id27 allPerms [ProvenPerm { elem: ($f112 -> $f112, $f113 -> $f113) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f112 -> $f144, $f113 -> $f145)
-[TRACE slotted_egraphs::egraph] id id29 allPerms [ProvenPerm { elem: ($f115 -> $f115, $f116 -> $f116) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f115 -> $f144, $f116 -> $f150)
+found enode And(OrderVec([AppliedId(id3: ($f2020)), AppliedId(id4: ($f2024, $f2026)), AppliedId(id4: ($f2025, $f2026)), AppliedId(id4: ($f2025, $f2241)), AppliedId(id4: ($f2021, $f2242)), AppliedId(id4: ($f2023, $f2243)), AppliedId(id4: ($f2022, $f2241)), AppliedId(id21: ($f2244, $f1588)), AppliedId(id21: ($f2246, $f1590)), AppliedId(id21: ($f2245, $f1589)), AppliedId(id21: ($f2245, $f1591)), AppliedId(id70: ($f2244, $f2246)), AppliedId(id78: ($f2244, $f2245))]))
 
-[TRACE slotted_egraphs::types] appIdsVec [id4: ($f136, $f137), id4: ($f139, $f138), id4: ($f142, $f148), id4: ($f143, $f149), id21: ($f144, $f134), id21: ($f145, $f135), id21: ($f140, $f146), id21: ($f141, $f147), id27: ($f144, $f145), id29: ($f144, $f150)]
-[TRACE slotted_egraphs::types] lab [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 25, 28, 26, 29, 2, 5, 8, 11, 14, 17, 20, 23, 13, 16, 19, 22, 1, 4, 7, 10, 40, 41, 46, 32, 35, 38, 39, 36, 37, 33, 34, 45, 44, 30, 31, 43, 42]
-And(OrderVec([AppliedId(id4: ($3, $9)), AppliedId(id4: ($4, $10)), AppliedId(id4: ($5, $12)), AppliedId(id4: ($6, $11)), AppliedId(id21: ($0, $13)), AppliedId(id21: ($1, $14)), AppliedId(id21: ($7, $16)), AppliedId(id21: ($8, $15)), AppliedId(id27: ($0, $1)), AppliedId(id29: ($0, $2))]))
+orig_weak_shape (And(OrderVec([AppliedId(id3: ($0)), AppliedId(id4: ($1, $2)), AppliedId(id4: ($3, $2)), AppliedId(id4: ($3, $4)), AppliedId(id4: ($5, $6)), AppliedId(id4: ($7, $8)), AppliedId(id4: ($9, $4)), AppliedId(id21: ($10, $11)), AppliedId(id21: ($12, $13)), AppliedId(id21: ($14, $15)), AppliedId(id21: ($14, $16)), AppliedId(id70: ($10, $12)), AppliedId(id78: ($10, $14))])), ($0 -> $f2020, $1 -> $f2024, $2 -> $f2026, $3 -> $f2025, $4 -> $f2241, $5 -> $f2021, $6 -> $f2242, $7 -> $f2023, $8 -> $f2243, $9 -> $f2022, $10 -> $f2244, $11 -> $f1588, $12 -> $f2246, $13 -> $f1590, $14 -> $f2245, $15 -> $f1589, $16 -> $f1591))
 
-[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f136, $f6 -> $f137)
-[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f139, $f6 -> $f138)
-[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f142, $f6 -> $f148)
-[TRACE slotted_egraphs::egraph] id id4 allPerms [ProvenPerm { elem: ($f5 -> $f5, $f6 -> $f6) }, ProvenPerm { elem: ($f5 -> $f6, $f6 -> $f5) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f5 -> $f143, $f6 -> $f149)
-[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f134, $f74 -> $f144)
-[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f135, $f74 -> $f145)
-[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f140, $f74 -> $f146)
-[TRACE slotted_egraphs::egraph] id id21 allPerms [ProvenPerm { elem: ($f73 -> $f73, $f74 -> $f74) }, ProvenPerm { elem: ($f73 -> $f74, $f74 -> $f73) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f73 -> $f141, $f74 -> $f147)
-[TRACE slotted_egraphs::egraph] id id27 allPerms [ProvenPerm { elem: ($f112 -> $f112, $f113 -> $f113) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f112 -> $f144, $f113 -> $f145)
-[TRACE slotted_egraphs::egraph] id id29 allPerms [ProvenPerm { elem: ($f115 -> $f115, $f116 -> $f116) }]
-[TRACE slotted_egraphs::egraph] appId.m ($f115 -> $f144, $f116 -> $f150)
+shape (And(OrderVec([AppliedId(id3: ($0)), AppliedId(id4: ($8, $15)), AppliedId(id4: ($14, $15)), AppliedId(id4: ($14, $16)), AppliedId(id4: ($4, $5)), AppliedId(id4: ($6, $7)), AppliedId(id4: ($9, $16)), AppliedId(id21: ($1, $10)), AppliedId(id21: ($2, $11)), AppliedId(id21: ($3, $12)), AppliedId(id21: ($3, $13)), AppliedId(id70: ($1, $2)), AppliedId(id78: ($1, $3))])), ($0 -> $f2020, $1 -> $f2244, $2 -> $f2246, $3 -> $f2245, $4 -> $f2021, $5 -> $f2242, $6 -> $f2023, $7 -> $f2243, $8 -> $f2024, $9 -> $f2022, $10 -> $f1588, $11 -> $f1590, $12 -> $f1589, $13 -> $f1591, $14 -> $f2025, $15 -> $f2026, $16 -> $f2241))
 
-[id4: ($f136, $f137), id4: ($f139, $f138), id4: ($f142, $f148), id4: ($f143, $f149), id21: ($f134, $f144), id21: ($f135, $f145), id21: ($f140, $f146), id21: ($f141, $f147), id27: ($f144, $f145), id29: ($f144, $f150)]
-lab [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 25, 28, 26, 29, 2, 5, 8, 11, 14, 17, 20, 23, 13, 16, 19, 22, 1, 4, 7, 10, 40, 41, 46, 32, 35, 38, 39, 30, 31, 36, 37, 33, 34, 45, 44, 43, 42]
-And(OrderVec([AppliedId(id4: ($3, $11)), AppliedId(id4: ($4, $12)), AppliedId(id4: ($5, $14)), AppliedId(id4: ($6, $13)), AppliedId(id21: ($0, $7)), AppliedId(id21: ($1, $8)), AppliedId(id21: ($9, $16)), AppliedId(id21: ($10, $15)), AppliedId(id27: ($0, $1)), AppliedId(id29: ($0, $2))]))
+weak shape (And(OrderVec([AppliedId(id3: ($0)), AppliedId(id4: ($4, $16)), AppliedId(id4: ($8, $16)), AppliedId(id4: ($8, $15)), AppliedId(id4: ($6, $10)), AppliedId(id4: ($7, $9)), AppliedId(id4: ($5, $15)), AppliedId(id21: ($1, $11)), AppliedId(id21: ($2, $12)), AppliedId(id21: ($3, $13)), AppliedId(id21: ($3, $14)), AppliedId(id70: ($1, $2)), AppliedId(id78: ($1, $3))])), ($0 -> $f2020, $1 -> $f2244, $2 -> $f2246, $3 -> $f2245, $4 -> $f2024, $5 -> $f2022, $6 -> $f2021, $7 -> $f2023, $8 -> $f2025, $9 -> $f2243, $10 -> $f2242, $11 -> $f1588, $12 -> $f1590, $13 -> $f1589, $14 -> $f1591, $15 -> $f2241, $16 -> $f2026))
+
+in syn hashcons: Some(id125: ($11, $13, $12, $14, $0, $6, $5, $7, $4, $8, $16, $15, $10, $9, $1, $3, $2))
 
 
-compose
-[id4: ($f136, $f137), id4: ($f139, $f138), id4: ($f142, $f148), id4: ($f143, $f149), id21: ($f144, $f134), id21: ($f145, $f135), id21: ($f140, $f146), id21: ($f141, $f147), id27: ($f144, $f145), id29: ($f144, $f150)]
-[id4: ($f136, $f137), id4: ($f139, $f138), id4: ($f142, $f148), id4: ($f143, $f149), id21: ($f134, $f144), id21: ($f135, $f145), id21: ($f140, $f146), id21: ($f141, $f147), id27: ($f144, $f145), id29: ($f144, $f150)]
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    And(OrderVec([AppliedId(id3: ($0)), AppliedId(id4: ($4, $16)), AppliedId(id4: ($8, $16)), AppliedId(id4: ($8, $15)), AppliedId(id4: ($6, $10)), AppliedId(id4: ($7, $9)), AppliedId(id4: ($5, $15)), AppliedId(id21: ($1, $11)), AppliedId(id21: ($2, $12)), AppliedId(id21: ($3, $13)), AppliedId(id21: ($3, $14)), AppliedId(id70: ($1, $2)), AppliedId(id78: ($1, $3))]))
+    
+    orig And(OrderVec([AppliedId(id3: ($f3761)), AppliedId(id4: ($f3765, $f3767)), AppliedId(id4: ($f3766, $f3767)), AppliedId(id4: ($f3766, $f3768)), AppliedId(id4: ($f3762, $f3769)), AppliedId(id4: ($f3764, $f3770)), AppliedId(id4: ($f3763, $f3768)), AppliedId(id21: ($f3771, $f3757)), AppliedId(id21: ($f3773, $f3759)), AppliedId(id21: ($f3772, $f3758)), AppliedId(id21: ($f3772, $f3760)), AppliedId(id70: ($f3771, $f3773)), AppliedId(id78: ($f3771, $f3772))]))
+    
+    shape (And(OrderVec([AppliedId(id3: ($0)), AppliedId(id4: ($8, $15)), AppliedId(id4: ($14, $15)), AppliedId(id4: ($14, $16)), AppliedId(id4: ($4, $5)), AppliedId(id4: ($6, $7)), AppliedId(id4: ($9, $16)), AppliedId(id21: ($1, $10)), AppliedId(id21: ($2, $11)), AppliedId(id21: ($3, $12)), AppliedId(id21: ($3, $13)), AppliedId(id70: ($1, $2)), AppliedId(id78: ($1, $3))])), ($0 -> $0, $1 -> $1, $2 -> $2, $3 -> $3, $4 -> $6, $5 -> $10, $6 -> $7, $7 -> $9, $8 -> $4, $9 -> $5, $10 -> $11, $11 -> $12, $12 -> $13, $13 -> $14, $14 -> $8, $15 -> $16, $16 -> $15))
+    
+    orig_weak_shape (And(OrderVec([AppliedId(id3: ($0)), AppliedId(id4: ($1, $2)), AppliedId(id4: ($3, $2)), AppliedId(id4: ($3, $4)), AppliedId(id4: ($5, $6)), AppliedId(id4: ($7, $8)), AppliedId(id4: ($9, $4)), AppliedId(id21: ($10, $11)), AppliedId(id21: ($12, $13)), AppliedId(id21: ($14, $15)), AppliedId(id21: ($14, $16)), AppliedId(id70: ($10, $12)), AppliedId(id78: ($10, $14))])), ($0 -> $0, $1 -> $4, $2 -> $16, $3 -> $8, $4 -> $15, $5 -> $6, $6 -> $10, $7 -> $7, $8 -> $9, $9 -> $5, $10 -> $1, $11 -> $11, $12 -> $2, $13 -> $12, $14 -> $3, $15 -> $13, $16 -> $14))
+    
+     -> id125
+
+[TRACE slotted_egraphs::egraph::add] lookup no result (And(OrderVec([AppliedId(id3: ($0)), AppliedId(id4: ($8, $15)), AppliedId(id4: ($14, $15)), AppliedId(id4: ($14, $16)), AppliedId(id4: ($4, $5)), AppliedId(id4: ($6, $7)), AppliedId(id4: ($9, $16)), AppliedId(id21: ($1, $10)), AppliedId(id21: ($2, $11)), AppliedId(id21: ($3, $12)), AppliedId(id21: ($3, $13)), AppliedId(id70: ($1, $2)), AppliedId(id78: ($1, $3))])), ($0 -> $f2020, $1 -> $f2244, $2 -> $f2246, $3 -> $f2245, $4 -> $f2021, $5 -> $f2242, $6 -> $f2023, $7 -> $f2243, $8 -> $f2024, $9 -> $f2022, $10 -> $f1588, $11 -> $f1590, $12 -> $f1589, $13 -> $f1591, $14 -> $f2025, $15 -> $f2026, $16 -> $f2241))

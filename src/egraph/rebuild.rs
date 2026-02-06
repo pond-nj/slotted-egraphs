@@ -88,7 +88,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let syn_slots = &self.syn_slots(id);
         let c = self.classes.get_mut(&id).unwrap();
-        let grp = &c.group;
+        let grp = &c.group();
 
         let mut final_cap = cap.clone();
 
@@ -100,7 +100,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // update class slots
         c.slots = cap.clone();
-        let generators = c.group.generators();
+        let oldGenerators = c.group().generators();
         let _ = c;
 
         let restrict_proven = |proven_perm: ProvenPerm| {
@@ -132,24 +132,24 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             out
         };
 
-        let generators = generators.into_iter().map(restrict_proven).collect();
+        let generators = oldGenerators.into_iter().map(restrict_proven).collect();
         let identity = ProvenPerm::identity(id, &cap, syn_slots, self.proof_registry.clone());
         if CHECKS {
             identity.check();
         }
         let c = self.classes.get_mut(&id).unwrap();
-        c.group = Group::new(&identity, generators);
+        *c.groupMut() = Group::new(&identity, generators);
 
         self.touched_class(from.id, PendingType::Full);
     }
 
     pub fn rebuild(&mut self) {
-        info!("doing rebuild");
+        debug!("doing rebuild");
         if CHECKS {
             self.check();
         }
 
-        info!("start pending loops");
+        trace!("start pending loops");
         while !self.pending.is_empty() {
             debug!("pending lens {}", self.pending.len());
             let pending_batch = std::mem::take(&mut self.pending);
@@ -215,7 +215,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     fn handle_pending(&mut self, sh: &L, _pending_ty: PendingType) {
         // TODO: this is a hack to make the test pass
-        info!("start handle_pending");
+        debug!("start handle_pending");
+        trace!("handle_pending {sh:?}");
         if self.hashcons.get(&sh).is_none() {
             return;
         }
@@ -365,7 +366,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     proven_perm.check();
                 }
                 // should be the place that updates this group permutation if children eclasses are permuted
-                let grp = &mut self.classes.get_mut(&i).unwrap().group;
+                let grp = self.classes.get_mut(&i).unwrap().groupMut();
                 if grp.add(proven_perm) {
                     self.touched_class(i, PendingType::Full);
                 }
@@ -385,7 +386,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // add parent to pending
     // upon touching an e-class, you need to update all usages of it.
     pub(crate) fn touched_class(&mut self, i: Id, pending_ty: PendingType) {
-        for sh in &self.classes[&i].usages {
+        for sh in self.classes[&i].usages() {
             let v = self.pending.entry(sh.clone()).or_insert(pending_ty);
             *v = v.merge(pending_ty);
         }

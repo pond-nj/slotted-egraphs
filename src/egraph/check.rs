@@ -118,11 +118,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         assert_eq!(hashcons, self.hashcons);
         for (i, c) in &self.classes {
-            assert_eq!(usages[&i], c.usages);
+            assert_eq!(&usages[&i], c.usages());
         }
 
         for (_, c) in &self.classes {
-            for p in c.group.all_perms() {
+            for p in c.group().all_perms() {
                 p.check();
             }
         }
@@ -144,7 +144,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 assert_eq!(self.unionfind_get(i), self.mk_sem_identity_applied_id(i));
             } else {
                 assert!(self.classes[&i].nodes.is_empty());
-                for sh in &self.classes[&i].usages {
+                for sh in self.classes[&i].usages() {
                     assert_eq!(self.pending.get(&sh), Some(&PendingType::Full));
                 }
             }
@@ -198,7 +198,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     })
                     .collect();
 
-                if !c.group.contains(&perm) {
+                if !c.group().contains(&perm) {
                     error!("");
                     error!("egraph {self:?}");
                     error!("sh {sh:?}");
@@ -210,13 +210,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                         "computed_bij.inverse().compose_intersect(&bij) = perm {:?}",
                         perm
                     );
-                    error!("all perms {:?}", c.group.all_perms());
+                    error!("all perms {:?}", c.group().all_perms());
                     error!("eclass {cid} {:?}", c);
-                    error!("c.group {:?}", c.group);
+                    error!("c.group {:?}", c.group());
                     error!("");
                 }
 
-                assert!(c.group.contains(&perm));
+                assert!(c.group().contains(&perm));
 
                 for x in real.applied_id_occurrences() {
                     check_internal_applied_id::<L, N>(self, &x);

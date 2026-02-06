@@ -132,10 +132,10 @@ impl AppliedId {
 }
 
 // TODO: can we not change L here into AppliedId?
-pub fn canonicalLabelAppIds(
-    appIdsVec: &Vec<AppliedId>,
-    // allPerms: &Option<Vec<Vec<ProvenPerm>>>,
-) -> (Vec<i32>, Vec<(&AppliedId, usize)>, BTreeMap<Slot, usize>) {
+pub fn canonicalLabelAppIds<'a>(
+    appIdsVec: &'a Vec<AppliedId>,
+    allPerms: Option<&Vec<Vec<ProvenPerm>>>,
+) -> (Vec<i32>, Vec<(&'a AppliedId, usize)>, BTreeMap<Slot, usize>) {
     if appIdsVec.len() == 0 {
         return (vec![], vec![], BTreeMap::new());
     }
@@ -162,6 +162,7 @@ pub fn canonicalLabelAppIds(
     // must be vec because there might be duplicates
     let mut appIdToV = Vec::new();
     let mut argsV = vec![];
+    // vertex for each function + its argument position
     for child in appIdsVec.iter() {
         appIdToV.push((child, totalV));
         for i in 0..child.len() {
@@ -171,6 +172,7 @@ pub fn canonicalLabelAppIds(
         allSlots.extend(child.public_slot_occurrences_iter());
     }
 
+    // vertex for each slot
     let mut slotsToV = BTreeMap::new();
     for s in allSlots {
         slotsToV.insert(s, totalV);
@@ -207,15 +209,19 @@ pub fn canonicalLabelAppIds(
         }
     }
 
-    // if allPerms.is_some() {
-    //     let allPerms = allPerms.unwrap();
-    //     assert!(allPerms.len() == appIdToV.len());
-    //     for (i, perms) in allPerms.iter().enumerate() {
-    //         for p in perms {
-    //             let newArgs = p.elem.composePartial(appIdsVec[i].m);
-    //         }
-    //     }
-    // }
+    if allPerms.is_some() {
+        let allPerms = allPerms.as_ref().unwrap();
+        assert!(allPerms.len() == appIdToV.len());
+        for (i, perms) in allPerms.iter().enumerate() {
+            let startArgsV = appIdToV[i].1 + 1;
+            for p in perms {
+                let newArgs = p.elem.composePartial(&appIdsVec[i].m);
+                for (j, s) in newArgs.values_immut().enumerate() {
+                    ADDONEEDGE(&mut g, startArgsV + j, slotsToV[s], m);
+                }
+            }
+        }
+    }
 
     // color sorted by eclass id then follow by args and vars
     let mut appIdToVVec = appIdToV
@@ -265,8 +271,7 @@ pub fn canonicalLabelAppIds(
     for i in currLabLen..totalV {
         lab.push(i as i32);
     }
-    // println!("totalV {totalV}");
-    // println!("currLabLen {currLabLen}");
+
     assert_eq!(totalV - currLabLen, slotsToV.len());
     if slotsToV.len() > 0 {
         for _ in 0..slotsToV.len() - 1 {
@@ -328,7 +333,7 @@ pub fn sortAppId(appIdsOrigs: &Vec<AppliedId>) -> Vec<AppliedId> {
         return appIdsSorted;
     }
     info!("start sortAppId");
-    let (lab, appIdToV, _) = canonicalLabelAppIds(&appIdsSorted);
+    let (lab, appIdToV, _) = canonicalLabelAppIds(&appIdsSorted, None);
 
     let mut VToAppIds = BTreeMap::new();
     for (id, v) in appIdToV {

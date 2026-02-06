@@ -118,7 +118,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn add(&mut self, enode: L) -> AppliedId {
-        // major time is in add_internal
+        debug!("add {enode:?}");
         let sh = self.shape_called_from_add(enode.clone());
         let addedId = self.add_internal(sh);
         addedId
@@ -137,8 +137,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let lookupRes = self.lookup_internal(&t);
         trace!("lookup {t:?} -> {lookupRes:?}");
         if let Some(x) = lookupRes {
+            // let (sh, bij) = t;
+            // let (sh_weakshape, bij_weak) = sh.apply_slotmap(&bij).weak_shape();
+            // if sh_weakshape != sh {
+            //     if self.lookup_internal(&(sh_weakshape, bij_weak)).is_some() {
+            //         panic!("add_internal: shape {sh:?} already exists");
+            //     }
+            // }
+
             return x;
         }
+        trace!("lookup no result {t:?}");
 
         if CHECKS {
             assert!(
@@ -153,12 +162,26 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // change private slot, apply slot map to Enode
         let enode = t.0.refresh_private().apply_slotmap(&t.1);
         if CHECKS {
-            let synHashconsResult = self.syn_hashcons.get(&enode.weak_shape().0);
+            let enodeWeakShape = enode.weak_shape();
+            let synHashconsResult = self.syn_hashcons.get(&enodeWeakShape.0);
+            let shape = self.shape(&enode);
             assert!(
                 synHashconsResult.is_none(),
-                "found enode {:?} in syn hashcons: {:?}",
+                "found weak_shape in syn_hashcons: {:?}\n
+orig {:?}\n
+orig_weak_shape {:?}\n
+shape {:?}\n
+in syn hashcons: {:?}\n
+lookup shape result in hashcons: {:?}
+lookup weak_shape result in hashcons: {:?}
+",
+                enodeWeakShape,
                 enode,
-                synHashconsResult
+                enode.orig_weak_shape(),
+                shape,
+                synHashconsResult,
+                self.hashcons.get(&shape.0),
+                self.hashcons.get(&enodeWeakShape.0)
             );
         }
         // println!("enode before = {:?}", enode.weak_shape().0);
@@ -302,8 +325,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         (sh, bij): (L, Bijection),
         src_id: Id,
     ) {
-        trace!("add to class {id:?} {:?}", sh);
-        let psn = ProvenSourceNode { elem: bij, src_id };
+        debug!("raw_add_to_class: add to class {id:?} {:?}", sh);
+        let psn = ProvenSourceNode {
+            elem: bij.clone(),
+            src_id,
+        };
 
         let tmp1 = self
             .classes
@@ -317,7 +343,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
         // synified version is added to hashcons from self.add
         // non-synified version is added to hashcons from self.handle_pending
-        trace!("insert to hashcons {sh:?} -> {id:?}");
+        trace!(
+            "insert to hashcons\n
+{sh:?}\n
+orig {:?}\n
+shape {:?}\n
+orig_weak_shape {:?}\n
+ -> {id:?}",
+            sh.apply_slotmap(&bij),
+            self.shape(&sh),
+            sh.orig_weak_shape()
+        );
         let tmp2 = self.hashcons.insert(sh.clone(), id);
         if CHECKS {
             // hashcons should contain semify enode
@@ -325,7 +361,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert!(tmp2.is_none());
         }
         for ref_id in sh.ids() {
-            let usages = &mut self.classes.get_mut(&ref_id).unwrap().usages;
+            let usages = &mut self.classes.get_mut(&ref_id).unwrap().usagesMut();
             usages.insert(sh.clone());
         }
     }
@@ -333,13 +369,20 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(in crate::egraph) fn raw_remove_from_class(&mut self, id: Id, sh: L) -> ProvenSourceNode {
         let opt_psn = self.classes.get_mut(&id).unwrap().nodes.remove(&sh);
         let opt_id = self.hashcons.remove(&sh);
-        // println!("remove from hashcons {:?} -> {opt_id:?}", sh);
+        trace!(
+            "remove from hashcons\n
+orig_weak_shape {:?}\n
+{:?}\n
+ -> {opt_id:?}",
+            sh.orig_weak_shape(),
+            sh
+        );
         if CHECKS {
             assert!(opt_psn.is_some());
             assert!(opt_id.is_some());
         }
         for ref_id in sh.ids() {
-            let usages = &mut self.classes.get_mut(&ref_id).unwrap().usages;
+            let usages = &mut self.classes.get_mut(&ref_id).unwrap().usagesMut();
             usages.remove(&sh);
         }
 
@@ -359,20 +402,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         slots: &SmallHashSet<Slot>,
         syn_enode: L,
     ) -> Id {
+        debug!("alloc_eclass {syn_enode:?}");
         let c_id = Id(self.unionfind_len()); // Pick the next unused Id.
 
         let syn_slots = syn_enode.slots();
         let proven_perm =
             ProvenPerm::identity(c_id, &slots, &syn_slots, self.proof_registry.clone());
 
-        let c = EClass {
-            nodes: BTreeMap::default(),
-            group: Group::identity(&proven_perm),
-            slots: slots.clone(),
-            usages: BTreeSet::default(),
-            syn_enode: syn_enode.clone(),
-            analysis_data: N::make(&self, &syn_enode),
-        };
+        let c = EClass::new(
+            BTreeMap::default(),
+            slots.clone(),
+            BTreeSet::default(),
+            Group::identity(&proven_perm),
+            syn_enode.clone(),
+            N::make(&self, &syn_enode),
+        );
         self.classes.insert(c_id, c);
 
         {
@@ -390,7 +434,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let app_id = self.mk_syn_applied_id(c_id, bij.inverse());
             // by applying app_id to this Eclass, there will be one Enode in the eclass that matches shape
             // because this appliedId is created from inverse of bijection
-            trace!("insert to syn_hashcons {sh:?} -> {app_id:?}");
+            trace!(
+                "insert weak_shape to syn_hashcons\n
+{sh:?}\n
+orig {syn_enode:?}\n
+shape {:?}\n
+orig_weak_shape {:?}\n
+-> {app_id:?}",
+                self.shape(&syn_enode),
+                syn_enode.orig_weak_shape()
+            );
             self.syn_hashcons.insert(sh, app_id);
         }
 

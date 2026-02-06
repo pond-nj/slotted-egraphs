@@ -111,7 +111,7 @@ macro_rules! checkNewENodeComponent {
             }
         }
         if !found && $syntax.m.values_set().len() != 0 {
-            println!(
+            warn!(
                 "alert syntax = {:?}, cond = {:?}, children = {:?}",
                 $syntax, $cond, $children
             );

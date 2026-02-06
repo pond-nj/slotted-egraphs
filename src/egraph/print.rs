@@ -19,7 +19,7 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
         write!(f, "\n{:?}", self.analysis_data)?;
         write!(f, "\n({}):", &slot_str)?;
 
-        write!(f, ">> {:?}\n", &self.syn_enode)?;
+        write!(f, ">> {:?}\n", &self.syn_enode())?;
 
         for (sh, psn) in &self.nodes {
             let node = sh.apply_slotmap(&psn.elem);
@@ -31,7 +31,7 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
             write!(f, " - {node:?}\n")?;
             write!(f, " >- {sh:?}\n")?;
         }
-        for pp in &self.group.generators() {
+        for pp in &self.group().generators() {
             write!(f, " -- {:?}\n", pp.elem)?;
         }
 
