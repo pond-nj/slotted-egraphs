@@ -245,7 +245,7 @@ where
             self.stop_reason = Some(stop_reason);
         }
         self.hooks = hooks;
-        info!("done run one");
+        println!("done run one");
     }
 }
 

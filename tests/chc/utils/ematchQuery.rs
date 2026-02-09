@@ -25,7 +25,6 @@ fn ematchQueryAllInEclassInternal(
     i: AppliedId,
     eg: &CHCEGraph,
 ) -> Vec<State> {
-    assert!(false);
     trace!("try match in eclass {i:?} with pattern {pattern}");
     match &pattern {
         Pattern::PVar(v) => {

@@ -144,7 +144,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn rebuild(&mut self) {
-        debug!("doing rebuild");
+        println!("start rebuild");
         if CHECKS {
             self.check();
         }
@@ -171,7 +171,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             N::modify(self, i);
         }
         info!("end modify_queue");
-        info!("done rebuild");
+        println!("done rebuild");
     }
 
     pub fn handleSorted(&mut self, sh: &L) {

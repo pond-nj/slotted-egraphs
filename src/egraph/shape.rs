@@ -41,7 +41,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 e.weak_shape().0,
                 e.weak_shape().1
             );
-            return e.weak_shape();
+            return e.orig_weak_shape();
         }
         let allPerms: Vec<Vec<ProvenPerm>> = appIds
             .iter()
