@@ -54,6 +54,17 @@ impl<L: Language> ProvenNode<L> {
         };
         (pn, bij)
     }
+
+    pub(crate) fn orig_weak_shape(&self) -> (Self, Bijection) {
+        let (sh, bij) = self.elem.orig_weak_shape();
+        let pn = ProvenNode {
+            elem: sh,
+
+            #[cfg(feature = "explanations")]
+            proofs: self.proofs.clone(),
+        };
+        (pn, bij)
+    }
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {

@@ -918,6 +918,11 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
 
     #[cfg(feature = "newShape")]
     fn weak_shape(&self) -> (Self, Bijection) {
+        let childrenType = self.getChildrenType();
+        if childrenType.contains(&LanguageChildrenType::Bind) {
+            return self.orig_weak_shape();
+        }
+
         let appIds: Vec<AppliedId> = self
             .applied_id_occurrences()
             .into_iter()
@@ -960,8 +965,14 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
         }
 
         trace!("shape {self:?} -> {:?} {:?}", eNew, slotsToNewIdx.inverse());
-        trace!("orig_weak_shape {:?}", self.orig_weak_shape());
-        (eNew, slotsToNewIdx.inverse())
+        // trace!("orig_weak_shape {:?}", self.orig_weak_shape());
+
+        let (eNewWS, bij) = eNew.orig_weak_shape();
+        trace!("slotsToNewIdx {slotsToNewIdx:?}");
+        trace!("slotmap {bij:?}");
+        (eNewWS, bij.composePartial(&slotsToNewIdx.inverse()))
+
+        // (eNew, slotsToNewIdx.inverse())
     }
 
     // returned new Enode with replaced private slot

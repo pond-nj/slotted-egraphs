@@ -16,6 +16,7 @@ pub fn sdql_rules() -> Vec<Rewrite<Sdql>> {
 
 #[test]
 fn t1() {
+    initLogger();
     let input = &format!("(lambda $R (lambda $a (sum (var $R) $i $j (sing (var $a) (var $j)))))");
 
     let re: RecExpr<Sdql> = RecExpr::parse(input).unwrap();

@@ -151,9 +151,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         trace!("start pending loops");
         while !self.pending.is_empty() {
-            debug!("pending lens {}", self.pending.len());
             let pending_batch = std::mem::take(&mut self.pending);
             for (sh, pending_ty) in pending_batch {
+                trace!("deal with pending {sh:?}");
                 self.handleSorted(&sh);
                 self.handle_pending(&sh, pending_ty);
             }
@@ -277,6 +277,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 m.insert(x, Slot::fresh());
             }
         }
+        trace!("app_i {app_i:?}");
+        trace!("bij {bij:?}");
+        trace!("m {m:?}");
         let bij = bij.compose(&m);
         let t = (sh.clone(), bij.clone());
         self.raw_add_to_class(i.id, t.clone(), src_id);

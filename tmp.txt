@@ -1,31 +1,1842 @@
-(new (pred 
-<(int $f1725) (int $f1726) (int $f1727)>) 
-(and <
-(eq (node $f1728) (binode (int $f1732) (node $f1730) (node $f1731))) 
-(eq (node $f1728) (binode (int $f1734) (node $f1735) (node $f1736))) 
-(geq (int $f1725) (1)) 
-(eq (int $f1733) (- (int $f1725) (1))) 
-(eq (int $f1726) (+ (int $f1737) (1)))>) 
-<(init (leafDrop) (pred <(int $f1733) (node $f1730) (node $f1729)>)) 
-(init (minLeaf) (pred <(node $f1729) (int $f1727)>)) 
-(init (minLeaf) (pred <(node $f1735) (int $f1738)>)) 
-(init (minLeaf) (pred <(node $f1736) (int $f1739)>)) 
-(compose <(interface (min) (pred <(int $f1738) (int $f1739) (int $f1737)>) (1)) (new (pred <(int $f1738) (int $f1739) (int $f1737)>) (and <(geq (int $f1738) (int $f1739)) (eq (int $f1737) (int $f1739))>) <>)>)>)
+   Compiling slotted-egraphs v0.0.36 (/home/pondnj/chc/project/slotted-egraphs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.37s
+     Running unittests src/lib.rs (target/debug/deps/slotted_egraphs-99dc5d489d880e77)
 
-f1725 = N
-f1726 = K
-f1727 = M
-f1728 = T
-f1732 = a
-f1730 = L
-f1731 = R
-f1734 = A1
-f1735 = L1
-f1736 = R1
-f1733 = N1
-f1737 = M3
-f1729 = U
-f1738 = M1
-f1739 = M2
-// new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M),
-    //  T=node(A1,L1,R1), K=M3+1, min-leaf(L1,M1), min-leaf(R1,M2), min(M1,M2,M3)
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/entry.rs (target/debug/deps/entry-2ad2553ea4f87858)
+
+running 1 test
+[TRACE slotted_egraphs::parse] from (lambda $R (lambda $a (sum (var $R) $i $j (sing (var $a) (var $j)))))
+[TRACE slotted_egraphs::parse] to tokens [LParen, Ident("lambda"), Slot($R), LParen, Ident("lambda"), Slot($a), LParen, Ident("sum"), LParen, Ident("var"), Slot($R), RParen, Slot($i), Slot($j), LParen, Ident("sing"), LParen, Ident("var"), Slot($a), RParen, LParen, Ident("var"), Slot($j), RParen, RParen, RParen, RParen, RParen]
+[TRACE slotted_egraphs::parse] from (sum ?R $x $y (sing ?e1 ?e2))
+[TRACE slotted_egraphs::parse] to tokens [LParen, Ident("sum"), PVar("R"), Slot($x), Slot($y), LParen, Ident("sing"), PVar("e1"), PVar("e2"), RParen, RParen]
+[TRACE slotted_egraphs::parse] from (sing ?e1 (sum ?R $x $y ?e2))
+[TRACE slotted_egraphs::parse] to tokens [LParen, Ident("sing"), PVar("e1"), LParen, Ident("sum"), PVar("R"), Slot($x), Slot($y), PVar("e2"), RParen, RParen]
+[DEBUG slotted_egraphs::egraph::add] add enode Var($R)
+    (Var($0), ($0 -> $R))
+[TRACE slotted_egraphs::egraph::shape] shape Var($R) -> Var($0) ($0 -> $R)
+[TRACE slotted_egraphs::egraph::add] lookup (Var($0), ($0 -> $R)) -> None
+[TRACE slotted_egraphs::egraph::add] lookup no result (Var($0), ($0 -> $R))
+[TRACE slotted_egraphs::egraph::shape] shape Var($R) -> Var($0) ($0 -> $R)
+[DEBUG slotted_egraphs::egraph::add] alloc_eclass Var($f0)
+[TRACE slotted_egraphs::egraph::shape] shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::add] insert weak_shape to syn_hashcons
+    
+    Var($0)
+    
+    orig Var($f0)
+    
+    shape (Var($0), ($0 -> $f0))
+    
+    orig_weak_shape (Var($0), ($0 -> $f0))
+    
+    -> id0: ($0)
+[TRACE slotted_egraphs::egraph::add] call unionfind_set from alloc_eclass
+[TRACE slotted_egraphs::egraph::find] set unionfind id0 -> ProvenAppliedId { elem: id0: ($f0) }
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id0 Var($0)
+[TRACE slotted_egraphs::egraph::shape] shape Var($0) -> Var($0) ($0 -> $0)
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Var($0)
+    
+    orig Var($f0)
+    
+    shape (Var($0), ($0 -> $0))
+    
+    orig_weak_shape (Var($0), ($0 -> $0))
+    
+     -> id0
+[DEBUG slotted_egraphs::egraph::add] add_syn_expr: id0 <-> (var $R)
+[DEBUG slotted_egraphs::egraph::add] add enode Var($a)
+    (Var($0), ($0 -> $a))
+[TRACE slotted_egraphs::egraph::shape] shape Var($a) -> Var($0) ($0 -> $a)
+[TRACE slotted_egraphs::egraph::add] lookup (Var($0), ($0 -> $a)) -> Some(id0: ($a))
+[DEBUG slotted_egraphs::egraph::add] add_syn_expr: id0 <-> (var $a)
+[DEBUG slotted_egraphs::egraph::add] add enode Var($j)
+    (Var($0), ($0 -> $j))
+[TRACE slotted_egraphs::egraph::shape] shape Var($j) -> Var($0) ($0 -> $j)
+[TRACE slotted_egraphs::egraph::add] lookup (Var($0), ($0 -> $j)) -> Some(id0: ($j))
+[DEBUG slotted_egraphs::egraph::add] add_syn_expr: id0 <-> (var $j)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($a), id0: ($j)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $a, $1 -> $j)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($a -> $0, $j -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[DEBUG slotted_egraphs::egraph::add] add enode Sing(id0: ($a), id0: ($j))
+    (Sing(id0: ($0), id0: ($1)), ($0 -> $a, $1 -> $j))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $a, $1 -> $j))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $a)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $j)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($a), id0: ($j)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $a, $1 -> $j)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $a, $1 -> $j))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($a), id0: ($j))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $a, $1 -> $j))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($a -> $0, $j -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $a, $1 -> $j)
+[TRACE slotted_egraphs::egraph::add] lookup (Sing(id0: ($0), id0: ($1)), ($0 -> $a, $1 -> $j)) -> None
+[TRACE slotted_egraphs::egraph::add] lookup no result (Sing(id0: ($0), id0: ($1)), ($0 -> $a, $1 -> $j))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($a), id0: ($j)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $a, $1 -> $j)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($a -> $0, $j -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $a, $1 -> $j))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $a)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $j)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($a), id0: ($j)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $a, $1 -> $j)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $a, $1 -> $j))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($a), id0: ($j))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $a, $1 -> $j))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($a -> $0, $j -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $a, $1 -> $j)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($a), id0: ($j)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $a, $1 -> $j)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($a -> $0, $j -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($a), id0: ($j)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($a), id0: ($j)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $a, $1 -> $j)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($a -> $0, $j -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[DEBUG slotted_egraphs::egraph::add] alloc_eclass Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f1)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::add] insert weak_shape to syn_hashcons
+    
+    Sing(id0: ($0), id0: ($1))
+    
+    orig Sing(id0: ($f1), id0: ($f2))
+    
+    shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+    
+    orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+    
+    -> id1: ($0, $1)
+[TRACE slotted_egraphs::egraph::add] call unionfind_set from alloc_eclass
+[TRACE slotted_egraphs::egraph::find] set unionfind id1 -> ProvenAppliedId { elem: id1: ($f1, $f2) }
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id1 Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($0), id0: ($1)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($0), id0: ($1)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $0)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $1)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($0), id0: ($1)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Sing(id0: ($0), id0: ($1))
+    
+    orig Sing(id0: ($f1), id0: ($f2))
+    
+    shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+    
+    orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+    
+     -> id1
+[DEBUG slotted_egraphs::egraph::add] add_syn_expr: id1 <-> (sing (var $a) (var $j))
+[DEBUG slotted_egraphs::egraph::add] add enode Sum(id0: ($R), Bind { slot: $i, elem: Bind { slot: $j, elem: id1: ($a, $j) } })
+    (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $R, $3 -> $a))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($R), Bind { slot: $i, elem: Bind { slot: $j, elem: id1: ($a, $j) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($R), Bind { slot: $i, elem: Bind { slot: $j, elem: id1: ($a, $j) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $R, $3 -> $a))
+[TRACE slotted_egraphs::egraph::add] lookup (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $R, $3 -> $a)) -> None
+[TRACE slotted_egraphs::egraph::add] lookup no result (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $R, $3 -> $a))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($R), Bind { slot: $f3, elem: Bind { slot: $f4, elem: id1: ($a, $f4) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($R), Bind { slot: $f3, elem: Bind { slot: $f4, elem: id1: ($a, $f4) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $R, $3 -> $a))
+[DEBUG slotted_egraphs::egraph::add] alloc_eclass Sum(id0: ($f5), Bind { slot: $f3, elem: Bind { slot: $f4, elem: id1: ($f6, $f4) } })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $f3, elem: Bind { slot: $f4, elem: id1: ($f6, $f4) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $f3, elem: Bind { slot: $f4, elem: id1: ($f6, $f4) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[TRACE slotted_egraphs::egraph::add] insert weak_shape to syn_hashcons
+    
+    Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+    
+    orig Sum(id0: ($f5), Bind { slot: $f3, elem: Bind { slot: $f4, elem: id1: ($f6, $f4) } })
+    
+    shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+    
+    orig_weak_shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+    
+    -> id2: ($0, $3)
+[TRACE slotted_egraphs::egraph::add] call unionfind_set from alloc_eclass
+[TRACE slotted_egraphs::egraph::find] set unionfind id2 -> ProvenAppliedId { elem: id2: ($f5, $f6) }
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id2 Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+    
+    orig Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+    
+    shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+    
+    orig_weak_shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+    
+     -> id2
+[DEBUG slotted_egraphs::egraph::add] add_syn_expr: id2 <-> (sum (var $R) $i $j (sing (var $a) (var $j)))
+[DEBUG slotted_egraphs::egraph::add] add enode Lam(Bind { slot: $a, elem: id2: ($R, $a) })
+    (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $R))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $a, elem: id2: ($R, $a) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $a, elem: id2: ($R, $a) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $R))
+[TRACE slotted_egraphs::egraph::add] lookup (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $R)) -> None
+[TRACE slotted_egraphs::egraph::add] lookup no result (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $R))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $f7, elem: id2: ($R, $f7) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $f7, elem: id2: ($R, $f7) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $R))
+[DEBUG slotted_egraphs::egraph::add] alloc_eclass Lam(Bind { slot: $f7, elem: id2: ($f8, $f7) })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $f7, elem: id2: ($f8, $f7) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $f7, elem: id2: ($f8, $f7) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[TRACE slotted_egraphs::egraph::add] insert weak_shape to syn_hashcons
+    
+    Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+    
+    orig Lam(Bind { slot: $f7, elem: id2: ($f8, $f7) })
+    
+    shape (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+    
+    orig_weak_shape (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+    
+    -> id3: ($1)
+[TRACE slotted_egraphs::egraph::add] call unionfind_set from alloc_eclass
+[TRACE slotted_egraphs::egraph::find] set unionfind id3 -> ProvenAppliedId { elem: id3: ($f8) }
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id3 Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id2: ($1, $0) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+    
+    orig Lam(Bind { slot: $0, elem: id2: ($f8, $0) })
+    
+    shape (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+    
+    orig_weak_shape (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+    
+     -> id3
+[DEBUG slotted_egraphs::egraph::add] add_syn_expr: id3 <-> (lambda $a (sum (var $R) $i $j (sing (var $a) (var $j))))
+[DEBUG slotted_egraphs::egraph::add] add enode Lam(Bind { slot: $R, elem: id3: ($R) })
+    (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $R, elem: id3: ($R) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $R, elem: id3: ($R) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::add] lookup (Lam(Bind { slot: $0, elem: id3: ($0) }), ()) -> None
+[TRACE slotted_egraphs::egraph::add] lookup no result (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $f9, elem: id3: ($f9) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $f9, elem: id3: ($f9) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[DEBUG slotted_egraphs::egraph::add] alloc_eclass Lam(Bind { slot: $f9, elem: id3: ($f9) })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $f9, elem: id3: ($f9) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $f9, elem: id3: ($f9) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::add] insert weak_shape to syn_hashcons
+    
+    Lam(Bind { slot: $0, elem: id3: ($0) })
+    
+    orig Lam(Bind { slot: $f9, elem: id3: ($f9) })
+    
+    shape (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+    
+    orig_weak_shape (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+    
+    -> id4: ()
+[TRACE slotted_egraphs::egraph::add] call unionfind_set from alloc_eclass
+[TRACE slotted_egraphs::egraph::find] set unionfind id4 -> ProvenAppliedId { elem: id4: () }
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id4 Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id3: ($0) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Lam(Bind { slot: $0, elem: id3: ($0) })
+    
+    orig Lam(Bind { slot: $0, elem: id3: ($0) })
+    
+    shape (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+    
+    orig_weak_shape (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+    
+     -> id4
+[DEBUG slotted_egraphs::egraph::add] add_syn_expr: id4 <-> (lambda $R (lambda $a (sum (var $R) $i $j (sing (var $a) (var $j)))))
+[TRACE slotted_egraphs::parse] from (sum ?R $x $y (sing ?e1 ?e2))
+[TRACE slotted_egraphs::parse] to tokens [LParen, Ident("sum"), PVar("R"), Slot($x), Slot($y), LParen, Ident("sing"), PVar("e1"), PVar("e2"), RParen, RParen]
+[TRACE slotted_egraphs::parse] from (sing ?e1 (sum ?R $x $y ?e2))
+[TRACE slotted_egraphs::parse] to tokens [LParen, Ident("sing"), PVar("e1"), LParen, Ident("sum"), PVar("R"), Slot($x), Slot($y), PVar("e2"), RParen, RParen]
+[DEBUG slotted_egraphs::rewrite] 0 doing search for rule1
+[DEBUG slotted_egraphs::rewrite::ematch] === Call EmatchAll ===
+[DEBUG slotted_egraphs::rewrite::ematch] pattern = (sum ?R $x $y (sing ?e1 ?e2))
+[DEBUG slotted_egraphs::rewrite::ematch] = ENode(
+        Sum(
+            id0: (),
+            Bind {
+                slot: $x,
+                elem: Bind {
+                    slot: $y,
+                    elem: id0: (),
+                },
+            },
+        ),
+        [
+            PVar(
+                "R",
+            ),
+            ENode(
+                Sing(
+                    id0: (),
+                    id0: (),
+                ),
+                [
+                    PVar(
+                        "e1",
+                    ),
+                    PVar(
+                        "e2",
+                    ),
+                ],
+            ),
+        ],
+    )
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f0) with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f0) not found
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id1: ($f1, $f2) with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id1: ($f1, $f2) not found
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id2: ($f5, $f6) with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[DEBUG slotted_egraphs::rewrite::ematch] try 0th enode in id2, Sum(id0: ($f5), Bind { slot: $f10, elem: Bind { slot: $f11, elem: id1: ($f6, $f11) } })
+[DEBUG slotted_egraphs::rewrite::ematch] shape pass, try to match children
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f5) with pattern ?R
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id1: ($f6, $f11) with pattern (sing ?e1 ?e2)
+[DEBUG slotted_egraphs::rewrite::ematch] try 0th enode in id1, Sing(id0: ($f6), id0: ($f11))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id0: ($f11)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id0: ($f11)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f6), id0: ($f11)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f6, $1 -> $f11)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f6 -> $0, $f11 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: (), id0: ()]
+[TRACE slotted_egraphs::types] appIdsVec [id0: (), id0: ()]
+[TRACE slotted_egraphs::types] lab [0, 1]
+[TRACE slotted_egraphs::lang] shape Sing(id0: (), id0: ()) -> Sing(id0: (), id0: ()) ()
+[TRACE slotted_egraphs::lang] slotsToNewIdx ()
+[TRACE slotted_egraphs::lang] slotmap ()
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: (), id0: ()]
+[TRACE slotted_egraphs::types] appIdsVec [id0: (), id0: ()]
+[TRACE slotted_egraphs::types] lab [0, 1]
+[TRACE slotted_egraphs::lang] shape Sing(id0: (), id0: ()) -> Sing(id0: (), id0: ()) ()
+[TRACE slotted_egraphs::lang] slotsToNewIdx ()
+[TRACE slotted_egraphs::lang] slotmap ()
+[DEBUG slotted_egraphs::rewrite::ematch] shape pass, try to match children
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f6) with pattern ?e1
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f11) with pattern ?e2
+[DEBUG slotted_egraphs::rewrite::ematch] some match found
+[DEBUG slotted_egraphs::rewrite::ematch] 0th enode in id1 found matched
+[DEBUG slotted_egraphs::rewrite::ematch] some match found
+[DEBUG slotted_egraphs::rewrite::ematch] 0th enode in id2 found matched
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id3: ($f8) with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id3: ($f8) not found
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id4: () with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id4: () not found
+[DEBUG slotted_egraphs::rewrite::ematch] ematch_all result [({"e1": id0: ($f12), "e2": id0: ($y), "R": id0: ($f13)}, id2)] for pattern (sum ?R $x $y (sing ?e1 ?e2))
+[DEBUG slotted_egraphs::rewrite] 0 done search for rule1
+[INFO  slotted_egraphs::rewrite] 0 doing apply for rule1
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f12), id0: ($y)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f12), id0: ($y)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f12), id0: ($y)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f12, $1 -> $y)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($y -> $1, $f12 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[DEBUG slotted_egraphs::egraph::add] add enode Sing(id0: ($f12), id0: ($y))
+    (Sing(id0: ($0), id0: ($1)), ($0 -> $f12, $1 -> $y))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f12), id0: ($y)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f12), id0: ($y)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f12, $1 -> $y))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f12)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $y)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f12), id0: ($y)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f12, $1 -> $y)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f12, $1 -> $y))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f12), id0: ($y))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f12, $1 -> $y))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($y -> $1, $f12 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f12, $1 -> $y)
+[TRACE slotted_egraphs::egraph::add] lookup (Sing(id0: ($0), id0: ($1)), ($0 -> $f12, $1 -> $y)) -> Some(id1: ($f12, $y))
+[DEBUG slotted_egraphs::egraph::add] add enode Sum(id0: ($f13), Bind { slot: $x, elem: Bind { slot: $y, elem: id1: ($f12, $y) } })
+    (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f13, $3 -> $f12))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f13), Bind { slot: $x, elem: Bind { slot: $y, elem: id1: ($f12, $y) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f13), Bind { slot: $x, elem: Bind { slot: $y, elem: id1: ($f12, $y) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f13, $3 -> $f12))
+[TRACE slotted_egraphs::egraph::add] lookup (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f13, $3 -> $f12)) -> Some(id2: ($f13, $f12))
+[DEBUG slotted_egraphs::egraph::add] add enode Sum(id0: ($f13), Bind { slot: $x, elem: Bind { slot: $y, elem: id0: ($y) } })
+    (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f13))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f13), Bind { slot: $x, elem: Bind { slot: $y, elem: id0: ($y) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f13), Bind { slot: $x, elem: Bind { slot: $y, elem: id0: ($y) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f13))
+[TRACE slotted_egraphs::egraph::add] lookup (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f13)) -> None
+[TRACE slotted_egraphs::egraph::add] lookup no result (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f13))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f13), Bind { slot: $f16, elem: Bind { slot: $f17, elem: id0: ($f17) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f13), Bind { slot: $f16, elem: Bind { slot: $f17, elem: id0: ($f17) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f13))
+[DEBUG slotted_egraphs::egraph::add] alloc_eclass Sum(id0: ($f18), Bind { slot: $f16, elem: Bind { slot: $f17, elem: id0: ($f17) } })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $f16, elem: Bind { slot: $f17, elem: id0: ($f17) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $f16, elem: Bind { slot: $f17, elem: id0: ($f17) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[TRACE slotted_egraphs::egraph::add] insert weak_shape to syn_hashcons
+    
+    Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+    
+    orig Sum(id0: ($f18), Bind { slot: $f16, elem: Bind { slot: $f17, elem: id0: ($f17) } })
+    
+    shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+    
+    orig_weak_shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+    
+    -> id5: ($0)
+[TRACE slotted_egraphs::egraph::add] call unionfind_set from alloc_eclass
+[TRACE slotted_egraphs::egraph::find] set unionfind id5 -> ProvenAppliedId { elem: id5: ($f18) }
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id5 Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+    
+    orig Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+    
+    shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+    
+    orig_weak_shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+    
+     -> id5
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f12), id5: ($f13)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f13, $1 -> $f12)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f12 -> $1, $f13 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[DEBUG slotted_egraphs::egraph::add] add enode Sing(id0: ($f12), id5: ($f13))
+    (Sing(id0: ($0), id5: ($1)), ($0 -> $f12, $1 -> $f13))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f12, $1 -> $f13))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f12)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f13)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f12), id5: ($f13)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f13, $1 -> $f12)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f12, $1 -> $f13))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f12), id5: ($f13))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f12, $1 -> $f13))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f12 -> $1, $f13 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f12, $1 -> $f13)
+[TRACE slotted_egraphs::egraph::add] lookup (Sing(id0: ($0), id5: ($1)), ($0 -> $f12, $1 -> $f13)) -> None
+[TRACE slotted_egraphs::egraph::add] lookup no result (Sing(id0: ($0), id5: ($1)), ($0 -> $f12, $1 -> $f13))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f12), id5: ($f13)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f13, $1 -> $f12)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f12 -> $1, $f13 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f12, $1 -> $f13))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f12)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f13)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f12), id5: ($f13)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f13, $1 -> $f12)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f12, $1 -> $f13))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f12), id5: ($f13))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f12, $1 -> $f13))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f12 -> $1, $f13 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f12, $1 -> $f13)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f12), id5: ($f13)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f13, $1 -> $f12)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f12 -> $1, $f13 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f12), id5: ($f13)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f12), id5: ($f13)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f13, $1 -> $f12)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f12 -> $1, $f13 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[DEBUG slotted_egraphs::egraph::add] alloc_eclass Sing(id0: ($f19), id5: ($f20))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f19), id5: ($f20)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f20, $1 -> $f19)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f19 -> $1, $f20 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f19, $1 -> $f20))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f19)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f20)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f19), id5: ($f20)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f20, $1 -> $f19)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f19, $1 -> $f20))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f19), id5: ($f20))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f19, $1 -> $f20))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f19 -> $1, $f20 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f19, $1 -> $f20)
+[TRACE slotted_egraphs::egraph::add] insert weak_shape to syn_hashcons
+    
+    Sing(id0: ($0), id5: ($1))
+    
+    orig Sing(id0: ($f19), id5: ($f20))
+    
+    shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f19, $1 -> $f20))
+    
+    orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f19, $1 -> $f20))
+    
+    -> id6: ($0, $1)
+[TRACE slotted_egraphs::egraph::add] call unionfind_set from alloc_eclass
+[TRACE slotted_egraphs::egraph::find] set unionfind id6 -> ProvenAppliedId { elem: id6: ($f19, $f20) }
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f19), id5: ($f20)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f20, $1 -> $f19)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f19 -> $1, $f20 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id6 Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($0), id5: ($1)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($0), id5: ($1)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $0)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $1)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($0), id5: ($1)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Sing(id0: ($0), id5: ($1))
+    
+    orig Sing(id0: ($f19), id5: ($f20))
+    
+    shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+    
+    orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+    
+     -> id6
+[DEBUG slotted_egraphs::egraph::union] Union id2
+[DEBUG slotted_egraphs::egraph::union] Union id6
+[DEBUG slotted_egraphs::egraph::union] Union because Some("rule1"), id2: ($f13, $f12) with id6: ($f12, $f13)
+[DEBUG slotted_egraphs::egraph::union] choose merged to id2: ($f13, $f12)
+[TRACE slotted_egraphs::egraph::union] call unionfind_set from move_to
+[TRACE slotted_egraphs::egraph::find] set unionfind id6 -> ProvenAppliedId { elem: id2: ($f20, $f19) }
+[TRACE slotted_egraphs::egraph::add] remove from hashcons
+    
+    orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+    
+    Sing(id0: ($0), id5: ($1))
+    
+     -> Some(id6)
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id2 Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($0), id5: ($1)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($0), id5: ($1)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $0)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $1)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($0), id5: ($1)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Sing(id0: ($0), id5: ($1))
+    
+    orig Sing(id0: ($f6), id5: ($f5))
+    
+    shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+    
+    orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+    
+     -> id2
+[DEBUG slotted_egraphs::egraph::union] insert to pending len from move_to by 7 to 7
+[TRACE slotted_egraphs::egraph::eclass] modifying group of (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[INFO  slotted_egraphs::rewrite] 0 done apply for rule1
+[DEBUG slotted_egraphs::rewrite] egraph size after rule1 is 7
+[DEBUG slotted_egraphs::egraph::rebuild] doing rebuild
+[TRACE slotted_egraphs::egraph::rebuild] start pending loops
+[TRACE slotted_egraphs::egraph::rebuild] deal with pending Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+[INFO  slotted_egraphs::egraph::rebuild] start handleSorted
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id2: ($f8, $0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id2: ($f8, $0) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[INFO  slotted_egraphs::egraph::rebuild] end handleSorted
+[DEBUG slotted_egraphs::egraph::rebuild] start handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] handle_pending Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+[TRACE slotted_egraphs::egraph::add] remove from hashcons
+    
+    orig_weak_shape (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+    
+    Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+    
+     -> Some(id3)
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id2: ($f8, $0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id2: ($f8, $0) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[TRACE slotted_egraphs::egraph::rebuild] app_i id3: ($f8)
+[TRACE slotted_egraphs::egraph::rebuild] bij ($1 -> $f8)
+[TRACE slotted_egraphs::egraph::rebuild] m ($f8 -> $f8)
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id3 Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id2: ($1, $0) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+    
+    orig Lam(Bind { slot: $0, elem: id2: ($f8, $0) })
+    
+    shape (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+    
+    orig_weak_shape (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+    
+     -> id3
+[TRACE slotted_egraphs::egraph::rebuild] sh Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+[TRACE slotted_egraphs::egraph::rebuild] sh data ()
+[TRACE slotted_egraphs::egraph::rebuild] i eclass id3 
+    ()
+    ($f8):>> Lam(Bind { slot: $f7, elem: id2: ($f8, $f7) })
+     - Lam(Bind { slot: $0, elem: id2: ($f8, $0) })
+     >- Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+    
+[TRACE slotted_egraphs::egraph::rebuild] merge call from update_analysis
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $f7, elem: id2: ($f8, $f7) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $f7, elem: id2: ($f8, $f7) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[TRACE slotted_egraphs::egraph::eclass] modifying group of (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[INFO  slotted_egraphs::egraph::rebuild] end handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] deal with pending Lam(Bind { slot: $0, elem: id3: ($0) })
+[INFO  slotted_egraphs::egraph::rebuild] start handleSorted
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id3: ($0) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[INFO  slotted_egraphs::egraph::rebuild] end handleSorted
+[DEBUG slotted_egraphs::egraph::rebuild] start handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] handle_pending Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::add] remove from hashcons
+    
+    orig_weak_shape (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+    
+    Lam(Bind { slot: $0, elem: id3: ($0) })
+    
+     -> Some(id4)
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id3: ($0) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::rebuild] app_i id4: ()
+[TRACE slotted_egraphs::egraph::rebuild] bij ()
+[TRACE slotted_egraphs::egraph::rebuild] m ()
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id4 Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id3: ($0) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Lam(Bind { slot: $0, elem: id3: ($0) })
+    
+    orig Lam(Bind { slot: $0, elem: id3: ($0) })
+    
+    shape (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+    
+    orig_weak_shape (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+    
+     -> id4
+[TRACE slotted_egraphs::egraph::rebuild] sh Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::rebuild] sh data ()
+[TRACE slotted_egraphs::egraph::rebuild] i eclass id4 
+    ()
+    ():>> Lam(Bind { slot: $f9, elem: id3: ($f9) })
+     - Lam(Bind { slot: $0, elem: id3: ($0) })
+     >- Lam(Bind { slot: $0, elem: id3: ($0) })
+    
+[TRACE slotted_egraphs::egraph::rebuild] merge call from update_analysis
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $f9, elem: id3: ($f9) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $f9, elem: id3: ($f9) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::eclass] modifying group of (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[INFO  slotted_egraphs::egraph::rebuild] end handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] deal with pending Var($0)
+[INFO  slotted_egraphs::egraph::rebuild] start handleSorted
+[TRACE slotted_egraphs::egraph::shape] shape Var($f0) -> Var($0) ($0 -> $f0)
+[INFO  slotted_egraphs::egraph::rebuild] end handleSorted
+[DEBUG slotted_egraphs::egraph::rebuild] start handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] handle_pending Var($0)
+[TRACE slotted_egraphs::egraph::add] remove from hashcons
+    
+    orig_weak_shape (Var($0), ($0 -> $0))
+    
+    Var($0)
+    
+     -> Some(id0)
+[TRACE slotted_egraphs::egraph::shape] shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::rebuild] app_i id0: ($f0)
+[TRACE slotted_egraphs::egraph::rebuild] bij ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::rebuild] m ($f0 -> $f0)
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id0 Var($0)
+[TRACE slotted_egraphs::egraph::shape] shape Var($0) -> Var($0) ($0 -> $0)
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Var($0)
+    
+    orig Var($f0)
+    
+    shape (Var($0), ($0 -> $0))
+    
+    orig_weak_shape (Var($0), ($0 -> $0))
+    
+     -> id0
+[TRACE slotted_egraphs::egraph::rebuild] sh Var($0)
+[TRACE slotted_egraphs::egraph::rebuild] sh data ()
+[TRACE slotted_egraphs::egraph::rebuild] i eclass id0 
+    ()
+    ($f0):>> Var($f0)
+     - Var($f0)
+     >- Var($0)
+    
+[TRACE slotted_egraphs::egraph::rebuild] merge call from update_analysis
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Var($f0)
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Var($f0) }
+            (Var($0), ($0 -> $f0))
+[TRACE slotted_egraphs::egraph::eclass] modifying group of (Var($0), ($0 -> $f0))
+[INFO  slotted_egraphs::egraph::rebuild] end handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] deal with pending Sing(id0: ($0), id0: ($1))
+[INFO  slotted_egraphs::egraph::rebuild] start handleSorted
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f1)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f1, $1 -> $f2)
+[INFO  slotted_egraphs::egraph::rebuild] end handleSorted
+[DEBUG slotted_egraphs::egraph::rebuild] start handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] handle_pending Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::add] remove from hashcons
+    
+    orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+    
+    Sing(id0: ($0), id0: ($1))
+    
+     -> Some(id1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f1)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::rebuild] app_i id1: ($f1, $f2)
+[TRACE slotted_egraphs::egraph::rebuild] bij ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::rebuild] m ($f1 -> $f1, $f2 -> $f2)
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id1 Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($0), id0: ($1)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($0), id0: ($1)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $0)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $1)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($0), id0: ($1)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Sing(id0: ($0), id0: ($1))
+    
+    orig Sing(id0: ($f1), id0: ($f2))
+    
+    shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+    
+    orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+    
+     -> id1
+[TRACE slotted_egraphs::egraph::rebuild] sh Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::rebuild] sh data ()
+[TRACE slotted_egraphs::egraph::rebuild] i eclass id1 
+    ()
+    ($f1, $f2):>> Sing(id0: ($f1), id0: ($f2))
+     - Sing(id0: ($f1), id0: ($f2))
+     >- Sing(id0: ($0), id0: ($1))
+    
+[TRACE slotted_egraphs::egraph::rebuild] merge call from update_analysis
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sing(id0: ($f1), id0: ($f2)) }
+            (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::eclass] modifying group of (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[INFO  slotted_egraphs::egraph::rebuild] end handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] deal with pending Sing(id0: ($0), id5: ($1))
+[INFO  slotted_egraphs::egraph::rebuild] start handleSorted
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f6), id5: ($f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f6, $1 -> $f5)
+[INFO  slotted_egraphs::egraph::rebuild] end handleSorted
+[DEBUG slotted_egraphs::egraph::rebuild] start handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] handle_pending Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::add] remove from hashcons
+    
+    orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+    
+    Sing(id0: ($0), id5: ($1))
+    
+     -> Some(id2)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f6), id5: ($f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::egraph::rebuild] app_i id2: ($f5, $f6)
+[TRACE slotted_egraphs::egraph::rebuild] bij ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::egraph::rebuild] m ($f5 -> $f5, $f6 -> $f6)
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id2 Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($0), id5: ($1)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($0), id5: ($1)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $0)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $1)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($0), id5: ($1)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Sing(id0: ($0), id5: ($1))
+    
+    orig Sing(id0: ($f6), id5: ($f5))
+    
+    shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+    
+    orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+    
+     -> id2
+[TRACE slotted_egraphs::egraph::rebuild] sh Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::rebuild] sh data ()
+[TRACE slotted_egraphs::egraph::rebuild] i eclass id2 
+    ()
+    ($f5, $f6):>> Sum(id0: ($f5), Bind { slot: $f3, elem: Bind { slot: $f4, elem: id1: ($f6, $f4) } })
+     - Sing(id0: ($f6), id5: ($f5))
+     >- Sing(id0: ($0), id5: ($1))
+     - Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+     >- Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+    
+[TRACE slotted_egraphs::egraph::rebuild] merge call from update_analysis
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sing(id0: ($f19), id5: ($f20))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f19), id5: ($f20)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f20, $1 -> $f19)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f19 -> $1, $f20 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sing(id0: ($f19), id5: ($f20)) }
+            (Sing(id0: ($0), id5: ($1)), ($0 -> $f19, $1 -> $f20))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f19), id5: ($f20)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f20, $1 -> $f19)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f19 -> $1, $f20 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f19), id5: ($f20)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f20, $1 -> $f19)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f19 -> $1, $f20 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f19), id5: ($f20)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f20, $1 -> $f19)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f19 -> $1, $f20 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f19), id5: ($f20)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f19), id5: ($f20)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f20, $1 -> $f19)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f19 -> $1, $f20 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::eclass] modifying group of (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[INFO  slotted_egraphs::egraph::rebuild] end handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] deal with pending Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[INFO  slotted_egraphs::egraph::rebuild] start handleSorted
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[INFO  slotted_egraphs::egraph::rebuild] end handleSorted
+[DEBUG slotted_egraphs::egraph::rebuild] start handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] handle_pending Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::add] remove from hashcons
+    
+    orig_weak_shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+    
+    Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+    
+     -> Some(id5)
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[TRACE slotted_egraphs::egraph::rebuild] app_i id5: ($f18)
+[TRACE slotted_egraphs::egraph::rebuild] bij ($0 -> $f18)
+[TRACE slotted_egraphs::egraph::rebuild] m ($f18 -> $f18)
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id5 Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+    
+    orig Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+    
+    shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+    
+    orig_weak_shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+    
+     -> id5
+[TRACE slotted_egraphs::egraph::rebuild] sh Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::rebuild] sh data ()
+[TRACE slotted_egraphs::egraph::rebuild] i eclass id5 
+    ()
+    ($f18):>> Sum(id0: ($f18), Bind { slot: $f16, elem: Bind { slot: $f17, elem: id0: ($f17) } })
+     - Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+     >- Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+    
+[TRACE slotted_egraphs::egraph::rebuild] merge call from update_analysis
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $f16, elem: Bind { slot: $f17, elem: id0: ($f17) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $f16, elem: Bind { slot: $f17, elem: id0: ($f17) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[TRACE slotted_egraphs::egraph::eclass] modifying group of (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[INFO  slotted_egraphs::egraph::rebuild] end handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] deal with pending Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+[INFO  slotted_egraphs::egraph::rebuild] start handleSorted
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[INFO  slotted_egraphs::egraph::rebuild] end handleSorted
+[DEBUG slotted_egraphs::egraph::rebuild] start handle_pending
+[TRACE slotted_egraphs::egraph::rebuild] handle_pending Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+[TRACE slotted_egraphs::egraph::add] remove from hashcons
+    
+    orig_weak_shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+    
+    Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+    
+     -> Some(id2)
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[TRACE slotted_egraphs::egraph::rebuild] app_i id2: ($f5, $f6)
+[TRACE slotted_egraphs::egraph::rebuild] bij ($0 -> $f5, $3 -> $f6)
+[TRACE slotted_egraphs::egraph::rebuild] m ($f5 -> $f5, $f6 -> $f6)
+[DEBUG slotted_egraphs::egraph::add] raw_add_to_class: add to class id2 Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+[TRACE slotted_egraphs::egraph::add] insert to hashcons
+    
+    Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+    
+    orig Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+    
+    shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+    
+    orig_weak_shape (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+    
+     -> id2
+[TRACE slotted_egraphs::egraph::rebuild] sh Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+[TRACE slotted_egraphs::egraph::rebuild] sh data ()
+[TRACE slotted_egraphs::egraph::rebuild] i eclass id2 
+    ()
+    ($f5, $f6):>> Sum(id0: ($f5), Bind { slot: $f3, elem: Bind { slot: $f4, elem: id1: ($f6, $f4) } })
+     - Sing(id0: ($f6), id5: ($f5))
+     >- Sing(id0: ($0), id5: ($1))
+     - Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+     >- Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+    
+[TRACE slotted_egraphs::egraph::rebuild] merge call from update_analysis
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $f3, elem: Bind { slot: $f4, elem: id1: ($f6, $f4) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $f3, elem: Bind { slot: $f4, elem: id1: ($f6, $f4) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[TRACE slotted_egraphs::egraph::eclass] modifying group of (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[INFO  slotted_egraphs::egraph::rebuild] end handle_pending
+[TRACE slotted_egraphs::egraph::shape] shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::check] weak_shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::check] weak shape of Var($0) <-> (Var($0), ($0 -> $0))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f1)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::check] weak_shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sing(id0: ($0), id0: ($1)) <-> (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f6), id5: ($f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::check] weak_shape Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($0), id5: ($1)) ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sing(id0: ($0), id5: ($1)) <-> (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[TRACE slotted_egraphs::egraph::check] weak_shape Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } }) -> Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }) ($0 -> $f5, $3 -> $f6)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }) <-> (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id2: ($f8, $0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id2: ($f8, $0) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[TRACE slotted_egraphs::egraph::check] weak_shape Lam(Bind { slot: $0, elem: id2: ($f8, $0) }) -> Lam(Bind { slot: $0, elem: id2: ($1, $0) }) ($1 -> $f8)
+[TRACE slotted_egraphs::egraph::check] weak shape of Lam(Bind { slot: $0, elem: id2: ($1, $0) }) <-> (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id3: ($0) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::check] weak_shape Lam(Bind { slot: $0, elem: id3: ($0) }) -> Lam(Bind { slot: $0, elem: id3: ($0) }) ()
+[TRACE slotted_egraphs::egraph::check] weak shape of Lam(Bind { slot: $0, elem: id3: ($0) }) <-> (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[TRACE slotted_egraphs::egraph::check] weak_shape Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) -> Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) ($0 -> $f18)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) <-> (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+[INFO  slotted_egraphs::egraph::rebuild] end pending loops
+[INFO  slotted_egraphs::egraph::rebuild] start modify_queue
+[INFO  slotted_egraphs::egraph::rebuild] end modify_queue
+[INFO  slotted_egraphs::egraph::rebuild] done rebuild
+[DEBUG slotted_egraphs::run::runner] check_limits return ok
+[DEBUG slotted_egraphs::run::runner] run result: Ok(
+        (),
+    )
+[INFO  slotted_egraphs::run::runner] done run one
+[DEBUG slotted_egraphs::run::runner] done iter 1
+[DEBUG slotted_egraphs::rewrite] 0 doing search for rule1
+[DEBUG slotted_egraphs::rewrite::ematch] === Call EmatchAll ===
+[DEBUG slotted_egraphs::rewrite::ematch] pattern = (sum ?R $x $y (sing ?e1 ?e2))
+[DEBUG slotted_egraphs::rewrite::ematch] = ENode(
+        Sum(
+            id0: (),
+            Bind {
+                slot: $x,
+                elem: Bind {
+                    slot: $y,
+                    elem: id0: (),
+                },
+            },
+        ),
+        [
+            PVar(
+                "R",
+            ),
+            ENode(
+                Sing(
+                    id0: (),
+                    id0: (),
+                ),
+                [
+                    PVar(
+                        "e1",
+                    ),
+                    PVar(
+                        "e2",
+                    ),
+                ],
+            ),
+        ],
+    )
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f0) with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f0) not found
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id1: ($f1, $f2) with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id1: ($f1, $f2) not found
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id2: ($f5, $f6) with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[DEBUG slotted_egraphs::rewrite::ematch] try 1th enode in id2, Sum(id0: ($f5), Bind { slot: $f21, elem: Bind { slot: $f22, elem: id1: ($f6, $f22) } })
+[DEBUG slotted_egraphs::rewrite::ematch] shape pass, try to match children
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f5) with pattern ?R
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id1: ($f6, $f22) with pattern (sing ?e1 ?e2)
+[DEBUG slotted_egraphs::rewrite::ematch] try 0th enode in id1, Sing(id0: ($f6), id0: ($f22))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id0: ($f22)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id0: ($f22)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f6), id0: ($f22)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f6, $1 -> $f22)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f6 -> $0, $f22 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: (), id0: ()]
+[TRACE slotted_egraphs::types] appIdsVec [id0: (), id0: ()]
+[TRACE slotted_egraphs::types] lab [0, 1]
+[TRACE slotted_egraphs::lang] shape Sing(id0: (), id0: ()) -> Sing(id0: (), id0: ()) ()
+[TRACE slotted_egraphs::lang] slotsToNewIdx ()
+[TRACE slotted_egraphs::lang] slotmap ()
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: (), id0: ()]
+[TRACE slotted_egraphs::types] appIdsVec [id0: (), id0: ()]
+[TRACE slotted_egraphs::types] lab [0, 1]
+[TRACE slotted_egraphs::lang] shape Sing(id0: (), id0: ()) -> Sing(id0: (), id0: ()) ()
+[TRACE slotted_egraphs::lang] slotsToNewIdx ()
+[TRACE slotted_egraphs::lang] slotmap ()
+[DEBUG slotted_egraphs::rewrite::ematch] shape pass, try to match children
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f6) with pattern ?e1
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f22) with pattern ?e2
+[DEBUG slotted_egraphs::rewrite::ematch] some match found
+[DEBUG slotted_egraphs::rewrite::ematch] 0th enode in id1 found matched
+[DEBUG slotted_egraphs::rewrite::ematch] some match found
+[DEBUG slotted_egraphs::rewrite::ematch] 1th enode in id2 found matched
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id3: ($f8) with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id3: ($f8) not found
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id4: () with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id4: () not found
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id5: ($f18) with pattern (sum ?R $x $y (sing ?e1 ?e2))
+[DEBUG slotted_egraphs::rewrite::ematch] try 0th enode in id5, Sum(id0: ($f18), Bind { slot: $f27, elem: Bind { slot: $f28, elem: id0: ($f28) } })
+[DEBUG slotted_egraphs::rewrite::ematch] shape pass, try to match children
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f18) with pattern ?R
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f28) with pattern (sing ?e1 ?e2)
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id0: ($f28) not found
+[DEBUG slotted_egraphs::rewrite::ematch] no match found
+[DEBUG slotted_egraphs::rewrite::ematch] 0th enode in id5 not found matched
+[TRACE slotted_egraphs::rewrite::ematch] try match in eclass id5: ($f18) not found
+[DEBUG slotted_egraphs::rewrite::ematch] ematch_all result [({"e1": id0: ($f23), "e2": id0: ($y), "R": id0: ($f24)}, id2)] for pattern (sum ?R $x $y (sing ?e1 ?e2))
+[DEBUG slotted_egraphs::rewrite] 0 done search for rule1
+[INFO  slotted_egraphs::rewrite] 0 doing apply for rule1
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f23), id0: ($y)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f23), id0: ($y)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f23), id0: ($y)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f23, $1 -> $y)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($y -> $1, $f23 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[DEBUG slotted_egraphs::egraph::add] add enode Sing(id0: ($f23), id0: ($y))
+    (Sing(id0: ($0), id0: ($1)), ($0 -> $f23, $1 -> $y))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f23), id0: ($y)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f23), id0: ($y)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f23, $1 -> $y))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f23)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $y)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f23), id0: ($y)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f23, $1 -> $y)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f23, $1 -> $y))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f23), id0: ($y))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f23, $1 -> $y))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($y -> $1, $f23 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f23, $1 -> $y)
+[TRACE slotted_egraphs::egraph::add] lookup (Sing(id0: ($0), id0: ($1)), ($0 -> $f23, $1 -> $y)) -> Some(id1: ($f23, $y))
+[DEBUG slotted_egraphs::egraph::add] add enode Sum(id0: ($f24), Bind { slot: $x, elem: Bind { slot: $y, elem: id1: ($f23, $y) } })
+    (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f24, $3 -> $f23))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f24), Bind { slot: $x, elem: Bind { slot: $y, elem: id1: ($f23, $y) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f24), Bind { slot: $x, elem: Bind { slot: $y, elem: id1: ($f23, $y) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f24, $3 -> $f23))
+[TRACE slotted_egraphs::egraph::add] lookup (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f24, $3 -> $f23)) -> Some(id2: ($f24, $f23))
+[DEBUG slotted_egraphs::egraph::add] add enode Sum(id0: ($f24), Bind { slot: $x, elem: Bind { slot: $y, elem: id0: ($y) } })
+    (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f24))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f24), Bind { slot: $x, elem: Bind { slot: $y, elem: id0: ($y) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f24), Bind { slot: $x, elem: Bind { slot: $y, elem: id0: ($y) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f24))
+[TRACE slotted_egraphs::egraph::add] lookup (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f24)) -> Some(id5: ($f24))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f23), id5: ($f24)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f23), id5: ($f24)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f23), id5: ($f24)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f24, $1 -> $f23)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f23 -> $1, $f24 -> $0)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[DEBUG slotted_egraphs::egraph::add] add enode Sing(id0: ($f23), id5: ($f24))
+    (Sing(id0: ($0), id5: ($1)), ($0 -> $f23, $1 -> $f24))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f23), id5: ($f24)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f23), id5: ($f24)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f23, $1 -> $f24))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f23)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f24)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f23), id5: ($f24)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f24, $1 -> $f23)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f23, $1 -> $f24))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f23), id5: ($f24))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f23, $1 -> $f24))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f23 -> $1, $f24 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f23, $1 -> $f24)
+[TRACE slotted_egraphs::egraph::add] lookup (Sing(id0: ($0), id5: ($1)), ($0 -> $f23, $1 -> $f24)) -> Some(id2: ($f24, $f23))
+[DEBUG slotted_egraphs::egraph::union] Union id2
+[DEBUG slotted_egraphs::egraph::union] Union id2
+[DEBUG slotted_egraphs::egraph::union] Union because Some("rule1"), id2: ($f24, $f23) with id2: ($f24, $f23)
+[DEBUG slotted_egraphs::egraph::union] eq, will not union
+[INFO  slotted_egraphs::rewrite] 0 done apply for rule1
+[DEBUG slotted_egraphs::rewrite] egraph size after rule1 is 7
+[DEBUG slotted_egraphs::egraph::rebuild] doing rebuild
+[TRACE slotted_egraphs::egraph::shape] shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::check] weak_shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::check] weak shape of Var($0) <-> (Var($0), ($0 -> $0))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f1)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::check] weak_shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sing(id0: ($0), id0: ($1)) <-> (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f6), id5: ($f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::check] weak_shape Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($0), id5: ($1)) ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sing(id0: ($0), id5: ($1)) <-> (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[TRACE slotted_egraphs::egraph::check] weak_shape Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } }) -> Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }) ($0 -> $f5, $3 -> $f6)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }) <-> (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id2: ($f8, $0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id2: ($f8, $0) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[TRACE slotted_egraphs::egraph::check] weak_shape Lam(Bind { slot: $0, elem: id2: ($f8, $0) }) -> Lam(Bind { slot: $0, elem: id2: ($1, $0) }) ($1 -> $f8)
+[TRACE slotted_egraphs::egraph::check] weak shape of Lam(Bind { slot: $0, elem: id2: ($1, $0) }) <-> (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id3: ($0) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::check] weak_shape Lam(Bind { slot: $0, elem: id3: ($0) }) -> Lam(Bind { slot: $0, elem: id3: ($0) }) ()
+[TRACE slotted_egraphs::egraph::check] weak shape of Lam(Bind { slot: $0, elem: id3: ($0) }) <-> (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[TRACE slotted_egraphs::egraph::check] weak_shape Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) -> Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) ($0 -> $f18)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) <-> (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+[TRACE slotted_egraphs::egraph::rebuild] start pending loops
+[INFO  slotted_egraphs::egraph::rebuild] end pending loops
+[INFO  slotted_egraphs::egraph::rebuild] start modify_queue
+[INFO  slotted_egraphs::egraph::rebuild] end modify_queue
+[INFO  slotted_egraphs::egraph::rebuild] done rebuild
+[DEBUG slotted_egraphs::run::runner] check_limits return ok
+[DEBUG slotted_egraphs::run::runner] run result: Err(
+        Saturated,
+    )
+[INFO  slotted_egraphs::run::runner] done run one
+[DEBUG slotted_egraphs::run::runner] done iter 2
+[TRACE slotted_egraphs::egraph::shape] shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::check] weak_shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::check] weak shape of Var($0) <-> (Var($0), ($0 -> $0))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f1)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::check] weak_shape Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sing(id0: ($0), id0: ($1)) <-> (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f6), id5: ($f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::lang] shape Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::lang] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::lang] slotmap ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::check] weak_shape Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($0), id5: ($1)) ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sing(id0: ($0), id5: ($1)) <-> (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[TRACE slotted_egraphs::egraph::check] weak_shape Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } }) -> Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }) ($0 -> $f5, $3 -> $f6)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }) <-> (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id2: ($f8, $0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id2: ($f8, $0) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[TRACE slotted_egraphs::egraph::check] weak_shape Lam(Bind { slot: $0, elem: id2: ($f8, $0) }) -> Lam(Bind { slot: $0, elem: id2: ($1, $0) }) ($1 -> $f8)
+[TRACE slotted_egraphs::egraph::check] weak shape of Lam(Bind { slot: $0, elem: id2: ($1, $0) }) <-> (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id3: ($0) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::check] weak_shape Lam(Bind { slot: $0, elem: id3: ($0) }) -> Lam(Bind { slot: $0, elem: id3: ($0) }) ()
+[TRACE slotted_egraphs::egraph::check] weak shape of Lam(Bind { slot: $0, elem: id3: ($0) }) <-> (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[TRACE slotted_egraphs::egraph::check] weak_shape Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) -> Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) ($0 -> $f18)
+[TRACE slotted_egraphs::egraph::check] weak shape of Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) <-> (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+[TRACE slotted_egraphs::egraph::shape] shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::shape] shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::egraph::shape] shape Var($f0) -> Var($0) ($0 -> $f0)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($0), id0: ($1)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($0), id0: ($1)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $0)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $1)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($0), id0: ($1)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($0), id5: ($1)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($0), id5: ($1)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $0)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $1)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($0), id5: ($1)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $0))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f1)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f1)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f1)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $f29, elem: Bind { slot: $f30, elem: id0: ($f30) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $f29, elem: Bind { slot: $f30, elem: id0: ($f30) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f1), id0: ($f2)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f0 -> $f0) }]]
+     orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f1)
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f1), id0: ($f2)) -> Sing(id0: ($0), id0: ($1)) ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f1), id0: ($f2))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id0: ($1)), ($0 -> $f1, $1 -> $f2))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f1 -> $0, $f2 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id0: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f1, $1 -> $f2)
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $0, $3 -> $3))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($f6, $2) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $f31, elem: Bind { slot: $f32, elem: id1: ($f6, $f32) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $f31, elem: Bind { slot: $f32, elem: id1: ($f6, $f32) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f18), Bind { slot: $f29, elem: Bind { slot: $f30, elem: id0: ($f30) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f18), Bind { slot: $f29, elem: Bind { slot: $f30, elem: id0: ($f30) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id0: ($2) } }), ($0 -> $f18))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($0), id5: ($1)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($0), id5: ($1)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 5, 4]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $0)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $1)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($0), id5: ($1)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $0, $1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $0, $1 -> $1)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f6), id5: ($f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f6), id5: ($f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f6), id5: ($f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Sum(id0: ($f5), Bind { slot: $f31, elem: Bind { slot: $f32, elem: id1: ($f6, $f32) } })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Sum(id0: ($f5), Bind { slot: $f31, elem: Bind { slot: $f32, elem: id1: ($f6, $f32) } }) }
+            (Sum(id0: ($0), Bind { slot: $1, elem: Bind { slot: $2, elem: id1: ($3, $2) } }), ($0 -> $f5, $3 -> $f6))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id2: ($1, $0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id2: ($1, $0) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $1))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id2: ($f8, $0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id2: ($f8, $0) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id2: ($f8, $0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id2: ($f8, $0) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $f33, elem: id2: ($f8, $f33) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $f33, elem: id2: ($f8, $f33) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[TRACE slotted_egraphs::types] canonicalLabelAppIds appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] appIdsVec [id0: ($f6), id5: ($f5)]
+[TRACE slotted_egraphs::types] lab [0, 2, 1, 3, 4, 5]
+[TRACE slotted_egraphs::egraph::shape] allPerms [[ProvenPerm { elem: ($f0 -> $f0) }], [ProvenPerm { elem: ($f18 -> $f18) }]]
+     orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] id id0 allPerms [ProvenPerm { elem: ($f0 -> $f0) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f0 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] id id5 allPerms [ProvenPerm { elem: ($f18 -> $f18) }]
+[TRACE slotted_egraphs::egraph::shape] appId.m ($f18 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] shape result Sing(id0: ($f6), id5: ($f5)) -> Sing(id0: ($1), id5: ($0)) ($0 -> $f5, $1 -> $f6)
+[TRACE slotted_egraphs::egraph::shape] orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig Sing(id0: ($f6), id5: ($f5))
+[TRACE slotted_egraphs::egraph::shape] eOrig orig_weak_shape (Sing(id0: ($0), id5: ($1)), ($0 -> $f6, $1 -> $f5))
+[TRACE slotted_egraphs::egraph::shape] eNew Sing(id0: ($1), id5: ($0))
+[TRACE slotted_egraphs::egraph::shape] slotsToNewIdx ($f5 -> $0, $f6 -> $1)
+[TRACE slotted_egraphs::egraph::shape] eNewWS Sing(id0: ($0), id5: ($1))
+[TRACE slotted_egraphs::egraph::shape] bij ($0 -> $1, $1 -> $0)
+[TRACE slotted_egraphs::egraph::shape] res ($0 -> $f6, $1 -> $f5)
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $f33, elem: id2: ($f8, $f33) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $f33, elem: id2: ($f8, $f33) }) }
+            (Lam(Bind { slot: $0, elem: id2: ($1, $0) }), ($1 -> $f8))
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id3: ($0) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id3: ($0) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $0, elem: id3: ($0) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $0, elem: id3: ($0) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $f34, elem: id3: ($f34) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $f34, elem: id3: ($f34) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+[TRACE slotted_egraphs::egraph::shape] doing proven_proven_pre_shape on Lam(Bind { slot: $f34, elem: id3: ($f34) })
+[TRACE slotted_egraphs::egraph::shape] done proven_proven_pre_shape -> ProvenNode { elem: Lam(Bind { slot: $f34, elem: id3: ($f34) }) }
+            (Lam(Bind { slot: $0, elem: id3: ($0) }), ())
+test sdql::rewrite::t1 ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 77 filtered out; finished in 0.03s
+

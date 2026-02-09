@@ -118,7 +118,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn add(&mut self, enode: L) -> AppliedId {
-        debug!("add {enode:?}");
+        debug!(
+            "add enode {enode:?}
+{:?}",
+            enode.weak_shape()
+        );
         let sh = self.shape_called_from_add(enode.clone());
         let addedId = self.add_internal(sh);
         addedId

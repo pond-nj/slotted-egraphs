@@ -135,11 +135,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
                 proven_perm.check();
             }
+            trace!("call groupMut from union_leaders");
+            trace!("class id {id}");
             let grp = &mut self.classes.get_mut(&id).unwrap().groupMut();
             if grp.contains(&proven_perm.to_slotmap()) {
                 return false;
             }
 
+            trace!("add perm to group");
             grp.add(proven_perm);
 
             self.touched_class(id, PendingType::Full);
