@@ -22,10 +22,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     #[cfg(feature = "newShape")]
     pub fn shape(&self, eOrig: &L) -> (L, Bijection) {
+        trace!("call shape {eOrig:?}");
         let e = self.find_enode(eOrig);
 
         let childrenType = e.getChildrenType();
         if childrenType.contains(&LanguageChildrenType::Bind) {
+            trace!("ret shape {eOrig:?}");
             return self.orig_shape(eOrig);
         }
 
@@ -38,9 +40,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if appIds.len() == 0 {
             trace!(
                 "shape {eOrig:?} -> {:?} {:?}",
-                e.weak_shape().0,
-                e.weak_shape().1
+                e.orig_weak_shape().0,
+                e.orig_weak_shape().1
             );
+            trace!("ret shape {eOrig:?}");
             return e.orig_weak_shape();
         }
         let allPerms: Vec<Vec<ProvenPerm>> = appIds
@@ -108,6 +111,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             *appIdsMut[i] = shaped[i].clone();
         }
 
+        // find smallest according to canonical label
+
         trace!(
             "shape result {eOrig:?} -> {:?} {:?}",
             eNew,
@@ -123,6 +128,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         trace!("bij {bij:?}");
         let res = slotsToNewIdx.composePartial(&bij.inverse()).inverse();
         trace!("res {res:?}");
+        trace!("ret shape {eOrig:?}");
         (eNewWS, res)
     }
 
@@ -133,10 +139,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     #[allow(unused)]
     pub(crate) fn proven_proven_shape(&self, e: &ProvenNode<L>) -> (ProvenNode<L>, Bijection) {
-        // println!("e {e:?}");
         let tmp = self.proven_proven_pre_shape(&e);
         let tmpWS = tmp.orig_weak_shape();
-        // println!("proven_proven_pre_shape weak_shape {tmpWS:?}");
         tmpWS
     }
 

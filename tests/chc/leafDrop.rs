@@ -231,16 +231,18 @@ fn mainTestSpawn() {
     let mut count = 0;
     let doConstraintRewrite = true;
     let (rootId, mut runner) = buildLeafDropCHC(egOrig, &mut count);
-    checkSelfCycle(&runner.egraph);
-    let (unfold1, unfold2, unfold3, newDefineComposeId) =
-        checkUnfoldNewDefineFoldExists(rootId.id, &mut runner.egraph);
-    checkUnfold2NewDefineWithMinLeaf(unfold2, unfold3, newDefineComposeId, &mut runner.egraph);
-    checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
+    if CHECKS {
+        checkSelfCycle(&runner.egraph);
+        let (unfold1, unfold2, unfold3, newDefineComposeId) =
+            checkUnfoldNewDefineFoldExists(rootId.id, &mut runner.egraph);
+        checkUnfold2NewDefineWithMinLeaf(unfold2, unfold3, newDefineComposeId, &mut runner.egraph);
+        checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
-    checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
-    checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
+        checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
+        checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
 
-    checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
+        checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
+    }
 }
 
 #[test]

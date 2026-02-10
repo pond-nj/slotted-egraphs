@@ -1,3 +1,5 @@
+use log::trace;
+
 use crate::*;
 
 // src_id: left.
@@ -57,15 +59,22 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // get smallest weak shape of syn node
+    // call find + shape on syn node
     pub(crate) fn pc_from_src_id(&self, i: Id) -> ProvenContains<L> {
+        trace!("pc_from_src_id {i}");
         self.pc_find(&self.refl_pc(i))
     }
 
     // "finds" both the node & the id to be "up-to-date".
     // get smallest weak shape
     pub(crate) fn pc_find(&self, pc: &ProvenContains<L>) -> ProvenContains<L> {
+        // println!("call pc_find {pc:?}");
+        let sh = self.shape(&pc.node.elem);
         ProvenContains {
-            node: self.proven_proven_pre_shape(&pc.node),
+            // node: self.proven_proven_pre_shape(&pc.node),
+            node: ProvenNode {
+                elem: sh.0.apply_slotmap(&sh.1),
+            },
             pai: self.proven_proven_find_applied_id(&pc.pai),
         }
     }

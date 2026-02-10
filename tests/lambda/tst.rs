@@ -115,6 +115,8 @@ macro_rules! unpack_tests {
         fn y_identity() {
             use lambda::*;
 
+            initLogger();
+
             let p = "(lam $0 (lam $1 (var $1)))";
             let s = app(y(), String::from(p));
 

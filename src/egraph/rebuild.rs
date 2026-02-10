@@ -332,6 +332,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let i = pc1.target_id();
         let weak = pc1.node.elem.weak_shape().0;
+        trace!("pc1 node {:?}", pc1.node.elem);
+        trace!("pc1 appId {:?}", pc1.pai.elem);
         for pn2 in self.proven_proven_get_group_compatible_variants(&pc1.node) {
             let pc2 = ProvenContains {
                 pai: pc1.pai.clone(),
