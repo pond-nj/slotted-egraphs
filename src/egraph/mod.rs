@@ -40,6 +40,9 @@ pub use print::*;
 mod shape;
 pub use shape::*;
 
+mod symmetries;
+pub use symmetries::*;
+
 // invariants:
 // 1. If two ENodes (that are in the EGraph) have equal .shape(), they have to be in the same eclass.
 // 2. enode.slots() is always a superset of c.slots, if enode is within the eclass c.

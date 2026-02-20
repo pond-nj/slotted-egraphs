@@ -35,6 +35,9 @@ log-derive = "0.4.1"
 union-find = "0.4.3"
 nauty-Traces-sys = "0.10"
 regex = "1.12.2"
+rustsat = "0.7.5"
+rustsat-cadical = "0.7.5"
+rustsat-minisat = "0.7.5"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }

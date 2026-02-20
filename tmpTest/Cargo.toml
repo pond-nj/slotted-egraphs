@@ -5,4 +5,6 @@ edition = "2024"
 
 [dependencies]
 log = "0.4.28"
+nauty-Traces-sys = "0.11.0"
 regex = "1.12.2"
+rustsat = "0.7.5"

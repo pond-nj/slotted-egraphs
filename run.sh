@@ -1,4 +1,4 @@
-# RUST_BACKTRACE=full cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
+RUST_BACKTRACE=full cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::pairingPaperArray::mainTest -- --nocapture &> tmp.txt
 # RUST_LOG=debug RUST_BACKTRACE=1 cargo test chc::leafDrop::testSortAppId -- --nocapture &> tmp.txt
 # RUST_LOG=debug RUST_BACKTRACE=1 cargo test arith::const_prop::const_prop -- --nocapture &> tmp.txt

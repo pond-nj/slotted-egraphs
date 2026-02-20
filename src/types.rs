@@ -131,7 +131,6 @@ impl AppliedId {
     }
 }
 
-// TODO: can we not change L here into AppliedId?
 pub fn canonicalLabelAppIds<'a>(
     appIdsVec: &'a Vec<AppliedId>,
     allPerms: Option<&Vec<Vec<ProvenPerm>>>,
@@ -142,7 +141,6 @@ pub fn canonicalLabelAppIds<'a>(
     // {f(x, y), f(y, x), g(x, y)}
     // should have a color order f < g < arg < var
     // 1(f) - 2(arg) - 3(arg)
-    // TODO: this is wrong: 1 here should get another v according to the implementation
     // 4(f) - 5(arg) - 6(arg)
     // 7(g) - 8(arg) - 9(arg)
     // x - 10(var)

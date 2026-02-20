@@ -325,60 +325,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.shrink_slots(&a, &cap, prf);
     }
 
-    // finds self-symmetries caused by the e-node `src_id`.
-    fn determine_self_symmetries(&mut self, src_id: Id) {
-        // get smallest weak shape of syn node
-        let pc1 = self.pc_from_src_id(src_id);
-
-        let i = pc1.target_id();
-        let weak = pc1.node.elem.weak_shape().0;
-        trace!("pc1 node {:?}", pc1.node.elem);
-        trace!("pc1 appId {:?}", pc1.pai.elem);
-        for pn2 in self.proven_proven_get_group_compatible_variants(&pc1.node) {
-            let pc2 = ProvenContains {
-                pai: pc1.pai.clone(),
-                node: pn2,
-            };
-            let (weak2, _) = pc2.node.elem.weak_shape();
-            if weak == weak2 {
-                if CHECKS {
-                    self.check_pc(&pc1);
-                }
-                if CHECKS {
-                    self.check_pc(&pc2);
-                }
-                if CHECKS {
-                    assert_eq!(pc1.target_id(), pc2.target_id());
-                }
-
-                #[allow(unused)]
-                let (a, b, proof) = self.pc_congruence(&pc1, &pc2);
-
-                // or is it the opposite direction? (flip a with b)
-                let perm = a.m.compose(&b.m.inverse());
-
-                let proven_perm = ProvenPerm {
-                    elem: perm,
-
-                    #[cfg(feature = "explanations")]
-                    proof,
-
-                    #[cfg(feature = "explanations")]
-                    reg: self.proof_registry.clone(),
-                };
-
-                if CHECKS {
-                    proven_perm.check();
-                }
-                // should be the place that updates this group permutation if children eclasses are permuted
-                let grp = self.classes.get_mut(&i).unwrap().groupMut();
-                if grp.add(proven_perm) {
-                    self.touched_class(i, PendingType::Full);
-                }
-            }
-        }
-    }
-
     pub(in crate::egraph) fn handle_congruence(&mut self, pc1: ProvenContains<L>) {
         let (sh, _) = self.shape(&pc1.node.elem);
         let pc2 = self.pc_from_shape(&sh);

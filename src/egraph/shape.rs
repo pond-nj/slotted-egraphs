@@ -230,6 +230,22 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             trace!("{} ", g.len());
         }
         trace!("allPerms {:?}", groups);
+        for perms in &groups {
+            if perms.len() > 1 {
+                for perm in perms.iter() {
+                    let perm = &perm.elem;
+                    let mut s: String = "".to_string();
+                    for (from, to) in perm.iter() {
+                        if from != to {
+                            s += &format!("{:?} -> {:?} ", from, to);
+                        }
+                    }
+                    if s.len() > 0 {
+                        println!("{s}");
+                    }
+                }
+            }
+        }
         trace!(
             "\n = {}\n",
             groups.iter().map(|x| x.len()).product::<usize>()
