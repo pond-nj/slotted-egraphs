@@ -58,9 +58,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut instance = SatInstance::new();
         let appIds = pc1.node.elem.applied_id_occurrences();
 
-        let slots = pc1.node.elem.slots();
+        let mut slotsIdx = BTreeMap::new();
+        let mut slotsPos = BTreeMap::new();
+        for (i, appId) in appIds.iter().enumerate() {
+            for (j, (_, s)) in appId.m.iter().enumerate() {
+                if !slotsIdx.contains_key(&s) {
+                    slotsIdx.insert(*s, slotsIdx.len());
+                }
+                slotsPos.entry(*s).or_insert(vec![]).push((i, j));
+            }
+        }
 
         // TODO: should we change this to vec for faster?
+        // vars[i][j][s] is true iff slot s is positioned at j in the i-th appId
         let mut vars: BTreeMap<(usize, usize, &Slot), isize> = BTreeMap::new();
         // must start at 1 because we use negation for false
         let mut nextId: isize = 1;
@@ -73,7 +83,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         }
 
-        let permSlots = vec![vec![0; slots.len()]; slots.len()];
+        // permSlots[x][y] is true iff x is mapped to y
+        let mut permSlots = vec![vec![0; slots.len()]; slots.len()];
         for i in 0..permSlots.len() {
             for j in 0..permSlots[i].len() {
                 permSlots[i][j] = nextId;
@@ -93,10 +104,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 let newSlotmap = perm.elem.compose(&appId.m);
                 let mut dnfClause: Vec<isize> = Vec::new();
                 dnfClause.reserve(newSlotmap.len());
+
                 for (j, (_, to)) in newSlotmap.iter().enumerate() {
                     dnfClause.push(vars[&(i, j, &to)]);
                 }
-                // TODO: add a condition that if y replace x positionally then permSlots[x][y] must be true
+
+                // if y replace x positionally then permSlots[x][y] must be true
+                for (from, origTo) in appId.m {
+                    let newTo = newSlotmap[&from];
+                    dnfClause.push(permSlots[&slotsIdx[origTo]][&slotsIdx[newTo]]);
+                }
+
                 dnf.push(dnfClause);
             }
             for cnf in dnfToCnfByTseitin(&dnf, &mut nextId) {
@@ -104,8 +122,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 instance.add_clause(cnf.as_slice().into());
             }
         }
+
         // TODO: we must add a few more conditions
         // 1) if x replaces y (permSlots[x][y] == true), then y at previous positional occurrence of x must be true
+        for i in 0..permSlots.len() {
+            for j in 0..permSlots[i].len() {
+                // if permSlots[x][y] then y at previous positional occurrence of x must be true
+                // not permSlots[x][y] or (y at previous positional occurrence of x must be true)
+            }
+        }
         // 2) (is this necessary?), position must be bijection. E.g. if a takes the ith position, then others must not take the ith position
         // 3) (is this necessary?), permSlots must be bijection. E.g. if x is permuted to y, then others cannot permute to y
 
