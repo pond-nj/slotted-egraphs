@@ -1,8 +1,8 @@
 use crate::*;
 use log::{debug, trace};
 use rustsat::encodings::CollectClauses;
-use rustsat::instances::SatInstance;
-use rustsat::solvers::Solve;
+use rustsat::instances::{BasicVarManager, SatInstance};
+use rustsat::solvers::{Solve, SolverResult};
 use rustsat::types::{Clause, Lit};
 use rustsat_minisat::core::Minisat;
 
@@ -55,17 +55,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             return;
         }
 
-        let mut instance = SatInstance::new();
+        let mut instance: SatInstance<BasicVarManager> = SatInstance::new();
         let appIds = pc1.node.elem.applied_id_occurrences();
 
         let mut slotsIdx = BTreeMap::new();
+        // s -> appId, position arg
         let mut slotsPos = BTreeMap::new();
         for (i, appId) in appIds.iter().enumerate() {
             for (j, (_, s)) in appId.m.iter().enumerate() {
                 if !slotsIdx.contains_key(&s) {
-                    slotsIdx.insert(*s, slotsIdx.len());
+                    slotsIdx.insert(s, slotsIdx.len());
                 }
-                slotsPos.entry(*s).or_insert(vec![]).push((i, j));
+                slotsPos.entry(s).or_insert(vec![]).push((i, j));
             }
         }
 
@@ -76,15 +77,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut nextId: isize = 1;
         for (i, appId) in appIds.iter().enumerate() {
             for j in 0..appId.m.len() {
-                for s in slots.iter() {
+                for s in slotsIdx.keys() {
                     vars.insert((i, j, s), nextId);
                     nextId += 1;
                 }
             }
         }
 
+        // index into permSlots is determined by SlotIdx
         // permSlots[x][y] is true iff x is mapped to y
-        let mut permSlots = vec![vec![0; slots.len()]; slots.len()];
+        let mut permSlots = vec![vec![0; slotsIdx.len()]; slotsIdx.len()];
         for i in 0..permSlots.len() {
             for j in 0..permSlots[i].len() {
                 permSlots[i][j] = nextId;
@@ -110,32 +112,58 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 }
 
                 // if y replace x positionally then permSlots[x][y] must be true
-                for (from, origTo) in appId.m {
-                    let newTo = newSlotmap[&from];
-                    dnfClause.push(permSlots[&slotsIdx[origTo]][&slotsIdx[newTo]]);
+                for (from, origTo) in appId.m.iter() {
+                    let newTo = newSlotmap[from];
+                    dnfClause.push(permSlots[slotsIdx[&origTo]][slotsIdx[&newTo]]);
                 }
 
                 dnf.push(dnfClause);
             }
             for cnf in dnfToCnfByTseitin(&dnf, &mut nextId) {
-                let cnf: Vec<_> = cnf.into_iter().map(|x| Lit::new(x, x > 0)).collect();
+                let cnf: Vec<_> = cnf
+                    .into_iter()
+                    .map(|x| Lit::new(x.try_into().unwrap(), x < 0))
+                    .collect();
                 instance.add_clause(cnf.as_slice().into());
             }
         }
 
         // TODO: we must add a few more conditions
         // 1) if x replaces y (permSlots[x][y] == true), then y at previous positional occurrence of x must be true
-        for i in 0..permSlots.len() {
-            for j in 0..permSlots[i].len() {
+        for (x, i) in slotsIdx.iter() {
+            for (y, j) in slotsIdx.iter() {
+                if i == j {
+                    continue;
+                }
                 // if permSlots[x][y] then y at previous positional occurrence of x must be true
                 // not permSlots[x][y] or (y at previous positional occurrence of x must be true)
+                let mut clause = vec![-permSlots[slotsIdx[&x]][slotsIdx[&y]]];
+                for (appIdIdx, posIdx) in slotsPos[&x].iter() {
+                    clause.push(vars[&(*appIdIdx, *posIdx, y)]);
+                }
+                instance.add_clause(
+                    clause
+                        .into_iter()
+                        .map(|x| Lit::new(x.try_into().unwrap(), x < 0))
+                        .collect::<Vec<_>>()
+                        .as_slice()
+                        .into(),
+                );
             }
         }
         // 2) (is this necessary?), position must be bijection. E.g. if a takes the ith position, then others must not take the ith position
         // 3) (is this necessary?), permSlots must be bijection. E.g. if x is permuted to y, then others cannot permute to y
 
         let mut solver = Minisat::default();
-        solver.add_instance(&instance).unwrap();
+        solver.add_cnf(instance.into_cnf().0).unwrap();
+
+        let sol = solver.full_solution().unwrap();
+        for (x, i) in slotsIdx.iter() {
+            for (y, j) in slotsIdx.iter() {
+                // TODO
+                if sol[Lit::positive(permSlots[i][j]).var()].to_bool_with_def(def) {}
+            }
+        }
     }
 
     // finds self-symmetries caused by the e-node `src_id`.
