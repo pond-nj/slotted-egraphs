@@ -192,6 +192,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         &self,
         enode: &ProvenNode<L>,
     ) -> Vec<ProvenNode<L>> {
+        // #[cfg(feature = "newSymCal")]
+        // panic!("should not be called");
+
         info!("doing proven_proven_get_group_compatible_variants");
         // should only be called with an up-to-date e-node.
         if CHECKS {

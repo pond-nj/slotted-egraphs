@@ -152,6 +152,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         trace!("start pending loops");
         while !self.pending.is_empty() {
             let pending_batch = std::mem::take(&mut self.pending);
+            // TODO: actually can we parallelize this?
             for (sh, pending_ty) in pending_batch {
                 trace!("deal with pending {sh:?}");
                 self.handleSorted(&sh);

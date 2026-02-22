@@ -9,6 +9,7 @@ use rustsat_minisat::core::Minisat;
 use std::collections::BTreeSet;
 use std::{collections::BTreeMap, os::raw::c_int};
 
+#[allow(unused)]
 fn dnfToCnfByTseitin(dnf: &Vec<Vec<isize>>, count: &mut isize) -> Vec<Vec<isize>> {
     if dnf.is_empty() {
         return vec![vec![]];
@@ -48,8 +49,9 @@ fn dnfToCnfByTseitin(dnf: &Vec<Vec<isize>>, count: &mut isize) -> Vec<Vec<isize>
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
+    #[allow(unused)]
     fn symmetriesBySat(self: &mut EGraph<L, N>, src_id: Id) -> (Vec<SlotMap>, Id) {
-        info!("symmetriesBySat {:?}", src_id);
+        info!("call symmetriesBySat {:?}", src_id);
         let pc1 = self.pc_from_src_id(src_id);
         let childrenType = pc1.node.elem.getChildrenType();
         if childrenType.contains(&LanguageChildrenType::Bind) {
@@ -81,6 +83,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 slotsPos.entry(s).or_insert(vec![]).push((i, j));
             }
         }
+        info!("total slots {}", slotsIdx.len());
 
         // TODO: should we change this to vec for faster?
         // at[i][j][s] is true iff slot s is positioned at j in the i-th appId
@@ -105,6 +108,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 nextId += 1;
             }
         }
+        info!("total var {}", nextId);
+
+        let mut totalPerm: u128 = 1;
+        for appId in appIds.iter() {
+            let perms: Vec<_> = self.classes[&appId.id]
+                .group()
+                .all_perms()
+                .into_iter()
+                .collect();
+            totalPerm *= perms.len() as u128;
+        }
+        info!("total perm {}", totalPerm);
 
         // perm1 or perm2 or ...
         for (i, appId) in appIds.iter().enumerate() {
@@ -259,18 +274,33 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         (allPerms, eclassId)
     }
 
+    #[cfg(feature = "newSymCal")]
     pub(crate) fn determine_self_symmetries(&mut self, src_id: Id) {
         let (allPerms, i) = self.symmetriesBySat(src_id);
 
-        if CHECKS {
-            let (allPerms2, i2) = self.orig_determine_self_symmetries(src_id);
-            let allPermSet = allPerms.iter().collect::<BTreeSet<_>>();
-            let allPermSet2 = allPerms2.iter().collect::<BTreeSet<_>>();
-            assert_eq!(allPermSet, allPermSet2);
-            assert_eq!(i, i2);
-        }
+        // if CHECKS {
+        //     let (allPerms2, i2) = self.orig_determine_self_symmetries(src_id);
+        //     let allPermSet = allPerms.iter().collect::<BTreeSet<_>>();
+        //     let allPermSet2 = allPerms2.iter().collect::<BTreeSet<_>>();
+        //     assert_eq!(allPermSet, allPermSet2);
+        //     assert_eq!(i, i2);
+        // }
 
         // should be the place that updates this group permutation if children eclasses are permuted
+
+        for perm in allPerms {
+            // TODO: why cant we put grp outside this scope?
+            let grp = self.classes.get_mut(&i).unwrap().groupMut();
+
+            if grp.add(ProvenPerm { elem: perm }) {
+                self.touched_class(i, PendingType::Full);
+            }
+        }
+    }
+
+    #[cfg(not(feature = "newSymCal"))]
+    pub(crate) fn determine_self_symmetries(&mut self, src_id: Id) {
+        let (allPerms, i) = self.orig_determine_self_symmetries(src_id);
 
         for perm in allPerms {
             // TODO: why cant we put grp outside this scope?
