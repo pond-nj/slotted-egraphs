@@ -1,5 +1,5 @@
 use crate::*;
-use log::{error, info, trace};
+use log::{debug, error, info, trace};
 use nauty_Traces_sys::{
     densenauty, empty_graph, optionblk, statsblk, ADDONEEDGE, FALSE, SETWORDSNEEDED, TRUE,
 };
@@ -330,7 +330,7 @@ pub fn sortAppId(appIdsOrigs: &Vec<AppliedId>) -> Vec<AppliedId> {
     if appIdsSet.len() == appIdsSorted.len() {
         return appIdsSorted;
     }
-    info!("start sortAppId");
+    debug!("start sortAppId");
     let (lab, appIdToV, _) = canonicalLabelAppIds(&appIdsSorted, None);
 
     let mut VToAppIds = BTreeMap::new();
@@ -344,7 +344,7 @@ pub fn sortAppId(appIdsOrigs: &Vec<AppliedId>) -> Vec<AppliedId> {
     }
     sortedAppIds.dedup();
 
-    info!("done sortAppId");
+    debug!("done sortAppId");
     sortedAppIds
 }
 

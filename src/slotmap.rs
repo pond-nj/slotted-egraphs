@@ -243,7 +243,7 @@ impl SlotMap {
 
     // checks invariants.
     #[allow(unused)]
-    fn check(&self) {
+    pub fn check(&self) {
         // sortedness.
         let mut sorted = self.map.clone();
         sorted.sort_by_key(|(l, _)| *l);

@@ -1,3 +1,5 @@
+use log::info;
+
 use super::*;
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
@@ -190,7 +192,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         &self,
         enode: &ProvenNode<L>,
     ) -> Vec<ProvenNode<L>> {
-        // println!("doing proven_proven_get_group_compatible_variants");
+        info!("doing proven_proven_get_group_compatible_variants");
         // should only be called with an up-to-date e-node.
         if CHECKS {
             for x in enode.elem.applied_id_occurrences() {
@@ -241,7 +243,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                         }
                     }
                     if s.len() > 0 {
-                        println!("{s}");
+                        trace!("{s}");
                     }
                 }
             }
@@ -263,7 +265,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             out.push(pn);
         }
 
-        // println!("done proven_proven_get_group_compatible_variants");
+        info!("done proven_proven_get_group_compatible_variants");
         out
     }
 

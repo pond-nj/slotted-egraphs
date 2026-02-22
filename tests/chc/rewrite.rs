@@ -1467,7 +1467,7 @@ pub fn sortNewENode2(
     predicateChildren: &OrderVec<AppliedIdOrStar>,
     eg: &mut CHCEGraph,
 ) -> (CHC, CHC, AppliedId) {
-    info!("doing sortNewENode2");
+    debug!("doing sortNewENode2");
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.extend(condChildren.iter().map(|a| a.getAppliedId()));
     aggrAppId.push(syntaxAppId.clone());
@@ -1490,7 +1490,7 @@ pub fn sortNewENode2(
     let condENode = CHC::And(sortedCondChildren.into());
     let condAppId = eg.add(condENode.clone());
 
-    info!("done sortNewENode2");
+    debug!("done sortNewENode2");
     (
         CHC::New(
             syntaxAppId.clone(),

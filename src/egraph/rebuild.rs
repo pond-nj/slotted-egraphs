@@ -175,7 +175,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn handleSorted(&mut self, sh: &L) {
-        info!("start handleSorted");
+        debug!("start handleSorted");
         let lenBefore = self.total_number_of_nodes();
         if self.hashcons.get(&sh).is_none() {
             return;
@@ -210,7 +210,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             );
         }
         assert!(self.total_number_of_nodes() == lenBefore);
-        info!("end handleSorted");
+        debug!("end handleSorted");
     }
 
     fn handle_pending(&mut self, sh: &L, _pending_ty: PendingType) {
@@ -265,7 +265,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let lookupRes = self.lookup_internal(&t);
         if lookupRes.is_some() {
             self.handle_congruence(self.pc_from_src_id(src_id));
-            info!("end handle_pending by congruence");
+            debug!("end handle_pending by congruence");
             return;
         }
 
@@ -287,7 +287,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.update_analysis(&sh, app_i.id);
 
         self.determine_self_symmetries(src_id);
-        info!("end handle_pending");
+        debug!("end handle_pending");
     }
 
     fn update_analysis(&mut self, sh: &L, i: Id) {
