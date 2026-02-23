@@ -13,7 +13,7 @@ const DO_FOLDING: bool = false;
 fn mainTest() {
     initLogger();
     let mut eg = CHCEGraph::default();
-    growEGraph("tests/chc/input/pairing_paper_array.txt", &mut eg);
+    growEGraph("tests/chc/input/synchronized_chc.txt", &mut eg);
     eg.rebuild();
 
     info!("Egraph before");
@@ -29,8 +29,8 @@ fn mainTest() {
             RewriteOption {
                 doConstraintRewrite: DO_CONST_REWRITE,
                 doFolding: DO_FOLDING,
-                doADTDefine: true,
-                doPairingDefine: false,
+                doADTDefine: false,
+                doPairingDefine: true,
             },
         ))
     });

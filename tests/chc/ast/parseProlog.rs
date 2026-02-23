@@ -307,8 +307,8 @@ fn parse_constr(constr: &str) -> Option<Term> {
         "-" => ConstrOP::Minus,
         "=<" => ConstrOP::Leq,
         ">=" => ConstrOP::Geq,
-        "<" => ConstrOP::Less,
-        ">" => ConstrOP::Greater,
+        "<" => ConstrOP::Lt,
+        ">" => ConstrOP::Gt,
         _ => return None,
     };
     let child1 = parse_constr(&first)?;

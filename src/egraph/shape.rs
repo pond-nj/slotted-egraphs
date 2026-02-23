@@ -195,7 +195,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // #[cfg(feature = "newSymCal")]
         // panic!("should not be called");
 
-        info!("doing proven_proven_get_group_compatible_variants");
+        trace!("doing proven_proven_get_group_compatible_variants");
         // should only be called with an up-to-date e-node.
         if CHECKS {
             for x in enode.elem.applied_id_occurrences() {
@@ -268,7 +268,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             out.push(pn);
         }
 
-        info!("done proven_proven_get_group_compatible_variants");
+        trace!("done proven_proven_get_group_compatible_variants");
         out
     }
 

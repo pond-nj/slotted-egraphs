@@ -5,6 +5,7 @@ Usage: python plot_symmetry_hist.py <logfile>
 """
 
 import argparse
+import math
 import re
 import sys
 import matplotlib.pyplot as plt
@@ -44,7 +45,7 @@ def parse_log_file(filename):
                     slot_numbers.append(int(slot_match.group(1)))
                 perm_match = perm_pattern.search(line)
                 if perm_match:
-                    perm_numbers.append(float(perm_match.group(1)))
+                    perm_numbers.append(int(perm_match.group(1)))
     except FileNotFoundError:
         print(f"Error: File '{filename}' not found.", file=sys.stderr)
         sys.exit(1)
@@ -82,17 +83,17 @@ def plot_histograms(var_data, slot_data, perm_data, logfile):
         ax2.set_title("total slots (no data)")
 
     # Histogram for total slots
-    max_perm = np.max(perm_data)
+    perm_data = [math.log(x, 10) for x in perm_data]
     if perm_data:
         ax3.hist(
             perm_data,
-            bins=[i for i in range(1, int(max_perm) + 1, int(max_perm) // 100000)],
+            bins="auto",
             edgecolor="black",
             alpha=0.7,
             color="green",
         )
         ax3.set_title(f"Histogram of total perm ({len(perm_data)})")
-        ax3.set_xlabel("total perm")
+        ax3.set_xlabel("Log_10 of total perm")
         ax3.set_ylabel("Frequency")
     else:
         ax3.text(0.5, 0.5, "No data", ha="center", va="center", transform=ax2.transAxes)

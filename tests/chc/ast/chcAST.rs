@@ -14,8 +14,8 @@ pub enum ConstrOP {
     Minus,
     Leq,
     Geq,
-    Less,
-    Greater,
+    Lt,
+    Gt,
     EmptyList,
     List,
     Binode,
@@ -30,8 +30,8 @@ impl ConstrOP {
             ConstrOP::Minus => "-",
             ConstrOP::Leq => "=<",
             ConstrOP::Geq => ">=",
-            ConstrOP::Less => "<",
-            ConstrOP::Greater => ">",
+            ConstrOP::Lt => "<",
+            ConstrOP::Gt => ">",
             ConstrOP::EmptyList => "[]",
             ConstrOP::List => "list",
             ConstrOP::Binode => "node",
@@ -48,7 +48,7 @@ impl ConstrOP {
         match self {
             ConstrOP::Eq | ConstrOP::Neq => true,
             ConstrOP::Add | ConstrOP::Minus => true,
-            ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Less | ConstrOP::Greater => true,
+            ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Lt | ConstrOP::Gt => true,
             ConstrOP::EmptyList | ConstrOP::List | ConstrOP::Binode => false,
         }
     }
@@ -57,9 +57,7 @@ impl ConstrOP {
         match self {
             ConstrOP::Eq | ConstrOP::Neq => None,
             ConstrOP::Add | ConstrOP::Minus => Some(ArgType::Int),
-            ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Less | ConstrOP::Greater => {
-                Some(ArgType::Int)
-            }
+            ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Lt | ConstrOP::Gt => Some(ArgType::Int),
             ConstrOP::EmptyList | ConstrOP::List | ConstrOP::Binode => None,
         }
     }
@@ -68,7 +66,7 @@ impl ConstrOP {
         match self {
             ConstrOP::Eq | ConstrOP::Neq => ArgType::Bool,
             ConstrOP::Add | ConstrOP::Minus => ArgType::Int,
-            ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Less | ConstrOP::Greater => ArgType::Bool,
+            ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Lt | ConstrOP::Gt => ArgType::Bool,
             ConstrOP::EmptyList | ConstrOP::List => ArgType::List(Box::new(ArgType::Unknown)),
             ConstrOP::Binode => ArgType::Node(Box::new(ArgType::Unknown)),
         }
@@ -320,8 +318,8 @@ impl Constr {
             | ConstrOP::Minus
             | ConstrOP::Leq
             | ConstrOP::Geq
-            | ConstrOP::Less
-            | ConstrOP::Greater => {
+            | ConstrOP::Lt
+            | ConstrOP::Gt => {
                 for a in self.args.iter() {
                     a.propagateTypeDown(ArgType::Int, typeMap);
                 }

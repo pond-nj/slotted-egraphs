@@ -27,7 +27,7 @@ mod leafDrop;
 pub use leafDrop::*;
 
 mod pairingPaperArray;
-mod pairingPaperArray2;
+mod synchronizedCHC;
 mod unitTest;
 
 define_language! {

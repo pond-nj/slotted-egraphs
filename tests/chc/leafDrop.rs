@@ -5,7 +5,7 @@ use std::thread;
 
 // 32MiB
 const STACK_SIZE: usize = 32 * 1024 * 1024;
-const ITER_LIMIT: usize = 3;
+const ITER_LIMIT: usize = 2;
 const TIME_LIMIT_SECS: u64 = 3600;
 const DO_CONST_REWRITE: bool = true;
 const DO_FOLDING: bool = true;
@@ -210,8 +210,12 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
             RewriteList::default(),
-            DO_CONST_REWRITE,
-            DO_FOLDING,
+            RewriteOption {
+                doConstraintRewrite: DO_CONST_REWRITE,
+                doFolding: DO_FOLDING,
+                doADTDefine: true,
+                doPairingDefine: false,
+            },
         ))
     });
     println!("use time {t:?}");
@@ -232,16 +236,16 @@ fn mainTestSpawn() {
     let doConstraintRewrite = true;
     let (rootId, mut runner) = buildLeafDropCHC(egOrig, &mut count);
     // if CHECKS {
-    // checkSelfCycle(&runner.egraph);
-    // let (unfold1, unfold2, unfold3, newDefineComposeId) =
-    //     checkUnfoldNewDefineFoldExists(rootId.id, &mut runner.egraph);
-    // checkUnfold2NewDefineWithMinLeaf(unfold2, unfold3, newDefineComposeId, &mut runner.egraph);
-    // checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
+    checkSelfCycle(&runner.egraph);
+    let (unfold1, unfold2, unfold3, newDefineComposeId) =
+        checkUnfoldNewDefineFoldExists(rootId.id, &mut runner.egraph);
+    checkUnfold2NewDefineWithMinLeaf(unfold2, unfold3, newDefineComposeId, &mut runner.egraph);
+    checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
-    // checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
-    // checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
+    checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
+    checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
 
-    // checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
+    checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
     // }
 }
 
@@ -259,19 +263,20 @@ fn mainTest() {
 }
 
 fn checkResult(keyword: &str, expr: &String, eg: &CHCEGraph, canLookup: bool) -> Id {
+    info!("checkResult for {:?}", keyword);
     if canLookup {
         let res = eg.lookupRecExpr(RecExpr::parse(&expr).unwrap());
         info!("lookup {}: {res:?}", keyword);
         if res.is_some() {
-            info!("lookup has result");
+            info!("lookup has result!");
             return res.unwrap().id;
         }
-        info!("lookup has no result");
     }
 
-    info!("doing search by ematchQueryall");
+    info!("lookup has no result, doing search by ematchQueryall");
     let res = ematchQueryall(&eg, &Pattern::parse(&expr).unwrap());
     checkRes!(keyword, res);
+    info!("return {}!", res[0].1);
     res[0].1
 }
 

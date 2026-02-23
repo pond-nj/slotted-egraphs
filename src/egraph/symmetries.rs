@@ -51,7 +51,7 @@ fn dnfToCnfByTseitin(dnf: &Vec<Vec<isize>>, count: &mut isize) -> Vec<Vec<isize>
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     #[allow(unused)]
     fn symmetriesBySat(self: &mut EGraph<L, N>, src_id: Id) -> (Vec<SlotMap>, Id) {
-        info!("call symmetriesBySat {:?}", src_id);
+        trace!("call symmetriesBySat {:?}", src_id);
         let pc1 = self.pc_from_src_id(src_id);
         let childrenType = pc1.node.elem.getChildrenType();
         if childrenType.contains(&LanguageChildrenType::Bind) {
@@ -83,7 +83,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 slotsPos.entry(s).or_insert(vec![]).push((i, j));
             }
         }
-        info!("total slots {}", slotsIdx.len());
+        trace!("total slots {}", slotsIdx.len());
 
         // TODO: should we change this to vec for faster?
         // at[i][j][s] is true iff slot s is positioned at j in the i-th appId
@@ -108,7 +108,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 nextId += 1;
             }
         }
-        info!("total var {}", nextId);
+        trace!("total var {}", nextId);
 
         let mut totalPerm: u128 = 1;
         for appId in appIds.iter() {
@@ -119,7 +119,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 .collect();
             totalPerm *= perms.len() as u128;
         }
-        info!("total perm {}", totalPerm);
+        trace!("total perm {}", totalPerm);
 
         // perm1 or perm2 or ...
         for (i, appId) in appIds.iter().enumerate() {
@@ -270,7 +270,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             rustsat::solvers::Solve::add_clause(&mut solver, blocking.as_slice().into()).unwrap();
         }
 
-        info!("done symmetriesBySat {:?}", src_id);
+        trace!("done symmetriesBySat {:?}", src_id);
         (allPerms, eclassId)
     }
 
