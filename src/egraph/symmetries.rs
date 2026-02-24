@@ -4,6 +4,7 @@ use rustsat::encodings::CollectClauses;
 use rustsat::instances::{BasicVarManager, SatInstance};
 use rustsat::solvers::{Solve, SolverResult};
 use rustsat::types::{Clause, Lit, TernaryVal};
+use rustsat_cadical::CaDiCaL;
 use rustsat_minisat::core::Minisat;
 
 use std::collections::BTreeSet;
@@ -452,22 +453,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(crate) fn determine_self_symmetries(&mut self, src_id: Id) {
         let totalPerm = self.getTotalPerms(src_id);
 
-        let mut res = None;
-        if totalPerm > 1000 {
-            res = Some(self.symmetriesBySat(src_id));
-
-            // if CHECKS {
-            //     let (allPerms2, i2) = self.orig_determine_self_symmetries(src_id);
-            //     let allPermSet = allPerms.iter().collect::<BTreeSet<_>>();
-            //     let allPermSet2 = allPerms2.iter().collect::<BTreeSet<_>>();
-            //     assert_eq!(allPermSet, allPermSet2);
-            //     assert_eq!(i, i2);
-            // }
+        let (allPerms, i) = if totalPerm > 1000 {
+            self.symmetriesBySat(src_id)
         } else {
-            res = Some(self.symmetriesBySat(src_id));
-        }
-        let res = res.unwrap();
-        let (allPerms, i) = (res.0, res.1);
+            self.symmetriesBySat(src_id)
+        };
 
         // should be the place that updates this group permutation if children eclasses are permuted
         for perm in allPerms {

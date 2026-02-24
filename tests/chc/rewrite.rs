@@ -43,11 +43,11 @@ macro_rules! checkVarType {
     ($appId: expr, $eg: expr) => {
         if CHECKS {
             let eclassData = $eg.analysis_data($appId.id);
-            if $appId.len() != 0 && eclassData.varTypes.len() == 0 {
+            if $appId.len() != 0 && eclassData.varTypes().len() == 0 {
                 error!("varTypes len 0");
                 error!("appId {:?}", $appId);
                 error!("eclass {:?}", $eg.eclass($appId.id).unwrap());
-                assert!(eclassData.varTypes.len() > 0);
+                assert!(eclassData.varTypes().len() > 0);
             }
         }
     };
@@ -331,7 +331,9 @@ fn functionalityTransformation(
             let mut filterOutChildIdx = BTreeSet::new();
 
             let getVarType = |toSlot, appId: AppliedId, egraph: &CHCEGraph| {
-                let varTypes = &egraph.analysis_data(appId.id).varTypes;
+                // let varTypes = &egraph.analysis_data(appId.id).varTypes;
+                // TODO: optimize here
+                let varTypes = getAllVarTypesInEClass(appId.id, egraph);
                 let fromSlot = appId.m.inverse()[toSlot];
                 varTypes.get(&fromSlot).unwrap().clone()
             };
@@ -684,6 +686,8 @@ fn unfoldApplyInternal(
 
             let unfoldedENodeId = eg.add(unfoldedENode.clone());
             eg.shrink_slots(&unfoldedENodeId, &syntax1.slots(), ());
+            *eg.analysis_data_mut(unfoldedENodeId.id).varTypesMut() =
+                getVarTypesAfterShrinked(&unfoldedENodeId, &syntax1.slots(), eg);
 
             let tag = if createOrMerge == UnfoldOpType::UnfoldMerge {
                 format!(
@@ -1547,22 +1551,13 @@ fn defineUnfoldFold(
                 // TODO0: try change to rootData instead of mergeVarTypes
                 // aggregate information
                 let mut varToChildIdx: BTreeMap<Slot, Vec<usize>> = BTreeMap::default();
-                let mut mergeVarTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
+                let mut mergeVarTypes: BTreeMap<Slot, VarType> = getAllVarTypes(&origNewENode, eg);
                 {
                     for idx in 0..childAppIds.len() {
                         let appId = childAppIds[idx].getAppliedId();
                         for s in appId.slots() {
                             varToChildIdx.entry(s).or_insert(vec![]).push(idx);
                         }
-
-                        let childrenVarTypes = &eg.analysis_data(appId.id).varTypes;
-                        mergeVarTypes.extend(
-                            appId
-                                .m
-                                .clone()
-                                .into_iter()
-                                .map(|(from, to)| (to, *childrenVarTypes.get(&from).unwrap())),
-                        );
                     }
                 }
 

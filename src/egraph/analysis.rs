@@ -3,7 +3,7 @@ use crate::*;
 /// E-Graph Analysis allows you to propagate information upwards through the E-Graph.
 pub trait Analysis<L: Language>: Sized {
     type Data: Eq + Clone + Debug;
-    fn make(eg: &EGraph<L, Self>, enode: &L) -> Self::Data;
+    fn make(eg: &EGraph<L, Self>, enode: &L, slots: &SmallHashSet<Slot>) -> Self::Data;
     fn merge(
         l: Self::Data,
         r: Self::Data,
@@ -16,6 +16,6 @@ pub trait Analysis<L: Language>: Sized {
 
 impl<L: Language> Analysis<L> for () {
     type Data = ();
-    fn make(_eg: &EGraph<L, Self>, _: &L) {}
+    fn make(_eg: &EGraph<L, Self>, _: &L, _: &SmallHashSet<Slot>) {}
     fn merge(_l: (), _r: (), _from: Id, _to: Option<Id>, _eg: &EGraph<L, Self>) -> () {}
 }

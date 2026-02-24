@@ -55,6 +55,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // We expect `from` to be on the lhs of this equation.
     pub fn shrink_slots(&mut self, from: &AppliedId, cap: &SmallHashSet<Slot>, proof: ProvenEq) {
+        trace!(
+            "shrink slots of {:?} from {:?} to {:?}",
+            from.id,
+            self.eclass(from.id).unwrap().slots(),
+            cap
+        );
+
         #[cfg(feature = "explanations")]
         if CHECKS {
             assert_eq!(from.id, proof.l.id);
@@ -99,6 +106,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         // update class slots
+        trace!("shrink result {:?}", cap);
         c.slots = cap.clone();
         let oldGenerators = c.group().generators();
         let _ = c;
@@ -222,6 +230,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             return;
         }
         let i = self.hashcons[&sh];
+        trace!(
+            "eclass {i} at start of handle_pending {:?}",
+            self.eclass(i).unwrap()
+        );
 
         /*
         let t = self.shape(&sh);
@@ -283,18 +295,34 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         trace!("m {m:?}");
         let bij = bij.compose(&m);
         let t = (sh.clone(), bij.clone());
+
+        trace!("i.id {}", i.id);
+        trace!("app_i.id {}", app_i.id);
+
         self.raw_add_to_class(i.id, t.clone(), src_id);
 
-        self.update_analysis(&sh, app_i.id);
+        trace!("app_i.m {:?}", app_i.m);
+        trace!("bij {:?}", bij);
+        trace!("sh {:?}", sh);
+        self.update_analysis(
+            &sh,
+            app_i.id,
+            &app_i
+                .slots()
+                .iter()
+                .filter(|x| bij.inverse().contains_key(**x))
+                .map(|x| bij.inverse()[*x])
+                .collect(),
+        );
 
         self.determine_self_symmetries(src_id);
         debug!("end handle_pending");
     }
 
-    fn update_analysis(&mut self, sh: &L, i: Id) {
+    fn update_analysis(&mut self, sh: &L, i: Id, slots: &SmallHashSet<Slot>) {
         // call make on this Enode
-        trace!("sh {sh:?}");
-        let v = N::make(self, sh);
+        trace!("calling update_analysis sh {sh:?}, i {i:?}, slots {slots:?}");
+        let v = N::make(self, sh, slots);
         trace!("sh data {v:#?}");
         trace!("i eclass {:?} {:?}", i, self.eclass(i).unwrap());
 

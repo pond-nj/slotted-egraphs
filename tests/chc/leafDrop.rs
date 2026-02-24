@@ -27,12 +27,16 @@ fn minCHC(x: &str, y: &str, z: &str, eg: &mut CHCEGraph) -> AppliedId {
     let chc1 = format!("(new {syntax} {cond1} <>)");
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
+    *eg.analysis_data_mut(chc1AppId.id).varTypesMut() =
+        getVarTypesAfterShrinked(&chc1AppId, &syntaxAppId.slots(), eg);
 
     // min(X,Y,Z) <- X >= Y, Z=Y
     let cond2 = format!("(and <(geq {x} {y}) (eq {z} {y})>)");
     let chc2 = format!("(new {syntax} {cond2} <>)");
     let chc2AppId = eg.addExpr(&chc2);
     eg.shrink_slots(&chc2AppId, &syntaxAppId.slots(), ());
+    *eg.analysis_data_mut(chc2AppId.id).varTypesMut() =
+        getVarTypesAfterShrinked(&chc2AppId, &syntaxAppId.slots(), eg);
 
     let composeAppId = eg.addExpr(&format!("(compose <{chc1} {chc2}>)"));
 
@@ -66,6 +70,8 @@ fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedI
     let chc1 = format!("(new {syntax} {cond1} <>)");
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
+    *eg.analysis_data_mut(chc1AppId.id).varTypesMut() =
+        getVarTypesAfterShrinked(&chc1AppId, &syntaxAppId.slots(), eg);
 
     // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
     let cond2 = format!("(and <(eq {x} (binode {a} {l} {r})) (eq {y} (add {m3} 1))>)");
@@ -77,6 +83,8 @@ fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedI
     );
     let chc2AppId = eg.addExpr(&chc2);
     eg.shrink_slots(&chc2AppId, &syntaxAppId.slots(), ());
+    *eg.analysis_data_mut(chc2AppId.id).varTypesMut() =
+        getVarTypesAfterShrinked(&chc2AppId, &syntaxAppId.slots(), eg);
 
     let composeAppId = eg.addExpr(&format!("(compose <{chc1} {chc2}>)"));
 
@@ -107,6 +115,8 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     let chc1 = format!("(new {syntax} {cond1} <>)");
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
+    *eg.analysis_data_mut(chc1AppId.id).varTypesMut() =
+        getVarTypesAfterShrinked(&chc1AppId, &syntaxAppId.slots(), eg);
 
     // left-drop(x, y ,z) ← x ≤0, y = node(a,L,R), z = node(a,L,R)
     let l = generateVarFromCount(count, VarType::Node);
@@ -117,6 +127,8 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     let chc2 = format!("(new {syntax} {cond2} <>)");
     let chc2AppId = eg.addExpr(&chc2);
     eg.shrink_slots(&chc2AppId, &syntaxAppId.slots(), ());
+    *eg.analysis_data_mut(chc2AppId.id).varTypesMut() =
+        getVarTypesAfterShrinked(&chc2AppId, &syntaxAppId.slots(), eg);
 
     // left-drop(x,y,z) ← y= node(a,L,R), x ≥1,N1=x−1, left-drop(N1,L,z)
     let l1 = generateVarFromCount(count, VarType::Node);
@@ -128,6 +140,8 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     let chc3 = format!("(new {syntax} {cond3} <{}>)", leafDropDummy(&n1, &l1, z));
     let chc3AppId = eg.addExpr(&chc3);
     eg.shrink_slots(&chc3AppId, &syntaxAppId.slots(), ());
+    *eg.analysis_data_mut(chc3AppId.id).varTypesMut() =
+        getVarTypesAfterShrinked(&chc3AppId, &syntaxAppId.slots(), eg);
 
     let composeAppId = eg.addExpr(&format!("(compose <{chc1} {chc2} {chc3}>)"));
 
@@ -206,7 +220,19 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
     let mut runner: CHCRunner = Runner::default()
         .with_egraph(eg)
         .with_iter_limit(ITER_LIMIT)
-        .with_time_limit(Duration::from_secs(TIME_LIMIT_SECS));
+        .with_time_limit(Duration::from_secs(TIME_LIMIT_SECS))
+        .with_hook(|runner: &mut CHCRunner| -> Result<(), String> {
+            if CHECKS {
+                let egraph = &runner.egraph;
+                for eclassId in egraph.ids() {
+                    let eclass = egraph.eclass(eclassId).unwrap();
+                    if eclass.slots().len() != egraph.analysis_data(eclassId).varTypes().len() {
+                        return Err(format!("varType at {eclassId} is not correct"));
+                    }
+                }
+            }
+            Ok(())
+        });
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
             RewriteList::default(),

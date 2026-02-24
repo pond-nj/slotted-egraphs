@@ -1,3 +1,5 @@
+use core::error;
+
 use log::{error, trace};
 
 use super::*;
@@ -17,49 +19,147 @@ pub struct FunctionalInfo {
 #[derive(Eq, PartialEq, Clone, Debug, Default)]
 pub struct CHCData {
     pub predNames: HashSet<String>,
-    pub varTypes: BTreeMap<Slot, VarType>,
+    // pub varTypes: BTreeMap<Slot, VarType>,
+    varTypes: Vec<VarType>,
     pub functionalInfo: FunctionalInfo,
 }
 
-pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
-    let sh = transformToEgraphNameSpace(sh, eg);
+impl CHCData {
+    pub fn varTypes(&self) -> &Vec<VarType> {
+        &self.varTypes
+    }
+
+    pub fn varTypesMut(&mut self) -> &mut Vec<VarType> {
+        &mut self.varTypes
+    }
+}
+
+// pub fn aggregateVarType(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
+//     let sh = transformToEgraphNameSpace(sh, eg);
+//     let sh = eg.find_enode(&sh);
+//     let mut slots = sh.slots();
+//     let appIds = sh.applied_id_occurrences();
+//     let mut varTypes = BTreeMap::default();
+//     for s in slots {
+//         for app in &appIds {
+//             for (from, to) in app.m.iter() {
+//                 if to == s {
+//                     let childEclassData = eg.analysis_data(app.id);
+//                     if (childEclassData.varTypes.get(&from).is_none()) {
+//                         app.fullDump();
+//                         eg.find_applied_id(app).fullDump();
+//                         println!("childEclass {:?}", eg.eclass(app.id));
+//                     }
+//                     let childSlotType = childEclassData.varTypes.get(&from).unwrap();
+//                     varTypes
+//                         .entry(s)
+//                         .and_modify(|vt: &mut VarType| assert!(vt == childSlotType))
+//                         .or_insert(childSlotType.clone());
+//                 }
+//             }
+//         }
+//     }
+
+//     if appIds.iter().any(|app| app.len() != 0) {
+//         if varTypes.len() == 0 {
+//             for app in appIds {
+//                 println!("app {:?}", app);
+//                 println!("{:?}", eg.eclass(app.id));
+//             }
+//             panic!();
+//         }
+//     }
+
+//     assert_eq!(sh.slots(), varTypes.keys().copied().collect());
+
+//     varTypes
+// }
+
+pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &SmallHashSet<Slot>) -> Vec<VarType> {
     let sh = eg.find_enode(&sh);
-    let mut slots = sh.slots();
     let appIds = sh.applied_id_occurrences();
     let mut varTypes = BTreeMap::default();
-    for s in slots {
-        for app in &appIds {
-            for (from, to) in app.m.iter() {
-                if to == s {
-                    let childEclassData = eg.analysis_data(app.id);
-                    if (childEclassData.varTypes.get(&from).is_none()) {
-                        app.fullDump();
-                        eg.find_applied_id(app).fullDump();
-                        println!("childEclass {:?}", eg.eclass(app.id));
+
+    trace!("getInterfaceVarType {sh:?}");
+    trace!("getInterfaceVarType {slots:?}");
+    for app in &appIds {
+        for (i, (_, to)) in app.m.iter().enumerate() {
+            let childEclassData = eg.analysis_data(app.id);
+            let childSlotType = childEclassData.varTypes[i];
+            varTypes
+                .entry(to)
+                .and_modify(|vt: &mut VarType| {
+                    if *vt != childSlotType {
+                        error!("egraph {eg:?}");
+                        error!(
+                            "culprint child eclass {:?} {:?}",
+                            app.id,
+                            eg.eclass(app.id).unwrap()
+                        );
+                        error!("sh {sh:?}");
+
+                        assert_eq!(*vt, childSlotType);
                     }
-                    let childSlotType = childEclassData.varTypes.get(&from).unwrap();
-                    varTypes
-                        .entry(s)
-                        .and_modify(|vt: &mut VarType| assert!(vt == childSlotType))
-                        .or_insert(childSlotType.clone());
-                }
-            }
+                })
+                .or_insert(childSlotType.clone());
         }
     }
 
-    if appIds.iter().any(|app| app.len() != 0) {
-        if varTypes.len() == 0 {
-            for app in appIds {
-                println!("app {:?}", app);
-                println!("{:?}", eg.eclass(app.id));
-            }
-            panic!();
+    slots
+        .iter()
+        .map(|s| varTypes.get(s).unwrap().clone())
+        .collect()
+}
+
+pub fn getAllVarTypes(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
+    let appIds = sh.applied_id_occurrences();
+    let mut varTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
+    for app in &appIds {
+        for (i, (_, to)) in app.m.iter().enumerate() {
+            let childEclassData = eg.analysis_data(app.id);
+            let childSlotType = childEclassData.varTypes[i];
+            varTypes
+                .entry(to)
+                .and_modify(|vt: &mut VarType| assert!(*vt == childSlotType))
+                .or_insert(childSlotType.clone());
         }
     }
-
-    assert_eq!(sh.slots(), varTypes.keys().copied().collect());
 
     varTypes
+}
+
+pub fn getAllVarTypesInEClass(id: Id, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
+    let mut varTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
+    for (sh, _) in eg.eclass(id).unwrap().nodes.iter() {
+        let appIds = sh.applied_id_occurrences();
+        for app in &appIds {
+            for (i, (_, to)) in app.m.iter().enumerate() {
+                let childEclassData = eg.analysis_data(app.id);
+                let childSlotType = childEclassData.varTypes[i];
+                varTypes
+                    .entry(to)
+                    .and_modify(|vt: &mut VarType| assert!(*vt == childSlotType))
+                    .or_insert(childSlotType.clone());
+            }
+        }
+    }
+
+    varTypes
+}
+
+pub fn getVarTypesAfterShrinked(
+    appIdBefore: &AppliedId,
+    shrinkedSlots: &SmallHashSet<Slot>,
+    eg: &mut CHCEGraph,
+) -> Vec<VarType> {
+    trace!("updating varType of {:?}", appIdBefore.id);
+    appIdBefore
+        .m
+        .iter()
+        .enumerate()
+        .filter(|(_, (_, a))| shrinkedSlots.contains(a))
+        .map(|(i, _)| eg.analysis_data(appIdBefore.id).varTypes[i].clone())
+        .collect::<Vec<_>>()
 }
 
 fn transformToEgraphNameSpace(sh: &CHC, eg: &CHCEGraph) -> CHC {
@@ -70,13 +170,23 @@ fn transformToEgraphNameSpace(sh: &CHC, eg: &CHCEGraph) -> CHC {
     sh.clone()
 }
 
+// fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCData {
+//     let sh = transformToEgraphNameSpace(sh, eg);
+//     let mut hm = BTreeMap::default();
+//     hm.insert(*sh.slots().iter().next().unwrap(), returnType);
+//     CHCData {
+//         predNames: HashSet::default(),
+//         varTypes: hm,
+//         functionalInfo: FunctionalInfo::default(),
+//     }
+// }
+
 fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCData {
     let sh = transformToEgraphNameSpace(sh, eg);
-    let mut hm = BTreeMap::default();
-    hm.insert(*sh.slots().iter().next().unwrap(), returnType);
+    assert!(sh.slots().len() == 1);
     CHCData {
         predNames: HashSet::default(),
-        varTypes: hm,
+        varTypes: vec![returnType],
         functionalInfo: FunctionalInfo::default(),
     }
 }
@@ -128,78 +238,116 @@ fn mergePredNames(xPredNames: &HashSet<String>, yPredNames: &HashSet<String>) ->
 impl Analysis<CHC> for CHCAnalysis {
     type Data = CHCData;
 
+    // fn merge(x: CHCData, y: CHCData, from: Id, to: Option<Id>, eg: &CHCEGraph) -> CHCData {
+    //     let xClone = x.clone();
+    //     let yClone = y.clone();
+
+    //     // if to.is_some() {
+    //     //     assert_eq!(from, to.unwrap());
+    //     // }
+
+    //     let newPredNames = mergePredNames(&x.predNames, &y.predNames);
+
+    //     let mut newVarTypes = x.varTypes.clone();
+    //     for (var, yVarType) in y.varTypes.iter() {
+    //         if let Some(thisType) = newVarTypes.get(&var) {
+    //             assert!(yVarType == thisType);
+    //         } else {
+    //             newVarTypes.insert(var.clone(), yVarType.clone());
+    //         }
+    //     }
+
+    //     // let mut newVarTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
+    //     // let useEclass = if to.is_some() { to.unwrap() } else { from };
+    //     // for enode in eg.enodes(useEclass) {
+    //     //     match enode {
+    //     //         CHC::Int(_) => {
+    //     //             newVarTypes.extend(CHCDataForPrimitiveVar(&enode, eg, VarType::Int).varTypes)
+    //     //         }
+    //     //         CHC::Node(_) => {
+    //     //             newVarTypes.extend(CHCDataForPrimitiveVar(&enode, eg, VarType::Node).varTypes)
+    //     //         }
+    //     //         CHC::Var(_) => newVarTypes
+    //     //             .extend(CHCDataForPrimitiveVar(&enode, eg, VarType::Unknown).varTypes),
+    //     //         _ => newVarTypes.extend(aggregateVarType(&enode, eg)),
+    //     //     };
+    //     // }
+
+    //     let mut eclassSlots = eg.allSlots(from);
+    //     if to.is_some() {
+    //         eclassSlots.extend(eg.allSlots(to.unwrap()));
+    //     }
+
+    //     trace!("newVarTypes before filter {newVarTypes:?}");
+    //     let newVarTypes: BTreeMap<Slot, VarType> = newVarTypes
+    //         .into_iter()
+    //         .filter(|(s, vt)| eclassSlots.contains(&s))
+    //         .collect();
+
+    //     if (x.varTypes.len() != 0 || y.varTypes.len() != 0) {
+    //         if newVarTypes.len() == 0 && eclassSlots.len() != 0 {
+    //             error!("x {xClone:#?}");
+    //             error!("y {yClone:#?}");
+    //             error!("from {:?}", eg.eclass(from));
+    //             if to.is_some() {
+    //                 error!("to {:?}", eg.eclass(to.unwrap()));
+    //             }
+    //             error!("eclassSlots {eclassSlots:#?}");
+    //             // println!("eclassSlots {eclassSlots:#?}");
+
+    //             assert!(newVarTypes.len() != 0);
+    //         }
+    //     }
+
+    //     // println!("merging {} {:?} result {:#?}", from, to, newVarTypes);
+    //     // println!("from {:?}", eg.eclass(from));
+    //     // if to.is_some() {
+    //     //     println!("to {:?}", eg.eclass(to.unwrap()));
+    //     // }
+
+    //     CHCData {
+    //         predNames: newPredNames,
+    //         varTypes: newVarTypes,
+    //         functionalInfo: mergeFunctionalInfo(x.functionalInfo, y.functionalInfo),
+    //     }
+    // }
+
     fn merge(x: CHCData, y: CHCData, from: Id, to: Option<Id>, eg: &CHCEGraph) -> CHCData {
-        let xClone = x.clone();
-        let yClone = y.clone();
+        let varTypes = if x.varTypes.len() < y.varTypes.len() {
+            x.varTypes.clone()
+        } else if x.varTypes.len() > y.varTypes.len() {
+            y.varTypes.clone()
+        } else {
+            assert_eq!(x.varTypes, y.varTypes);
+            x.varTypes.clone()
+        };
 
-        // if to.is_some() {
-        //     assert_eq!(from, to.unwrap());
-        // }
+        let fromSlots = eg.eclass(from).unwrap().slots();
+        let varTypes = if varTypes.len() != fromSlots.len() {
+            getInterfaceVarType(
+                &eg.get_syn_node(&eg.mk_identity_applied_id(from)),
+                eg,
+                &fromSlots,
+            )
+        } else {
+            varTypes
+        };
 
-        let newPredNames = mergePredNames(&x.predNames, &y.predNames);
-
-        let mut newVarTypes = x.varTypes.clone();
-        for (var, yVarType) in y.varTypes.iter() {
-            if let Some(thisType) = newVarTypes.get(&var) {
-                assert!(yVarType == thisType);
-            } else {
-                newVarTypes.insert(var.clone(), yVarType.clone());
-            }
-        }
-
-        // let mut newVarTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
-        // let useEclass = if to.is_some() { to.unwrap() } else { from };
-        // for enode in eg.enodes(useEclass) {
-        //     match enode {
-        //         CHC::Int(_) => {
-        //             newVarTypes.extend(CHCDataForPrimitiveVar(&enode, eg, VarType::Int).varTypes)
-        //         }
-        //         CHC::Node(_) => {
-        //             newVarTypes.extend(CHCDataForPrimitiveVar(&enode, eg, VarType::Node).varTypes)
-        //         }
-        //         CHC::Var(_) => newVarTypes
-        //             .extend(CHCDataForPrimitiveVar(&enode, eg, VarType::Unknown).varTypes),
-        //         _ => newVarTypes.extend(aggregateVarType(&enode, eg)),
-        //     };
-        // }
-
-        let mut eclassSlots = eg.allSlots(from);
         if to.is_some() {
-            eclassSlots.extend(eg.allSlots(to.unwrap()));
+            assert_eq!(
+                varTypes.len(),
+                eg.eclass(to.unwrap()).unwrap().slots().len()
+            );
         }
-        let newVarTypes: BTreeMap<Slot, VarType> = newVarTypes
-            .into_iter()
-            .filter(|(s, vt)| eclassSlots.contains(&s))
-            .collect();
-
-        if (x.varTypes.len() != 0 || y.varTypes.len() != 0) {
-            if newVarTypes.len() == 0 {
-                error!("x {xClone:#?}");
-                error!("y {yClone:#?}");
-                error!("from {:?}", eg.eclass(from));
-                if to.is_some() {
-                    error!("to {:?}", eg.eclass(to.unwrap()));
-                }
-                // println!("eclassSlots {eclassSlots:#?}");
-
-                assert!(newVarTypes.len() != 0);
-            }
-        }
-
-        // println!("merging {} {:?} result {:#?}", from, to, newVarTypes);
-        // println!("from {:?}", eg.eclass(from));
-        // if to.is_some() {
-        //     println!("to {:?}", eg.eclass(to.unwrap()));
-        // }
 
         CHCData {
-            predNames: newPredNames,
-            varTypes: newVarTypes,
+            predNames: mergePredNames(&x.predNames, &y.predNames),
+            varTypes: varTypes,
             functionalInfo: mergeFunctionalInfo(x.functionalInfo, y.functionalInfo),
         }
     }
 
-    fn make(eg: &CHCEGraph, sh: &CHC) -> CHCData {
+    fn make(eg: &CHCEGraph, sh: &CHC, slots: &SmallHashSet<Slot>) -> CHCData {
         trace!("calling make on {:?}", sh);
         let mut chcData = match sh {
             CHC::ComposeInit(predNameId, predSyntaxId, _, _) => {
@@ -214,7 +362,7 @@ impl Analysis<CHC> for CHCAnalysis {
 
                 CHCData {
                     predNames,
-                    varTypes: aggregateVarType(sh, eg),
+                    varTypes: getInterfaceVarType(sh, eg, slots),
                     functionalInfo: FunctionalInfo::default(),
                 }
             }
@@ -223,7 +371,7 @@ impl Analysis<CHC> for CHCAnalysis {
             CHC::ListType(_) => CHCDataForPrimitiveVar(sh, eg, VarType::List),
             _ => CHCData {
                 predNames: HashSet::default(),
-                varTypes: aggregateVarType(sh, eg),
+                varTypes: getInterfaceVarType(sh, eg, slots),
                 functionalInfo: FunctionalInfo::default(),
             },
         };

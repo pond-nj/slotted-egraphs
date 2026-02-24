@@ -27,7 +27,7 @@ impl Analysis<Arith> for ConstProp {
         }
     }
 
-    fn make(eg: &EGraph<Arith, Self>, sh: &Arith) -> Option<u32> {
+    fn make(eg: &EGraph<Arith, Self>, sh: &Arith, _: &SmallHashSet<Slot>) -> Option<u32> {
         match sh {
             Arith::Number(x) => Some(*x),
             Arith::Add(x, y) => get_both(eg, x, y).map(|(x, y)| x + y),

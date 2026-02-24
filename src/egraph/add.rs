@@ -419,7 +419,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             BTreeSet::default(),
             Group::identity(&proven_perm),
             syn_enode.clone(),
-            N::make(&self, &syn_enode),
+            N::make(&self, &syn_enode, slots),
         );
         self.classes.insert(c_id, c);
 

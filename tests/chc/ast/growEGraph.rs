@@ -103,11 +103,11 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             } else {
                 headSlots = Some(thisHeadSlots);
             };
-            eg.shrink_slots(
-                &eg.find_applied_id(&newENodeId),
-                &headSlots.clone().unwrap().into_iter().collect(),
-                none,
-            );
+            let appId = &eg.find_applied_id(&newENodeId);
+            let shrinkSlots = headSlots.clone().unwrap().into_iter().collect();
+            eg.shrink_slots(appId, &shrinkSlots, none);
+            *eg.analysis_data_mut(appId.id).varTypesMut() =
+                getVarTypesAfterShrinked(&appId, &shrinkSlots, eg);
 
             eg.analysis_data_mut(eg.find_applied_id(&newENodeId).id)
                 .predNames

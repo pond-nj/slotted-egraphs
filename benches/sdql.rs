@@ -111,7 +111,11 @@ mod sdql {
     impl Analysis<Sdql> for SdqlAnalysis {
         type Data = SdqlKind;
 
-        fn make(_eg: &slotted_egraphs::EGraph<Sdql, Self>, enode: &Sdql) -> SdqlKind {
+        fn make(
+            _eg: &slotted_egraphs::EGraph<Sdql, Self>,
+            enode: &Sdql,
+            _: &SmallHashSet<Slot>,
+        ) -> SdqlKind {
             let mut out = SdqlKind {
                 might_be_vector: false,
                 might_be_dict: false,
