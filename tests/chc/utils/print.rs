@@ -69,7 +69,8 @@ pub fn printENode(enode: &CHC, eg: &CHCEGraph) {
     let map = &mut BTreeMap::<AppliedId, RecExpr<CHC>>::default();
     if eclassId.is_some() {
         let eclassId = eclassId.unwrap();
-        let synExpr = eg.getSynExpr(&eclassId.id, map);
+        let calls = &mut BTreeMap::new();
+        let synExpr = eg.getSynExpr(&eclassId.id, map, calls).unwrap();
         println!("Inside eclass {eclassId:?}: ");
         println!("{}", synExpr);
     }

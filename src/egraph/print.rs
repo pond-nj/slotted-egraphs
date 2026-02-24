@@ -43,6 +43,7 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
         f: &mut T,
         i: Id,
         map: &mut BTreeMap<AppliedId, RecExpr<L>>,
+        calls: &mut BTreeMap<Id, usize>,
         eqvIds: &BTreeMap<Id, Vec<Id>>,
         eg: &EGraph<L, N>,
     ) -> Result {
@@ -57,10 +58,15 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
             .collect::<Vec<_>>()
             .join(", ");
 
-        let synExpr = eg.getSynExpr(&i, map);
-        write!(f, "\n{}", synExpr)?;
+        let synExpr = eg.getSynExpr(&i, map, calls);
+        if synExpr.is_err() {
+            write!(f, "\n{}", synExpr.unwrap_err())?;
+        } else {
+            write!(f, "\n{}", synExpr.unwrap())?;
+        }
+
         write!(f, "\n{:?}", self.analysis_data)?;
-        write!(f, "\n{:?}({:?})({}):", i, eqvIds[&i], &slot_str)?;
+        write!(f, "\n{:?}({:?})({}):\n", i, eqvIds[&i], &slot_str)?;
         write!(f, ">> {:?}\n", eg.getSynNodeNoSubst(&i))?;
 
         let mut eclassNodes: Vec<_> = eg.enodes(i).into_iter().collect();
@@ -95,10 +101,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let eqvIds = self.buildEqvIds();
 
         let mut map = BTreeMap::<AppliedId, RecExpr<L>>::default();
+        let mut calls = BTreeMap::new();
         for i in eclasses {
             self.eclass(i)
                 .unwrap()
-                .dumpEClassEG(f, i, &mut map, &eqvIds, self)?;
+                .dumpEClassEG(f, i, &mut map, &mut calls, &eqvIds, self)?;
         }
 
         Ok(())

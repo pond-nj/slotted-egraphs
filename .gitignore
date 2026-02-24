@@ -9,3 +9,5 @@ tmp.txt
 *.svg
 *.old
 *.data
+leafDrop_sat_count.txt
+pairingPaper_sat_count.txt

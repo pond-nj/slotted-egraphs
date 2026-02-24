@@ -1,3 +1,6 @@
+use log::error;
+use std::collections::BTreeMap;
+
 use crate::*;
 
 /// Specifies a certain implementation of how substitution `b[x := t]` is implemented internally.
@@ -29,7 +32,12 @@ impl<L: Language, N: Analysis<L>> SubstMethod<L, N> for SynExprSubst {
         t: AppliedId,
         eg: &mut EGraph<L, N>,
     ) -> AppliedId {
-        let term = eg.get_syn_expr(&eg.synify_app_id(b));
+        let mut calls = BTreeMap::new();
+        let term = eg.get_syn_expr(&eg.synify_app_id(b), &mut calls);
+        if term.is_err() {
+            error!("Egraph state {eg}");
+        }
+        let term = term.unwrap();
         do_term_subst(eg, &term, &x, &t)
     }
 }

@@ -174,11 +174,11 @@ impl Analysis<CHC> for CHCAnalysis {
 
         if (x.varTypes.len() != 0 || y.varTypes.len() != 0) {
             if newVarTypes.len() == 0 {
-                println!("x {xClone:#?}");
-                println!("y {yClone:#?}");
-                println!("from {:?}", eg.eclass(from));
+                error!("x {xClone:#?}");
+                error!("y {yClone:#?}");
+                error!("from {:?}", eg.eclass(from));
                 if to.is_some() {
-                    println!("to {:?}", eg.eclass(to.unwrap()));
+                    error!("to {:?}", eg.eclass(to.unwrap()));
                 }
                 // println!("eclassSlots {eclassSlots:#?}");
 

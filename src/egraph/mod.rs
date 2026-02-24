@@ -26,7 +26,7 @@ use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet},
     fmt::*,
-    io,
+    io, result,
 };
 
 mod print;
@@ -379,12 +379,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self: &'a Self,
         enode: &L,
         map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
-    ) -> &'a RecExpr<L> {
-        let cs: Vec<RecExpr<L>> = (*enode)
-            .applied_id_occurrences()
-            .iter()
-            .map(|x| self.get_syn_expr(x))
-            .collect::<Vec<_>>();
+        calls: &'a mut BTreeMap<Id, usize>,
+    ) -> result::Result<&'a RecExpr<L>, String> {
+        let mut cs = vec![];
+        for x in enode.applied_id_occurrences() {
+            let x = self.get_syn_expr(x, calls)?;
+            cs.push(x);
+        }
 
         let ret = RecExpr {
             node: nullify_app_ids(enode),
@@ -394,25 +395,27 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let eclassId = self.lookup(enode).unwrap();
         map.insert(eclassId.clone(), ret);
 
-        map.get(&eclassId).unwrap()
+        Ok(map.get(&eclassId).unwrap())
     }
 
     fn getSynExprRecur<'a>(
         self: &'a Self,
         i: &AppliedId,
         map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
-    ) -> &'a RecExpr<L> {
+        calls: &mut BTreeMap<Id, usize>,
+    ) -> result::Result<&'a RecExpr<L>, String> {
         if map.contains_key(i) {
             // println!("{} -> {}", i, map[i]);
-            return map.get(i).unwrap();
+            return Ok(map.get(i).unwrap());
         }
         let enode = self.get_syn_node(i);
         // println!("syn enode {i:?} {enode:?}");
-        let cs = enode
-            .applied_id_occurrences()
-            .iter()
-            .map(|x| self.get_syn_expr(x))
-            .collect();
+
+        let mut cs = vec![];
+        for x in enode.applied_id_occurrences() {
+            let x = self.get_syn_expr(x, calls)?;
+            cs.push(x);
+        }
 
         let ret = RecExpr {
             node: nullify_app_ids(&enode),
@@ -421,33 +424,50 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         map.insert(i.clone(), ret);
 
-        map.get(i).unwrap()
+        Ok(map.get(i).unwrap())
     }
 
     pub fn getSynExpr<'a>(
         self: &'a Self,
         i: &Id,
         map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
-    ) -> &'a RecExpr<L> {
+        calls: &mut BTreeMap<Id, usize>,
+    ) -> result::Result<&'a RecExpr<L>, String> {
         let appId = self.mk_sem_identity_applied_id(i.clone());
-        // println!("identity app id {i:?} -> {appId:?}");
-        self.getSynExprRecur(&appId, map)
+        self.getSynExprRecur(&appId, map, calls)
     }
 
     /// Returns the canonical term corresponding to `i`.
     ///
     /// This function will use [EGraph::get_syn_node] repeatedly to build up this term.
-    pub fn get_syn_expr(&self, i: &AppliedId) -> RecExpr<L> {
+    pub fn get_syn_expr(
+        &self,
+        i: &AppliedId,
+        calls: &mut BTreeMap<Id, usize>,
+    ) -> result::Result<RecExpr<L>, String> {
         let enode = self.get_syn_node(i);
-        let cs = enode
-            .applied_id_occurrences()
-            .iter()
-            .map(|x| self.get_syn_expr(x))
-            .collect();
-        RecExpr {
+        // println!(
+        //     "get_syn_expr {:?} {:?} {:?}",
+        //     i,
+        //     self.find_applied_id(i),
+        //     enode
+        // );
+        let entry = calls.entry(i.id).or_insert(0);
+        *entry += 1;
+        if *entry > 1 {
+            return Err(format!("{entry} > 1 with syn enode {enode:?}"));
+        }
+        let mut cs = vec![];
+        for x in enode.applied_id_occurrences() {
+            let x = self.get_syn_expr(x, calls)?;
+            cs.push(x);
+        }
+        let entry = calls.entry(i.id).or_insert(0);
+        *entry -= 1;
+        Ok(RecExpr {
             node: nullify_app_ids(&enode),
             children: cs,
-        }
+        })
     }
 
     /// Returns the canonical e-node corresponding to `i`.

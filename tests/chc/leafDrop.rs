@@ -5,7 +5,7 @@ use std::thread;
 
 // 32MiB
 const STACK_SIZE: usize = 32 * 1024 * 1024;
-const ITER_LIMIT: usize = 2;
+const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 3600;
 const DO_CONST_REWRITE: bool = true;
 const DO_FOLDING: bool = true;
