@@ -10,7 +10,7 @@ const TIME_LIMIT_SECS: u64 = 3600;
 const DO_CONST_REWRITE: bool = true;
 const DO_FOLDING: bool = true;
 
-use log::{debug, info, set_logger_racy, Log, Metadata, Record};
+use log::{debug, error, info, set_logger_racy, Log, Metadata, Record};
 
 fn minDummy(x: &str, y: &str, z: &str) -> String {
     let syntax = format!("(pred <{x} {y} {z}>)");
@@ -223,6 +223,7 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
         .with_time_limit(Duration::from_secs(TIME_LIMIT_SECS))
         .with_hook(|runner: &mut CHCRunner| -> Result<(), String> {
             if CHECKS {
+                // check if varTypes and slot length mismatched
                 let egraph = &runner.egraph;
                 for eclassId in egraph.ids() {
                     let eclass = egraph.eclass(eclassId).unwrap();
@@ -230,9 +231,32 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
                         return Err(format!("varType at {eclassId} is not correct"));
                     }
                 }
+
+                // TODO: calling shape when add can make a duplicate happens
+                // check if any deduplicate in OrderVec
+                // for eclassId in egraph.ids() {
+                //     for enode in egraph.enodes(eclassId) {
+                //         match enode {
+                //             CHC::New(_, _, children) => {
+                //                 checkDedup(eclassId, &children)?;
+                //             }
+                //             CHC::Compose(children) => {
+                //                 checkDedup(eclassId, &children)?;
+                //             }
+                //             CHC::And(children) => {
+                //                 checkDedup(eclassId, &children)?;
+                //             }
+                //             CHC::ComposeInit(_, _, _, children) => {
+                //                 checkDedup2(eclassId, &children)?;
+                //             }
+                //             _ => {}
+                //         }
+                //     }
+                // }
             }
             Ok(())
         });
+
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
             RewriteList::default(),
@@ -244,6 +268,12 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
             },
         ))
     });
+
+    let stopReason = &report.stop_reason;
+    if let StopReason::Other(reason) = stopReason {
+        panic!("Stopped by {reason}");
+    }
+
     println!("use time {t:?}");
     println!("report {report:?}");
 

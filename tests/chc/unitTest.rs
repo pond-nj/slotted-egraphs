@@ -73,14 +73,17 @@ fn testSortAppId() {
                         }
                     }
                     CHC::Compose(children) => {
-                        let sortedChildren =
-                            sortAppId(&children.iter().map(|x| x.clone().getAppliedId()).collect());
+                        let sortedChildren = sortAppId(
+                            &children.iter().map(|x| x.clone().getAppliedId()).collect(),
+                            true,
+                        );
                         for permuteChildren in permute_iter(&children) {
                             let sortedPermuteChildren = sortAppId(
                                 &permuteChildren
                                     .iter()
                                     .map(|x| x.clone().getAppliedId())
                                     .collect(),
+                                true,
                             );
                             if (sortedChildren != sortedPermuteChildren) {
                                 assert_eq!(
@@ -105,14 +108,17 @@ fn testSortAppId() {
                         }
                     }
                     CHC::And(children) => {
-                        let sortedChildren =
-                            sortAppId(&children.iter().map(|x| x.clone().getAppliedId()).collect());
+                        let sortedChildren = sortAppId(
+                            &children.iter().map(|x| x.clone().getAppliedId()).collect(),
+                            true,
+                        );
                         for permuteChildren in permute_iter(&children) {
                             let sortedPermuteChildren = sortAppId(
                                 &permuteChildren
                                     .iter()
                                     .map(|x| x.clone().getAppliedId())
                                     .collect(),
+                                true,
                             );
                             if (sortedChildren != sortedPermuteChildren) {
                                 assert_eq!(

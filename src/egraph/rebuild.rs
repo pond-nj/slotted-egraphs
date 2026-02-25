@@ -307,8 +307,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.update_analysis(
             &sh,
             app_i.id,
-            &app_i
-                .slots()
+            &Into::<Vec<Slot>>::into(app_i.slots())
                 .iter()
                 .filter(|x| bij.inverse().contains_key(**x))
                 .map(|x| bij.inverse()[*x])
@@ -319,7 +318,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         debug!("end handle_pending");
     }
 
-    fn update_analysis(&mut self, sh: &L, i: Id, slots: &SmallHashSet<Slot>) {
+    fn update_analysis(&mut self, sh: &L, i: Id, slots: &Vec<Slot>) {
         // call make on this Enode
         trace!("calling update_analysis sh {sh:?}, i {i:?}, slots {slots:?}");
         let v = N::make(self, sh, slots);

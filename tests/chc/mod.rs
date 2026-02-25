@@ -76,6 +76,96 @@ define_language! {
     }
 }
 
+fn enodeToSMTOp(enode: &CHC) -> &'static str {
+    match enode {
+        CHC::Add(..) => "+",
+        CHC::And(..) => "and",
+        CHC::Eq(..) => "=",
+        CHC::Greater(..) => ">",
+        CHC::Geq(..) => ">=",
+        CHC::Less(..) => "<",
+        CHC::Leq(..) => "<=",
+        CHC::BiNode(..) => "binode",
+
+        _ => todo!(),
+    }
+}
+
+fn aggregateType(pattern: &Pattern<CHC>, types: &mut BTreeMap<Slot, VarType>) {
+    let Pattern::ENode(node, children) = pattern else {
+        panic!()
+    };
+
+    match node {
+        CHC::IntType(s) => {
+            types.insert(s.clone(), VarType::Int);
+        }
+        CHC::NodeType(s) => {
+            types.insert(s.clone(), VarType::Node);
+        }
+        CHC::ListType(s) => {
+            types.insert(s.clone(), VarType::List);
+        }
+        _ => {}
+    }
+
+    for child in children {
+        aggregateType(child, types);
+    }
+}
+
+fn patternToSMTLib(pattern: &Pattern<CHC>) -> String {
+    let mut out = String::new();
+    let Pattern::ENode(node, children) = pattern else {
+        panic!()
+    };
+
+    let ret = match node {
+        CHC::IntType(s) => Some(s.to_string()),
+        CHC::NodeType(s) => Some(s.to_string()),
+        CHC::ListType(s) => Some(s.to_string()),
+        CHC::Leaf() => Some("leaf".to_string()),
+        CHC::Number(n) => Some(format!("{}", n)),
+        _ => None,
+    };
+
+    if ret.is_some() {
+        return ret.unwrap();
+    }
+
+    let op = enodeToSMTOp(node);
+    let childrenExpr = children
+        .iter()
+        .map(|child| patternToSMTLib(child))
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    "(".to_string() + &op + " " + &childrenExpr + ")"
+}
+
+pub fn synSMTLibExpr(eclassId: Id, eg: &CHCEGraph) -> String {
+    // TODO: get type info first
+    let mut map = BTreeMap::default();
+    let mut calls = BTreeMap::default();
+    let expr = eg.getSynExpr(&eclassId, &mut map, &mut calls);
+    if expr.is_err() {
+        return expr.unwrap_err();
+    }
+    let pattern = re_to_pattern(expr.unwrap());
+
+    let mut types = BTreeMap::default();
+    aggregateType(&pattern, &mut types);
+
+    let mut out = String::new();
+    for (s, vt) in types {
+        out += &format!("(declare-const {s} {})\n", vt.toSMT());
+    }
+    out += "(declare-datatypes ((tree 0)) (((binode int tree tree) (leaf))))\n";
+    out += "\n\n";
+    out += &patternToSMTLib(&pattern);
+    out
+}
+
 pub fn getSingleENode(eclassId: &Id, eg: &CHCEGraph) -> CHC {
     let enodes = eg.enodes(*eclassId);
     assert!(enodes.len() == 1);

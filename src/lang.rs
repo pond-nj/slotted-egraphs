@@ -619,7 +619,7 @@ impl<L: LanguageChildren + Into<AppliedId> + From<AppliedId>> LanguageChildren f
             .into_iter()
             .map(|x| x.into())
             .collect::<Vec<_>>();
-        let res: Vec<AppliedId> = sortAppId(&appIds);
+        let res: Vec<AppliedId> = sortAppId(&appIds, false);
         res.into_iter().map(|x| x.into()).collect()
     }
 

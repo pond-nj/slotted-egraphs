@@ -264,7 +264,7 @@ fn functionalityTransformation(
     constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
     functionalityComponentsList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
 ) -> CHCRewrite {
-    info!("doing functionalityTransformation");
+    debug!("doing functionalityTransformation");
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
 
     let functionalityComponentsListClone = Rc::clone(&functionalityComponentsList);
@@ -281,7 +281,7 @@ fn functionalityTransformation(
 
             checkNewENode!(newENode);
 
-            let CHC::New(syntax, andAppId, unfoldedChildren) = newENode else {
+            let CHC::New(syntax, andAppId, unfoldedChildren) = newENode.clone() else {
                 panic!();
             };
 
@@ -290,6 +290,9 @@ fn functionalityTransformation(
             };
 
             // input to output mapping
+            // (eclassId, inputSlots) -> Vec<(outputSlots, childIdx)>
+            // one input can mapped to many outputs
+            // those outputs must be equal
             let mut inputToOutputMapping: BTreeMap<(Id, Vec<Slot>), Vec<(Vec<Slot>, usize)>> =
                 BTreeMap::default();
             for (childIdx, c) in unfoldedChildren.iter().enumerate() {
@@ -330,13 +333,24 @@ fn functionalityTransformation(
             let mut newAndChildren: OrderVec<AppliedIdOrStar> = andChildren.clone();
             let mut filterOutChildIdx = BTreeSet::new();
 
-            let getVarType = |toSlot, appId: AppliedId, egraph: &CHCEGraph| {
-                // let varTypes = &egraph.analysis_data(appId.id).varTypes;
-                // TODO: optimize here
-                let varTypes = getAllVarTypesInEClass(appId.id, egraph);
-                let fromSlot = appId.m.inverse()[toSlot];
-                varTypes.get(&fromSlot).unwrap().clone()
-            };
+            // let getVarType = |ofSlot: Slot, appId: AppliedId, egraph: &CHCEGraph| {
+            //     // let varTypes = &egraph.analysis_data(appId.id).varTypes;
+            //     // TODO: optimize here
+            //     let varTypes = getAllVarTypesInEClass(appId.id, egraph);
+            //     let fromSlot = appId.m.inverse()[ofSlot];
+            //     let res = varTypes.get(&fromSlot);
+            //     if res.is_none() {
+            //         error!("eclass {:?}", egraph.eclass(appId.id).unwrap());
+            //         error!("varTypes {varTypes:?}");
+            //         error!("fromSlot {fromSlot}");
+            //         error!("ofSlot {ofSlot}");
+            //         error!("appId {appId:?}");
+            //         assert!(res.is_some());
+            //     }
+            //     res.unwrap().clone()
+            // };
+
+            let varTypes = getAllVarTypesOfENode(newENode, eg);
 
             for (outputSetsAndChildIdx) in inputToOutputMapping.values() {
                 if outputSetsAndChildIdx.len() == 1 {
@@ -349,17 +363,19 @@ fn functionalityTransformation(
                     assert!(outputLen == outputGroup.len());
 
                     for i in 0..outputLen {
-                        let firstVarType = getVarType(
-                            firstOutputGroup[i],
-                            unfoldedChildren[*firstChildIdx].getAppliedId(),
-                            eg,
-                        );
+                        // let firstVarType = getVarType(
+                        //     firstOutputGroup[i],
+                        //     unfoldedChildren[*firstChildIdx].getAppliedId(),
+                        //     eg,
+                        // );
+                        let firstVarType = varTypes.get(&firstOutputGroup[i]).unwrap().clone();
                         let firstGroupVar = getVarAppId(firstOutputGroup[i], firstVarType, eg);
-                        let varType = getVarType(
-                            outputGroup[i],
-                            unfoldedChildren[*childIdx].getAppliedId(),
-                            eg,
-                        );
+                        // let varType = getVarType(
+                        //     outputGroup[i],
+                        //     unfoldedChildren[*childIdx].getAppliedId(),
+                        //     eg,
+                        // );
+                        let varType = varTypes.get(&outputGroup[i]).unwrap().clone();
                         let var = getVarAppId(outputGroup[i], varType, eg);
 
                         let eqId = eg.add(CHC::Eq(firstGroupVar, var));
@@ -382,7 +398,7 @@ fn functionalityTransformation(
                 .collect();
 
             let (updatedNewENode, newAnd, newAndAppId) =
-                sortNewENode2(syntax, &newAndChildren, &newUnfoldedChildren, eg);
+                sortNewENode2(&syntax, &newAndChildren, &newUnfoldedChildren, eg);
             let updatedNewENodeAppId = eg.add(updatedNewENode.clone());
             checkVarType!(&updatedNewENodeAppId, eg);
 
@@ -409,7 +425,7 @@ fn functionalityTransformation(
         functionalityComponentsListClone.borrow_mut().clear();
     });
 
-    info!("done functionalityTransformation");
+    debug!("done functionalityTransformation");
     RewriteT {
         name: "functionalityTransformation".to_owned(),
         searcher: searcher,
@@ -727,7 +743,7 @@ fn unfoldApplyInternal(
                 let mut unfoldedComposeChildren = compose1Children.clone();
                 unfoldedComposeChildren.remove(*excludeIdx);
                 unfoldedComposeChildren.extend(childrenComb);
-                let unfoldedComposeChildren: Vec<_> = sortAppId(&unfoldedComposeChildren)
+                let unfoldedComposeChildren: Vec<_> = sortAppId(&unfoldedComposeChildren, true)
                     .iter()
                     .map(|x| AppliedIdOrStar::AppliedId(x.clone()))
                     .collect();
@@ -782,7 +798,7 @@ fn unfoldApplyInternal(
                 //     .into_iter()
                 //     .map(|appId| AppliedIdOrStar::AppliedId(appId))
                 //     .collect();
-                let childrenComb = sortAppId(&childrenComb);
+                let childrenComb = sortAppId(&childrenComb, true);
                 let childrenComb: Vec<_> = childrenComb
                     .into_iter()
                     .map(|appId| AppliedIdOrStar::AppliedId(appId))
@@ -905,7 +921,7 @@ pub fn expandEqRewrite(
     originalNewENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> CHC {
-    info!("doing expandEqRewrite");
+    debug!("doing expandEqRewrite");
     let CHC::And(andChildren) = constrENode else {
         panic!();
     };
@@ -968,6 +984,9 @@ pub fn expandEqRewrite(
         sortNewENode2(&syntax, &newConstraintChildren, &newENodeChildren, eg);
 
     checkVarType!(&newConstraintAppId, eg);
+    eg.analysis_data_mut(newConstraintAppId.id)
+        .predNames
+        .insert("expandEqRewrite".to_owned());
 
     eg.union_justified(
         constrAppId,
@@ -975,7 +994,7 @@ pub fn expandEqRewrite(
         Some("expandEq".to_owned()),
     );
 
-    info!("done expandEqRewrite");
+    debug!("done expandEqRewrite");
     return newConstraint;
 }
 
@@ -987,7 +1006,7 @@ pub fn constructorEqRewrite(
     originalNewENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> CHC {
-    info!("doing constructorEqRewrite");
+    debug!("doing constructorEqRewrite");
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
     let CHC::And(andChildrenOrig) = constrENode else {
@@ -1061,6 +1080,10 @@ pub fn constructorEqRewrite(
         eg,
     );
 
+    eg.analysis_data_mut(newConstraintAppId.id)
+        .predNames
+        .insert("constructorEqRewrite".to_owned());
+
     checkVarType!(&newConstraintAppId, eg);
     eg.union_justified(
         &constrAppId,
@@ -1068,7 +1091,7 @@ pub fn constructorEqRewrite(
         Some("constructorEqRewrite".to_owned()),
     );
 
-    info!("done constructorEqRewrite");
+    debug!("done constructorEqRewrite");
     newConstraint
 }
 
@@ -1306,7 +1329,7 @@ pub fn dedupFromEqRewrite(
     newENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> (CHC, CHC) {
-    info!("doing dedupFromEqRewrite");
+    debug!("doing dedupFromEqRewrite");
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
     let CHC::And(andChildrenOrig) = constrENode.clone() else {
@@ -1333,6 +1356,9 @@ pub fn dedupFromEqRewrite(
 
     let (updatedNew, newConstraint, newConstraintAppId) =
         sortNewENode2(syntax, &updatedConstrChildren, &updatedNewChildren, eg);
+    eg.analysis_data_mut(newConstraintAppId.id)
+        .predNames
+        .insert("dedupFromEqRewrite".to_owned());
 
     let updatedNewAppId = eg.add(updatedNew.clone());
 
@@ -1342,7 +1368,7 @@ pub fn dedupFromEqRewrite(
         Some("dedupFromEqRewrite".to_owned()),
     );
 
-    info!("done dedupFromEqRewrite");
+    debug!("done dedupFromEqRewrite");
     (newConstraint, updatedNew)
 }
 
@@ -1416,6 +1442,7 @@ fn createSortedDefinedNewENode(
             .iter()
             .map(|x| x.getAppliedId())
             .collect::<Vec<_>>(),
+        true,
     );
     // $0 -> $f
     let (_, map) = weakShapeAppIds(&sortedChildren);
@@ -1458,7 +1485,7 @@ pub fn sortNewENode1(
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.push(condAppId.clone());
     aggrAppId.push(syntaxAppId.clone());
-    let aggrAppId = sortAppId(&aggrAppId);
+    let aggrAppId = sortAppId(&aggrAppId, true);
 
     let updatedChildren: Vec<_> = aggrAppId
         .into_iter()
@@ -1483,7 +1510,7 @@ pub fn sortNewENode2(
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.extend(condChildren.iter().map(|a| a.getAppliedId()));
     aggrAppId.push(syntaxAppId.clone());
-    let aggrAppId = sortAppId(&aggrAppId);
+    let aggrAppId = sortAppId(&aggrAppId, true);
 
     let condChildrenSet = BTreeSet::from_iter(condChildren.iter().map(|a| a.getAppliedId()));
 
@@ -1499,8 +1526,15 @@ pub fn sortNewENode2(
         .map(|x| AppliedIdOrStar::AppliedId(x))
         .collect();
 
-    let condENode = CHC::And(sortedCondChildren.into());
+    let condENode = CHC::And(sortedCondChildren.clone().into());
     let condAppId = eg.add(condENode.clone());
+
+    trace!("add condENode {condENode:?} to condAppId {condAppId:?}");
+    trace!("result eclass {:?}", eg.eclass(condAppId.id).unwrap());
+
+    if CHECKS {
+        checkDedup(condAppId.id, &sortedCondChildren.into()).unwrap();
+    }
 
     debug!("done sortNewENode2");
     (
@@ -1551,7 +1585,8 @@ fn defineUnfoldFold(
                 // TODO0: try change to rootData instead of mergeVarTypes
                 // aggregate information
                 let mut varToChildIdx: BTreeMap<Slot, Vec<usize>> = BTreeMap::default();
-                let mut mergeVarTypes: BTreeMap<Slot, VarType> = getAllVarTypes(&origNewENode, eg);
+                let mut mergeVarTypes: BTreeMap<Slot, VarType> =
+                    getAllVarTypesOfENode(&origNewENode, eg);
                 {
                     for idx in 0..childAppIds.len() {
                         let appId = childAppIds[idx].getAppliedId();
@@ -1645,7 +1680,7 @@ fn defineUnfoldFold(
                 // syntax can be in any order
                 // newBody can be in any order
                 for (syntax, newBody, positions) in syntaxAndNewBody {
-                    let sortedNewBody: Vec<AppliedIdOrStar> = sortAppId(&newBody)
+                    let sortedNewBody: Vec<AppliedIdOrStar> = sortAppId(&newBody, true)
                         .into_iter()
                         .map(|x| AppliedIdOrStar::AppliedId(x))
                         .collect();

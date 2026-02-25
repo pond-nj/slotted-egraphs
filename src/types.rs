@@ -316,15 +316,35 @@ pub fn canonicalLabelAppIds<'a>(
     (lab, appIdToV, slotsToV)
 }
 
+pub fn checkDedup(eclassId: Id, vec: &OrderVec<AppliedIdOrStar>) -> Result<(), String> {
+    let mut dedup = vec.sorted();
+    dedup.dedup();
+    if dedup.len() != vec.len() {
+        return Err(format!("dedup failed at {eclassId}"));
+    }
+    Ok(())
+}
+
+pub fn checkDedup2(eclassId: Id, vec: &OrderVec<AppliedId>) -> Result<(), String> {
+    let mut dedup = vec.sorted();
+    dedup.dedup();
+    if dedup.len() != vec.len() {
+        return Err(format!("dedup failed at {eclassId}"));
+    }
+    Ok(())
+}
+
 // This only works with Vector of AppIds
-pub fn sortAppId(appIdsOrigs: &Vec<AppliedId>) -> Vec<AppliedId> {
+pub fn sortAppId(appIdsOrigs: &Vec<AppliedId>, dedup: bool) -> Vec<AppliedId> {
     if appIdsOrigs.len() == 0 {
         return vec![];
     }
 
     let mut appIdsSorted = appIdsOrigs.clone();
     appIdsSorted.sort();
-    appIdsSorted.dedup();
+    if dedup {
+        appIdsSorted.dedup();
+    }
 
     let appIdsSet = appIdsSorted.iter().map(|x| x.id()).collect::<BTreeSet<_>>();
     if appIdsSet.len() == appIdsSorted.len() {

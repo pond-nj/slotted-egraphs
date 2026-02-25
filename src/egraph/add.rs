@@ -123,6 +123,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 {:?}",
             enode.weak_shape()
         );
+        // TODO: shape here can make children duplicate
+        // e.g. [f(a, b), f(b, a)] might have shape [f(a, b), f(a, b)]
+        // this does not maintain the deduplicate invariant
         let sh = self.shape_called_from_add(enode.clone());
         let addedId = self.add_internal(sh);
         addedId
@@ -419,7 +422,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             BTreeSet::default(),
             Group::identity(&proven_perm),
             syn_enode.clone(),
-            N::make(&self, &syn_enode, slots),
+            N::make(&self, &syn_enode, &slots.clone().into()),
         );
         self.classes.insert(c_id, c);
 

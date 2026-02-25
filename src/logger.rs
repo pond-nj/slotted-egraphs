@@ -11,7 +11,7 @@ pub fn initLogger() {
             .format_timestamp(None)
             .format_level(true)
             .format_target(true)
-            .filter_level(LevelFilter::Trace)
+            .filter_level(LevelFilter::Info)
             .init();
     });
 }

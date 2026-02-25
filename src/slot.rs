@@ -36,6 +36,17 @@ pub enum VarType {
     List,
 }
 
+impl VarType {
+    pub fn toSMT(&self) -> String {
+        match self {
+            VarType::Unknown => "unknown".to_string(),
+            VarType::Int => "int".to_string(),
+            VarType::Node => "node".to_string(),
+            VarType::List => "list".to_string(),
+        }
+    }
+}
+
 pub fn generateVar(s: &str, varType: VarType) -> String {
     let x = match varType {
         VarType::Int => "intType",

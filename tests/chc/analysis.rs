@@ -1,4 +1,5 @@
 use core::error;
+use std::cmp::min;
 
 use log::{error, trace};
 
@@ -75,7 +76,7 @@ impl CHCData {
 //     varTypes
 // }
 
-pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &SmallHashSet<Slot>) -> Vec<VarType> {
+pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &Vec<Slot>) -> Vec<VarType> {
     let sh = eg.find_enode(&sh);
     let appIds = sh.applied_id_occurrences();
     let mut varTypes = BTreeMap::default();
@@ -111,16 +112,29 @@ pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &SmallHashSet<Slot>)
         .collect()
 }
 
-pub fn getAllVarTypes(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
+pub fn getAllVarTypesOfENode(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
     let appIds = sh.applied_id_occurrences();
     let mut varTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
     for app in &appIds {
         for (i, (_, to)) in app.m.iter().enumerate() {
             let childEclassData = eg.analysis_data(app.id);
             let childSlotType = childEclassData.varTypes[i];
+
             varTypes
                 .entry(to)
-                .and_modify(|vt: &mut VarType| assert!(*vt == childSlotType))
+                .and_modify(|vt: &mut VarType| {
+                    if *vt != childSlotType {
+                        error!("egraph {eg:?}");
+                        error!(
+                            "culprint child eclass {:?} {:?}",
+                            app.id,
+                            eg.eclass(app.id).unwrap()
+                        );
+                        error!("sh {sh:?}");
+
+                        assert_eq!(*vt, childSlotType);
+                    }
+                })
                 .or_insert(childSlotType.clone());
         }
     }
@@ -312,32 +326,28 @@ impl Analysis<CHC> for CHCAnalysis {
     //     }
     // }
 
+    // TODO: we cannot assume that the interface slots of eclass are always ordered the same after merging
+    // Hence, ordering of varTypes in a vector might not work
     fn merge(x: CHCData, y: CHCData, from: Id, to: Option<Id>, eg: &CHCEGraph) -> CHCData {
-        let varTypes = if x.varTypes.len() < y.varTypes.len() {
-            x.varTypes.clone()
-        } else if x.varTypes.len() > y.varTypes.len() {
-            y.varTypes.clone()
+        let mut varTypes = if to.is_some() {
+            let ret = eg
+                .eclass(to.unwrap())
+                .unwrap()
+                .analysis_data
+                .varTypes
+                .clone();
+
+            ret
         } else {
-            assert_eq!(x.varTypes, y.varTypes);
-            x.varTypes.clone()
+            eg.eclass(from).unwrap().analysis_data.varTypes.clone()
         };
 
-        let fromSlots = eg.eclass(from).unwrap().slots();
-        let varTypes = if varTypes.len() != fromSlots.len() {
-            getInterfaceVarType(
-                &eg.get_syn_node(&eg.mk_identity_applied_id(from)),
-                eg,
-                &fromSlots,
-            )
-        } else {
-            varTypes
-        };
+        if x.varTypes.len() < varTypes.len() {
+            varTypes = x.varTypes.clone();
+        }
 
-        if to.is_some() {
-            assert_eq!(
-                varTypes.len(),
-                eg.eclass(to.unwrap()).unwrap().slots().len()
-            );
+        if y.varTypes.len() < varTypes.len() {
+            varTypes = y.varTypes.clone();
         }
 
         CHCData {
@@ -347,8 +357,7 @@ impl Analysis<CHC> for CHCAnalysis {
         }
     }
 
-    fn make(eg: &CHCEGraph, sh: &CHC, slots: &SmallHashSet<Slot>) -> CHCData {
-        trace!("calling make on {:?}", sh);
+    fn make(eg: &CHCEGraph, sh: &CHC, slots: &Vec<Slot>) -> CHCData {
         let mut chcData = match sh {
             CHC::ComposeInit(predNameId, predSyntaxId, _, _) => {
                 let stringEnodes = eg.enodes(predNameId.id);
@@ -362,7 +371,7 @@ impl Analysis<CHC> for CHCAnalysis {
 
                 CHCData {
                     predNames,
-                    varTypes: getInterfaceVarType(sh, eg, slots),
+                    varTypes: getInterfaceVarType(sh, eg, &(slots.clone().into())),
                     functionalInfo: FunctionalInfo::default(),
                 }
             }
@@ -371,18 +380,22 @@ impl Analysis<CHC> for CHCAnalysis {
             CHC::ListType(_) => CHCDataForPrimitiveVar(sh, eg, VarType::List),
             _ => CHCData {
                 predNames: HashSet::default(),
-                varTypes: getInterfaceVarType(sh, eg, slots),
+                varTypes: getInterfaceVarType(sh, eg, &(slots.clone().into())),
                 functionalInfo: FunctionalInfo::default(),
             },
         };
+        trace!("calling make on {:?}", sh);
+        trace!("get data {chcData:?}");
 
-        if sh.slots().len() != 0 && chcData.varTypes.len() == 0 {
+        if slots.len() != 0 && chcData.varTypes.len() == 0 {
             error!("varTypes len 0");
+            error!("chcData {chcData:?}");
             error!("enode {:?}", sh);
             error!("enode children:");
             for child in sh.applied_id_occurrences() {
                 error!("child eclass {:?}", eg.eclass(child.id));
             }
+            panic!("slots is not empty, but varTypes is empty");
         }
 
         let functionalInfo = match sh {

@@ -1,7 +1,7 @@
 use std::{backtrace::Backtrace, cell::RefCell, collections::BTreeMap, time::Instant};
 
 use crate::*;
-use log::{debug, info, trace};
+use log::{debug, error, info, trace};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn union(&mut self, l: &AppliedId, r: &AppliedId) -> bool {
@@ -31,9 +31,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // this doesn't take a long time
         let a = pattern_subst(self, &from_pat, subst);
         let b = pattern_subst(self, &to_pat, subst);
-        debug!("Union {}", a.id);
-        debug!("Union {}", b.id);
-        debug!("Union because {justification:?}, {a:?} with {b:?}");
+        trace!("Union because {justification:?}, {a:?} with {b:?}");
 
         #[allow(unused)]
         let syn_a = self.synify_app_id(a.clone());
