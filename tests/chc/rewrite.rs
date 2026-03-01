@@ -16,6 +16,7 @@ static G_COUNTER: AtomicUsize = AtomicUsize::new(0);
 use std::collections::HashSet;
 
 fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> OrderVec<AppliedIdOrStar> {
+    let appId = &eg.find_applied_id(appId);
     let n = eg.enodes_applied(appId).first().unwrap().clone();
     if let CHC::And(andChildren) = n {
         return andChildren;
@@ -43,9 +44,11 @@ macro_rules! checkVarType {
     ($appId: expr, $eg: expr) => {
         if CHECKS {
             let eclassData = $eg.analysis_data($appId.id);
-            if $appId.len() != 0 && eclassData.varTypes().len() == 0 {
+            if $eg.find_applied_id($appId).len() != 0 && eclassData.varTypes().len() == 0 {
+                error!("egraph {:?}", $eg);
                 error!("varTypes len 0");
                 error!("appId {:?}", $appId);
+                error!("appId find {:?}", $eg.find_applied_id($appId));
                 error!("eclass {:?}", $eg.eclass($appId.id).unwrap());
                 assert!(eclassData.varTypes().len() > 0);
             }
@@ -63,7 +66,7 @@ macro_rules! checkVarType {
 
 // only check if one of them appear
 macro_rules! checkNewENode {
-    ($enode: expr) => {
+    ($enode: expr, $eg: expr) => {
         if CHECKS {
             let (syntax, cond, children) = match &$enode {
                 CHC::New(syntax, cond, children) => (syntax, cond, children),
@@ -86,8 +89,13 @@ macro_rules! checkNewENode {
             }
 
             if !found && syntax.m.values_set().len() != 0 {
-                warn!("alert enode = {:?}", $enode.weak_shape().0);
+                warn!(
+                    "alert enode, head var not in body = {:?}",
+                    $enode.weak_shape().0
+                );
             }
+
+            getAllVarTypesOfENode(&$enode, $eg);
         }
     };
 }
@@ -111,10 +119,11 @@ macro_rules! checkNewENodeComponent {
             }
         }
         if !found && $syntax.m.values_set().len() != 0 {
-            warn!(
-                "alert syntax = {:?}, cond = {:?}, children = {:?}",
-                $syntax, $cond, $children
-            );
+            warn!("alert var in head not not in body");
+            // warn!(
+            //     "syntax = {:?}, cond = {:?}, children = {:?}",
+            //     $syntax, $cond, $children
+            // );
         }
     };
 }
@@ -279,7 +288,7 @@ fn functionalityTransformation(
                 tag,
             } = components;
 
-            checkNewENode!(newENode);
+            checkNewENode!(newENode, eg);
 
             let CHC::New(syntax, andAppId, unfoldedChildren) = newENode.clone() else {
                 panic!();
@@ -402,7 +411,7 @@ fn functionalityTransformation(
             let updatedNewENodeAppId = eg.add(updatedNewENode.clone());
             checkVarType!(&updatedNewENodeAppId, eg);
 
-            checkNewENode!(updatedNewENode);
+            checkNewENode!(updatedNewENode, eg);
 
             constrRewriteListClone
                 .clone()
@@ -479,7 +488,7 @@ fn unfoldSearchInternal(
                 assert!(new2Vec.len() > 0);
                 for new2 in new2Vec {
                     let tmp2 = new2.clone();
-                    checkNewENode!(tmp2);
+                    checkNewENode!(tmp2, eg);
                     let CHC::New(syntax2, cond2, new2Children) = new2 else {
                         panic!();
                     };
@@ -595,7 +604,7 @@ fn unfoldSearch(
                 .getExactENodeInEClass(&newENodeShape, &new1EClass.id)
                 .apply_slotmap_partial(&new1EClass.m);
 
-            checkNewENode!(new1);
+            checkNewENode!(new1, eg);
 
             unfoldSearchInternal(
                 i1,
@@ -698,7 +707,7 @@ fn unfoldApplyInternal(
                 }
             }
 
-            checkNewENode!(unfoldedENode);
+            checkNewENode!(unfoldedENode, eg);
 
             let unfoldedENodeId = eg.add(unfoldedENode.clone());
             eg.shrink_slots(&unfoldedENodeId, &syntax1.slots(), ());
@@ -1389,7 +1398,7 @@ fn constraintRewrite(
                 tag,
             } = constrRewriteComponent;
 
-            checkNewENode!(newENode);
+            checkNewENode!(newENode, eg);
 
             // expand eq rewrite, X = Y, X = Z -> X = Y, X = Z, Y = Z
             // expand eq rewrite, X = node(a, l, r), Y = node(a, l, r) -> X = Y, X = node(a, l, r), Y = node(a, l, r)
@@ -1405,7 +1414,7 @@ fn constraintRewrite(
             let (newConstraint, updatedNewENode) =
                 dedupFromEqRewrite(constrAppId, &constrENode, newENodeAppId, newENode, eg);
 
-            checkNewENode!(updatedNewENode);
+            checkNewENode!(updatedNewENode, eg);
 
             // TODO: only push if new children is effected
             functionalityComponentsListCopy
@@ -1580,7 +1589,7 @@ fn defineUnfoldFold(
                     continue;
                 };
 
-                checkNewENode!(origNewENode);
+                checkNewENode!(origNewENode, eg);
 
                 // TODO0: try change to rootData instead of mergeVarTypes
                 // aggregate information
@@ -1639,9 +1648,9 @@ fn defineUnfoldFold(
 
                             // this can happen if a block does not have any basic var
                             if basicVars.len() == 0 {
-                                warn!("basicVars is empty");
-                                warn!("origNewENode {:?}", origNewENode);
-                                warn!("positions {:?}", positions);
+                                warn!("basicVars(new define head) is empty");
+                                // warn!("origNewENode {:?}", origNewENode);
+                                // warn!("positions {:?}", positions);
                             }
 
                             let newBody = positions
@@ -1745,7 +1754,7 @@ fn defineUnfoldFold(
                                 // println!("composeUnfoldReceipt {:#?}", composeUnfoldReceipt);
                                 // assert!(composeUnfoldReceipt.len() == 1);
                                 warn!("composeUnfoldReceipt len > 1 but also use the first one");
-                                warn!("composeUnfoldReceipt {:?}", composeUnfoldReceipt);
+                                // warn!("composeUnfoldReceipt {:?}", composeUnfoldReceipt);
                             }
                             let newComposeAppIds = unfoldApplyInternal(
                                 &composeUnfoldReceipt[0],

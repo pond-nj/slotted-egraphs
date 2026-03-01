@@ -620,14 +620,15 @@ impl CHCRule {
         prop: &BTreeMap<String, PredProp>,
         typeMap: &BTreeMap<CHCVar, ArgType>,
     ) -> String {
-        let mut varToType = BTreeMap::new();
-        for (i, v) in self.head.args.iter().enumerate() {
-            let v = v.getVar().unwrap();
-            varToType.insert(
-                v.clone(),
-                prop.get(&self.head.pred_name).unwrap().types[i].clone(),
-            );
-        }
+        // let mut varToType = BTreeMap::new();
+        // for (i, v) in self.head.args.iter().enumerate() {
+        //     let v = v.getVar().unwrap();
+        //     varToType.insert(
+        //         v.clone(),
+        //         prop.get(&self.head.pred_name).unwrap().types[i].clone(),
+        //     );
+        // }
+
         format!(
             "(new {} {} {})",
             self.head.toHeadSExpr(typeMap),

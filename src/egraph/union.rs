@@ -199,6 +199,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(to.id, proof.r.id);
         }
 
+        // when this happends, nodes are still in the from eclass
         {
             let analysis_from = self.analysis_data(from.id).clone();
             // let analysis_to = self.analysis_data_mut(to.id);

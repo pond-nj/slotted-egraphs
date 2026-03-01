@@ -214,6 +214,11 @@ lookup weak_shape result in hashcons: {:?}
         self.lookup_internal(&self.shape(n))
     }
 
+    pub fn lookupExpr(&self, re: &str) -> Option<AppliedId> {
+        let re = RecExpr::parse(re).unwrap();
+        self.lookupRecExpr(re)
+    }
+
     // TODO: this can't sort mew ENode?
     pub fn lookupRecExpr(&self, re: RecExpr<L>) -> Option<AppliedId> {
         let mut n = re.node.clone();

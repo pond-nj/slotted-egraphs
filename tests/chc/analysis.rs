@@ -113,10 +113,25 @@ pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &Vec<Slot>) -> Vec<V
 }
 
 pub fn getAllVarTypesOfENode(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
+    let sh = &eg.find_enode(sh);
     let appIds = sh.applied_id_occurrences();
     let mut varTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
+
+    match sh {
+        CHC::ListType(s) => {
+            varTypes.insert(*s, VarType::List);
+        }
+        CHC::IntType(s) => {
+            varTypes.insert(*s, VarType::Int);
+        }
+        CHC::NodeType(s) => {
+            varTypes.insert(*s, VarType::Node);
+        }
+        _ => {}
+    }
+
     for app in &appIds {
-        for (i, (_, to)) in app.m.iter().enumerate() {
+        for (i, (_from, to)) in app.m.iter().enumerate() {
             let childEclassData = eg.analysis_data(app.id);
             let childSlotType = childEclassData.varTypes[i];
 
@@ -131,6 +146,17 @@ pub fn getAllVarTypesOfENode(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType
                             eg.eclass(app.id).unwrap()
                         );
                         error!("sh {sh:?}");
+                        error!("sh find {:?}", eg.find_enode(sh));
+                        error!("mismatch of type of slot {to}");
+                        for app1 in &appIds {
+                            error!("app {app:?}");
+                            let childEclassData = eg.analysis_data(app1.id);
+                            for (i, (_from, to)) in app1.m.iter().enumerate() {
+                                let childSlotType = childEclassData.varTypes[i];
+                                error!("from {_from:?} -> to {to:?}");
+                                error!("childSlotType {childSlotType:?}");
+                            }
+                        }
 
                         assert_eq!(*vt, childSlotType);
                     }
@@ -350,6 +376,35 @@ impl Analysis<CHC> for CHCAnalysis {
             varTypes = y.varTypes.clone();
         }
 
+        if CHECKS {
+            let slots = if to.is_some() {
+                eg.eclass(to.unwrap()).unwrap().slots()
+            } else {
+                eg.eclass(from).unwrap().slots()
+            };
+
+            let (currVarTypes, synNode) = if to.is_some() {
+                let synNode = eg.get_syn_node(&eg.mk_sem_identity_applied_id(to.unwrap()));
+                (getAllVarTypesOfENode(&synNode, eg), synNode)
+            } else {
+                let synNode = eg.get_syn_node(&eg.mk_sem_identity_applied_id(from));
+                (getAllVarTypesOfENode(&synNode, eg), synNode)
+            };
+
+            let slotsVec = slots.into_inner();
+            for (i, s) in slotsVec.iter().enumerate() {
+                if !currVarTypes.contains_key(s) || currVarTypes[s] != varTypes[i] {
+                    panic!(
+                        "mismatch or not contain of type of slot {s}
+slotsVec {slotsVec:?}
+currVarTypes {currVarTypes:?}
+varTypes {varTypes:?}
+synNode {synNode:?}"
+                    );
+                }
+            }
+        }
+
         CHCData {
             predNames: mergePredNames(&x.predNames, &y.predNames),
             varTypes: varTypes,
@@ -420,6 +475,10 @@ impl Analysis<CHC> for CHCAnalysis {
             }
             _ => FunctionalInfo::default(),
         };
+
+        if CHECKS {
+            getAllVarTypesOfENode(sh, eg);
+        }
 
         chcData.functionalInfo = functionalInfo;
         trace!("done calling make");

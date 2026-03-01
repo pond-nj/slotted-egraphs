@@ -7,13 +7,12 @@ use super::*;
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 300;
 const DO_CONST_REWRITE: bool = true;
-const DO_FOLDING: bool = false;
 
 #[test]
 fn mainTest() {
     initLogger();
     let mut eg = CHCEGraph::default();
-    growEGraph("tests/chc/input/synchronized_chc.txt", &mut eg);
+    growEGraph("tests/chc/cases/synchronized_chc.txt", &mut eg);
     eg.rebuild();
 
     info!("Egraph before");
@@ -28,7 +27,7 @@ fn mainTest() {
             RewriteList::default(),
             RewriteOption {
                 doConstraintRewrite: DO_CONST_REWRITE,
-                doFolding: DO_FOLDING,
+                doFolding: true,
                 doADTDefine: false,
                 doPairingDefine: true,
             },
@@ -39,4 +38,6 @@ fn mainTest() {
 
     info!("Egraph after");
     dumpCHCEGraph(&runner.egraph);
+
+    checkGraphExists("tests/chc/cases/synchronized_chc_out.txt", &runner.egraph);
 }

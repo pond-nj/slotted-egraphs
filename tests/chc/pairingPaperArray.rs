@@ -6,14 +6,12 @@ use super::*;
 
 const ITER_LIMIT: usize = 4;
 const TIME_LIMIT_SECS: u64 = 300;
-const DO_CONST_REWRITE: bool = true;
-const DO_FOLDING: bool = false;
 
 #[test]
 fn mainTest() {
     initLogger();
     let mut eg = CHCEGraph::default();
-    growEGraph("tests/chc/input/pairing_paper_array.txt", &mut eg);
+    growEGraph("tests/chc/cases/pairing_paper_array.txt", &mut eg);
     eg.rebuild();
 
     info!("Egraph before");
@@ -27,10 +25,10 @@ fn mainTest() {
         runner.run(&mut getAllRewrites(
             RewriteList::default(),
             RewriteOption {
-                doConstraintRewrite: DO_CONST_REWRITE,
-                doFolding: DO_FOLDING,
+                doConstraintRewrite: true,
+                doFolding: true,
                 doADTDefine: true,
-                doPairingDefine: false,
+                doPairingDefine: true,
             },
         ))
     });

@@ -7,7 +7,6 @@ use std::thread;
 const STACK_SIZE: usize = 32 * 1024 * 1024;
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 3600;
-const DO_CONST_REWRITE: bool = true;
 const DO_FOLDING: bool = true;
 
 use log::{debug, error, info, set_logger_racy, Log, Metadata, Record};
@@ -261,7 +260,7 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
         runner.run(&mut getAllRewrites(
             RewriteList::default(),
             RewriteOption {
-                doConstraintRewrite: DO_CONST_REWRITE,
+                doConstraintRewrite: true,
                 doFolding: DO_FOLDING,
                 doADTDefine: true,
                 doPairingDefine: false,

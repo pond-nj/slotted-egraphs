@@ -28,8 +28,8 @@ impl Display for SlotMap {
         write!(f, "(")?;
         let n = self.len();
         for (i, (_x, y)) in self.iter().enumerate() {
-            // write!(f, "{x:?} -> {y:?}")?;
-            write!(f, "{y:?}")?;
+            write!(f, "{_x:?} -> {y:?}")?;
+            // write!(f, "{y:?}")?;
             if i < n - 1 {
                 write!(f, ", ")?;
             }

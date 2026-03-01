@@ -29,7 +29,7 @@ fn checkComposeMerge(eg: &CHCEGraph) {
     trace!("checkComposeMerge done");
 }
 
-pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
+pub fn prepareRules(fname: &str) -> (CHCAst, BTreeMap<String, Vec<CHCRule>>) {
     let mut chcs = parse(fname);
 
     for rule in chcs.rules.iter_mut() {
@@ -60,9 +60,38 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             .push(rule.clone());
     }
 
+    (chcs, rulesByPred)
+}
+
+pub fn getConstrTypes(
+    rule: &CHCRule,
+    props: &PredProp,
+    chcs: &CHCAst,
+) -> BTreeMap<CHCVar, ArgType> {
+    let CHCRule {
+        head,
+        constr,
+        pred_apps,
+        original,
+    } = rule;
+
+    let mut typeMap = BTreeMap::new();
+    head.retrieveTypes(&mut typeMap, &props);
+    for b in pred_apps.iter() {
+        b.retrieveTypes(&mut typeMap, &chcs.preds.get(&b.pred_name).unwrap());
+    }
+    for c in constr.iter() {
+        c.propagateTypeUp(&mut typeMap);
+    }
+
+    typeMap
+}
+
+pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
+    let (chcs, rulesByPred) = prepareRules(fname);
     let none = ();
     for (predName, rules) in rulesByPred {
-        let props = chcs.preds.get(&predName).unwrap();
+        let props: &PredProp = chcs.preds.get(&predName).unwrap();
         let mut composeChildren = Vec::new();
         let mut dummyCompose = None;
         let mut headSlots: Option<Vec<_>> = None;
@@ -75,14 +104,7 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             } = &rule;
 
             info!("original {}", original);
-            let mut typeMap = BTreeMap::new();
-            head.retrieveTypes(&mut typeMap, &props);
-            for b in pred_apps.iter() {
-                b.retrieveTypes(&mut typeMap, &chcs.preds.get(&b.pred_name).unwrap());
-            }
-            for c in constr.iter() {
-                c.propagateTypeUp(&mut typeMap);
-            }
+            let typeMap = getConstrTypes(&rule, props, &chcs);
             debug!("typeMap {:?}", typeMap);
 
             let expr = rule.toSExpr(&chcs.preds, &typeMap);
@@ -139,4 +161,72 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
         checkComposeMerge(eg);
     }
     // ()
+}
+
+pub fn getExpr(
+    predName: &String,
+    chcs: &CHCAst,
+    rulesByPred: &BTreeMap<String, Vec<CHCRule>>,
+    written: &mut BTreeSet<String>,
+) -> String {
+    if written.contains(predName) {
+        return format!("${}", predName);
+    }
+
+    written.insert(predName.clone());
+    let rules = rulesByPred.get(predName).unwrap();
+    let props: &PredProp = chcs.preds.get(predName).unwrap();
+    let mut composeChildren = Vec::new();
+    for rule in rules {
+        let CHCRule {
+            head,
+            constr,
+            pred_apps,
+            original,
+        } = rule;
+
+        let mut typeMap = getConstrTypes(rule, props, chcs);
+        let expr = format!(
+            "(new {} {} {})",
+            rule.head.toHeadSExpr(&typeMap),
+            format!(
+                "(and <{}>)",
+                rule.constr
+                    .iter()
+                    .map(|c| c.toSExpr(&typeMap))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            ),
+            format!(
+                "<{}>",
+                rule.pred_apps
+                    .iter()
+                    .map(|p| getExpr(&p.pred_name, chcs, rulesByPred, written))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            )
+        );
+        composeChildren.push(expr);
+    }
+
+    let composeExpr = format!("(compose <{}>)", composeChildren.join(" "));
+
+    composeExpr
+}
+
+pub fn checkGraphExists(fname: &str, eg: &CHCEGraph) {
+    let (chcs, rulesByPred): (CHCAst, BTreeMap<String, Vec<CHCRule>>) = prepareRules(fname);
+
+    let expectedExpr = getExpr(
+        &"incorrect".to_owned(),
+        &chcs,
+        &rulesByPred,
+        &mut BTreeSet::new(),
+    );
+    info!("getExpr {expectedExpr}");
+
+    let res = ematchQueryall(&eg, &Pattern::parse(&expectedExpr).unwrap());
+    assert!(res.len() > 0);
+
+    // TODO: check that the var in this expression points to the defined eclass
 }
