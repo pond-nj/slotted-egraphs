@@ -115,7 +115,7 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             let thisHeadSlots = head
                 .args
                 .iter()
-                .map(|a| a.getVar().unwrap().toSlot())
+                .map(|a| a.getVarFormOnly().unwrap().toSlot())
                 .collect();
 
             if let Some(headSlots) = &headSlots {
@@ -163,17 +163,19 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
     // ()
 }
 
-pub fn getExpr(
+// If not called on this predName before, return an expression that shows how the chc definition of this predName is defined.
+// Otherwise, just return a variable.
+pub fn getExprRecur(
     predName: &String,
     chcs: &CHCAst,
     rulesByPred: &BTreeMap<String, Vec<CHCRule>>,
-    written: &mut BTreeSet<String>,
+    mapping: &mut BTreeMap<String, String>,
 ) -> String {
-    if written.contains(predName) {
-        return format!("${}", predName);
+    if mapping.contains_key(predName) {
+        return format!("?{}", predName);
     }
 
-    written.insert(predName.clone());
+    mapping.insert(predName.clone(), "".to_owned());
     let rules = rulesByPred.get(predName).unwrap();
     let props: &PredProp = chcs.preds.get(predName).unwrap();
     let mut composeChildren = Vec::new();
@@ -201,7 +203,7 @@ pub fn getExpr(
                 "<{}>",
                 rule.pred_apps
                     .iter()
-                    .map(|p| getExpr(&p.pred_name, chcs, rulesByPred, written))
+                    .map(|p| getExprRecur(&p.pred_name, chcs, rulesByPred, mapping))
                     .collect::<Vec<_>>()
                     .join(" ")
             )
@@ -210,23 +212,117 @@ pub fn getExpr(
     }
 
     let composeExpr = format!("(compose <{}>)", composeChildren.join(" "));
-
+    mapping.insert(predName.clone(), composeExpr.clone());
     composeExpr
 }
 
-pub fn checkGraphExists(fname: &str, eg: &CHCEGraph) {
+pub fn getPredExpr(
+    predName: &String,
+    rules: &Vec<CHCRule>,
+    chcs: &CHCAst,
+) -> (String, BTreeMap<String, String>) {
+    let props: &PredProp = chcs.preds.get(predName).unwrap();
+    let mut composeChildren = Vec::new();
+    let mut patternVars = BTreeMap::new();
+    for (i, rule) in rules.iter().enumerate() {
+        let CHCRule {
+            head,
+            constr,
+            pred_apps,
+            original,
+        } = rule;
+
+        let mut typeMap = getConstrTypes(rule, props, chcs);
+        let expr = format!(
+            "(new {} {} {})",
+            rule.head.toHeadSExpr(&typeMap),
+            format!(
+                "(and <{}>)",
+                rule.constr
+                    .iter()
+                    .map(|c| c.toSExpr(&typeMap))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            ),
+            format!(
+                "<{}>",
+                rule.pred_apps
+                    .iter()
+                    .map(|p| {
+                        let newVar = format!("?{}_{i}", p.pred_name);
+                        patternVars.insert(p.pred_name.clone(), newVar.clone());
+                        newVar
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            )
+        );
+        composeChildren.push(expr);
+    }
+
+    let composeExpr = format!("(compose <{}>)", composeChildren.join(" "));
+    (composeExpr, patternVars)
+}
+
+// TODO: this function is buggy, because when creating child expr, we have to rename the child vars also
+// but the renaming logic is not implemented yet?
+pub fn checkCHCExistsByExpr(fname: &str, eg: &CHCEGraph) {
     let (chcs, rulesByPred): (CHCAst, BTreeMap<String, Vec<CHCRule>>) = prepareRules(fname);
 
-    let expectedExpr = getExpr(
+    let mut exprMapping = BTreeMap::new();
+    let expectedExpr = getExprRecur(
         &"incorrect".to_owned(),
         &chcs,
         &rulesByPred,
-        &mut BTreeSet::new(),
+        &mut exprMapping,
     );
     info!("getExpr {expectedExpr}");
 
-    let res = ematchQueryall(&eg, &Pattern::parse(&expectedExpr).unwrap());
+    let res: Vec<(Subst, Id)> = ematchQueryall(&eg, &Pattern::parse(&expectedExpr).unwrap());
     assert!(res.len() > 0);
 
-    // TODO: check that the var in this expression points to the defined eclass
+    let mut found = false;
+    'record: for (subst, eclassId) in res {
+        for (predName, expr) in exprMapping.iter() {
+            let pattern: Pattern<CHC> = Pattern::parse(&expr).unwrap();
+            let result = eg.lookupPatternWithSubst(&pattern, &subst);
+            let appId = result.unwrap();
+            if appId.id != subst.get(&format!("?{}", predName)).unwrap().id {
+                continue 'record;
+            }
+        }
+
+        found = true;
+    }
+
+    assert!(found);
+}
+
+pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
+    let (chcs, rulesByPred): (CHCAst, BTreeMap<String, Vec<CHCRule>>) = prepareRules(fname);
+
+    let mut predToEclassId = BTreeMap::new();
+
+    let mut updatePredToEclassId = |predName: &String, possibilities: &BTreeSet<Id>| {
+        let oldEntry = predToEclassId
+            .entry(predName.clone())
+            .or_insert(possibilities.clone());
+
+        *oldEntry = oldEntry.intersection(&possibilities).cloned().collect();
+    };
+
+    for (predName, rules) in rulesByPred {
+        let (expr, patternVars) = getPredExpr(&predName, &rules, &chcs);
+
+        let res: Vec<(Subst, Id)> = ematchQueryall(&eg, &Pattern::parse(&expr).unwrap());
+        assert!(res.len() > 0);
+
+        for (predName, patternVars) in patternVars {
+            let possibilities = res
+                .iter()
+                .map(|(subst, _)| subst.get(&predName).unwrap().id)
+                .collect::<BTreeSet<_>>();
+            updatePredToEclassId(&predName, &possibilities);
+        }
+    }
 }

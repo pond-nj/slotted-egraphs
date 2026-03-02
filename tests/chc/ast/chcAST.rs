@@ -349,6 +349,21 @@ impl Constr {
             }
         }
     }
+
+    pub fn getAllVars(&self) -> BTreeSet<CHCVar> {
+        let mut set = BTreeSet::new();
+        for a in self.args.iter() {
+            let result = a.getAllVars();
+            set.extend(result);
+        }
+        set
+    }
+
+    pub fn substitute(&mut self, subst: &BTreeMap<CHCVar, CHCVar>) {
+        for a in self.args.iter_mut() {
+            a.substitute(subst);
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -374,7 +389,14 @@ impl Term {
         }
     }
 
-    pub fn getVar(&self) -> Option<&CHCVar> {
+    pub fn getAllVars(&self) -> BTreeSet<CHCVar> {
+        match self {
+            Term::Var(v) => BTreeSet::from([v.clone()]),
+            Term::Constr(c) => c.getAllVars(),
+        }
+    }
+
+    pub fn getVarFormOnly(&self) -> Option<&CHCVar> {
         match self {
             Term::Var(v) => Some(v),
             _ => None,
@@ -403,6 +425,20 @@ impl Term {
             }
         }
     }
+
+    pub fn substitute(&mut self, subst: &BTreeMap<CHCVar, CHCVar>) {
+        match self {
+            Term::Var(v) => {
+                assert!(!subst.values().collect::<BTreeSet<_>>().contains(v));
+                if let Some(newVar) = subst.get(v) {
+                    *self = Term::Var(newVar.clone());
+                }
+            }
+            Term::Constr(c) => {
+                c.substitute(subst);
+            }
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -425,8 +461,27 @@ impl Args {
         self.args.iter()
     }
 
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Term> {
+        self.args.iter_mut()
+    }
+
     pub fn isAllVar(&self) -> bool {
         self.args.iter().all(|a| a.isVar())
+    }
+
+    pub fn getAllVars(&self) -> BTreeSet<CHCVar> {
+        let mut set = BTreeSet::new();
+        for a in self.args.iter() {
+            let result = a.getAllVars();
+            set.extend(result);
+        }
+        set
+    }
+
+    pub fn substitute(&mut self, subst: &BTreeMap<CHCVar, CHCVar>) {
+        for a in self.args.iter_mut() {
+            a.substitute(subst);
+        }
     }
 }
 
@@ -464,6 +519,8 @@ impl std::fmt::Display for PredApp {
 }
 
 impl PredApp {
+    // change var/term into new var in the form of "new$i"
+    // return the new constr representing "new$i = var"
     pub fn renameAll(&mut self, count: &mut usize) -> Vec<Constr> {
         let mut newConstr = Vec::new();
         let mut new_args: Vec<Term> = self
@@ -484,6 +541,8 @@ impl PredApp {
         newConstr
     }
 
+    // change term only into new var in the form of "new$i"
+    // return the new constr representing "new$i = var"
     pub fn renameTerm(&mut self, count: &mut usize) -> Vec<Constr> {
         let mut newConstr = Vec::new();
         let mut new_args: Vec<Term> = self
@@ -539,8 +598,24 @@ impl PredApp {
     pub fn retrieveTypes(&self, typeMap: &mut BTreeMap<CHCVar, ArgType>, props: &PredProp) {
         let types = &props.types;
         for (i, t) in types.iter().enumerate() {
-            typeMap.insert(self.args[i].clone().getVar().unwrap().clone(), t.clone());
+            typeMap.insert(
+                self.args[i].clone().getVarFormOnly().unwrap().clone(),
+                t.clone(),
+            );
         }
+    }
+
+    pub fn getAllVars(&self) -> BTreeSet<CHCVar> {
+        let mut set = BTreeSet::new();
+        for a in self.args.iter() {
+            let result = a.getAllVars();
+            set.extend(result);
+        }
+        set
+    }
+
+    pub fn substitute(&mut self, subst: &BTreeMap<CHCVar, CHCVar>) {
+        self.args.substitute(subst);
     }
 }
 
@@ -656,7 +731,7 @@ impl CHCRule {
         let mut typeMap = BTreeMap::new();
 
         for (i, v) in self.head.args.iter().enumerate() {
-            let v = v.getVar().unwrap();
+            let v = v.getVarFormOnly().unwrap();
             typeMap.insert(
                 v.clone(),
                 prop.get(&self.head.pred_name).unwrap().types[i].clone(),
@@ -665,12 +740,62 @@ impl CHCRule {
 
         for p in self.pred_apps.iter() {
             for (i, v) in p.args.iter().enumerate() {
-                let v = v.getVar().unwrap();
+                let v = v.getVarFormOnly().unwrap();
                 typeMap.insert(v.clone(), prop.get(&p.pred_name).unwrap().types[i].clone());
             }
         }
 
         typeMap
+    }
+
+    pub fn getAllVars(&self) -> BTreeSet<CHCVar> {
+        let mut set = BTreeSet::new();
+        set.extend(self.head.getAllVars());
+        for c in self.constr.iter() {
+            set.extend(c.getAllVars());
+        }
+        for p in self.pred_apps.iter() {
+            set.extend(p.args.iter().flat_map(|a| a.getAllVars()));
+        }
+        set
+    }
+
+    pub fn substituteRaw(&mut self, subst: &BTreeMap<CHCVar, CHCVar>) {
+        self.head.substitute(subst);
+        for c in self.constr.iter_mut() {
+            c.substitute(subst);
+        }
+        for p in self.pred_apps.iter_mut() {
+            p.substitute(subst);
+        }
+    }
+
+    // TODO: this is not tested
+    pub fn substitute(&mut self, subst: &BTreeMap<CHCVar, CHCVar>) {
+        let mut mapTo = BTreeSet::new();
+        for (from, to) in subst.iter() {
+            mapTo.insert(to.clone());
+        }
+
+        let allVars = self.getAllVars();
+        let mut maxNew = 0;
+        while allVars.contains(&CHCVar::Str(format!("new{}", maxNew))) {
+            maxNew += 1;
+        }
+
+        let mut rename = BTreeMap::new();
+        for (from, to) in subst.iter() {
+            if allVars.contains(to) {
+                let newVar = CHCVar::Str(format!("new{}", maxNew));
+                assert!(!allVars.contains(&newVar));
+                rename.insert(to.clone(), newVar);
+
+                maxNew += 1;
+            }
+        }
+        self.substituteRaw(&rename);
+
+        self.substituteRaw(subst);
     }
 }
 

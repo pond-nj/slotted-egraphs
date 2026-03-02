@@ -214,6 +214,32 @@ lookup weak_shape result in hashcons: {:?}
         self.lookup_internal(&self.shape(n))
     }
 
+    pub fn lookupPatternWithSubst(&self, pattern: &Pattern<L>, subst: &Subst) -> Option<AppliedId> {
+        match pattern {
+            Pattern::ENode(n, children) => {
+                let mut n = n.clone();
+                let mut refs = n.applied_id_occurrences_mut();
+                if CHECKS {
+                    assert_eq!(children.len(), refs.len());
+                }
+                for i in 0..refs.len() {
+                    let result = self.lookupPatternWithSubst(&children[i], subst);
+                    if result.is_none() {
+                        return None;
+                    }
+                    *(refs[i]) = result.unwrap();
+                }
+                self.lookup(&n)
+            }
+            Pattern::PVar(v) => {
+                return subst.get(v).cloned();
+            }
+            _ => {
+                panic!()
+            }
+        }
+    }
+
     pub fn lookupExpr(&self, re: &str) -> Option<AppliedId> {
         let re = RecExpr::parse(re).unwrap();
         self.lookupRecExpr(re)

@@ -1,0 +1,15 @@
+#t p(int) false <>.
+p(x1) :- x1 = 0.
+p(x2) :- p(x1), x2 = x1 + 1.
+#t q(int) false <>.
+q(x3) :- x3 = 0.
+q(x4) :- q(x3), x4 = x3 + 2.
+#t r(int) false <>.
+r(x5) :- x5 = 0.
+#t pq(int, int) false <>.
+pq(a, b):- a = 0, b = 0.
+pq(a, b):- a = 0, q(x3), b = x3 + 2.
+pq(a, b):- p(x1), a = x1 + 1, b = 0.
+pq(a, b):- pq(x1, x3), a = x1 + 1, b = x3 + 2.
+#t incorrect() false <>.
+incorrect :- pq(x7, x8), r(x9), x7 > x8, x8 > x9.

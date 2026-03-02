@@ -22,8 +22,9 @@ pub fn dumpCHCEClass(
         .join(", ");
 
     // TODO: this function uses too much memory
-    // let synExpr = eg.getSynExpr(&i, map);
-    // print!("\n{}", synExpr);
+    let calls = &mut BTreeMap::new();
+    let synExpr = eg.getSynExpr(&i, map, calls).unwrap();
+    print!("\n{}", synExpr);
     print!("\n{:?}", eg.analysis_data(i));
     print!("\n{:?}({:?})({}):", i, eqvIds[&i], &slot_str);
     print!(">> {:?}\n", eg.getSynNodeNoSubst(&i));

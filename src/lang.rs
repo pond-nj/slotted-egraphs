@@ -368,7 +368,10 @@ impl LanguageChildren for AppliedIdOrStar {
             [SyntaxElem::Star(n)] => Some(AppliedIdOrStar::Star(*n)),
             [] => None,
             _ => {
-                panic!("(Pond) slotted_egraphs::lang::AppliedIdOrStar::from_syntax");
+                panic!(
+                    "(Pond) slotted_egraphs::lang::AppliedIdOrStar::from_syntax, elems {:?}",
+                    elems
+                );
             }
         }
     }
