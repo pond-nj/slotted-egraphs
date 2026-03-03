@@ -295,6 +295,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         totalPerm
     }
 
+    // TODO: don't redo the same symmetries
+    // Call only on new symmetries update
     fn symmetriesBySat(self: &mut EGraph<L, N>, src_id: Id) -> (Vec<SlotMap>, Id) {
         trace!("call symmetriesBySat {:?}", src_id);
         let pc1 = self.pc_from_src_id(src_id);

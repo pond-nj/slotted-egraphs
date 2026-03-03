@@ -7,7 +7,7 @@ pub fn ematchQueryall(eg: &CHCEGraph, pattern: &Pattern<CHC>) -> Vec<(Subst, Id)
     let mut out: Vec<(Subst, Id)> = Vec::new();
     for i in eg.ids() {
         let appId = eg.mk_sem_identity_applied_id(i);
-        let result = ematchQueryAllInEclassInternal(pattern, State::default(), appId, eg);
+        let result = ematchQueryAllInEclass(pattern, State::default(), appId, eg);
         if result.len() > 0 {
             debug!("some match in eclass {i:?} for pattern {pattern}");
         } else {
@@ -19,7 +19,7 @@ pub fn ematchQueryall(eg: &CHCEGraph, pattern: &Pattern<CHC>) -> Vec<(Subst, Id)
     out
 }
 
-fn ematchQueryAllInEclassInternal(
+pub fn ematchQueryAllInEclass(
     pattern: &Pattern<CHC>,
     st: State,
     i: AppliedId,
@@ -107,12 +107,8 @@ fn matchQueryEclassWithEveryState(
     // debug!("eclassId {:?}", eclassId);
     // debug!("childPattern {} or {:?}", childPattern, childPattern);
     for _ in 0..callLen {
-        let result = ematchQueryAllInEclassInternal(
-            childPattern,
-            accIter.next().unwrap(),
-            eclassId.clone(),
-            eg,
-        );
+        let result =
+            ematchQueryAllInEclass(childPattern, accIter.next().unwrap(), eclassId.clone(), eg);
         next.extend(result);
     }
 

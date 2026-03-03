@@ -220,19 +220,33 @@ pub fn getPredExpr(
     predName: &String,
     rules: &Vec<CHCRule>,
     chcs: &CHCAst,
-) -> (String, BTreeMap<String, String>) {
+) -> (String, BTreeMap<String, Vec<String>>) {
     let props: &PredProp = chcs.preds.get(predName).unwrap();
     let mut composeChildren = Vec::new();
     let mut patternVars = BTreeMap::new();
+
     for (i, rule) in rules.iter().enumerate() {
+        let mut rule = rule.clone();
+        let mut internalVars = BTreeSet::new();
+        rule.getInternalVars(&mut internalVars);
+
+        let mut renameMap = BTreeMap::new();
+        for v in internalVars.iter() {
+            let newVar = CHCVar::Str(format!("{}_{i}", v));
+            renameMap.insert(v.clone(), newVar);
+        }
+        rule.substitute(&renameMap);
+
         let CHCRule {
             head,
             constr,
             pred_apps,
             original,
-        } = rule;
+        } = &rule;
 
-        let mut typeMap = getConstrTypes(rule, props, chcs);
+        let mut typeMap = getConstrTypes(&rule, props, chcs);
+        println!("rule {rule:?}");
+        println!("typeMap {:?}", typeMap);
         let expr = format!(
             "(new {} {} {})",
             rule.head.toHeadSExpr(&typeMap),
@@ -249,9 +263,12 @@ pub fn getPredExpr(
                 rule.pred_apps
                     .iter()
                     .map(|p| {
-                        let newVar = format!("?{}_{i}", p.pred_name);
-                        patternVars.insert(p.pred_name.clone(), newVar.clone());
-                        newVar
+                        let newVar = format!("{}_{i}", p.pred_name);
+                        patternVars
+                            .entry(p.pred_name.clone())
+                            .or_insert(vec![])
+                            .push(newVar.clone());
+                        format!("?{}", newVar)
                     })
                     .collect::<Vec<_>>()
                     .join(" ")
@@ -315,14 +332,30 @@ pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
         let (expr, patternVars) = getPredExpr(&predName, &rules, &chcs);
 
         let res: Vec<(Subst, Id)> = ematchQueryall(&eg, &Pattern::parse(&expr).unwrap());
-        assert!(res.len() > 0);
+        assert!(
+            res.len() > 0,
+            "predname {predName}, expr {expr} has no result"
+        );
 
-        for (predName, patternVars) in patternVars {
-            let possibilities = res
-                .iter()
-                .map(|(subst, _)| subst.get(&predName).unwrap().id)
-                .collect::<BTreeSet<_>>();
+        for (bodyPredName, vars) in patternVars {
+            let mut possibilities = BTreeSet::new();
+            for (subst, _) in res.iter() {
+                for var in vars.iter() {
+                    possibilities.insert(subst.get(var).unwrap().id);
+                }
+            }
             updatePredToEclassId(&predName, &possibilities);
         }
     }
+
+    info!("possible eclass {:?}", predToEclassId);
+
+    for (predName, possibilities) in predToEclassId {
+        assert!(
+            possibilities.len() > 0,
+            "predName {} has no possible eclass",
+            predName
+        );
+    }
+    info!("chc {} exists", fname);
 }
