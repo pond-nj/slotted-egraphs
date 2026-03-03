@@ -1,13 +1,14 @@
 use super::*;
 use log::{debug, trace};
 
+// TODO: parallelize this
 pub fn ematchQueryall(eg: &CHCEGraph, pattern: &Pattern<CHC>) -> Vec<(Subst, Id)> {
     debug!("=== Call ematchQueryall ===");
     debug!("pattern = {pattern}");
     let mut out: Vec<(Subst, Id)> = Vec::new();
     for i in eg.ids() {
         let appId = eg.mk_sem_identity_applied_id(i);
-        let result = ematchQueryAllInEclass(pattern, State::default(), appId, eg);
+        let result = ematchQueryAllInEclassInternal(pattern, State::default(), appId, eg);
         if result.len() > 0 {
             debug!("some match in eclass {i:?} for pattern {pattern}");
         } else {
@@ -16,10 +17,24 @@ pub fn ematchQueryall(eg: &CHCEGraph, pattern: &Pattern<CHC>) -> Vec<(Subst, Id)
 
         out.extend(result.into_iter().map(final_subst).map(|x| (x, i)));
     }
+
     out
 }
 
 pub fn ematchQueryAllInEclass(
+    eclassId: Id,
+    pattern: &Pattern<CHC>,
+    eg: &CHCEGraph,
+) -> Vec<(Subst, Id)> {
+    let mut out: Vec<(Subst, Id)> = Vec::new();
+    let appId = eg.mk_sem_identity_applied_id(eclassId);
+    let result = ematchQueryAllInEclassInternal(pattern, State::default(), appId, eg);
+    out.extend(result.into_iter().map(final_subst).map(|x| (x, eclassId)));
+
+    out
+}
+
+pub fn ematchQueryAllInEclassInternal(
     pattern: &Pattern<CHC>,
     st: State,
     i: AppliedId,
@@ -107,8 +122,12 @@ fn matchQueryEclassWithEveryState(
     // debug!("eclassId {:?}", eclassId);
     // debug!("childPattern {} or {:?}", childPattern, childPattern);
     for _ in 0..callLen {
-        let result =
-            ematchQueryAllInEclass(childPattern, accIter.next().unwrap(), eclassId.clone(), eg);
+        let result = ematchQueryAllInEclassInternal(
+            childPattern,
+            accIter.next().unwrap(),
+            eclassId.clone(),
+            eg,
+        );
         next.extend(result);
     }
 

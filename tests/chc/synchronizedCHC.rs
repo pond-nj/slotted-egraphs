@@ -6,7 +6,6 @@ use super::*;
 
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 300;
-const DO_CONST_REWRITE: bool = true;
 
 #[test]
 fn mainTest() {
@@ -22,51 +21,40 @@ fn mainTest() {
         .with_egraph(eg)
         .with_iter_limit(ITER_LIMIT)
         .with_time_limit(Duration::from_secs(TIME_LIMIT_SECS));
-    // let (report, t): (Report, _) = time(|| {
-    //     runner.run(&mut getAllRewrites(
-    //         RewriteList::default(),
-    //         RewriteOption {
-    //             doConstraintRewrite: DO_CONST_REWRITE,
-    //             doFolding: true,
-    //             doADTDefine: false,
-    //             doPairingDefine: true,
-    //         },
-    //     ))
-    // });
-    // info!("use time {t:?}");
-    // info!("report {report:?}");
+    let (report, t): (Report, _) = time(|| {
+        runner.run(&mut getAllRewrites(
+            RewriteList::default(),
+            RewriteOption {
+                doConstraintRewrite: true,
+                doFolding: true,
+                doADTDefine: false,
+                doPairingDefine: true,
+            },
+        ))
+    });
+    info!("use time {t:?}");
+    info!("report {report:?}");
 
     info!("Egraph after");
     dumpCHCEGraph(&runner.egraph);
 
-    // (new (pred <(intType $f18)>) (and <(eq (intType $f19) (0)) (eq (intType $f19) (intType $f18))>) <>)
-    // (new (pred <(intType $f29)>) (and <(eq (intType $f31) (intType $f29)) (eq (intType $f31) (add (intType $f30) (1)))>) <(composeInit (p) (pred <(intType $f30)>) (false) <>)>)
-    // let expr = "(compose <
-    // (new (pred <(intType $new0)>) (and <(eq (intType $x1) 0) (eq (intType $x1) (intType $new0))>) <>)
-    // (new (pred <(intType $new0)>) (and <(eq (intType $x2) (add (intType $x1) 1)) (eq (intType $x2) (intType $new0))>) <?p_1>)>)";
-
-    let expr = "(compose <
-    (new (pred <(intType $new0)>) (and <(eq (intType $x1) (0)) (eq (intType $x1) (intType $new0))>) <>) 
-    (new (pred <(intType $new0)>) (and <(eq (intType $x2) (intType $new0)) (eq (intType $x2) (add (intType $x3) (1)))>) <?p_1>)>)";
-
     // (compose <
-    // (new (pred <(intType $new0_0)>) (and <(eq (intType $x1_0) 0) (eq (intType $x1_0) (intType $new0_0))>) <>)
-    // (new (pred <(intType $new0_1)>) (and <(eq (intType $x2_1) (add (intType $x1_1) 1)) (eq (intType $x2_1) (intType $new0_1))>) <?p_1>)>)
+    // (new (pred <(intType $f115) (intType $f116)>) (and <(eq (intType $f115) (0))>) <(composeInit (q) (pred <(intType $f116)>) (false) <>)>)
+    // (new (pred <(intType $f115) (intType $f116)>) (and <(eq (intType $f115) (add (intType $f487) (1)))>) <(composeInit (p) (pred <(intType $f487)>) (false) <>) (composeInit (q) (pred <(intType $f116)>) (false) <>)>)>)
 
-    // let res = ematchQueryall(&runner.egraph, &Pattern::parse(&expr).unwrap());
+    // let expr = "(new (pred <(intType $new0) (intType $new1)>) (and <(eq (intType $a_0) 0) (eq (intType $a_0) (intType $new0)) (eq (intType $b_0) (intType $new1))>) <?q_0>)";
 
-    let appId = runner.egraph.mk_sem_identity_applied_id(Id(7));
-    let result = ematchQueryAllInEclass(
-        &Pattern::parse(&expr).unwrap(),
-        State::default(),
-        appId,
-        &runner.egraph,
-    );
-    let res = result.into_iter().map(final_subst).map(|x| (x, Id(7)));
+    // // (new (pred <(intType $f473) (intType $f474)>) (and <(eq (intType $f473) (0))>) <(composeInit (q) (pred <(intType $f474)>) (false) <>)>)
 
-    assert!(res.len() > 0);
+    // let res1 = ematchQueryAllInEclass(Id(85), &Pattern::parse(expr).unwrap(), &runner.egraph);
+    // println!("res1 {res1:?}");
+    // assert!(res1.len() > 0);
 
-    checkCHCExists("tests/chc/cases/synchronized_chc_out3.txt", &runner.egraph);
+    // let expr = "(compose <(new (pred <(intType $new0) (intType $new1)>) (and <(eq (intType $a_0) 0) (eq (intType $a_0) (intType $new0)) (eq (intType $b_0) (intType $new1))>) <?q_0>) (new (pred <(intType $new0) (intType $new1)>) (and <(eq (intType $a_1) (add (intType $x1_1) 1)) (eq (intType $a_1) (intType $new0)) (eq (intType $b_1) (intType $new1))>) <?p_1 ?q_1>)>)";
 
-    // let children = "<(compose <(new (pred <(intType $new0)>) (and <(eq (intType $x1) 0) (eq (intType $x1) (intType $new0))>) <>) (new (pred <(intType $new0)>) (and <(eq (intType $x2) (add (intType $x1) 1)) (eq (intType $x2) (intType $new0))>) <?p>)>) (compose <(new (pred <(intType $new0)>) (and <(eq (intType $x3) 0) (eq (intType $x3) (intType $new0))>) <>) (new (pred <(intType $new0)>) (and <(eq (intType $x4) (add (intType $x3) 2)) (eq (intType $x4) (intType $new0))>) <?q>)>) (compose <(new (pred <(intType $new0)>) (and <(eq (intType $x5) 0) (eq (intType $x5) (intType $new0))>) <>)>)>)>";
+    // let res = ematchQueryAllInEclass(Id(40), &Pattern::parse(expr).unwrap(), &runner.egraph);
+    // println!("res {res:?}");
+    // assert!(res.len() > 0);
+
+    checkCHCExists("tests/chc/cases/synchronized_chc_out1.txt", &runner.egraph);
 }

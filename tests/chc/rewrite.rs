@@ -577,6 +577,7 @@ fn unfoldSearch(
         // TODO: change this to get
         let compose1 = eg.getExactENodeInEGraph(&composeShape);
 
+        info!("doing unfold on compose {:?}", compose1.weak_shape().0);
         let compose1Children = match compose1 {
             CHC::Compose(compose1Children) => compose1Children,
             _ => panic!(),
@@ -599,6 +600,9 @@ fn unfoldSearch(
                 debug!("skip new1EClass {:?}", new1EClass);
                 continue;
             }
+
+            info!("using new1EClass {:?}", new1EClass);
+            info!("nweENodeShape {:?}", newENodeShape);
 
             let new1 = eg
                 .getExactENodeInEClass(&newENodeShape, &new1EClass.id)
@@ -637,6 +641,7 @@ fn unfoldApplyInternal(
     unfoldListCopy2: &Rc<RefCell<UnfoldList>>,
     constrRewriteListCopy: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
     createOrMerge: UnfoldOpType, //if true, will merge with information from composeRecipe, if false, will create
+    extraTag: &String,
     eg: &mut CHCEGraph,
 ) -> Vec<AppliedId> {
     let ComposeUnfoldRecipe {
@@ -714,7 +719,7 @@ fn unfoldApplyInternal(
             *eg.analysis_data_mut(unfoldedENodeId.id).varTypesMut() =
                 getVarTypesAfterShrinked(&unfoldedENodeId, &syntax1.slots(), eg);
 
-            let tag = if createOrMerge == UnfoldOpType::UnfoldMerge {
+            let mut tag = if createOrMerge == UnfoldOpType::UnfoldMerge {
                 format!(
                     "unfold_{compose2Id}_{new1UnfoldIdx}_in_{}_using_{new2EClass}",
                     new1EClass.id
@@ -722,6 +727,10 @@ fn unfoldApplyInternal(
             } else {
                 format!("define_unfold_{compose2Id}_{new1UnfoldIdx}_using_{new2EClass}")
             };
+
+            if extraTag != "" {
+                tag = format!("{}_{}", tag, extraTag);
+            }
 
             constrRewriteListCopy
                 .borrow_mut()
@@ -737,7 +746,7 @@ fn unfoldApplyInternal(
 
             createdNewENodes.push((unfoldedENodeId.clone(), unfoldedENode.clone()));
 
-            debug!("adding unfoldedENode {tag} {unfoldedENodeId:?}");
+            debug!("adding unfoldedENode {tag} {unfoldedENodeId:?} {unfoldedENode:?}");
             eg.analysis_data_mut(unfoldedENodeId.id)
                 .predNames
                 .insert(tag);
@@ -886,6 +895,7 @@ fn unfoldApply(
             unfoldListCopy2,
             constrRewriteListCopy,
             UnfoldOpType::UnfoldMerge,
+            &"".to_string(),
             eg,
         );
     }
@@ -927,6 +937,7 @@ fn unfold(
 pub fn expandEqRewrite(
     constrAppId: &AppliedId,
     constrENode: &CHC,
+    originalNewENodeAppId: &AppliedId,
     originalNewENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> CHC {
@@ -995,7 +1006,10 @@ pub fn expandEqRewrite(
     checkVarType!(&newConstraintAppId, eg);
     eg.analysis_data_mut(newConstraintAppId.id)
         .predNames
-        .insert("expandEqRewrite".to_owned());
+        .insert(format!(
+            "expandEqRewrite_{}_{}",
+            constrAppId.id, originalNewENodeAppId.id
+        ));
 
     eg.union_justified(
         constrAppId,
@@ -1012,6 +1026,7 @@ pub fn expandEqRewrite(
 pub fn constructorEqRewrite(
     constrAppId: &AppliedId,
     constrENode: &CHC,
+    originalNewENodeAppId: &AppliedId,
     originalNewENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> CHC {
@@ -1091,7 +1106,10 @@ pub fn constructorEqRewrite(
 
     eg.analysis_data_mut(newConstraintAppId.id)
         .predNames
-        .insert("constructorEqRewrite".to_owned());
+        .insert(format!(
+            "constructorEqRewrite_fromConstr_{}_fromNewENode_{}",
+            constrAppId.id, originalNewENodeAppId.id
+        ));
 
     checkVarType!(&newConstraintAppId, eg);
     eg.union_justified(
@@ -1367,7 +1385,10 @@ pub fn dedupFromEqRewrite(
         sortNewENode2(syntax, &updatedConstrChildren, &updatedNewChildren, eg);
     eg.analysis_data_mut(newConstraintAppId.id)
         .predNames
-        .insert("dedupFromEqRewrite".to_owned());
+        .insert(format!(
+            "dedupFromEqRewrite_fromConstr_{}_fromNewENode_{}",
+            constrAppId.id, newENodeAppId.id
+        ));
 
     let updatedNewAppId = eg.add(updatedNew.clone());
 
@@ -1402,10 +1423,12 @@ fn constraintRewrite(
 
             // expand eq rewrite, X = Y, X = Z -> X = Y, X = Z, Y = Z
             // expand eq rewrite, X = node(a, l, r), Y = node(a, l, r) -> X = Y, X = node(a, l, r), Y = node(a, l, r)
-            let constrENode = expandEqRewrite(constrAppId, constrENode, newENode, eg);
+            let constrENode =
+                expandEqRewrite(constrAppId, constrENode, newENodeAppId, newENode, eg);
 
             // constructor eq rewrite, node(x, l, r) = node(x', l', r') -> x = x', l = l', r = r'
-            let constrENode = constructorEqRewrite(constrAppId, &constrENode, newENode, eg);
+            let constrENode =
+                constructorEqRewrite(constrAppId, &constrENode, newENodeAppId, newENode, eg);
 
             // deduplicate constraint a = a2, a = a1, l = l1, r = r1, t = node(a, l, r), t = node(a1, l1, r1)
             // -> a = a, l = l, r = r, t = node(a, l, r), t = node(a, l, r)
@@ -1557,6 +1580,122 @@ pub fn sortNewENode2(
     )
 }
 
+struct DefineInfo {
+    syntax: Vec<Slot>,
+    newBody: Vec<AppliedId>,
+    positions: Vec<usize>,
+    tag: String,
+}
+
+fn define(
+    origNewENode: &CHC,
+    mergeVarTypes: &BTreeMap<Slot, VarType>,
+    options: &RewriteOption,
+    eclassId: Id,
+    eg: &CHCEGraph,
+    syntaxAndNewBody: &mut Vec<DefineInfo>,
+) {
+    // ADT
+    let CHC::New(origSyntaxAppId, origConstrAppId, childAppIds) = &origNewENode else {
+        panic!();
+    };
+
+    if options.doADTDefine {
+        let mut varToChildIdx: BTreeMap<Slot, Vec<usize>> = BTreeMap::default();
+        for idx in 0..childAppIds.len() {
+            let appId = childAppIds[idx].getAppliedId();
+            for s in appId.slots() {
+                varToChildIdx.entry(s).or_insert(vec![]).push(idx);
+            }
+        }
+
+        let mut blockUnionfind: QuickUnionUf<UnionBySize> =
+            QuickUnionUf::<UnionBySize>::new(childAppIds.len());
+        let mut hasNonBasicVar = vec![false; childAppIds.len()];
+
+        for (var, childrenIndx) in &varToChildIdx {
+            if isNonBasicVar(&mergeVarTypes[var]) {
+                let leader = childrenIndx.first().unwrap();
+                for next in childrenIndx {
+                    blockUnionfind.union(*leader, *next);
+                    hasNonBasicVar[*next] = true;
+                }
+            }
+        }
+
+        // parition into groups, only get the one that contains non-basic var
+        let mut groupsByLeader = BTreeMap::<usize, Vec<usize>>::default();
+        for i in 0..blockUnionfind.size() {
+            if hasNonBasicVar[i] {
+                let leader = blockUnionfind.find(i);
+                groupsByLeader.entry(leader).or_insert(vec![]).push(i);
+            }
+        }
+
+        for (_, mut positions) in groupsByLeader {
+            positions.sort();
+
+            let mut basicVars: BTreeSet<Slot> = BTreeSet::default();
+            for i in &positions {
+                let appId = childAppIds[*i].getAppliedId();
+                for var in appId.slots() {
+                    if !isNonBasicVar(&mergeVarTypes[&var]) {
+                        basicVars.insert(var);
+                    }
+                }
+            }
+            let basicVars: Vec<_> = basicVars.into_iter().collect();
+
+            // this can happen if a block does not have any basic var
+            if basicVars.len() == 0 {
+                warn!("basicVars(new define head) is empty");
+                // warn!("origNewENode {:?}", origNewENode);
+                // warn!("positions {:?}", positions);
+            }
+
+            let newBody = positions
+                .iter()
+                .map(|idx| childAppIds[*idx].getAppliedId())
+                .collect::<Vec<_>>();
+
+            syntaxAndNewBody.push(DefineInfo {
+                syntax: basicVars,
+                newBody,
+                positions,
+                tag: format!("ADTon{eclassId}"),
+            });
+        }
+    }
+
+    // pairing
+    // only support two predicates now
+    if options.doPairingDefine {
+        for (i, childAppId1) in childAppIds.iter().enumerate() {
+            let childAppId1 = childAppId1.getAppliedId();
+            for (j, childAppId2) in childAppIds[i + 1..].iter().enumerate() {
+                let childAppId2 = childAppId2.getAppliedId();
+                let group = vec![i, j];
+                let mut syntax = vec![];
+                for var in childAppId1.slots() {
+                    syntax.push(var);
+                }
+                for var in childAppId2.slots() {
+                    syntax.push(var);
+                }
+                syntaxAndNewBody.push(DefineInfo {
+                    syntax,
+                    newBody: vec![childAppId1.clone(), childAppId2.clone()],
+                    positions: group,
+                    tag: format!(
+                        "pairing_{}_with_{}_from_{}",
+                        childAppId1.id, childAppId2.id, eclassId
+                    ),
+                });
+            }
+        }
+    }
+}
+
 fn defineUnfoldFold(
     unfoldList: &Rc<RefCell<UnfoldList>>,
     processedDefinedList: &Rc<RefCell<BTreeSet<CHC>>>,
@@ -1591,104 +1730,33 @@ fn defineUnfoldFold(
 
                 checkNewENode!(origNewENode, eg);
 
-                // TODO0: try change to rootData instead of mergeVarTypes
-                // aggregate information
-                let mut varToChildIdx: BTreeMap<Slot, Vec<usize>> = BTreeMap::default();
                 let mut mergeVarTypes: BTreeMap<Slot, VarType> =
                     getAllVarTypesOfENode(&origNewENode, eg);
-                {
-                    for idx in 0..childAppIds.len() {
-                        let appId = childAppIds[idx].getAppliedId();
-                        for s in appId.slots() {
-                            varToChildIdx.entry(s).or_insert(vec![]).push(idx);
-                        }
-                    }
-                }
+
+                // TODO0: try change to rootData instead of mergeVarTypes
+                // aggregate information
 
                 // divide body into blocks
-                let mut blockUnionfind: QuickUnionUf<UnionBySize> =
-                    QuickUnionUf::<UnionBySize>::new(childAppIds.len());
-                let mut hasNonBasicVar = vec![false; childAppIds.len()];
-                let mut syntaxAndNewBody: Vec<(Vec<Slot>, Vec<AppliedId>, Vec<usize>)> = vec![];
-                {
-                    // ADT
-                    if options.doADTDefine {
-                        for (var, childrenIndx) in &varToChildIdx {
-                            if isNonBasicVar(&mergeVarTypes[var]) {
-                                let leader = childrenIndx.first().unwrap();
-                                for next in childrenIndx {
-                                    blockUnionfind.union(*leader, *next);
-                                    hasNonBasicVar[*next] = true;
-                                }
-                            }
-                        }
-
-                        // parition into groups, only get the one that contains non-basic var
-                        let mut groupsByLeader = BTreeMap::<usize, Vec<usize>>::default();
-                        for i in 0..blockUnionfind.size() {
-                            if hasNonBasicVar[i] {
-                                let leader = blockUnionfind.find(i);
-                                groupsByLeader.entry(leader).or_insert(vec![]).push(i);
-                            }
-                        }
-
-                        for (_, mut positions) in groupsByLeader {
-                            positions.sort();
-
-                            let mut basicVars: BTreeSet<Slot> = BTreeSet::default();
-                            for i in &positions {
-                                let appId = childAppIds[*i].getAppliedId();
-                                for var in appId.slots() {
-                                    if !isNonBasicVar(&mergeVarTypes[&var]) {
-                                        basicVars.insert(var);
-                                    }
-                                }
-                            }
-                            let basicVars: Vec<_> = basicVars.into_iter().collect();
-
-                            // this can happen if a block does not have any basic var
-                            if basicVars.len() == 0 {
-                                warn!("basicVars(new define head) is empty");
-                                // warn!("origNewENode {:?}", origNewENode);
-                                // warn!("positions {:?}", positions);
-                            }
-
-                            let newBody = positions
-                                .iter()
-                                .map(|idx| childAppIds[*idx].getAppliedId())
-                                .collect::<Vec<_>>();
-
-                            syntaxAndNewBody.push((basicVars, newBody, positions));
-                        }
-                    }
-
-                    // pairing
-                    // only support two predicates now
-                    if options.doPairingDefine {
-                        for (i, childAppId1) in childAppIds.iter().enumerate() {
-                            for (j, childAppId2) in childAppIds[i + 1..].iter().enumerate() {
-                                let group = vec![i, j];
-                                let mut syntax = vec![];
-                                for var in childAppId1.getAppliedId().slots() {
-                                    syntax.push(var);
-                                }
-                                for var in childAppId2.getAppliedId().slots() {
-                                    syntax.push(var);
-                                }
-                                syntaxAndNewBody.push((
-                                    syntax,
-                                    vec![childAppId1.getAppliedId(), childAppId2.getAppliedId()],
-                                    group,
-                                ));
-                            }
-                        }
-                    }
-                }
+                let mut syntaxAndNewBody: Vec<DefineInfo> = vec![];
+                define(
+                    &origNewENode,
+                    &mergeVarTypes,
+                    &options,
+                    eclassId,
+                    eg,
+                    &mut syntaxAndNewBody,
+                );
 
                 // for each group/sharing block, define new chc
                 // syntax can be in any order
                 // newBody can be in any order
-                for (syntax, newBody, positions) in syntaxAndNewBody {
+                for DefineInfo {
+                    syntax,
+                    newBody,
+                    positions,
+                    tag,
+                } in syntaxAndNewBody
+                {
                     let sortedNewBody: Vec<AppliedIdOrStar> = sortAppId(&newBody, true)
                         .into_iter()
                         .map(|x| AppliedIdOrStar::AppliedId(x))
@@ -1739,35 +1807,43 @@ fn defineUnfoldFold(
                             );
 
                             // TODO: it should be more than one
-                            // let mut newComposeAppIds = vec![];
-                            // for composeRecipe in composeUnfoldReceipt.iter() {
-                            //     newComposeAppIds.extend(unfoldApplyInternal(
-                            //         composeRecipe,
-                            //         &unfoldListClone,
-                            //         &Rc::clone(&constrRewriteListCopy),
-                            //         UnfoldOpType::UnfoldCreateOnly,
-                            //         eg,
-                            //     ));
-                            // }
-                            if composeUnfoldReceipt.len() > 1 {
-                                // printENode(&definedENode, eg);
-                                // println!("composeUnfoldReceipt {:#?}", composeUnfoldReceipt);
-                                // assert!(composeUnfoldReceipt.len() == 1);
-                                warn!("composeUnfoldReceipt len > 1 but also use the first one");
-                                // warn!("composeUnfoldReceipt {:?}", composeUnfoldReceipt);
+                            let mut newComposeAppIds = vec![];
+                            {
+                                for composeRecipe in composeUnfoldReceipt.iter() {
+                                    newComposeAppIds.extend(unfoldApplyInternal(
+                                        composeRecipe,
+                                        &unfoldListClone,
+                                        &Rc::clone(&constrRewriteListCopy),
+                                        UnfoldOpType::UnfoldCreateOnly,
+                                        &tag,
+                                        eg,
+                                    ));
+                                }
                             }
-                            let newComposeAppIds = unfoldApplyInternal(
-                                &composeUnfoldReceipt[0],
-                                &unfoldListClone,
-                                &Rc::clone(&constrRewriteListCopy),
-                                UnfoldOpType::UnfoldCreateOnly,
-                                eg,
-                            );
+                            {
 
-                            // if (newComposeAppIds.is_empty()) {
-                            //     println!("unfold result is empty");
-                            //     println!("composeRecipes {:?}");
-                            // }
+                                // if composeUnfoldReceipt.len() > 1 {
+                                //     // printENode(&definedENode, eg);
+                                //     // println!("composeUnfoldReceipt {:#?}", composeUnfoldReceipt);
+                                //     // assert!(composeUnfoldReceipt.len() == 1);
+                                //     warn!("composeUnfoldReceipt len > 1 but also use the first one");
+                                //     // warn!("composeUnfoldReceipt {:?}", composeUnfoldReceipt);
+                                // }
+                                // let newComposeAppIds = unfoldApplyInternal(
+                                //     &composeUnfoldReceipt[0],
+                                //     &unfoldListClone,
+                                //     &Rc::clone(&constrRewriteListCopy),
+                                //     UnfoldOpType::UnfoldCreateOnly,
+                                //     &tag,
+                                //     eg,
+                                // );
+
+                                // if (newComposeAppIds.is_empty()) {
+                                //     println!("unfold result is empty");
+                                //     println!("composeRecipes {:?}");
+                                // }
+                            }
+
                             let first = newComposeAppIds.first().unwrap();
                             for newComposeAppId in newComposeAppIds[1..].iter() {
                                 eg.union_justified(
@@ -1788,7 +1864,7 @@ fn defineUnfoldFold(
 
                     eg.analysis_data_mut(defineAppId.id)
                         .predNames
-                        .insert(format!("define_from_{}", origNewENodeAppId.id));
+                        .insert(format!("define_from_{}_{}", origNewENodeAppId.id, tag));
 
                     // vv folding vv
                     if options.doFolding {

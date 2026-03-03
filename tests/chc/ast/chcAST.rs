@@ -527,25 +527,35 @@ impl std::fmt::Display for PredApp {
 
 impl PredApp {
     // change var/term into new var in the form of "new$i"
-    // return the new constr representing "new$i = var"
-    pub fn renameAll(&mut self, count: &mut usize) -> Vec<Constr> {
+    // if it's a term return the new constr representing "(eq new$i var)"
+    // if it's a var remember it in subst, for it to be substitute later
+    pub fn renameHead(&mut self, count: &mut usize) -> (Vec<Constr>, BTreeMap<CHCVar, CHCVar>) {
+        let mut subst = BTreeMap::new();
         let mut newConstr = Vec::new();
         let mut new_args: Vec<Term> = self
             .args
             .iter()
             .map(|a| {
-                newConstr.push(Constr {
-                    op: ConstrOP::Eq,
-                    args: vec![a.clone(), Term::Var(CHCVar::Str(format!("new{}", count)))],
-                });
-                let ret = Term::Var(CHCVar::Str(format!("new{}", count)));
-                *count += 1;
-                ret
+                if let Term::Var(aVar) = a {
+                    let newVar = CHCVar::Str(format!("new{}", count));
+                    let ret = Term::Var(newVar.clone());
+                    subst.insert(aVar.clone(), newVar);
+                    *count += 1;
+                    ret
+                } else {
+                    newConstr.push(Constr {
+                        op: ConstrOP::Eq,
+                        args: vec![a.clone(), Term::Var(CHCVar::Str(format!("new{}", count)))],
+                    });
+                    let ret = Term::Var(CHCVar::Str(format!("new{}", count)));
+                    *count += 1;
+                    ret
+                }
             })
             .collect();
 
         self.args = new_args.into();
-        newConstr
+        (newConstr, subst)
     }
 
     // change term only into new var in the form of "new$i"
@@ -770,6 +780,10 @@ impl CHCRule {
 
     pub fn getAllVars(&self, set: &mut BTreeSet<CHCVar>) {
         self.getHeadVars(set);
+        self.getBodyVars(set);
+    }
+
+    pub fn getBodyVars(&self, set: &mut BTreeSet<CHCVar>) {
         self.getConstrVars(set);
         self.getPredAppVars(set);
     }
@@ -786,8 +800,10 @@ impl CHCRule {
         }
     }
 
-    fn substituteRaw(&mut self, subst: &BTreeMap<CHCVar, CHCVar>) {
-        self.head.substitute(subst);
+    fn substituteRaw(&mut self, subst: &BTreeMap<CHCVar, CHCVar>, bodyOnly: bool) {
+        if !bodyOnly {
+            self.head.substitute(subst);
+        }
         for c in self.constr.iter_mut() {
             c.substitute(subst);
         }
@@ -797,19 +813,25 @@ impl CHCRule {
     }
 
     // TODO: this is not tested
-    pub fn substitute(&mut self, subst: &BTreeMap<CHCVar, CHCVar>) {
+    pub fn substitute(&mut self, subst: &BTreeMap<CHCVar, CHCVar>, bodyOnly: bool) {
         let mut mapTo = BTreeSet::new();
         for (from, to) in subst.iter() {
             mapTo.insert(to.clone());
         }
 
+        // find max i such that there's var new$i
         let mut allVars = BTreeSet::new();
-        self.getAllVars(&mut allVars);
+        self.getBodyVars(&mut allVars);
+        if !bodyOnly {
+            self.getHeadVars(&mut allVars);
+        }
         let mut maxNew = 0;
         while allVars.contains(&CHCVar::Str(format!("new{}", maxNew))) {
             maxNew += 1;
         }
 
+        // if there's a var that we wants to substitute to it
+        // rename that var to something else first
         let mut rename = BTreeMap::new();
         for (from, to) in subst.iter() {
             if allVars.contains(to) {
@@ -820,9 +842,9 @@ impl CHCRule {
                 maxNew += 1;
             }
         }
-        self.substituteRaw(&rename);
+        self.substituteRaw(&rename, bodyOnly);
 
-        self.substituteRaw(subst);
+        self.substituteRaw(subst, bodyOnly);
     }
 }
 

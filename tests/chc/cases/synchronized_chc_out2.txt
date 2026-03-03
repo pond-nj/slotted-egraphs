@@ -7,6 +7,7 @@ q(x4) :- q(x3), x4 = x3 + 2.
 #t r(int) false <>.
 r(x5) :- x5 = 0.
 #t pq(int, int) false <>.
-pq(a, b):- p(a), q(b).
+pq(a, b):- a = 0, q(b).
+pq(a, b):- a = x1 + 1, p(x1), q(b).
 #t incorrect() false <>.
 incorrect :- pq(x7, x8), r(x9), x7 > x8, x8 > x9.

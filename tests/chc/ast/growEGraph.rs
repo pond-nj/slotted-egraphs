@@ -33,8 +33,12 @@ pub fn prepareRules(fname: &str) -> (CHCAst, BTreeMap<String, Vec<CHCRule>>) {
     let mut chcs = parse(fname);
 
     for rule in chcs.rules.iter_mut() {
+        debug!("rule before {rule:?}");
         let mut count = 0;
-        let newConstr1 = rule.head.renameAll(&mut count);
+        let (newConstr1, subst) = rule.head.renameHead(&mut count);
+        debug!("subst {subst:?}");
+        rule.substitute(&subst, true);
+
         let newConstr2: Vec<Constr> = rule
             .pred_apps
             .iter_mut()
@@ -43,6 +47,7 @@ pub fn prepareRules(fname: &str) -> (CHCAst, BTreeMap<String, Vec<CHCRule>>) {
 
         rule.constr.extend(newConstr1);
         rule.constr.extend(newConstr2);
+        debug!("rule after {rule:?}");
     }
 
     let mut predNames: BTreeSet<String> = chcs
@@ -105,6 +110,7 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
 
             info!("original {}", original);
             let typeMap = getConstrTypes(&rule, props, &chcs);
+            debug!("rule {rule:?}");
             debug!("typeMap {:?}", typeMap);
 
             let expr = rule.toSExpr(&chcs.preds, &typeMap);
@@ -235,7 +241,7 @@ pub fn getPredExpr(
             let newVar = CHCVar::Str(format!("{}_{i}", v));
             renameMap.insert(v.clone(), newVar);
         }
-        rule.substitute(&renameMap);
+        rule.substitute(&renameMap, false);
 
         let CHCRule {
             head,
@@ -245,8 +251,6 @@ pub fn getPredExpr(
         } = &rule;
 
         let mut typeMap = getConstrTypes(&rule, props, chcs);
-        println!("rule {rule:?}");
-        println!("typeMap {:?}", typeMap);
         let expr = format!(
             "(new {} {} {})",
             rule.head.toHeadSExpr(&typeMap),
