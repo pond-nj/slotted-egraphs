@@ -348,11 +348,9 @@ pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
                     possibilities.insert(subst.get(var).unwrap().id);
                 }
             }
-            updatePredToEclassId(&predName, &possibilities);
+            updatePredToEclassId(&bodyPredName, &possibilities);
         }
     }
-
-    info!("possible eclass {:?}", predToEclassId);
 
     for (predName, possibilities) in predToEclassId {
         assert!(
@@ -360,6 +358,8 @@ pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
             "predName {} has no possible eclass",
             predName
         );
+
+        info!("predName {predName}, end possibilities {possibilities:?}");
     }
     info!("chc {} exists", fname);
 }

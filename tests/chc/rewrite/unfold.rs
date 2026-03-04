@@ -32,6 +32,7 @@ pub struct ComposeUnfoldRecipe {
     compose2AppId: AppliedId,
     new1ReplaceIdx: usize,
     new1AppId: AppliedId,
+    composeUnfoldRecipeTag: String,
 }
 
 pub struct UnfoldOption {
@@ -87,7 +88,7 @@ pub enum UnfoldOpType {
 }
 
 fn addToUnfoldList(unfoldList: &Rc<RefCell<UnfoldList>>, toBeUnfolded: UnfoldListElement) {
-    debug!("pusing to unfoldList {toBeUnfolded:#?}");
+    info!("pushing to unfoldList {:?}", toBeUnfolded.getShape().0);
 
     let CHC::New(_, _, new1Children) = &toBeUnfolded.targetNew1ENodeShape else {
         panic!();
@@ -104,6 +105,7 @@ fn addToUnfoldList(unfoldList: &Rc<RefCell<UnfoldList>>, toBeUnfolded: UnfoldLis
 
 // note: i1, compose1Children, composeAppId, new1EClass can be null if called from define
 pub fn prepareUnfold(
+    targetCompose1Shape: Option<&CHC>,
     compose1ReplaceIdx: usize,
     compose1Children: &OrderVec<AppliedId>,
     compose1AppId: &AppliedId,
@@ -202,7 +204,13 @@ eclass {}: {:?}",
                 compose2AppId: compose2AppId.clone(),
                 new1ReplaceIdx,
                 new1AppId: new1AppId.clone(),
+                composeUnfoldRecipeTag: format!(
+                    "unfoldRule_{}_under_{:?}",
+                    new1AppId.id, targetCompose1Shape
+                ),
             };
+
+            info!("pushing to composeUnfoldRecipe {x:?}");
 
             composeUnfoldRecipe.push(x);
         }
@@ -232,7 +240,10 @@ pub fn unfoldSearch(
         let composeAppId = eg.mk_identity_applied_id(composeAppId.id);
         // TODO: change this to get
         let compose1ENode = eg.getExactENodeInEGraph(&targetCompose1Shape);
-        info!("doing unfold on compose {:?}", compose1ENode.weak_shape().0);
+        info!(
+            "searching unfold on compose {:?}",
+            compose1ENode.weak_shape().0
+        );
 
         let CHC::Compose(compose1Children) = compose1ENode else {
             panic!();
@@ -244,41 +255,58 @@ pub fn unfoldSearch(
             .collect();
         let composeUnfoldRecipeLenBefore = composeUnfoldRecipe.len();
 
-        for (compose1ReplaceIdx, new1AppId) in compose1Children.iter().enumerate() {
-            if new1AppId.id != eg.find_applied_id(&targetNew1AppId).id {
-                debug!("skip new1AppId {:?}", new1AppId);
-                continue;
-            }
-
-            info!("using new1AppId {:?}", new1AppId);
-            info!("newENodeShape {:?}", targetNew1ENodeShape);
-
-            let new1ENode = eg
-                .getExactENodeInEClass(&targetNew1ENodeShape, &new1AppId.id)
-                .apply_slotmap_partial(&new1AppId.m);
-
-            checkNewENode!(new1ENode, eg);
-
-            prepareUnfold(
-                compose1ReplaceIdx,
-                &compose1Children,
-                &composeAppId,
-                new1AppId,
-                &new1ENode,
-                &mut composeUnfoldRecipe,
-                eg,
-            );
+        if CHECKS {
+            let mut compose1ChildrenIds: Vec<Id> = compose1Children
+                .iter()
+                .map(|x| eg.find_applied_id(x).id)
+                .collect::<Vec<_>>();
+            let oldLen = compose1ChildrenIds.len();
+            compose1ChildrenIds.sort();
+            compose1ChildrenIds.dedup();
+            assert_eq!(compose1ChildrenIds.len(), oldLen);
         }
+
+        // for (compose1ReplaceIdx, new1AppId) in compose1Children.iter().enumerate() {
+        let compose1ReplaceIdx = compose1Children
+            .iter()
+            .position(|x| x.id == eg.find_applied_id(&targetNew1AppId).id)
+            .unwrap();
+        // if new1AppId.id != eg.find_applied_id(&targetNew1AppId).id {
+        //     error!("skip new1AppId {:?}", new1AppId);
+        //     continue;
+        // }
+        let new1AppId = &compose1Children[compose1ReplaceIdx];
+
+        info!("using new1AppId {:?}", new1AppId);
+
+        let new1ENode = eg
+            .getExactENodeInEClass(&targetNew1ENodeShape, &new1AppId.id)
+            .apply_slotmap_partial(&new1AppId.m);
+
+        checkNewENode!(new1ENode, eg);
+
+        prepareUnfold(
+            Some(&targetCompose1Shape),
+            compose1ReplaceIdx,
+            &compose1Children,
+            &composeAppId,
+            new1AppId,
+            &new1ENode,
+            &mut composeUnfoldRecipe,
+            eg,
+        );
+        // }
 
         if composeUnfoldRecipe.len() == composeUnfoldRecipeLenBefore {
             panic!("skip this recipe");
         }
     }
 
+    info!("unfoldSearch return, composeUnfoldRecipe {composeUnfoldRecipe:?}");
     composeUnfoldRecipe
 }
 
-fn addUnfoldedToEGraph(
+fn addUnfoldedNewENode(
     unfoldResultComb: Vec<UnfoldResult>,
     unfoldOption: &UnfoldOption,
     constrRewriteListCopy: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
@@ -299,7 +327,10 @@ fn addUnfoldedToEGraph(
         compose2AppId,
         new1ReplaceIdx,
         new1AppId,
+        composeUnfoldRecipeTag,
     } = composeUnfoldRecipe;
+
+    info!("addUnfoldedNewENode {composeUnfoldRecipe:?}");
 
     for UnfoldResult {
         syntax1,
@@ -334,7 +365,12 @@ fn addUnfoldedToEGraph(
         checkNewENode!(unfoldedENode, eg);
 
         let unfoldedENodeId = eg.add(unfoldedENode.clone());
+        info!(
+            "call shrink slots with {unfoldedENodeId:?} {:?}",
+            syntax1.slots()
+        );
         eg.shrink_slots(&unfoldedENodeId, &syntax1.slots(), ());
+        let unfoldedENodeId = eg.find_applied_id(&unfoldedENodeId);
         *eg.analysis_data_mut(unfoldedENodeId.id).varTypesMut() =
             getVarTypesAfterShrinked(&unfoldedENodeId, &syntax1.slots(), eg);
 
@@ -367,6 +403,7 @@ fn addUnfoldedToEGraph(
             .predNames
             .insert(tag);
 
+        info!("createdNewENodes {unfoldedENodeId:?} {unfoldedENode:?}");
         createdNewENodes.push((unfoldedENodeId.clone(), unfoldedENode.clone()));
     }
 }
@@ -386,9 +423,10 @@ fn createUnfoldedCompose(
         compose2AppId,
         new1ReplaceIdx,
         new1AppId,
+        composeUnfoldRecipeTag,
     } = composeUnfoldRecipe;
 
-    match createOrMerge {
+    let ret = match createOrMerge {
         // merge with the existsing before
         UnfoldOpType::UnfoldMerge => {
             let mut unfoldedComposeChildren = compose1Children.clone();
@@ -439,7 +477,11 @@ fn createUnfoldedCompose(
 
             (composeAppId, composeENode)
         }
-    }
+    };
+
+    info!("createUnfoldedCompose return {ret:?}");
+
+    ret
 }
 
 pub fn unfoldApplyInternal(
@@ -462,6 +504,7 @@ pub fn unfoldApplyInternal(
         compose2AppId,
         new1ReplaceIdx,
         new1AppId,
+        composeUnfoldRecipeTag,
     } = composeUnfoldRecipe;
 
     trace!(
@@ -479,6 +522,8 @@ pub fn unfoldApplyInternal(
         assert_eq!(new1AppId, &AppliedId::null());
     }
 
+    info!("composeUnfoldRecipe {composeUnfoldRecipe:?}");
+
     let unfoldResultCombs = combination(&unfoldResult);
     assert!(
         unfoldResultCombs.len() > 0,
@@ -489,13 +534,15 @@ unfoldResult {unfoldResult:#?}"
     let mut createdComposeAppIds = vec![];
     for unfoldResultComb in unfoldResultCombs {
         let mut createdNewENodes = vec![];
-        addUnfoldedToEGraph(
+        addUnfoldedNewENode(
             unfoldResultComb,
             unfoldOption,
             constrRewriteList,
             eg,
             &mut createdNewENodes,
         );
+
+        info!("createdNewENodes {createdNewENodes:?}");
 
         let (composeAppId, composeShape) = createUnfoldedCompose(
             composeUnfoldRecipe,
@@ -506,16 +553,40 @@ unfoldResult {unfoldResult:#?}"
         );
 
         // TODO: we only continue to unfold on newly created ones, is this correct?
-        for (i, (enodeId, enode)) in createdNewENodes.into_iter().enumerate() {
-            addToUnfoldList(
-                &unfoldList,
-                UnfoldListElement {
-                    targetCompose1AppId: composeAppId.clone(),
-                    targetCompose1Shape: composeShape.clone(),
-                    targetNew1AppId: enodeId,
-                    targetNew1ENodeShape: enode,
-                },
-            );
+        // for (i, (enodeId, enode)) in createdNewENodes.into_iter().enumerate() {
+        //     addToUnfoldList(
+        //         &unfoldList,
+        //         UnfoldListElement {
+        //             targetCompose1AppId: composeAppId.clone(),
+        //             targetCompose1Shape: composeShape.clone(),
+        //             targetNew1AppId: enodeId,
+        //             targetNew1ENodeShape: enode,
+        //         },
+        //     );
+        // }
+
+        let CHC::Compose(composeChildren) = &composeShape else {
+            panic!();
+        };
+
+        info!(
+            "adding to unfoldList from {:?}",
+            composeShape.weak_shape().0
+        );
+        for new1AppId in composeChildren.iter() {
+            let new1AppId = eg.find_applied_id(&new1AppId.getAppliedId());
+            let new1ENodes = eg.enodes_applied(&new1AppId);
+            for new1ENode in new1ENodes {
+                addToUnfoldList(
+                    &unfoldList,
+                    UnfoldListElement {
+                        targetCompose1AppId: composeAppId.clone(),
+                        targetCompose1Shape: composeShape.clone(),
+                        targetNew1AppId: new1AppId.clone(),
+                        targetNew1ENodeShape: new1ENode,
+                    },
+                );
+            }
         }
     }
 
@@ -553,12 +624,16 @@ pub fn unfold(
     constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
 ) -> CHCRewrite {
     let unfoldListCopy = Rc::clone(unfoldList);
+
     let constrRewriteListCopy = Rc::clone(constrRewriteList);
+
+    // unfoldList is taken by searcher
     let searcher = Box::new(move |eg: &CHCEGraph| -> Vec<ComposeUnfoldRecipe> {
         unfoldSearch(&unfoldListCopy, eg)
     });
 
     let unfoldListCopy2 = Rc::clone(unfoldList);
+    // unfoldList is cleared before applier, to add new element to it
     let applier = Box::new(
         move |composeRecipes: Vec<ComposeUnfoldRecipe>, eg: &mut CHCEGraph| {
             unfoldApply(&unfoldListCopy2, composeRecipes, &constrRewriteListCopy, eg);
