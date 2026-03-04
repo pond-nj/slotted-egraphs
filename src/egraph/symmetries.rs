@@ -1,7 +1,7 @@
 use crate::*;
 use log::{debug, info, trace, warn};
 use rustsat::encodings::CollectClauses;
-use rustsat::instances::{BasicVarManager, SatInstance};
+use rustsat::instances::{BasicVarManager, Cnf, SatInstance};
 use rustsat::solvers::{Solve, SolverResult};
 use rustsat::types::{Clause, Lit, TernaryVal};
 use rustsat_cadical::CaDiCaL;
@@ -311,7 +311,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             return self.orig_determine_self_symmetries(src_id);
         }
 
-        let mut instance: SatInstance<BasicVarManager> = SatInstance::new();
+        let mut instance: Cnf = Cnf::new();
 
         trace!("pc1 node {:?}", pc1.node.elem);
         let appIds = pc1.node.elem.applied_id_occurrences();
@@ -409,7 +409,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let enodeAppIdMapInverse = pc1.pai.elem.m.inverse();
         let eclassId = pc1.target_id();
         let mut solver = Minisat::default();
-        solver.add_cnf(instance.into_cnf().0).unwrap();
+        solver.add_cnf(instance).unwrap();
         let mut allPerms = vec![];
         while solver.solve().unwrap() == SolverResult::Sat {
             let mut perm = SlotMap::new();

@@ -21,16 +21,16 @@ pub struct FunctionalInfo {
 pub struct CHCData {
     pub predNames: HashSet<String>,
     // pub varTypes: BTreeMap<Slot, VarType>,
-    varTypes: Vec<VarType>,
+    varTypes: BTreeMap<Slot, VarType>,
     pub functionalInfo: FunctionalInfo,
 }
 
 impl CHCData {
-    pub fn varTypes(&self) -> &Vec<VarType> {
+    pub fn varTypes(&self) -> &BTreeMap<Slot, VarType> {
         &self.varTypes
     }
 
-    pub fn varTypesMut(&mut self) -> &mut Vec<VarType> {
+    pub fn varTypesMut(&mut self) -> &mut BTreeMap<Slot, VarType> {
         &mut self.varTypes
     }
 }
@@ -84,9 +84,9 @@ pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &Vec<Slot>) -> Vec<V
     trace!("getInterfaceVarType {sh:?}");
     trace!("getInterfaceVarType {slots:?}");
     for app in &appIds {
-        for (i, (_, to)) in app.m.iter().enumerate() {
+        for (i, (from, to)) in app.m.iter().enumerate() {
             let childEclassData = eg.analysis_data(app.id);
-            let childSlotType = childEclassData.varTypes[i];
+            let childSlotType = childEclassData.varTypes[&from];
             varTypes
                 .entry(to)
                 .and_modify(|vt: &mut VarType| {
@@ -98,6 +98,7 @@ pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &Vec<Slot>) -> Vec<V
                             eg.eclass(app.id).unwrap()
                         );
                         error!("sh {sh:?}");
+                        error!("mismatch of type of slot {to:?}");
 
                         assert_eq!(*vt, childSlotType);
                     }
@@ -131,9 +132,9 @@ pub fn getAllVarTypesOfENode(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType
     }
 
     for app in &appIds {
-        for (i, (_from, to)) in app.m.iter().enumerate() {
+        for (i, (from, to)) in app.m.iter().enumerate() {
             let childEclassData = eg.analysis_data(app.id);
-            let childSlotType = childEclassData.varTypes[i];
+            let childSlotType = childEclassData.varTypes[&from];
 
             varTypes
                 .entry(to)
@@ -151,9 +152,9 @@ pub fn getAllVarTypesOfENode(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType
                         for app1 in &appIds {
                             error!("app {app:?}");
                             let childEclassData = eg.analysis_data(app1.id);
-                            for (i, (_from, to)) in app1.m.iter().enumerate() {
-                                let childSlotType = childEclassData.varTypes[i];
-                                error!("from {_from:?} -> to {to:?}");
+                            for (i, (from, to)) in app1.m.iter().enumerate() {
+                                let childSlotType = childEclassData.varTypes[&from];
+                                error!("from {from:?} -> to {to:?}");
                                 error!("childSlotType {childSlotType:?}");
                             }
                         }
@@ -173,9 +174,9 @@ pub fn getAllVarTypesInEClass(id: Id, eg: &CHCEGraph) -> BTreeMap<Slot, VarType>
     for (sh, _) in eg.eclass(id).unwrap().nodes.iter() {
         let appIds = sh.applied_id_occurrences();
         for app in &appIds {
-            for (i, (_, to)) in app.m.iter().enumerate() {
+            for (i, (from, to)) in app.m.iter().enumerate() {
                 let childEclassData = eg.analysis_data(app.id);
-                let childSlotType = childEclassData.varTypes[i];
+                let childSlotType = childEclassData.varTypes[&from];
                 varTypes
                     .entry(to)
                     .and_modify(|vt: &mut VarType| assert!(*vt == childSlotType))
@@ -198,7 +199,7 @@ pub fn getVarTypesAfterShrinked(
         .iter()
         .enumerate()
         .filter(|(_, (_, a))| shrinkedSlots.contains(a))
-        .map(|(i, _)| eg.analysis_data(appIdBefore.id).varTypes[i].clone())
+        .map(|(i, (from, to))| eg.analysis_data(appIdBefore.id).varTypes[&from].clone())
         .collect::<Vec<_>>()
 }
 
@@ -223,10 +224,11 @@ fn transformToEgraphNameSpace(sh: &CHC, eg: &CHCEGraph) -> CHC {
 
 fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCData {
     let sh = transformToEgraphNameSpace(sh, eg);
-    assert!(sh.slots().len() == 1);
+    let slots = sh.slots();
+    assert!(slots.len() == 1);
     CHCData {
         predNames: HashSet::default(),
-        varTypes: vec![returnType],
+        varTypes: BTreeMap::from([(slots.iter().next().unwrap().clone(), returnType)]),
         functionalInfo: FunctionalInfo::default(),
     }
 }
