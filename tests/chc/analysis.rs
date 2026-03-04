@@ -76,7 +76,7 @@ impl CHCData {
 //     varTypes
 // }
 
-pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &Vec<Slot>) -> Vec<VarType> {
+pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &Vec<Slot>) -> BTreeMap<Slot, VarType> {
     let sh = eg.find_enode(&sh);
     let appIds = sh.applied_id_occurrences();
     let mut varTypes = BTreeMap::default();
@@ -109,7 +109,7 @@ pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &Vec<Slot>) -> Vec<V
 
     slots
         .iter()
-        .map(|s| varTypes.get(s).unwrap().clone())
+        .map(|s| (*s, varTypes.get(s).unwrap().clone()))
         .collect()
 }
 
@@ -192,7 +192,7 @@ pub fn getVarTypesAfterShrinked(
     appIdBefore: &AppliedId,
     shrinkedSlots: &SmallHashSet<Slot>,
     eg: &mut CHCEGraph,
-) -> Vec<VarType> {
+) -> BTreeMap<Slot, VarType> {
     trace!("updating varType of {:?}", appIdBefore.id);
     appIdBefore
         .m
@@ -357,26 +357,28 @@ impl Analysis<CHC> for CHCAnalysis {
     // TODO: we cannot assume that the interface slots of eclass are always ordered the same after merging
     // Hence, ordering of varTypes in a vector might not work
     fn merge(x: CHCData, y: CHCData, from: Id, to: Option<Id>, eg: &CHCEGraph) -> CHCData {
-        let mut varTypes = if to.is_some() {
-            let ret = eg
-                .eclass(to.unwrap())
-                .unwrap()
-                .analysis_data
-                .varTypes
-                .clone();
+        let varTypes = if to.is_none() {
+            assert_eq!(x.varTypes, y.varTypes);
+            assert_eq!(x.varTypes, eg.eclass(from).unwrap().analysis_data.varTypes);
 
-            ret
+            assert_eq!(
+                BTreeSet::from_iter(x.varTypes.keys()),
+                BTreeSet::from_iter(&eg.slots(from))
+            );
+            x.varTypes
         } else {
-            eg.eclass(from).unwrap().analysis_data.varTypes.clone()
+            assert_eq!(
+                y.varTypes,
+                eg.eclass(to.unwrap()).unwrap().analysis_data.varTypes
+            );
+
+            assert_eq!(
+                BTreeSet::from_iter(y.varTypes.keys()),
+                BTreeSet::from_iter(&eg.slots(to.unwrap()))
+            );
+
+            y.varTypes
         };
-
-        if x.varTypes.len() < varTypes.len() {
-            varTypes = x.varTypes.clone();
-        }
-
-        if y.varTypes.len() < varTypes.len() {
-            varTypes = y.varTypes.clone();
-        }
 
         if CHECKS {
             let slots = if to.is_some() {
@@ -393,12 +395,11 @@ impl Analysis<CHC> for CHCAnalysis {
                 (getAllVarTypesOfENode(&synNode, eg), synNode)
             };
 
-            let slotsVec = slots.into_inner();
-            for (i, s) in slotsVec.iter().enumerate() {
-                if !currVarTypes.contains_key(s) || currVarTypes[s] != varTypes[i] {
+            for s in slots.iter() {
+                if !currVarTypes.contains_key(s) || currVarTypes[s] != varTypes[s] {
                     panic!(
                         "mismatch or not contain of type of slot {s}
-slotsVec {slotsVec:?}
+slots {slots:?}
 currVarTypes {currVarTypes:?}
 varTypes {varTypes:?}
 synNode {synNode:?}"
