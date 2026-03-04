@@ -1,6 +1,6 @@
-# RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
+RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::pairingPaperArray::mainTest -- --nocapture &> tmp.txt
-RUST_BACKTRACE=1 cargo test chc::synchronizedCHC::mainTest -- --nocapture &> tmp.txt
+# RUST_BACKTRACE=1 cargo test chc::synchronizedCHC::mainTest -- --nocapture &> tmp.txt
 # RUST_LOG=debug RUST_BACKTRACE=1 cargo test chc::leafDrop::testSortAppId -- --nocapture &> tmp.txt
  
 # RUST_LOG=debug RUST_BACKTRACE=1 cargo test tmptest -- --nocapture &> tmp2 
@@ -11,7 +11,7 @@ RUST_BACKTRACE=1 cargo test chc::synchronizedCHC::mainTest -- --nocapture &> tmp
 
 
 # flamegraph -o pairingPaperArray.svg -- target/debug/deps/entry-38a92d690cfd6aa3 --nocapture chc::pairingPaperArray::mainTest
-# flamegraph -o leafDrop2.svg -- target/debug/deps/entry-9180f215c26aedec --nocapture chc::leafDrop::mainTest
+# flamegraph -o leafDrop.svg -- target/debug/deps/entry-aafa1e403367dd3e --nocapture chc::leafDrop::mainTest
 
 
 # RUST_BACKTRACE=1 cargo test lambda::native::y_identity &> tmp.txt

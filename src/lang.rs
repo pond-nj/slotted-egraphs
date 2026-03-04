@@ -492,6 +492,12 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
 
 pub struct OrderVec<L>(pub Vec<L>);
 
+impl<L> OrderVec<L> {
+    pub fn new() -> Self {
+        Self(vec![])
+    }
+}
+
 impl<L> Deref for OrderVec<L> {
     type Target = Vec<L>;
 

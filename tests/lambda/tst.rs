@@ -126,6 +126,7 @@ macro_rules! unpack_tests {
 
         #[test]
         // #[cfg_attr(feature = "checks", ignore = "too slow")]
+        // currently fail
         fn add00() {
             use lambda::*;
 
@@ -135,6 +136,7 @@ macro_rules! unpack_tests {
 
         #[test]
         // #[cfg_attr(feature = "checks", ignore = "too slow")]
+        // currently fail
         fn add01() {
             use lambda::*;
 

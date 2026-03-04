@@ -38,6 +38,14 @@ impl AppliedIdOrStar {
 
         appId.clone()
     }
+
+    pub fn getAppliedIdOwn(self) -> AppliedId {
+        let AppliedIdOrStar::AppliedId(appId) = self else {
+            panic!();
+        };
+
+        appId
+    }
 }
 
 impl From<AppliedIdOrStar> for AppliedId {

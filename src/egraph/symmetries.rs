@@ -12,9 +12,9 @@ use std::{collections::BTreeMap, os::raw::c_int};
 
 // TODO: how long does this function consume in term of percentage?
 #[allow(unused)]
-fn dnfToCnfByTseitin(dnf: &Vec<Vec<isize>>, count: &mut isize) -> Vec<Vec<isize>> {
+fn dnfToCnfByTseitin(dnf: &Vec<Vec<usize>>, count: &mut usize) -> Vec<Clause> {
     if dnf.is_empty() {
-        return vec![vec![]];
+        return vec![Clause::new()];
     }
 
     // True: any clause is empty (empty conjunction = true)
@@ -25,23 +25,28 @@ fn dnfToCnfByTseitin(dnf: &Vec<Vec<isize>>, count: &mut isize) -> Vec<Vec<isize>
     }
 
     let mut cnf = Vec::new();
-    let mut clause_vars = Vec::new(); // will hold the fresh variable for each DNF clause
+    let mut clause_vars = Clause::new(); // will hold the fresh variable for each DNF clause
 
     for clause in dnf {
-        let fresh_var: isize = (*count).try_into().unwrap();
+        let fresh_var: usize = *count;
         *count += 1;
-        clause_vars.push(fresh_var);
+        clause_vars.add(Lit::new(fresh_var as u32, false));
 
         // (fresh_var → each literal)   i.e., not fresh_var or lit
         for &lit in clause {
-            cnf.push(vec![-fresh_var, lit]);
+            let mut newClause = Clause::new();
+            newClause.add(Lit::new(fresh_var as u32, true));
+            newClause.add(Lit::new(lit as u32, false));
+            cnf.push(newClause);
+            // cnf.push(vec![-fresh_var, lit]);
         }
 
         // (each literal → fresh_var)   i.e., fresh_var or not lit1 or lit2 or ...
-        let mut reverse = vec![fresh_var];
+        let mut reverseClause = Clause::new();
+        reverseClause.add(Lit::new(fresh_var as u32, false));
         // not lit1 or lit2 or ...
-        reverse.extend(clause.iter().map(|&lit| -lit));
-        cnf.push(reverse);
+        reverseClause.extend(clause.iter().map(|&lit| Lit::new(lit as u32, true)));
+        cnf.push(reverseClause);
     }
 
     // At least one DNF clause must be true: (fresh₁ ∨ fresh₂ ∨ ... ∨ freshₘ)
@@ -328,7 +333,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         }
         trace!("total slots {}", slotsIdx.len());
-        let mut nextId: isize = 1;
+        let mut nextId: usize = 1;
 
         // index into permSlots is determined by SlotIdx
         // permSlots[x][y] is true iff x is mapped to y
@@ -349,11 +354,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 .all_perms()
                 .into_iter()
                 .collect();
-            let mut dnf: Vec<Vec<isize>> = Vec::new();
+            let mut dnf: Vec<Vec<usize>> = Vec::new();
             for perm in perms {
                 trace!("perm {perm:?}");
                 let newSlotmap = perm.elem.compose(&appId.m);
-                let mut dnfClause: Vec<isize> = Vec::new();
+                let mut dnfClause: Vec<usize> = Vec::new();
                 dnfClause.reserve(newSlotmap.len());
 
                 trace!("dnf: ");
@@ -371,11 +376,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             trace!("dnf {dnf:?}");
 
             for cnfClause in dnfToCnfByTseitin(&dnf, &mut nextId) {
-                let cnfClause: Vec<_> = cnfClause
-                    .into_iter()
-                    .map(|x| Lit::new(x.abs() as u32, x < 0))
-                    .collect();
-                instance.add_clause(cnfClause.as_slice().into());
+                // let cnfClause: Vec<_> = cnfClause
+                //     .into_iter()
+                //     .map(|x| Lit::new(x.abs() as u32, x < 0))
+                //     .collect();
+                instance.add_clause(cnfClause);
             }
         }
 
@@ -432,11 +437,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
             allPerms.push(normalizedPerm);
 
-            let mut blocking: Vec<Lit> = Vec::new();
+            let mut blocking: Clause = Clause::new();
             for lit in sol.iter() {
                 match sol[lit.var()] {
-                    TernaryVal::True => blocking.push(Lit::negative(lit.vidx32())),
-                    TernaryVal::False => blocking.push(Lit::positive(lit.vidx32())),
+                    TernaryVal::True => blocking.add(Lit::negative(lit.vidx32())),
+                    TernaryVal::False => blocking.add(Lit::positive(lit.vidx32())),
                     _ => {
                         panic!()
                     }
@@ -444,7 +449,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
 
             // TODO: is this solver incremental?
-            rustsat::solvers::Solve::add_clause(&mut solver, blocking.as_slice().into()).unwrap();
+            rustsat::solvers::Solve::add_clause(&mut solver, blocking).unwrap();
         }
 
         trace!("done symmetriesBySat {:?}", src_id);
@@ -458,7 +463,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let (allPerms, i) = if totalPerm > 1000 {
             self.symmetriesBySat(src_id)
         } else {
-            self.symmetriesBySat(src_id)
+            self.orig_determine_self_symmetries(src_id)
         };
 
         // should be the place that updates this group permutation if children eclasses are permuted
