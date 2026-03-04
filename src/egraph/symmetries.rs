@@ -12,7 +12,7 @@ use std::{collections::BTreeMap, os::raw::c_int};
 
 // TODO: how long does this function consume in term of percentage?
 #[allow(unused)]
-fn dnfToCnfByTseitin(dnf: &Vec<Vec<usize>>, count: &mut usize) -> Vec<Clause> {
+pub fn dnfToCnfByTseitin(dnf: &Vec<Vec<usize>>, count: &mut usize) -> Vec<Clause> {
     if dnf.is_empty() {
         return vec![Clause::new()];
     }
@@ -393,6 +393,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                         continue;
                     }
                     trace!("not permSlots[{i}][{z}]");
+                    // todo: change this to solver?
                     instance.add_clause(
                         vec![
                             Lit::negative(permSlots[*i][*j] as u32),

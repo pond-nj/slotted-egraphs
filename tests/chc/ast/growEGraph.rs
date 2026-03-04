@@ -1,4 +1,10 @@
 use log::{info, trace};
+use rustsat::{
+    instances::{BasicVarManager, Cnf, SatInstance},
+    solvers::{Solve, SolverResult},
+    types::{Clause, Lit, TernaryVal},
+};
+use rustsat_minisat::core::Minisat;
 
 use super::*;
 
@@ -332,8 +338,17 @@ pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
         *oldEntry = oldEntry.intersection(&possibilities).cloned().collect();
     };
 
+    let mut predNamesToIdx = BTreeMap::new();
+    for (i, predName) in chcs.preds.keys().enumerate() {
+        predNamesToIdx.insert(predName.clone(), i);
+    }
+
+    let mut eclassIdToIdx = BTreeMap::new();
+    let mut andAnswers = vec![];
     for (predName, rules) in rulesByPred {
         let (expr, patternVars) = getPredExpr(&predName, &rules, &chcs);
+
+        info!("expr {expr}\n");
 
         let res: Vec<(Subst, Id)> = ematchQueryall(&eg, &Pattern::parse(&expr).unwrap());
         assert!(
@@ -341,25 +356,122 @@ pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
             "predname {predName}, expr {expr} has no result"
         );
 
-        for (bodyPredName, vars) in patternVars {
-            let mut possibilities = BTreeSet::new();
-            for (subst, _) in res.iter() {
+        let mut orAnswers = BTreeSet::new();
+        for (subst, rootEclassId) in res {
+            let eclassIdToIdxLen = eclassIdToIdx.len();
+            eclassIdToIdx
+                .entry(rootEclassId)
+                .or_insert(eclassIdToIdxLen);
+
+            let mut predNameToEclassId = BTreeMap::new();
+            for (bodyPredName, vars) in patternVars.iter() {
+                let mut eclassId = None;
+
                 for var in vars.iter() {
-                    possibilities.insert(subst.get(var).unwrap().id);
+                    if eclassId.is_none() {
+                        eclassId = Some(subst.get(var).unwrap().id);
+                    }
+
+                    assert_eq!(eclassId.unwrap(), subst.get(var).unwrap().id);
                 }
+
+                let eclassId = eclassId.unwrap();
+
+                let eclassIdToIdxLen = eclassIdToIdx.len();
+                eclassIdToIdx.entry(eclassId).or_insert(eclassIdToIdxLen);
+                predNameToEclassId.insert(bodyPredName.clone(), eclassId);
             }
-            updatePredToEclassId(&bodyPredName, &possibilities);
+
+            predNameToEclassId
+                .entry(predName.clone())
+                .or_insert(rootEclassId);
+
+            assert_eq!(predNameToEclassId[&predName], rootEclassId);
+
+            orAnswers.insert(predNameToEclassId);
+        }
+        andAnswers.push(orAnswers);
+    }
+
+    let varIdx = |predName: &String, eclassId: &Id| {
+        let predNameIdx = predNamesToIdx.get(predName).unwrap();
+        let eclassIdIdx = eclassIdToIdx.get(eclassId).unwrap();
+        predNameIdx * eclassIdToIdx.len() + eclassIdIdx
+    };
+
+    // row is predName
+    // col is eclassId
+    let mut allCnfs: Cnf = Cnf::new();
+    let mut solver = Minisat::default();
+    let mut count = predNamesToIdx.len() * eclassIdToIdx.len();
+    for orAnswers in andAnswers {
+        let mut dnf: Vec<Vec<usize>> = Vec::new();
+        for assignment in orAnswers.iter() {
+            let mut dnfClause: Vec<usize> = Vec::new();
+            for (predName, eclassId) in assignment.iter() {
+                dnfClause.push(varIdx(predName, eclassId));
+            }
+            dnf.push(dnfClause);
+        }
+        for cnf in dnfToCnfByTseitin(&dnf, &mut count) {
+            allCnfs.add_clause(cnf);
         }
     }
 
-    for (predName, possibilities) in predToEclassId {
-        assert!(
-            possibilities.len() > 0,
-            "predName {} has no possible eclass",
-            predName
-        );
-
-        info!("predName {predName}, end possibilities {possibilities:?}");
+    for (predName, predNameIdx) in predNamesToIdx.iter() {
+        for (eclassId1, eclassIdIdx1) in eclassIdToIdx.iter() {
+            for (eclassId2, eclassIdIdx2) in eclassIdToIdx.iter() {
+                if eclassIdIdx1 == eclassIdIdx2 {
+                    continue;
+                }
+                let mut clause = Clause::new();
+                clause.add(Lit::negative(varIdx(&predName, &eclassId1) as u32));
+                clause.add(Lit::negative(varIdx(&predName, &eclassId2) as u32));
+                allCnfs.add_clause(clause);
+            }
+        }
     }
-    info!("chc {} exists", fname);
+
+    for (eclassId, eclassIdIdx) in eclassIdToIdx.iter() {
+        for (predName1, predNameIdx1) in predNamesToIdx.iter() {
+            for (predName2, predNameIdx2) in predNamesToIdx.iter() {
+                if predNameIdx1 == predNameIdx2 {
+                    continue;
+                }
+                let mut clause = Clause::new();
+                clause.add(Lit::negative(varIdx(&predName1, &eclassId) as u32));
+                clause.add(Lit::negative(varIdx(&predName2, &eclassId) as u32));
+                allCnfs.add_clause(clause);
+            }
+        }
+    }
+
+    solver.add_cnf(allCnfs).unwrap();
+    let mut sols = vec![];
+    while solver.solve().unwrap() == SolverResult::Sat {
+        let sol = solver.full_solution().unwrap();
+        let mut assignments = BTreeMap::new();
+        let mut blockingClause = Clause::new();
+        for (predName, predNameIdx) in predNamesToIdx.iter() {
+            for (eclassId, eclassIdIdx) in eclassIdToIdx.iter() {
+                let lit = Lit::positive(varIdx(&predName, &eclassId) as u32);
+                match sol[lit.var()] {
+                    TernaryVal::True => {
+                        assignments.entry(predName).or_insert(eclassId);
+                        blockingClause.add(Lit::negative(lit.vidx32()));
+                    }
+                    TernaryVal::False => {
+                        blockingClause.add(Lit::positive(lit.vidx32()));
+                    }
+                    TernaryVal::DontCare => {
+                        panic!();
+                    }
+                }
+            }
+        }
+        solver.add_clause(blockingClause);
+        sols.push(assignments);
+    }
+    info!("sols {sols:?}");
+    assert!(sols.len() > 0);
 }
