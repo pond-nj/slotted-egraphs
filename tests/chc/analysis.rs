@@ -1,7 +1,7 @@
 use core::error;
 use std::cmp::min;
 
-use log::{error, trace};
+use log::{error, info, trace};
 
 use super::*;
 
@@ -199,8 +199,13 @@ pub fn getVarTypesAfterShrinked(
         .iter()
         .enumerate()
         .filter(|(_, (_, a))| shrinkedSlots.contains(a))
-        .map(|(i, (from, to))| eg.analysis_data(appIdBefore.id).varTypes[&from].clone())
-        .collect::<Vec<_>>()
+        .map(|(i, (from, to))| {
+            (
+                from,
+                eg.analysis_data(appIdBefore.id).varTypes[&from].clone(),
+            )
+        })
+        .collect()
 }
 
 fn transformToEgraphNameSpace(sh: &CHC, eg: &CHCEGraph) -> CHC {
@@ -357,27 +362,43 @@ impl Analysis<CHC> for CHCAnalysis {
     // TODO: we cannot assume that the interface slots of eclass are always ordered the same after merging
     // Hence, ordering of varTypes in a vector might not work
     fn merge(x: CHCData, y: CHCData, from: Id, to: Option<Id>, eg: &CHCEGraph) -> CHCData {
+        assert_eq!(x.varTypes, eg.eclass(from).unwrap().analysis_data.varTypes);
+
         let varTypes = if to.is_none() {
-            assert_eq!(x.varTypes, y.varTypes);
-            assert_eq!(x.varTypes, eg.eclass(from).unwrap().analysis_data.varTypes);
+            let fromAppId = eg.mk_identity_applied_id(from);
+            let xVarTypes: BTreeMap<Slot, VarType> = x
+                .varTypes
+                .into_iter()
+                .filter(|x| fromAppId.m.keys_set().contains(&x.0))
+                .collect();
+
+            assert_eq!(xVarTypes, y.varTypes, "fromAppId is {:?}", fromAppId);
 
             assert_eq!(
-                BTreeSet::from_iter(x.varTypes.keys()),
+                BTreeSet::from_iter(xVarTypes.keys()),
                 BTreeSet::from_iter(&eg.slots(from))
             );
-            x.varTypes
+            xVarTypes
         } else {
             assert_eq!(
                 y.varTypes,
                 eg.eclass(to.unwrap()).unwrap().analysis_data.varTypes
             );
 
+            let toAppId = eg.mk_identity_applied_id(to.unwrap());
+            let yVarTypes: BTreeMap<Slot, VarType> = y
+                .varTypes
+                .into_iter()
+                .filter(|x| toAppId.m.keys_set().contains(&x.0))
+                .collect();
+
+            // since to might get shrinked slots
             assert_eq!(
-                BTreeSet::from_iter(y.varTypes.keys()),
+                BTreeSet::from_iter(yVarTypes.keys()),
                 BTreeSet::from_iter(&eg.slots(to.unwrap()))
             );
 
-            y.varTypes
+            yVarTypes
         };
 
         if CHECKS {
@@ -429,7 +450,7 @@ synNode {synNode:?}"
 
                 CHCData {
                     predNames,
-                    varTypes: getInterfaceVarType(sh, eg, &(slots.clone().into())),
+                    varTypes: getInterfaceVarType(sh, eg, slots),
                     functionalInfo: FunctionalInfo::default(),
                 }
             }
@@ -438,7 +459,7 @@ synNode {synNode:?}"
             CHC::ListType(_) => CHCDataForPrimitiveVar(sh, eg, VarType::List),
             _ => CHCData {
                 predNames: HashSet::default(),
-                varTypes: getInterfaceVarType(sh, eg, &(slots.clone().into())),
+                varTypes: getInterfaceVarType(sh, eg, slots),
                 functionalInfo: FunctionalInfo::default(),
             },
         };

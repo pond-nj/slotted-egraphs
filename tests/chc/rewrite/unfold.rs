@@ -88,7 +88,7 @@ pub enum UnfoldOpType {
 }
 
 fn addToUnfoldList(unfoldList: &Rc<RefCell<UnfoldList>>, toBeUnfolded: UnfoldListElement) {
-    info!("pushing to unfoldList {:?}", toBeUnfolded.getShape().0);
+    trace!("pushing to unfoldList {:?}", toBeUnfolded.getShape().0);
 
     let CHC::New(_, _, new1Children) = &toBeUnfolded.targetNew1ENodeShape else {
         panic!();
@@ -210,7 +210,7 @@ eclass {}: {:?}",
                 ),
             };
 
-            info!("pushing to composeUnfoldRecipe {x:?}");
+            trace!("pushing to composeUnfoldRecipe {x:?}");
 
             composeUnfoldRecipe.push(x);
         }
@@ -240,7 +240,7 @@ pub fn unfoldSearch(
         let composeAppId = eg.mk_identity_applied_id(composeAppId.id);
         // TODO: change this to get
         let compose1ENode = eg.getExactENodeInEGraph(&targetCompose1Shape);
-        info!(
+        trace!(
             "searching unfold on compose {:?}",
             compose1ENode.weak_shape().0
         );
@@ -277,7 +277,7 @@ pub fn unfoldSearch(
         // }
         let new1AppId = &compose1Children[compose1ReplaceIdx];
 
-        info!("using new1AppId {:?}", new1AppId);
+        trace!("using new1AppId {:?}", new1AppId);
 
         let new1ENode = eg
             .getExactENodeInEClass(&targetNew1ENodeShape, &new1AppId.id)
@@ -302,7 +302,7 @@ pub fn unfoldSearch(
         }
     }
 
-    info!("unfoldSearch return, composeUnfoldRecipe {composeUnfoldRecipe:?}");
+    trace!("unfoldSearch return, composeUnfoldRecipe {composeUnfoldRecipe:?}");
     composeUnfoldRecipe
 }
 
@@ -330,7 +330,7 @@ fn addUnfoldedNewENode(
         composeUnfoldRecipeTag,
     } = composeUnfoldRecipe;
 
-    info!("addUnfoldedNewENode {composeUnfoldRecipe:?}");
+    trace!("addUnfoldedNewENode {composeUnfoldRecipe:?}");
 
     for UnfoldResult {
         syntax1,
@@ -365,7 +365,7 @@ fn addUnfoldedNewENode(
         checkNewENode!(unfoldedENode, eg);
 
         let unfoldedENodeId = eg.add(unfoldedENode.clone());
-        info!(
+        trace!(
             "call shrink slots with {unfoldedENodeId:?} {:?}",
             syntax1.slots()
         );
@@ -403,7 +403,7 @@ fn addUnfoldedNewENode(
             .predNames
             .insert(tag);
 
-        info!("createdNewENodes {unfoldedENodeId:?} {unfoldedENode:?}");
+        trace!("createdNewENodes {unfoldedENodeId:?} {unfoldedENode:?}");
         createdNewENodes.push((unfoldedENodeId.clone(), unfoldedENode.clone()));
     }
 }
@@ -479,7 +479,7 @@ fn createUnfoldedCompose(
         }
     };
 
-    info!("createUnfoldedCompose return {ret:?}");
+    trace!("createUnfoldedCompose return {ret:?}");
 
     ret
 }
@@ -522,7 +522,7 @@ pub fn unfoldApplyInternal(
         assert_eq!(new1AppId, &AppliedId::null());
     }
 
-    info!("composeUnfoldRecipe {composeUnfoldRecipe:?}");
+    trace!("composeUnfoldRecipe {composeUnfoldRecipe:?}");
 
     let unfoldResultCombs = combination(&unfoldResult);
     assert!(
@@ -542,7 +542,7 @@ unfoldResult {unfoldResult:#?}"
             &mut createdNewENodes,
         );
 
-        info!("createdNewENodes {createdNewENodes:?}");
+        trace!("createdNewENodes {createdNewENodes:?}");
 
         let (composeAppId, composeShape) = createUnfoldedCompose(
             composeUnfoldRecipe,
@@ -569,7 +569,7 @@ unfoldResult {unfoldResult:#?}"
             panic!();
         };
 
-        info!(
+        trace!(
             "adding to unfoldList from {:?}",
             composeShape.weak_shape().0
         );

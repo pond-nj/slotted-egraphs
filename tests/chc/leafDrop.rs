@@ -8,6 +8,7 @@ const STACK_SIZE: usize = 32 * 1024 * 1024;
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 3600;
 const DO_FOLDING: bool = true;
+const DO_TESTS: bool = true;
 
 use log::{debug, error, info, set_logger_racy, Log, Metadata, Record};
 
@@ -290,18 +291,18 @@ fn mainTestSpawn() {
     let mut count = 0;
     let doConstraintRewrite = true;
     let (rootId, mut runner) = buildLeafDropCHC(egOrig, &mut count);
-    // if CHECKS {
-    checkSelfCycle(&runner.egraph);
-    let (unfold1, unfold2, unfold3, newDefineComposeId) =
-        checkUnfoldNewDefineFoldExists(rootId.id, &mut runner.egraph);
-    checkUnfold2NewDefineWithMinLeaf(unfold2, unfold3, newDefineComposeId, &mut runner.egraph);
-    checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
+    if DO_TESTS {
+        checkSelfCycle(&runner.egraph);
+        let (unfold1, unfold2, unfold3, newDefineComposeId) =
+            checkUnfoldNewDefineFoldExists(rootId.id, &mut runner.egraph);
+        checkUnfold2NewDefineWithMinLeaf(unfold2, unfold3, newDefineComposeId, &mut runner.egraph);
+        checkUnfold3NewDefineWithMinLeaf(&mut runner.egraph);
 
-    checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
-    checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
+        checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
+        checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite, &mut runner.egraph);
 
-    checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
-    // }
+        checkUnfold22NewDefineWithMinLeaf(&mut runner.egraph);
+    }
 }
 
 #[test]

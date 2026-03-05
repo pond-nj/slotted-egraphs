@@ -229,10 +229,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if self.hashcons.get(&sh).is_none() {
             return;
         }
-        let i = self.hashcons[&sh];
+        let eclassId = self.hashcons[&sh];
         trace!(
-            "eclass {i} at start of handle_pending {:?}",
-            self.eclass(i).unwrap()
+            "eclass {eclassId} at start of handle_pending {:?}",
+            self.eclass(eclassId).unwrap()
         );
 
         /*
@@ -252,23 +252,23 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         //     return;
         // }
 
-        let psn = self.classes[&i].nodes[&sh].clone();
+        let psn = self.classes[&eclassId].nodes[&sh].clone();
         let enode = &sh.apply_slotmap(&psn.elem);
-        self.raw_remove_from_class(i, sh.clone());
-        let app_i = self.mk_sem_identity_applied_id(i);
+        self.raw_remove_from_class(eclassId, sh.clone());
+        let app_i = self.mk_sem_identity_applied_id(eclassId);
 
         let src_id = psn.src_id;
 
         let mut enode = self.find_enode(&enode);
-        let mut i = self.find_applied_id(&app_i);
-        assert_eq!(i, app_i);
+        let mut findAppId = self.find_applied_id(&app_i);
+        assert_eq!(findAppId, app_i);
         // i.m :: slots(i) -> X
         // i_orig.m :: slots(i_orig) -> X
-        if !i.slots().is_subset(&enode.slots()) {
+        if !findAppId.slots().is_subset(&enode.slots()) {
             self.handle_shrink_in_upwards_merge(src_id);
 
             enode = self.find_enode(&enode);
-            i = self.find_applied_id(&i);
+            findAppId = self.find_applied_id(&findAppId);
         }
 
         let t = self.shape(&enode);
@@ -283,7 +283,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         let (sh, bij) = t;
-        let mut m = i.m.inverse();
+        let mut m = findAppId.m.inverse();
 
         for x in bij.values_set() {
             if !m.contains_key(x) {
@@ -296,22 +296,29 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let bij = bij.compose(&m);
         let t = (sh.clone(), bij.clone());
 
-        trace!("i.id {}", i.id);
+        trace!("i.id {}", findAppId.id);
         trace!("app_i.id {}", app_i.id);
 
-        self.raw_add_to_class(i.id, t.clone(), src_id);
+        self.raw_add_to_class(findAppId.id, t.clone(), src_id);
 
         trace!("app_i.m {:?}", app_i.m);
         trace!("bij {:?}", bij);
         trace!("sh {:?}", sh);
+
+        // self.update_analysis(
+        //     &sh,
+        //     app_i.id,
+        //     &Into::<Vec<Slot>>::into(app_i.slots())
+        //         .iter()
+        //         .filter(|x| bij.inverse().contains_key(**x))
+        //         .map(|x| bij.inverse()[*x])
+        //         .collect(),
+        // );
+
         self.update_analysis(
-            &sh,
-            app_i.id,
-            &Into::<Vec<Slot>>::into(app_i.slots())
-                .iter()
-                .filter(|x| bij.inverse().contains_key(**x))
-                .map(|x| bij.inverse()[*x])
-                .collect(),
+            &sh.apply_slotmap(&bij),
+            findAppId.id,
+            &findAppId.slots().into(),
         );
 
         self.determine_self_symmetries(src_id);

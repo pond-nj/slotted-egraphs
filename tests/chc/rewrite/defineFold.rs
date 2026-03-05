@@ -136,6 +136,7 @@ pub fn defineUnfoldFold(
             let origNewENodeAppId = eg.mk_identity_applied_id(eclassId);
 
             let enodesList = eg.enodes(origNewENodeAppId.id);
+            // TODO: can we actually parallelize this?
             for origNewENode in enodesList {
                 let origENodeShape = origNewENode.weak_shape().0;
                 // check if do this already
@@ -291,9 +292,9 @@ pub fn defineUnfoldFold(
                     if options.doFolding {
                         let replaceAt = positions.first().unwrap();
                         debug!("sortedToBeFold {sortedNewBody:?}");
-                        info!("fold to {defineAppId:?}");
-                        info!("original body {bodyAppIds:?}");
-                        info!("positions {positions:?}");
+                        trace!("fold to {defineAppId:?}");
+                        trace!("original body {bodyAppIds:?}");
+                        trace!("positions {positions:?}");
                         let mut foldedBodyAppIds = vec![];
                         for (idx, c) in bodyAppIds.iter().enumerate() {
                             if idx == *replaceAt {
@@ -307,7 +308,7 @@ pub fn defineUnfoldFold(
                             }
                             foldedBodyAppIds.push(c.clone());
                         }
-                        info!("foldedBodyAppIds {foldedBodyAppIds:?}");
+                        trace!("foldedBodyAppIds {foldedBodyAppIds:?}");
                         debug!("origNewENode {origNewENode:?}");
                         let foldedNewENode = sortNewENode1(
                             origSyntaxAppId,
