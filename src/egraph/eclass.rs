@@ -7,14 +7,14 @@ use super::*;
 pub struct EClass<L: Language, N: Analysis<L>> {
     // The set of equivalent ENodes that make up this eclass.
     // for (sh, bij) in nodes; sh.apply_slotmap(bij) represents the actual ENode.
-    pub nodes: BTreeMap<L, ProvenSourceNode>,
+    pub nodes: BTreeMap<ENodeId, ProvenSourceNode>,
 
     // All other slots are considered "redundant" (or they have to be qualified by a ENode::Lam).
     // Should not contain Slot(0).
     pub slots: SmallHashSet<Slot>,
 
     // Shows which Shapes refer to this EClass.
-    usages: BTreeSet<L>,
+    usages: BTreeSet<ENodeId>,
 
     // Expresses the self-symmetries of this e-class.
     group: Group<ProvenPerm>,
@@ -27,9 +27,9 @@ pub struct EClass<L: Language, N: Analysis<L>> {
 
 impl<L: Language, N: Analysis<L>> EClass<L, N> {
     pub fn new(
-        nodes: BTreeMap<L, ProvenSourceNode>,
+        nodes: BTreeMap<ENodeId, ProvenSourceNode>,
         slots: SmallHashSet<Slot>,
-        usages: BTreeSet<L>,
+        usages: BTreeSet<ENodeId>,
         group: Group<ProvenPerm>,
         syn_enode: L,
         analysis_data: N::Data,
@@ -49,7 +49,7 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
     }
 
     pub fn groupMut(&mut self) -> &mut Group<ProvenPerm> {
-        trace!("modifying group of {:?}", self.syn_enode.orig_weak_shape());
+        // trace!("modifying group of {:?}", self.syn_enode.orig_weak_shape());
         &mut self.group
     }
 
@@ -57,11 +57,11 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
         &self.syn_enode
     }
 
-    pub fn usages(&self) -> &BTreeSet<L> {
+    pub fn usages(&self) -> &BTreeSet<ENodeId> {
         &self.usages
     }
 
-    pub fn usagesMut(&mut self) -> &mut BTreeSet<L> {
+    pub fn usagesMut(&mut self) -> &mut BTreeSet<ENodeId> {
         &mut self.usages
     }
 }

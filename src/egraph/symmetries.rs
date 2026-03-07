@@ -528,7 +528,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 // or is it the opposite direction? (flip a with b)
                 trace!("a {a:?}");
                 trace!("b {b:?}");
-                trace!("eclass {:?}", self.eclass(a.id).unwrap());
+                // trace!("eclass {:?}", self.eclass(a.id).unwrap());
+                trace!("eclass {:?}", self.dumpEClassStr(a.id));
                 trace!("pc1 {pc1:?}");
                 trace!("pc2 {pc2:?}");
                 let perm = a.m.compose(&b.m.inverse());

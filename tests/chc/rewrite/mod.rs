@@ -68,7 +68,8 @@ macro_rules! checkVarType {
                 error!("varTypes len 0");
                 error!("appId {:?}", $appId);
                 error!("appId find {:?}", $eg.find_applied_id($appId));
-                error!("eclass {:?}", $eg.eclass($appId.id).unwrap());
+                // error!("eclass {:?}", $eg.eclass($appId.id).unwrap());
+                error!("eclass {:?}", $eg.dumpEClassStr($appId.id));
                 assert!(eclassData.varTypes().len() > 0);
             }
         }
@@ -470,7 +471,8 @@ pub fn sortNewENode2(
     let condAppId = eg.add(condENode.clone());
 
     trace!("add condENode {condENode:?} to condAppId {condAppId:?}");
-    trace!("result eclass {:?}", eg.eclass(condAppId.id).unwrap());
+    trace!("result eclass {:?}", eg.dumpEClassStr(condAppId.id));
+    // trace!("result eclass {:?}", eg.eclass(condAppId.id).unwrap());
 
     if CHECKS {
         checkDedup(condAppId.id, &sortedCondChildren.into()).unwrap();

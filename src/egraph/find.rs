@@ -122,6 +122,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         let mut pai2 = self.proven_unionfind_get(pai.elem.id);
+        trace!("proven_proven_find_applied_id pai {pai:?}");
+        trace!("proven_proven_find_applied_id pai2 {pai2:?}");
 
         pai2.elem.m = pai2.elem.m.compose_intersect(&pai.elem.m);
 

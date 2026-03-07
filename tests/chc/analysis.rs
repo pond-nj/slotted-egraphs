@@ -92,10 +92,15 @@ pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &Vec<Slot>) -> BTree
                 .and_modify(|vt: &mut VarType| {
                     if *vt != childSlotType {
                         error!("egraph {eg:?}");
+                        // error!(
+                        //     "culprint child eclass {:?} {:?}",
+                        //     app.id,
+                        //     eg.eclass(app.id).unwrap()
+                        // );
                         error!(
                             "culprint child eclass {:?} {:?}",
                             app.id,
-                            eg.eclass(app.id).unwrap()
+                            eg.dumpEClassStr(app.id)
                         );
                         error!("sh {sh:?}");
                         error!("mismatch of type of slot {to:?}");
@@ -141,10 +146,15 @@ pub fn getAllVarTypesOfENode(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType
                 .and_modify(|vt: &mut VarType| {
                     if *vt != childSlotType {
                         error!("egraph {eg:?}");
+                        // error!(
+                        //     "culprint child eclass {:?} {:?}",
+                        //     app.id,
+                        //     eg.eclass(app.id).unwrap()
+                        // );
                         error!(
                             "culprint child eclass {:?} {:?}",
                             app.id,
-                            eg.eclass(app.id).unwrap()
+                            eg.dumpEClassStr(app.id)
                         );
                         error!("sh {sh:?}");
                         error!("sh find {:?}", eg.find_enode(sh));
@@ -172,6 +182,7 @@ pub fn getAllVarTypesOfENode(sh: &CHC, eg: &CHCEGraph) -> BTreeMap<Slot, VarType
 pub fn getAllVarTypesInEClass(id: Id, eg: &CHCEGraph) -> BTreeMap<Slot, VarType> {
     let mut varTypes: BTreeMap<Slot, VarType> = BTreeMap::default();
     for (sh, _) in eg.eclass(id).unwrap().nodes.iter() {
+        let sh = eg.getENode(*sh);
         let appIds = sh.applied_id_occurrences();
         for app in &appIds {
             for (i, (from, to)) in app.m.iter().enumerate() {
@@ -472,7 +483,8 @@ synNode {synNode:?}"
             error!("enode {:?}", sh);
             error!("enode children:");
             for child in sh.applied_id_occurrences() {
-                error!("child eclass {:?}", eg.eclass(child.id));
+                // error!("child eclass {:?}", eg.eclass(child.id));
+                error!("child eclass {:?}", eg.dumpEClassStr(child.id));
             }
             panic!("slots is not empty, but varTypes is empty");
         }

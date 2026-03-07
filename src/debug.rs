@@ -1,5 +1,5 @@
 use crate::*;
-use std::fmt::*;
+use std::fmt::{self, *};
 
 use log::info;
 use std::sync::Once;
@@ -100,15 +100,27 @@ impl<L: Language, N: Analysis<L>> Display for EGraph<L, N> {
     }
 }
 
-impl<L: Language, N: Analysis<L>> Debug for EClass<L, N> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        self.dumpEClass(f)
-    }
-}
+// impl<L: Language, N: Analysis<L>> Debug for EClass<L, N> {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+//         self.dumpEClass(f)
+//     }
+// }
 
-impl<L: Language, N: Analysis<L>> Display for EClass<L, N> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        self.dumpEClass(f)
+// impl<L: Language, N: Analysis<L>> Display for EClass<L, N> {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+//         self.dumpEClass(f)
+//     }
+// }
+
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
+    fn dumpEClass<T: fmt::Write>(&self, eclassId: Id, f: &mut T) -> Result {
+        self.eclass(eclassId).unwrap().dumpEClass(f, self)
+    }
+
+    pub fn dumpEClassStr(&self, eclassId: Id) -> String {
+        let mut s = String::new();
+        self.dumpEClass(eclassId, &mut s).unwrap();
+        s
     }
 }
 

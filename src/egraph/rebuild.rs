@@ -1,5 +1,5 @@
 use crate::*;
-use log::{debug, info, trace};
+use log::{debug, error, info, trace};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // proof.l should be i.
@@ -163,6 +163,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // TODO: actually can we parallelize this?
             for (sh, pending_ty) in pending_batch {
                 trace!("deal with pending {sh:?}");
+                // TODO: maybe this doesn't need to be translated to L at all
+                let sh = self.getENode(sh).clone();
                 self.handleSorted(&sh);
                 self.handle_pending(&sh, pending_ty);
             }
@@ -186,13 +188,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn handleSorted(&mut self, sh: &L) {
         debug!("start handleSorted");
         let lenBefore = self.total_number_of_nodes();
-        if self.hashcons.get(&sh).is_none() {
+        let enodeId = self.getENodeId(sh).unwrap();
+        if self.hashcons.get(&enodeId).is_none() {
             return;
         }
 
-        let i = self.hashcons[&sh];
+        let i = self.hashcons[&enodeId];
 
-        let enode = &sh.apply_slotmap(&self.classes[&i].nodes[&sh].elem);
+        let enode = &sh.apply_slotmap(&self.classes[&i].nodes[&enodeId].elem);
         // let enodeBeforeFind = enode;
         let enode = self.find_enode(enode);
         // TODO: this should be blocked in the future
@@ -226,13 +229,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // TODO: this is a hack to make the test pass
         debug!("start handle_pending");
         trace!("handle_pending {sh:?}");
-        if self.hashcons.get(&sh).is_none() {
+        let enodeId = self.getENodeId(sh).unwrap();
+        if self.hashcons.get(&enodeId).is_none() {
             return;
         }
-        let eclassId = self.hashcons[&sh];
+        let eclassId = self.hashcons[&enodeId];
         trace!(
             "eclass {eclassId} at start of handle_pending {:?}",
-            self.eclass(eclassId).unwrap()
+            // self.eclass(eclassId).unwrap()
+            self.dumpEClassStr(eclassId)
         );
 
         /*
@@ -252,7 +257,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         //     return;
         // }
 
-        let psn = self.classes[&eclassId].nodes[&sh].clone();
+        let psn = self.classes[&eclassId].nodes[&enodeId].clone();
         let enode = &sh.apply_slotmap(&psn.elem);
         self.raw_remove_from_class(eclassId, sh.clone());
         let app_i = self.mk_sem_identity_applied_id(eclassId);
@@ -330,7 +335,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         trace!("calling update_analysis sh {sh:?}, i {i:?}, slots {slots:?}");
         let v = N::make(self, sh, slots);
         trace!("sh data {v:#?}");
-        trace!("i eclass {:?} {:?}", i, self.eclass(i).unwrap());
+        // trace!("i eclass {:?} {:?}", i, self.eclass(i).unwrap());
+        trace!("i eclass {:?} {:?}", i, self.dumpEClassStr(i));
 
         // let c = self.classes.get_mut(&i).unwrap();
         // let old = c.analysis_data.clone();
@@ -379,11 +385,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn pc_from_shape(&self, sh: &L) -> ProvenContains<L> {
+        info!("pc_from_shape {sh:?}");
+        let enodeId = self.getENodeId(sh);
+        if enodeId.is_none() {
+            error!("sh {sh:?} does not have enodeId");
+            panic!();
+        }
+        let enodeId = enodeId.unwrap();
         let i = self
             .hashcons
-            .get(&sh)
+            .get(&enodeId)
             .expect("pc_from_shape should only be called if the shape exists in the e-graph!");
-        let c = self.classes[&i].nodes[&sh].src_id;
+        let c = self.classes[&i].nodes[&enodeId].src_id;
 
         // this shall change! Later on we want to deprecate the src-id.
         self.pc_from_src_id(c)

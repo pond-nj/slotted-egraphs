@@ -251,7 +251,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         //     self.classes.get(&to.id).unwrap()
         // );
         let from_nodes = self.classes.get(&from.id).unwrap().nodes.clone();
-        for (sh, psn) in from_nodes {
+        for (shId, psn) in from_nodes {
+            // TODO: maybe this doesn't need to be translated to L at all
+            // Can stay at ENodeId level
+            let sh = self.getENode(shId).clone();
             self.raw_remove_from_class(from.id, sh.clone());
             // if `sh` contains redundant slots, these won't be covered by 'map'.
             // Thus we need compose_fresh.
@@ -261,7 +264,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
             self.raw_add_to_class(to.id, (sh.clone(), new_bij), src_id);
             let oldPendingLen = self.pending.len();
-            self.pending.insert(sh, PendingType::Full);
+            self.pending.insert(shId, PendingType::Full);
             let newPendingLen = self.pending.len();
             debug!("insert to pending len from move_to by {oldPendingLen} to {newPendingLen}");
         }

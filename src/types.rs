@@ -10,6 +10,10 @@ use std::os::raw::c_int;
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Id(pub usize);
 
+/// Ids identify e-nodes.
+#[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
+pub struct ENodeId(pub usize);
+
 /// AppliedIds are invocations of e-classes.
 ///
 /// Recall that in slotted egraphs, e-classes have arguments - and in order to talk about the set of terms in an e-class, you always need to invocate your e-class using a bunch of arguments.
@@ -161,6 +165,7 @@ pub fn canonicalLabelAppIds<'a>(
     // 9(arg) - 11(var)
 
     trace!("canonicalLabelAppIds appIdsVec {appIdsVec:?}");
+    trace!("allPerms {allPerms:?}");
 
     let mut totalV = 0;
     // total number of vertices = sum (1 + nums_function_args) + nums_variables

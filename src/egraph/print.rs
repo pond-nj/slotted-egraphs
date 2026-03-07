@@ -3,7 +3,7 @@ use crate::*;
 use std::{collections::BTreeMap, fmt};
 
 impl<L: Language, N: Analysis<L>> EClass<L, N> {
-    pub fn dumpEClass<T: fmt::Write>(&self, f: &mut T) -> Result {
+    pub fn dumpEClass<T: fmt::Write>(&self, f: &mut T, eg: &EGraph<L, N>) -> Result {
         // if self.nodes.len() == 0 {
         //     write!(f, "\n Empty Eclass")?;
         //     return Ok(());
@@ -22,6 +22,7 @@ impl<L: Language, N: Analysis<L>> EClass<L, N> {
         write!(f, ">> {:?}\n", &self.syn_enode())?;
 
         for (sh, psn) in &self.nodes {
+            let sh = eg.getENode(*sh);
             let node = sh.apply_slotmap(&psn.elem);
 
             #[cfg(feature = "explanations")]

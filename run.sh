@@ -1,5 +1,5 @@
-# RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
-RUST_BACKTRACE=1 cargo test chc::pairingPaperArray::mainTest -- --nocapture &> tmp.txt
+RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
+# RUST_BACKTRACE=1 cargo test chc::pairingPaperArray::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::synchronizedCHC::mainTest -- --nocapture &> tmp.txt
 # RUST_LOG=debug RUST_BACKTRACE=1 cargo test chc::leafDrop::testSortAppId -- --nocapture &> tmp.txt
  
@@ -14,7 +14,7 @@ RUST_BACKTRACE=1 cargo test chc::pairingPaperArray::mainTest -- --nocapture &> t
 # flamegraph -o leafDrop.svg -- target/debug/deps/entry-aafa1e403367dd3e --nocapture chc::leafDrop::mainTest
 
 
-# RUST_BACKTRACE=1 cargo test lambda::native::y_identity &> tmp.txt
+# RUST_BACKTRACE=1 cargo test arith::tst::t1 &> tmp.txt
 
 # rust-gdb target/debug/deps/entry-38a92d690cfd6aa3
 # set args --test entry --nocapture lambda::native::y_identity

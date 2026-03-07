@@ -24,8 +24,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     #[cfg(feature = "newShape")]
     pub fn shape(&self, eOrig: &L) -> (L, Bijection) {
-        trace!("call shape {eOrig:?}");
+        trace!("call shape eOrig: {eOrig:?}");
         let e = self.find_enode(eOrig);
+        trace!("call shape eOrig find {e:?}");
 
         let childrenType = e.getChildrenType();
         if childrenType.contains(&LanguageChildrenType::Bind) {
@@ -38,6 +39,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .into_iter()
             .map(|x| (*x).clone())
             .collect();
+        trace!("appIds {appIds:?}");
 
         if appIds.len() == 0 {
             trace!(

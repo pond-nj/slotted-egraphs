@@ -65,14 +65,14 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     pub(crate) classes: BTreeMap<Id, EClass<L, N>>,
 
     // For each shape contained in the EGraph, maps to the EClass that contains it.
-    hashcons: BTreeMap<L, Id>,
+    hashcons: BTreeMap<ENodeId, Id>,
 
     // For each (syn_slotset applied) non-normalized (i.e. "syntactic") weak shape, find the e-class who has this as syn_enode.
     // TODO remove this if explanations are disabled.
-    syn_hashcons: BTreeMap<L, AppliedId>,
+    syn_hashcons: BTreeMap<ENodeId, AppliedId>,
 
     // E-Nodes that need to be re-processed, stored as shapes.
-    pending: BTreeMap<L, PendingType>,
+    pending: BTreeMap<ENodeId, PendingType>,
 
     // TODO remove this if explanations are disabled.
     pub(crate) proof_registry: ProofRegistry,
@@ -84,6 +84,9 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     // N::modify(_) will be run on these classes.
     // We delay handling modify so that all invariants can be rebuild again, first.
     modify_queue: Vec<Id>,
+
+    enodes: Vec<L>,
+    enodeWeakShape: BTreeMap<L, ENodeId>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -116,6 +119,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             subst_method: Some(S::new_boxed()),
             analysis,
             modify_queue: Vec::new(),
+            enodes: Vec::new(),
+            enodeWeakShape: BTreeMap::new(),
         }
     }
 
@@ -124,6 +129,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let c = self.eclass(id).unwrap();
         let mut totalSlots = BTreeSet::default();
         for (sh, psn) in &c.nodes {
+            let sh = self.getENode(*sh).clone();
             let node = sh.apply_slotmap(&psn.elem);
             totalSlots.extend(node.slots().into_iter());
         }
@@ -164,22 +170,22 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // }
 
     // get node with this shape using the eclass appId
-    pub fn getNode(&self, eclassAppId: &AppliedId, node: &L) -> L {
-        let eclass = self.eclass(eclassAppId.id).unwrap();
-        debug!("eclass {:?}", eclass);
+    // pub fn getNode(&self, eclassAppId: &AppliedId, node: &L) -> L {
+    //     let eclass = self.eclass(eclassAppId.id).unwrap();
+    //     debug!("eclass {:?}", eclass);
 
-        // update node
-        let node = self.find_enode(node);
+    //     // update node
+    //     let node = self.find_enode(node);
 
-        let (sh, _) = node.weak_shape();
-        let Some(eclassNode) = eclass.nodes.get(&sh) else {
-            panic!("node {node:?} not found in {eclass:#?}");
-        };
-        let l = sh.apply_slotmap(&eclassNode.elem);
-        debug!("before apply_slotmap_intersect {l:?}");
-        debug!("eclassAppId.m {:#?}", eclassAppId.m);
-        l.apply_slotmap_partial(&eclassAppId.m)
-    }
+    //     let (sh, _) = node.weak_shape();
+    //     let Some(eclassNode) = eclass.nodes.get(&sh) else {
+    //         panic!("node {node:?} not found in {eclass:#?}");
+    //     };
+    //     let l = sh.apply_slotmap(&eclassNode.elem);
+    //     debug!("before apply_slotmap_intersect {l:?}");
+    //     debug!("eclassAppId.m {:#?}", eclassAppId.m);
+    //     l.apply_slotmap_partial(&eclassAppId.m)
+    // }
 
     pub fn enodes(&self, i: Id) -> BTreeSet<L> {
         // We prevent this, as otherwise the output will have wrong slots.
@@ -188,7 +194,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.classes[&i]
             .nodes
             .iter()
-            .map(|(x, psn)| x.apply_slotmap(&psn.elem))
+            .map(|(x, psn)| {
+                let x = self.getENode(*x);
+                x.apply_slotmap(&psn.elem)
+            })
             .collect()
     }
 
@@ -201,12 +210,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut result = Vec::with_capacity(class.nodes.len());
         if class.nodes.len() == 0 {
             error!("class.nodes is empty");
-            error!("class {}: {:?}", i.id, class);
+            error!("class {}: {:?}", i.id, self.dumpEClassStr(i.id));
             error!("unionfind {} -> {:?}", i.id, self.unionfind_get(i.id));
             assert!(class.nodes.len() > 0);
         }
 
         for (x, psn) in &class.nodes {
+            let x = self.getENode(*x);
             let mut x = x.apply_slotmap(&psn.elem);
 
             // (Pond) Create a mapping of unfound slots (of this enode) in eclass slots to fresh slots.
@@ -320,9 +330,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // The resulting e-nodes are written as they exist in the e-class.
     pub(crate) fn usages(&self, i: Id) -> Vec<L> {
         let mut out = Vec::new();
-        for x in self.classes[&i].usages() {
+        for enodeId in self.classes[&i].usages() {
+            let x = &self.getENode(*enodeId);
             let j = self.lookup(x).unwrap().id;
-            let bij = &self.classes[&j].nodes[&x].elem;
+            let bij = &self.classes[&j].nodes[enodeId].elem;
             let x = x.apply_slotmap(bij);
             out.push(x);
         }
@@ -376,7 +387,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     #[allow(unused)]
     fn getENodeExprRecur<'a>(
-        self: &'a Self,
+        self: &Self,
         enode: &L,
         map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
         calls: &'a mut BTreeMap<Id, usize>,
@@ -399,7 +410,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     fn getSynExprRecur<'a>(
-        self: &'a Self,
+        self: &Self,
         i: &AppliedId,
         map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
         calls: &mut BTreeMap<Id, usize>,
@@ -428,7 +439,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn getSynExpr<'a>(
-        self: &'a Self,
+        self: &Self,
         i: &Id,
         map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
         calls: &mut BTreeMap<Id, usize>,
@@ -472,7 +483,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     /// Returns the canonical e-node corresponding to `i`.
     pub fn get_syn_node(&self, i: &AppliedId) -> L {
-        let syn_enode = &self.classes[&i.id].syn_enode();
+        let syn_enode = self.classes[&i.id].syn_enode();
         let syn = self.find_enode(syn_enode);
 
         let _syn_slots = syn.slots();

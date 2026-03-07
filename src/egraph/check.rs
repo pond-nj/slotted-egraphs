@@ -71,7 +71,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // Checks whether the hashcons / usages are correct.
         // And also checks that each Shape comes up in at most one EClass!
         let mut hashcons = BTreeMap::default();
-        let mut usages = BTreeMap::default();
+        let mut usages: BTreeMap<Id, BTreeSet<ENodeId>> = BTreeMap::default();
 
         for (i, _) in &self.classes {
             usages.insert(*i, BTreeSet::default());
@@ -110,7 +110,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 assert!(!hashcons.contains_key(sh));
                 hashcons.insert(sh.clone(), *i);
 
-                for ref_id in sh.ids() {
+                for ref_id in self.getENode(*sh).ids() {
                     usages.get_mut(&ref_id).unwrap().insert(sh.clone());
                 }
             }
@@ -163,10 +163,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // Check that all ENodes are valid.
         for (cid, c) in &self.classes {
             for (sh, ProvenSourceNode { elem: bij, .. }) in &c.nodes {
+                let sh = &self.getENode(*sh).clone();
                 let real = sh.apply_slotmap(bij);
                 assert!(real.slots().is_superset(&c.slots));
 
-                if self.pending.get(&sh) == Some(&PendingType::Full) {
+                if self.pending.get(&self.getENodeId(&sh).unwrap()) == Some(&PendingType::Full) {
                     continue;
                 }
 
@@ -211,7 +212,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                         perm
                     );
                     error!("all perms {:?}", c.group().all_perms());
-                    error!("eclass {cid} {:?}", c);
+                    error!("eclass {cid} {:?}", self.dumpEClassStr(*cid));
                     error!("c.group {:?}", c.group());
                     error!("");
                 }

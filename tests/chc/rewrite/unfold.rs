@@ -185,12 +185,19 @@ pub fn prepareUnfold(
                         new2AppId: new2AppId.clone(),
                     });
                 }
+                //                 assert!(
+                //                     unfoldedFromThisEClass.len() > 0,
+                //                     "fromThisEClassRecipe is empty
+                // eclass {}: {:?}",
+                //                     new2AppId.id,
+                //                     eg.eclass(new2AppId.id)
+                //                 );
                 assert!(
                     unfoldedFromThisEClass.len() > 0,
                     "fromThisEClassRecipe is empty
 eclass {}: {:?}",
                     new2AppId.id,
-                    eg.eclass(new2AppId.id)
+                    eg.dumpEClassStr(new2AppId.id)
                 );
 
                 unfoldedResults.push(unfoldedFromThisEClass);
@@ -511,9 +518,15 @@ pub fn unfoldApplyInternal(
         "unfolding {compose2AppId} (index {new1ReplaceIdx}) in {} under {compose1AppId}",
         new1AppId.id
     );
-    trace!("root compose eclass {:?}", eg.eclass(compose1AppId.id));
-    trace!("new1EClass eclass {:?}", eg.eclass(new1AppId.id));
-    trace!("used eclass {:?}", eg.eclass(compose2AppId.id));
+    // trace!("root compose eclass {:?}", eg.eclass(compose1AppId.id));
+    // trace!("new1EClass eclass {:?}", eg.eclass(new1AppId.id));
+    // trace!("used eclass {:?}", eg.eclass(compose2AppId.id));
+    trace!(
+        "root compose eclass {:?}",
+        eg.dumpEClassStr(compose1AppId.id)
+    );
+    trace!("new1EClass eclass {:?}", eg.dumpEClassStr(new1AppId.id));
+    trace!("used eclass {:?}", eg.dumpEClassStr(compose2AppId.id));
 
     if *createOrMerge == UnfoldOpType::UnfoldCreateOnly {
         assert_eq!(compose1Children, &vec![].into());
