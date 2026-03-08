@@ -174,14 +174,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 self.check();
             }
         }
-        info!("end pending loops");
+        trace!("end pending loops");
 
-        info!("start modify_queue");
+        trace!("start modify_queue");
         while let Some(i) = self.modify_queue.pop() {
             let i = self.find_id(i);
             N::modify(self, i);
         }
-        info!("end modify_queue");
+        trace!("end modify_queue");
         println!("done rebuild");
     }
 
@@ -206,7 +206,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         assert_eq!(app_i, self.find_applied_id(&app_i));
 
         let sortedENode = enode.sorted();
-        let lookupSortedRes = self.lookup_internal(&self.shape(&sortedENode));
+        let enodeShape = &self.shape(&sortedENode);
+        let _ = self.getOrAddENodeId(enodeShape.0.clone());
+        let lookupSortedRes = self.lookup_internal(enodeShape);
         if lookupSortedRes.is_some() && lookupSortedRes.unwrap() != app_i {
             // println!("eclass {:?}", self.eclass(app_i.id));
             // println!("enode before find {:?}", enodeBeforeFind);
@@ -257,7 +259,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         //     return;
         // }
 
+        trace!("handle pending sh {sh:?}");
+        trace!("handle_pending eclassId {eclassId:?}");
         let psn = self.classes[&eclassId].nodes[&enodeId].clone();
+        trace!("psn {psn:?}");
         let enode = &sh.apply_slotmap(&psn.elem);
         self.raw_remove_from_class(eclassId, sh.clone());
         let app_i = self.mk_sem_identity_applied_id(eclassId);
@@ -276,18 +281,25 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             findAppId = self.find_applied_id(&findAppId);
         }
 
-        let t = self.shape(&enode);
+        let enodeShape = self.shape(&enode);
 
         // upwards merging found a match!
         // if there's another Enode in Egraph already
-        let lookupRes = self.lookup_internal(&t);
+        trace!("call lookup_internal with enodeShape {enodeShape:?}");
+        let _ = self.getOrAddENodeId(enodeShape.0.clone());
+        let lookupRes = self.lookup_internal(&enodeShape);
         if lookupRes.is_some() {
-            self.handle_congruence(self.pc_from_src_id(src_id));
+            let pc = self.pc_from_src_id(src_id);
+            trace!(
+                "call handle_congruence with {:?}",
+                pc.node.elem.weak_shape().0
+            );
+            self.handle_congruence(pc);
             debug!("end handle_pending by congruence");
             return;
         }
 
-        let (sh, bij) = t;
+        let (sh, bij) = enodeShape;
         let mut m = findAppId.m.inverse();
 
         for x in bij.values_set() {
@@ -379,26 +391,33 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // upon touching an e-class, you need to update all usages of it.
     pub(crate) fn touched_class(&mut self, i: Id, pending_ty: PendingType) {
         for sh in self.classes[&i].usages() {
+            if i == Id(46957) {
+                println!(
+                    "touched_class: 46957 usage enodeId {sh:?}, enode {:?}",
+                    self.getENode(*sh)
+                );
+            }
             let v = self.pending.entry(sh.clone()).or_insert(pending_ty);
             *v = v.merge(pending_ty);
         }
     }
 
     pub(crate) fn pc_from_shape(&self, sh: &L) -> ProvenContains<L> {
-        info!("pc_from_shape {sh:?}");
-        let enodeId = self.getENodeId(sh);
-        if enodeId.is_none() {
-            error!("sh {sh:?} does not have enodeId");
-            panic!();
-        }
-        let enodeId = enodeId.unwrap();
+        trace!("pc_from_shape input {sh:?}");
+        let enodeId = self
+            .getENodeId(sh)
+            .expect("sh {sh:?} does not have enodeId");
         let i = self
             .hashcons
             .get(&enodeId)
             .expect("pc_from_shape should only be called if the shape exists in the e-graph!");
         let c = self.classes[&i].nodes[&enodeId].src_id;
 
+        trace!("pc_from_shape hashcons points to {c}");
+
         // this shall change! Later on we want to deprecate the src-id.
-        self.pc_from_src_id(c)
+        let ret = self.pc_from_src_id(c);
+        trace!("pc_from_shape ret {ret:?}");
+        ret
     }
 }

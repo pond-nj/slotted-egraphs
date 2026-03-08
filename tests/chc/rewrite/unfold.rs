@@ -123,6 +123,7 @@ pub fn prepareUnfold(
     let and1Children = getAnyAndChildren(&cond1, eg);
     for (new1ReplaceIdx, compose2AppId) in new1Children.iter().enumerate() {
         let compose2AppId = compose2AppId.getAppliedId();
+        let compsoe2AppId = eg.find_applied_id(&compose2AppId);
         let compose2ENodes = eg.enodes_applied(&compose2AppId);
         trace!("unfoldSearch compose2ENodes {compose2ENodes:?}");
         assert!(

@@ -119,13 +119,14 @@ impl SlotMap {
         self.is_bijection() && self.keys_set() == self.values_set()
     }
 
-    #[track_caller]
     pub fn compose(&self, other: &SlotMap) -> SlotMap {
         if CHECKS {
             assert_eq!(
                 self.values_set(),
                 other.keys_set(),
-                "SlotMap::compose() failed!"
+                "SlotMap::compose() failed! {:?} {:?}",
+                self,
+                other
             );
         }
 

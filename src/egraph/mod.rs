@@ -187,6 +187,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     //     l.apply_slotmap_partial(&eclassAppId.m)
     // }
 
+    pub fn setHashcons(&mut self, enodeId: ENodeId, id: Id) {
+        self.hashcons.insert(enodeId, id);
+    }
+
+    pub fn getHashcons(&self, enodeId: ENodeId) -> Option<Id> {
+        self.hashcons.get(&enodeId).cloned()
+    }
+
     pub fn enodes(&self, i: Id) -> BTreeSet<L> {
         // We prevent this, as otherwise the output will have wrong slots.
         assert!(self.is_alive(i), "Can't access e-nodes of dead class");
@@ -208,12 +216,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let class_slots = &class.slots;
 
         let mut result = Vec::with_capacity(class.nodes.len());
-        if class.nodes.len() == 0 {
-            error!("class.nodes is empty");
-            error!("class {}: {:?}", i.id, self.dumpEClassStr(i.id));
-            error!("unionfind {} -> {:?}", i.id, self.unionfind_get(i.id));
-            assert!(class.nodes.len() > 0);
-        }
+        assert!(
+            class.nodes.len() > 0,
+            "{:?}
+class.nodes is empty
+class {}: {:?}
+unionfind {} -> {:?}
+",
+            self,
+            i.id,
+            self.dumpEClassStr(i.id),
+            i.id,
+            self.unionfind_get(i.id)
+        );
 
         for (x, psn) in &class.nodes {
             let x = self.getENode(*x);

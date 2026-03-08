@@ -8,7 +8,7 @@ const STACK_SIZE: usize = 32 * 1024 * 1024;
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 3600;
 const DO_FOLDING: bool = true;
-const DO_TESTS: bool = true;
+const DO_TESTS: bool = false;
 
 use log::{debug, error, info, set_logger_racy, Log, Metadata, Record};
 

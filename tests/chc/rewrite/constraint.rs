@@ -330,7 +330,8 @@ fn newEClassFromEqMapping(
         let updatedChildENode = childENode.apply_slotmap_partial(&eqMapping);
         // TODO: do we need speedup here?
         // TODO: what's the effected of this statement?
-        let lookupRes = eg.lookup(&updatedChildENode);
+
+        let lookupRes = eg.lookupMut(&updatedChildENode);
         if lookupRes.is_some() {
             updatedChild = lookupRes;
             break;

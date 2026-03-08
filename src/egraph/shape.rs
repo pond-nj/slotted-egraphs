@@ -23,15 +23,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     #[cfg(feature = "newShape")]
-    pub fn shape(&self, eOrig: &L) -> (L, Bijection) {
-        trace!("call shape eOrig: {eOrig:?}");
+    // TODO: it seems for some reason this function changes depends on the input slots
+    // like even if the weak shape is the same, it can output two different stuffs
+    pub fn shape(&self, eOrigOrig: &L) -> (L, Bijection) {
+        trace!("call shape eOrig: {:?}", eOrigOrig);
+        let (eOrig, origBij) = eOrigOrig.weak_shape();
+        let eOrig = &eOrig;
         let e = self.find_enode(eOrig);
         trace!("call shape eOrig find {e:?}");
 
         let childrenType = e.getChildrenType();
         if childrenType.contains(&LanguageChildrenType::Bind) {
-            trace!("ret shape {eOrig:?}");
-            return self.orig_shape(eOrig);
+            trace!("change to call orig_shape {eOrig:?}");
+            let ret = self.orig_shape(eOrigOrig);
+            trace!("shape of {:?} ret {:?}", eOrigOrig, ret);
+            return ret;
         }
 
         let appIds: Vec<AppliedId> = e
@@ -48,7 +54,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 e.orig_weak_shape().1
             );
             trace!("ret shape {eOrig:?}");
-            return e.orig_weak_shape();
+            let ret = e.orig_weak_shape();
+            let ret = (ret.0, ret.1.compose(&origBij));
+            trace!("shape of {:?} ret {:?}", eOrigOrig, ret);
+            return ret;
         }
         let allPerms: Vec<Vec<ProvenPerm>> = appIds
             .iter()
@@ -132,8 +141,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         trace!("bij {bij:?}");
         let res = slotsToNewIdx.composePartial(&bij.inverse()).inverse();
         trace!("res {res:?}");
-        trace!("ret shape {eOrig:?}");
-        (eNewWS, res)
+        let ret = 
+        // (eNewWS, res)
+        (eNewWS, res.compose(&origBij));
+        trace!("shape of {:?} ret {:?}", eOrigOrig, ret);
+        ret
     }
 
     #[allow(unused)]

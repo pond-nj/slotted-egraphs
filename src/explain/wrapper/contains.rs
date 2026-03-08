@@ -1,4 +1,4 @@
-use log::trace;
+use log::{info, trace};
 
 use crate::*;
 
@@ -51,6 +51,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(crate) fn refl_pc(&self, i: Id) -> ProvenContains<L> {
         let identity = self.mk_syn_identity_applied_id(i);
         let n = self.get_syn_node(&identity);
+        trace!("refl_pc {i} -> syn node {:?}", n.weak_shape().0);
 
         ProvenContains {
             node: self.refl_pn(&n),
@@ -60,16 +61,20 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // get smallest weak shape of syn node
     // call find + shape on syn node
-    pub(crate) fn pc_from_src_id(&self, i: Id) -> ProvenContains<L> {
-        trace!("pc_from_src_id {i}");
-        self.pc_find(&self.refl_pc(i))
+    pub(crate) fn pc_from_src_id(&self, id: Id) -> ProvenContains<L> {
+        trace!("pc_from_src_id {id}");
+        let ret = self.pc_find(&self.refl_pc(id));
+        trace!("pc_from_src_id ret {ret:?}");
+        ret
     }
 
     // "finds" both the node & the id to be "up-to-date".
     // get smallest weak shape
     pub(crate) fn pc_find(&self, pc: &ProvenContains<L>) -> ProvenContains<L> {
         // println!("call pc_find {pc:?}");
+        trace!("pc.node.elem {:?}", pc.node.elem.weak_shape().0);
         let sh = self.shape(&pc.node.elem);
+        trace!("pc_find sh {sh:?}");
         ProvenContains {
             // node: self.proven_proven_pre_shape(&pc.node),
             node: ProvenNode {
