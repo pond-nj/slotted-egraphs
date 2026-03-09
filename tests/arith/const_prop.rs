@@ -38,7 +38,7 @@ impl Analysis<Arith> for ConstProp {
 
     fn modify(eg: &mut EGraph<Arith, Self>, i: Id) {
         if let Some(x) = eg.analysis_data(i) {
-            let a = eg.add(Arith::Number(*x));
+            let a = eg.add(&Arith::Number(*x));
             eg.union(&a, &eg.mk_identity_applied_id(i));
         }
     }

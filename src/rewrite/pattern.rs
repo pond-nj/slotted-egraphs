@@ -136,7 +136,7 @@ fn pattern_substInternal<L: Language, N: Analysis<L>>(
             for i in 0..refs.len() {
                 *(refs[i]) = pattern_substInternal(eg, &children[i], subst);
             }
-            eg.add_syn(n)
+            eg.add_syn(&n)
         }
         Pattern::PVar(v) => subst
             .get(v)

@@ -78,24 +78,24 @@ fn step(x: Slot, t: AppliedId, b: &Lambda, eg: &mut EGraph<Lambda>) -> AppliedId
         Lambda::Var(_) => t,
         Lambda::App(l, r) => {
             let mut pack = |lr: &AppliedId| {
-                let a1 = eg.add(Lambda::Lam(Bind {
+                let a1 = eg.add(&Lambda::Lam(Bind {
                     slot: x,
                     elem: lr.clone(),
                 }));
-                let a2 = eg.add(Lambda::App(a1, t.clone()));
+                let a2 = eg.add(&Lambda::App(a1, t.clone()));
                 a2
             };
             let l = pack(l);
             let r = pack(r);
-            eg.add(Lambda::App(l, r))
+            eg.add(&Lambda::App(l, r))
         }
         Lambda::Lam(Bind { slot: y, elem: bb }) => {
-            let a1 = eg.add(Lambda::Lam(Bind {
+            let a1 = eg.add(&Lambda::Lam(Bind {
                 slot: x,
                 elem: bb.clone(),
             }));
-            let a2 = eg.add(Lambda::App(a1, t.clone()));
-            let a3 = eg.add(Lambda::Lam(Bind { slot: *y, elem: a2 }));
+            let a2 = eg.add(&Lambda::App(a1, t.clone()));
+            let a3 = eg.add(&Lambda::Lam(Bind { slot: *y, elem: a2 }));
             a3
         }
         Lambda::Let(..) => panic!(),

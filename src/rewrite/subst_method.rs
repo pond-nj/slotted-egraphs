@@ -77,7 +77,7 @@ fn do_term_subst<L: Language, N: Analysis<L>>(
     for i in 0..refs.len() {
         *(refs[i]) = do_term_subst(eg, &re.children[i], x, t);
     }
-    let app_id = eg.add_syn(n);
+    let app_id = eg.add_syn(&n);
 
     if app_id == *x {
         return t.clone();

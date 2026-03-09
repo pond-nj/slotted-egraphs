@@ -49,12 +49,12 @@ fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> OrderVec<AppliedIdOrS
 
 fn getVarAppId(s: Slot, vt: VarType, eg: &mut CHCEGraph) -> AppliedId {
     match vt {
-        VarType::Int => eg.add(CHC::IntType(s)),
-        VarType::Node => eg.add(CHC::NodeType(s)),
+        VarType::Int => eg.add(&CHC::IntType(s)),
+        VarType::Node => eg.add(&CHC::NodeType(s)),
         VarType::Unknown => {
             todo!()
         }
-        VarType::List => eg.add(CHC::ListType(s)),
+        VarType::List => eg.add(&CHC::ListType(s)),
     }
 }
 
@@ -315,7 +315,7 @@ fn functionalityTransformation(
                         let varType = varTypes.get(&outputGroup[i]).unwrap().clone();
                         let var = getVarAppId(outputGroup[i], varType, eg);
 
-                        let eqId = eg.add(CHC::Eq(firstGroupVar, var));
+                        let eqId = eg.add(&CHC::Eq(firstGroupVar, var));
                         newAndChildren.push(AppliedIdOrStar::AppliedId(eqId));
                     }
 
@@ -336,7 +336,7 @@ fn functionalityTransformation(
 
             let (updatedNewENode, newAnd, newAndAppId) =
                 sortNewENode2(&syntax, &newAndChildren, &newUnfoldedChildren, eg);
-            let updatedNewENodeAppId = eg.add(updatedNewENode.clone());
+            let updatedNewENodeAppId = eg.add(&updatedNewENode.clone());
             checkVarType!(&updatedNewENodeAppId, eg);
 
             checkNewENode!(updatedNewENode, eg);
@@ -398,10 +398,10 @@ fn createSortedDefinedNewENode(
             .map(|s| getVarAppId(s, varTypes[&s].clone(), eg))
             .collect::<Vec<_>>();
         let syntaxENode = CHC::PredSyntax(children.into());
-        eg.add(syntaxENode)
+        eg.add(&syntaxENode)
     };
 
-    let cond = eg.add(CHC::And(vec![].into()));
+    let cond = eg.add(&CHC::And(vec![].into()));
 
     (
         syntaxAppId.clone(),
@@ -441,6 +441,7 @@ pub fn sortNewENode1(
     )
 }
 
+// TODO: cache the result here?
 pub fn sortNewENode2(
     syntaxAppId: &AppliedId,
     condChildren: &OrderVec<AppliedIdOrStar>,
@@ -468,7 +469,7 @@ pub fn sortNewENode2(
         .collect();
 
     let condENode = CHC::And(sortedCondChildren.clone().into());
-    let condAppId = eg.add(condENode.clone());
+    let condAppId = eg.add(&condENode);
 
     trace!("add condENode {condENode:?} to condAppId {condAppId:?}");
     trace!("result eclass {:?}", eg.dumpEClassStr(condAppId.id));

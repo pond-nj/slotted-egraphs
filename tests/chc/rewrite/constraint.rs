@@ -53,7 +53,7 @@ pub fn expandEqRewrite(
                 }
 
                 let eqChild = CHC::Eq(group[i].clone(), group[j].clone());
-                let eqChildAppId = eg.add(eqChild);
+                let eqChildAppId = eg.add(&eqChild);
                 checkVarType!(&eqChildAppId, eg);
                 newConstraintChildren.insert(AppliedIdOrStar::AppliedId(eqChildAppId));
             }
@@ -143,19 +143,19 @@ pub fn constructorEqRewrite(
             for (val, l, r) in nodeFromChild1 {
                 for (val2, l2, r2) in nodeFromChild2.clone() {
                     if val != val2 {
-                        let newEqAppId = eg.add(CHC::Eq(val.clone(), val2));
+                        let newEqAppId = eg.add(&CHC::Eq(val.clone(), val2));
                         checkVarType!(&newEqAppId, eg);
                         andChildren.insert(AppliedIdOrStar::AppliedId(newEqAppId));
                     }
 
                     if l != l2 {
-                        let newEqAppId = eg.add(CHC::Eq(l.clone(), l2));
+                        let newEqAppId = eg.add(&CHC::Eq(l.clone(), l2));
                         checkVarType!(&newEqAppId, eg);
                         andChildren.insert(AppliedIdOrStar::AppliedId(newEqAppId));
                     }
 
                     if r != r2 {
-                        let newEqAppId = eg.add(CHC::Eq(r.clone(), r2));
+                        let newEqAppId = eg.add(&CHC::Eq(r.clone(), r2));
                         checkVarType!(&newEqAppId, eg);
                         andChildren.insert(AppliedIdOrStar::AppliedId(newEqAppId));
                     }
@@ -337,7 +337,7 @@ fn newEClassFromEqMapping(
             break;
         }
 
-        let newUpdatedChild = eg.add(updatedChildENode);
+        let newUpdatedChild = eg.add(&updatedChildENode);
         // if lookupRes.is_some() {
         //     assert!(lookupRes.unwrap() == newUpdatedChild);
         // }
@@ -389,7 +389,7 @@ pub fn rewriteConstraintFromEqMapping(
         }
 
         if skip {
-            let trueId = eg.add(CHC::True());
+            let trueId = eg.add(&CHC::True());
             eg.union_justified(&trueId, &updatedChild, Some("selfEq".to_owned()));
 
             continue;
@@ -462,7 +462,7 @@ pub fn dedupFromEqRewrite(
             constrAppId.id, newENodeAppId.id
         ));
 
-    let updatedNewAppId = eg.add(updatedNew.clone());
+    let updatedNewAppId = eg.add(&updatedNew.clone());
 
     eg.union_justified(
         &newENodeAppId,

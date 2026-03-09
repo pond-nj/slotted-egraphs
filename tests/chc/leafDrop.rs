@@ -291,6 +291,7 @@ fn mainTestSpawn() {
     let mut count = 0;
     let doConstraintRewrite = true;
     let (rootId, mut runner) = buildLeafDropCHC(egOrig, &mut count);
+    dumpAndExprSMT("tests/chc/smt/leafDrop", &runner.egraph);
     if DO_TESTS {
         checkSelfCycle(&runner.egraph);
         let (unfold1, unfold2, unfold3, newDefineComposeId) =

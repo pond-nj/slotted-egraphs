@@ -189,11 +189,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         debug!("start handleSorted");
         let lenBefore = self.total_number_of_nodes();
         let enodeId = self.getENodeId(sh).unwrap();
-        if self.hashcons.get(&enodeId).is_none() {
+        if self.getHashcons(enodeId).is_none() {
             return;
         }
 
-        let i = self.hashcons[&enodeId];
+        let i = self.getHashcons(enodeId).unwrap();
 
         let enode = &sh.apply_slotmap(&self.classes[&i].nodes[&enodeId].elem);
         // let enodeBeforeFind = enode;
@@ -206,16 +206,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         assert_eq!(app_i, self.find_applied_id(&app_i));
 
         let sortedENode = enode.sorted();
-        let enodeShape = &self.shape(&sortedENode);
-        let _ = self.getOrAddENodeId(enodeShape.0.clone());
-        let lookupSortedRes = self.lookup_internal(enodeShape);
+        let (enodeShape, bij) = self.shape(&sortedENode);
+        let enodeShapeId = self.getOrAddENodeId(&enodeShape);
+        let lookupSortedRes = self.lookup_internal((enodeShapeId, bij));
         if lookupSortedRes.is_some() && lookupSortedRes.unwrap() != app_i {
             // println!("eclass {:?}", self.eclass(app_i.id));
             // println!("enode before find {:?}", enodeBeforeFind);
             // println!("enode before sort {:?}", enode);
             // println!("enode after sort {:?}", sortedENode);
             // println!("app_i {:?}", app_i);
-            let afterSortedAppId = self.add(sortedENode.clone());
+            let afterSortedAppId = self.add(&sortedENode);
             // assert_ne!(enode, *enodeBeforeFind);
             self.union_justified(
                 &app_i,
@@ -228,14 +228,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     fn handle_pending(&mut self, sh: &L, _pending_ty: PendingType) {
-        // TODO: this is a hack to make the test pass
         debug!("start handle_pending");
         trace!("handle_pending {sh:?}");
         let enodeId = self.getENodeId(sh).unwrap();
-        if self.hashcons.get(&enodeId).is_none() {
+        if self.getHashcons(enodeId).is_none() {
             return;
         }
-        let eclassId = self.hashcons[&enodeId];
+        let eclassId = self.getHashcons(enodeId).unwrap();
         trace!(
             "eclass {eclassId} at start of handle_pending {:?}",
             // self.eclass(eclassId).unwrap()
@@ -250,8 +249,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
         */
 
-        // (Pond) update analysis first but then might remove this node later?????, why???
-        // debug!("Eclass {:?}", self.eclass(i).unwrap());
         // self.update_analysis(&sh, i);
 
         // if let PendingType::OnlyAnalysis = pending_ty {
@@ -264,7 +261,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let psn = self.classes[&eclassId].nodes[&enodeId].clone();
         trace!("psn {psn:?}");
         let enode = &sh.apply_slotmap(&psn.elem);
-        self.raw_remove_from_class(eclassId, sh.clone());
+        self.raw_remove_from_class(eclassId, enodeId);
         let app_i = self.mk_sem_identity_applied_id(eclassId);
 
         let src_id = psn.src_id;
@@ -281,13 +278,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             findAppId = self.find_applied_id(&findAppId);
         }
 
-        let enodeShape = self.shape(&enode);
+        let (enodeShape, enodeShapeBij) = self.shape(&enode);
 
         // upwards merging found a match!
         // if there's another Enode in Egraph already
         trace!("call lookup_internal with enodeShape {enodeShape:?}");
-        let _ = self.getOrAddENodeId(enodeShape.0.clone());
-        let lookupRes = self.lookup_internal(&enodeShape);
+        let enodeShapeId = self.getOrAddENodeId(&enodeShape);
+        let lookupRes = self.lookup_internal((enodeShapeId, enodeShapeBij.clone()));
         if lookupRes.is_some() {
             let pc = self.pc_from_src_id(src_id);
             trace!(
@@ -299,7 +296,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             return;
         }
 
-        let (sh, bij) = enodeShape;
+        let bij = enodeShapeBij;
+
         let mut m = findAppId.m.inverse();
 
         for x in bij.values_set() {
@@ -310,17 +308,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         trace!("app_i {app_i:?}");
         trace!("bij {bij:?}");
         trace!("m {m:?}");
-        let bij = bij.compose(&m);
-        let t = (sh.clone(), bij.clone());
+        let bijNew = bij.compose(&m);
 
         trace!("i.id {}", findAppId.id);
         trace!("app_i.id {}", app_i.id);
 
-        self.raw_add_to_class(findAppId.id, t.clone(), src_id);
+        self.raw_add_to_class(findAppId.id, (enodeShapeId, bijNew.clone()), src_id);
 
         trace!("app_i.m {:?}", app_i.m);
-        trace!("bij {:?}", bij);
-        trace!("sh {:?}", sh);
 
         // self.update_analysis(
         //     &sh,
@@ -333,7 +328,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // );
 
         self.update_analysis(
-            &sh.apply_slotmap(&bij),
+            &enodeShape.apply_slotmap(&bijNew),
             findAppId.id,
             &findAppId.slots().into(),
         );
@@ -391,12 +386,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // upon touching an e-class, you need to update all usages of it.
     pub(crate) fn touched_class(&mut self, i: Id, pending_ty: PendingType) {
         for sh in self.classes[&i].usages() {
-            if i == Id(46957) {
-                println!(
-                    "touched_class: 46957 usage enodeId {sh:?}, enode {:?}",
-                    self.getENode(*sh)
-                );
-            }
+            // if i == Id(46957) {
+            //     println!(
+            //         "touched_class: 46957 usage enodeId {sh:?}, enode {:?}",
+            //         self.getENode(*sh)
+            //     );
+            // }
             let v = self.pending.entry(sh.clone()).or_insert(pending_ty);
             *v = v.merge(pending_ty);
         }
@@ -408,8 +403,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .getENodeId(sh)
             .expect("sh {sh:?} does not have enodeId");
         let i = self
-            .hashcons
-            .get(&enodeId)
+            .getHashcons(enodeId)
             .expect("pc_from_shape should only be called if the shape exists in the e-graph!");
         let c = self.classes[&i].nodes[&enodeId].src_id;
 

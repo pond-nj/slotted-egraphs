@@ -206,10 +206,10 @@ pub fn defineUnfoldFold(
                                         .map(|s| getVarAppId(s, mergeVarTypes[&s].clone(), eg))
                                         .collect::<Vec<_>>();
                                     let syntaxENode = CHC::PredSyntax(children.into());
-                                    eg.add(syntaxENode)
+                                    eg.add(&syntaxENode)
                                 };
 
-                                let cond = eg.add(CHC::And(vec![].into()));
+                                let cond = eg.add(&CHC::And(vec![].into()));
                                 CHC::New(syntaxAppId, cond, sortedNewBody.clone().into())
                             };
 
@@ -317,7 +317,7 @@ pub fn defineUnfoldFold(
                             eg,
                         );
                         debug!("foldedNewENode {foldedNewENode:?}");
-                        let foldedAppId = eg.add(foldedNewENode);
+                        let foldedAppId = eg.add(&foldedNewENode);
                         eg.analysis_data_mut(foldedAppId.id)
                             .predNames
                             .insert(format!(

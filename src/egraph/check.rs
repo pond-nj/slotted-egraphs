@@ -35,7 +35,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         app_id.check();
         assert_eq!(
             self.slots(app_id.id),
-            app_id.m.keys_set(),
+            &app_id.m.keys_set(),
             "checking sem AppliedId failed: Wrong key-set, {app_id:?}"
         );
     }
@@ -116,7 +116,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         }
 
-        assert_eq!(hashcons, self.hashcons);
+        assert_eq!(hashcons, self._hashcons);
         for (i, c) in &self.classes {
             assert_eq!(&usages[&i], c.usages());
         }

@@ -76,8 +76,12 @@ impl CHCData {
 //     varTypes
 // }
 
-pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &Vec<Slot>) -> BTreeMap<Slot, VarType> {
-    let sh = eg.find_enode(&sh);
+pub fn getInterfaceVarType(
+    shOrig: &CHC,
+    eg: &CHCEGraph,
+    slots: &Vec<Slot>,
+) -> BTreeMap<Slot, VarType> {
+    let sh = eg.find_enode(&shOrig);
     let appIds = sh.applied_id_occurrences();
     let mut varTypes = BTreeMap::default();
 
@@ -114,7 +118,17 @@ pub fn getInterfaceVarType(sh: &CHC, eg: &CHCEGraph, slots: &Vec<Slot>) -> BTree
 
     slots
         .iter()
-        .map(|s| (*s, varTypes.get(s).unwrap().clone()))
+        .map(|s| {
+            if varTypes.get(s).is_none() {
+                // error!("eg {eg:?}");
+                error!("shOrig {shOrig:?}");
+                error!("sh {sh:?}");
+                error!("varTypes {varTypes:?}");
+                error!("slots {slots:?}");
+                error!("s {s:?}");
+            }
+            (*s, varTypes.get(s).unwrap().clone())
+        })
         .collect()
 }
 
@@ -387,7 +401,7 @@ impl Analysis<CHC> for CHCAnalysis {
 
             assert_eq!(
                 BTreeSet::from_iter(xVarTypes.keys()),
-                BTreeSet::from_iter(&eg.slots(from))
+                BTreeSet::from_iter(eg.slots(from))
             );
             xVarTypes
         } else {
@@ -406,7 +420,7 @@ impl Analysis<CHC> for CHCAnalysis {
             // since to might get shrinked slots
             assert_eq!(
                 BTreeSet::from_iter(yVarTypes.keys()),
-                BTreeSet::from_iter(&eg.slots(to.unwrap()))
+                BTreeSet::from_iter(eg.slots(to.unwrap()))
             );
 
             yVarTypes

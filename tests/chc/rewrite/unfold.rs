@@ -123,7 +123,7 @@ pub fn prepareUnfold(
     let and1Children = getAnyAndChildren(&cond1, eg);
     for (new1ReplaceIdx, compose2AppId) in new1Children.iter().enumerate() {
         let compose2AppId = compose2AppId.getAppliedId();
-        let compsoe2AppId = eg.find_applied_id(&compose2AppId);
+        let compose2AppId = eg.find_applied_id(&compose2AppId);
         let compose2ENodes = eg.enodes_applied(&compose2AppId);
         trace!("unfoldSearch compose2ENodes {compose2ENodes:?}");
         assert!(
@@ -372,7 +372,7 @@ fn addUnfoldedNewENode(
 
         checkNewENode!(unfoldedENode, eg);
 
-        let unfoldedENodeId = eg.add(unfoldedENode.clone());
+        let unfoldedENodeId = eg.add(&unfoldedENode);
         trace!(
             "call shrink slots with {unfoldedENodeId:?} {:?}",
             syntax1.slots()
@@ -447,7 +447,7 @@ fn createUnfoldedCompose(
                 .collect();
             let composeENode = CHC::Compose(unfoldedComposeChildren);
 
-            let unfoldedComposeAppId = eg.add(composeENode.clone());
+            let unfoldedComposeAppId = eg.add(&composeENode);
             debug!(
                 "UnfoldOpType::UnfoldMerge added composeENode {:?}",
                 composeENode.weak_shape().0
@@ -480,7 +480,7 @@ fn createUnfoldedCompose(
                 composeENode.weak_shape().0
             );
 
-            let composeAppId = eg.add(composeENode.clone());
+            let composeAppId = eg.add(&composeENode);
             createdComposeAppIds.push(composeAppId.clone());
 
             (composeAppId, composeENode)

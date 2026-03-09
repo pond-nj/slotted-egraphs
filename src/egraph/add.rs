@@ -16,10 +16,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         ret
     }
 
-    pub fn getOrAddENodeId(&mut self, enode: L) -> ENodeId {
+    pub fn getOrAddENodeId(&mut self, enode: &L) -> ENodeId {
         if CHECKS {
             let weakShape = enode.weak_shape().0;
-            assert_eq!(enode, weakShape);
+            assert_eq!(enode, &weakShape);
         }
 
         if self.enodeWeakShape.contains_key(&enode.weak_shape().0) {
@@ -29,7 +29,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let id = self.enodes.len();
         self.enodeWeakShape
             .insert(enode.weak_shape().0, ENodeId(id));
-        self.enodes.push(enode);
+        self.enodes.push(enode.clone());
         ENodeId(id)
     }
 
@@ -41,21 +41,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.enodeWeakShape.get(&enode.weak_shape().0).cloned()
     }
 
-    pub fn add_syn_expr(&mut self, re: RecExpr<L>) -> AppliedId {
+    pub fn add_syn_expr(&mut self, re: &RecExpr<L>) -> AppliedId {
         let mut n = re.node.clone();
         let mut refs: Vec<&mut AppliedId> = n.applied_id_occurrences_mut();
         if CHECKS {
             assert_eq!(re.children.len(), refs.len());
         }
-        for (i, child) in (re.children.clone()).into_iter().enumerate() {
-            *(refs[i]) = self.add_syn_expr(child);
+        for (i, child) in re.children.iter().enumerate() {
+            *(refs[i]) = self.add_syn_expr(&child);
         }
-        let ret = self.add_syn(n);
+        let ret = self.add_syn(&n);
         debug!("add_syn_expr: {} <-> {}", ret, re);
         ret
     }
 
-    pub fn add_syn(&mut self, enode: L) -> AppliedId {
+    pub fn add_syn(&mut self, enode: &L) -> AppliedId {
         #[cfg(not(feature = "explanations"))]
         {
             self.add(enode)
@@ -119,7 +119,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         for (i, child) in re.children.into_iter().enumerate() {
             *(refs[i]) = self.add_expr(child);
         }
-        (self.add(n.clone()), n)
+        (self.add(&n), n)
     }
 
     pub fn addExpr(&mut self, re: &str) -> AppliedId {
@@ -142,10 +142,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         let nSorted = n.sorted();
-        let ret = self.add(n);
+        let ret = self.add(&n);
 
         let lenBefore = self.total_number_of_nodes();
-        let sortedAppId = self.add(nSorted);
+        let sortedAppId = self.add(&nSorted);
 
         if self.total_number_of_nodes() != lenBefore {
             self.union_justified(&ret, &sortedAppId, Some("add_expr, sorted".to_owned()));
@@ -155,7 +155,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         ret
     }
 
-    pub fn add(&mut self, enode: L) -> AppliedId {
+    pub fn add(&mut self, enode: &L) -> AppliedId {
         debug!(
             "add enode {enode:?}
 {:?}",
@@ -164,37 +164,29 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // TODO: shape here can make children duplicate
         // e.g. [f(a, b), f(b, a)] might have shape [f(a, b), f(a, b)]
         // this does not maintain the deduplicate invariant
-        let sh = self.shape_called_from_add(enode.clone());
-        let addedId = self.add_internal(sh);
+        let sh = self.shape_called_from_add(enode);
+        let addedId = self.add_internal(&sh);
         addedId
     }
 
     // create a duplicate Enode with reset mapped slot in AppliedId,
     // the information of mapping to old one is in the returned Bijection
-    fn shape_called_from_add(&self, enode: L) -> (L, Bijection) {
-        let ret = self.shape(&enode);
+    fn shape_called_from_add(&self, enode: &L) -> (L, Bijection) {
+        let ret = self.shape(enode);
         ret
     }
 
     // self.add(x) = y implies that x.slots() is a superset of y.slots().
     // x.slots() - y.slots() are redundant slots.
-    pub(in crate::egraph) fn add_internal(&mut self, t: (L, SlotMap)) -> AppliedId {
+    pub(in crate::egraph) fn add_internal(&mut self, t: &(L, SlotMap)) -> AppliedId {
         trace!("add_internal {t:?}");
-        let weakShapeEnodeId = self.getOrAddENodeId(t.0.clone());
-        let lookupRes = self.lookup_internal(&t);
+        let weakShapeEnodeId = self.getOrAddENodeId(&t.0);
+        let lookupRes = self.lookup_internal((weakShapeEnodeId, t.1.clone()));
         trace!("lookup {t:?} -> {lookupRes:?}");
         if let Some(x) = lookupRes {
-            // let (sh, bij) = t;
-            // let (sh_weakshape, bij_weak) = sh.apply_slotmap(&bij).weak_shape();
-            // if sh_weakshape != sh {
-            //     if self.lookup_internal(&(sh_weakshape, bij_weak)).is_some() {
-            //         panic!("add_internal: shape {sh:?} already exists");
-            //     }
-            // }
-
             return x;
         }
-        let shapeENodeId = self.getOrAddENodeId(self.shape(&t.0).0);
+        let shapeENodeId = self.getOrAddENodeId(&self.shape(&t.0).0);
 
         trace!("lookup no result {t:?}");
 
@@ -231,11 +223,11 @@ lookup weak_shape result in hashcons: {:?}
                 enode.orig_weak_shape(),
                 shape,
                 synHashconsResult,
-                self.hashcons.get(&shapeENodeId),
-                self.hashcons.get(&weakShapeEnodeId),
+                self.getHashcons(shapeENodeId),
+                self.getHashcons(weakShapeEnodeId),
             );
 
-            assert!(self.hashcons.get(&weakShapeEnodeId).is_none());
+            assert!(self.getHashcons(weakShapeEnodeId).is_none());
             assert!(self.syn_hashcons.get(&weakShapeEnodeId).is_none());
         }
         // println!("enode before = {:?}", enode.weak_shape().0);
@@ -246,7 +238,7 @@ lookup weak_shape result in hashcons: {:?}
         // println!("enode after = {:?}", enode.weak_shape().0);
 
         // make takes up most of the time here
-        let syn = self.mk_singleton_class(enode);
+        let syn = self.mk_singleton_class(&enode);
         trace!("add_internal ret {syn:?}");
         syn
         // TODO: Pond why we dont need this?
@@ -255,13 +247,15 @@ lookup weak_shape result in hashcons: {:?}
     }
 
     pub fn lookupMut(&mut self, n: &L) -> Option<AppliedId> {
-        let shape = self.shape(n);
-        let _ = self.getOrAddENodeId(shape.0.clone());
-        self.lookup_internal(&shape)
+        let (enodeShape, bij) = self.shape(n);
+        let enodeId = self.getOrAddENodeId(&enodeShape);
+        self.lookup_internal((enodeId, bij))
     }
 
     pub fn lookup(&self, n: &L) -> Option<AppliedId> {
-        self.lookup_internal(&self.shape(n))
+        let (enodeShape, bij) = self.shape(n);
+        let enodeShapeId = self.getENodeId(&enodeShape).unwrap();
+        self.lookup_internal((enodeShapeId, bij))
     }
 
     pub fn lookupPatternWithSubst(&self, pattern: &Pattern<L>, subst: &Subst) -> Option<AppliedId> {
@@ -316,16 +310,14 @@ lookup weak_shape result in hashcons: {:?}
 
     pub(in crate::egraph) fn lookup_internal(
         &self,
-        (shape, n_bij): &(L, Bijection),
+        (enodeId, n_bij): (ENodeId, Bijection),
     ) -> Option<AppliedId> {
         // let enodeId = self.getENodeId(shape);
         // if enodeId.is_none() {
         //     return None;
         // }
         // let enodeId = enodeId.unwrap();
-        let enodeId = self.getENodeId(shape).unwrap();
-        let i: Option<Id> = self.hashcons.get(&enodeId).cloned();
-        trace!("lookup_internal {shape:?} -> {i:?}");
+        let i: Option<Id> = self.getHashcons(enodeId);
         if i.is_none() {
             // let synResult = self.syn_hashcons.get(&shape);
             // if synResult.is_none() {
@@ -366,8 +358,8 @@ lookup weak_shape result in hashcons: {:?}
     pub fn getExactENodeInEGraph(&self, n: &L) -> L {
         let (shape, _) = &self.shape(n);
         let enodeId = self.getENodeId(shape);
-        let i = self.hashcons.get(&enodeId.unwrap()).unwrap();
-        let c = &self.classes[i];
+        let i = self.getHashcons(enodeId.unwrap()).unwrap();
+        let c = &self.classes[&i];
         let cn_bij = &c.nodes[&enodeId.unwrap()].elem;
         shape.apply_slotmap(cn_bij)
     }
@@ -383,7 +375,7 @@ lookup weak_shape result in hashcons: {:?}
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // returns a syn applied id.
-    fn mk_singleton_class(&mut self, syn_enode: L) -> AppliedId {
+    fn mk_singleton_class(&mut self, syn_enode: &L) -> AppliedId {
         let old_slots = syn_enode.slots();
 
         let fresh_to_old = Bijection::bijection_from_fresh_to(&old_slots);
@@ -395,13 +387,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let syn_enode_fresh = syn_enode.apply_slotmap_fresh(&old_to_fresh);
 
         // create Eclass?
-        let i = self.alloc_eclass(&fresh_slots, syn_enode_fresh.clone());
+        let i = self.alloc_eclass(&fresh_slots, &syn_enode_fresh);
 
         // we use semantic_add so that the redundancy, symmetry and congruence checks run on it.
         let t = syn_enode_fresh.weak_shape();
         // let t = self.shape(&syn_enode_fresh);
-        self.raw_add_to_class(i, t.clone(), i);
-        let enodeId = self.getOrAddENodeId(t.0);
+        let enodeId = self.getOrAddENodeId(&t.0);
+        self.raw_add_to_class(i, (enodeId, t.1), i);
+        let enodeId = self.getOrAddENodeId(&t.0);
         self.pending.insert(enodeId, PendingType::Full);
         self.modify_queue.push(i);
         // self.rebuild_called_from_add();
@@ -420,16 +413,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(in crate::egraph) fn raw_add_to_class(
         &mut self,
         id: Id,
-        (sh, bij): (L, Bijection),
+        (enodeId, bij): (ENodeId, Bijection),
         src_id: Id,
     ) {
-        debug!("raw_add_to_class: add to class {id:?} {:?}", sh);
+        // debug!("raw_add_to_class: add to class {id:?} {:?}", sh);
         let psn = ProvenSourceNode {
             elem: bij.clone(),
             src_id,
         };
 
-        let enodeId = self.getOrAddENodeId(sh.clone());
         let tmp1 = self
             .classes
             .get_mut(&id)
@@ -442,6 +434,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
         // synified version is added to hashcons from self.add
         // non-synified version is added to hashcons from self.handle_pending
+        let tmp2 = self.setHashcons(enodeId, id);
+        if CHECKS {
+            // hashcons should contain semify enode
+            assert!(tmp1.is_none());
+            assert!(tmp2.is_none());
+        }
+        let sh = self.getENode(enodeId);
         trace!(
             "insert to hashcons\n
 {sh:?}\n
@@ -453,29 +452,27 @@ orig_weak_shape {:?}\n
             self.shape(&sh),
             sh.orig_weak_shape()
         );
-        let tmp2 = self.hashcons.insert(enodeId, id);
-        if CHECKS {
-            // hashcons should contain semify enode
-            assert!(tmp1.is_none());
-            assert!(tmp2.is_none());
-        }
         for ref_id in sh.ids() {
-            if ref_id == Id(46957) {
-                println!(
-                    "raw_add_to_class enodeId {enodeId:?} enode {sh:?}, use {:?}",
-                    ref_id
-                );
-            }
+            // if ref_id == Id(46957) {
+            //     println!(
+            //         "raw_add_to_class enodeId {enodeId:?} enode {sh:?}, use {:?}",
+            //         ref_id
+            //     );
+            // }
             let usages = &mut self.classes.get_mut(&ref_id).unwrap().usagesMut();
             usages.insert(enodeId);
         }
     }
 
     // TODO: change this to pass enodeId?
-    pub(in crate::egraph) fn raw_remove_from_class(&mut self, id: Id, sh: L) -> ProvenSourceNode {
-        let enodeId = self.getENodeId(&sh).unwrap();
+    pub(in crate::egraph) fn raw_remove_from_class(
+        &mut self,
+        id: Id,
+        enodeId: ENodeId,
+    ) -> ProvenSourceNode {
         let opt_psn = self.classes.get_mut(&id).unwrap().nodes.remove(&enodeId);
-        let opt_id = self.hashcons.remove(&enodeId);
+        let opt_id = self.removeFromHashcons(enodeId);
+        let sh = self.getENode(enodeId);
 
         trace!(
             "remove from hashcons\n
@@ -508,7 +505,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(in crate::egraph) fn alloc_eclass(
         &mut self,
         slots: &SmallHashSet<Slot>,
-        syn_enode: L,
+        syn_enode: &L,
     ) -> Id {
         trace!("alloc_eclass {syn_enode:?}");
         let c_id = Id(self.unionfind_len()); // Pick the next unused Id.
@@ -531,7 +528,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // add syn_enode to the hashcons.
             // bij will map shapeEnode to oldSlot
             let (sh, bij) = syn_enode.weak_shape();
-            let enodeId = self.getOrAddENodeId(sh.clone());
+            let enodeId = self.getOrAddENodeId(&sh);
 
             if CHECKS {
                 if self.syn_hashcons.contains_key(&enodeId) {

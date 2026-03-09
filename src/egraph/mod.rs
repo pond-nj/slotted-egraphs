@@ -58,14 +58,14 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     // Each Id i that is an output of the unionfind itself has unionfind[i] = (i, identity()).
 
     // We use RefCell to allow for inter mutability, so that find(&self) can do path compression.
-    unionfind: RefCell<Vec<ProvenAppliedId>>,
+    _unionfind: RefCell<Vec<ProvenAppliedId>>,
 
     // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
     // It's "shallow" if you will.
     pub(crate) classes: BTreeMap<Id, EClass<L, N>>,
 
     // For each shape contained in the EGraph, maps to the EClass that contains it.
-    hashcons: BTreeMap<ENodeId, Id>,
+    _hashcons: BTreeMap<ENodeId, Id>,
 
     // For each (syn_slotset applied) non-normalized (i.e. "syntactic") weak shape, find the e-class who has this as syn_enode.
     // TODO remove this if explanations are disabled.
@@ -110,9 +110,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     /// Creates an empty e-graph, while specifying the substitution method to use.
     pub fn with_subst_method<S: SubstMethod<L, N>>(analysis: N) -> Self {
         EGraph {
-            unionfind: Default::default(),
+            _unionfind: Default::default(),
             classes: Default::default(),
-            hashcons: Default::default(),
+            _hashcons: Default::default(),
             syn_hashcons: Default::default(),
             pending: Default::default(),
             proof_registry: ProofRegistry::default(),
@@ -129,7 +129,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let c = self.eclass(id).unwrap();
         let mut totalSlots = BTreeSet::default();
         for (sh, psn) in &c.nodes {
-            let sh = self.getENode(*sh).clone();
+            let sh = self.getENode(*sh);
             let node = sh.apply_slotmap(&psn.elem);
             totalSlots.extend(node.slots().into_iter());
         }
@@ -139,8 +139,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         totalSlots
     }
 
-    pub fn slots(&self, id: Id) -> SmallHashSet<Slot> {
-        self.classes[&id].slots.clone()
+    pub fn slots(&self, id: Id) -> &SmallHashSet<Slot> {
+        &self.classes[&id].slots
     }
 
     // slot of syn_enode
@@ -187,12 +187,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     //     l.apply_slotmap_partial(&eclassAppId.m)
     // }
 
-    pub fn setHashcons(&mut self, enodeId: ENodeId, id: Id) {
-        self.hashcons.insert(enodeId, id);
+    pub fn setHashcons(&mut self, enodeId: ENodeId, id: Id) -> Option<Id> {
+        self._hashcons.insert(enodeId, id)
     }
 
     pub fn getHashcons(&self, enodeId: ENodeId) -> Option<Id> {
-        self.hashcons.get(&enodeId).cloned()
+        self._hashcons.get(&enodeId).cloned()
+    }
+
+    pub fn removeFromHashcons(&mut self, enodeId: ENodeId) -> Option<Id> {
+        self._hashcons.remove(&enodeId)
     }
 
     pub fn enodes(&self, i: Id) -> BTreeSet<L> {
@@ -243,7 +247,7 @@ unionfind {} -> {:?}
                         *slot = *v;
                     } else {
                         let v = Slot::fresh();
-                        map.insert(slot.clone(), v.clone());
+                        map.insert(slot.clone(), v);
                         *slot = v;
                     }
                 }
@@ -272,7 +276,7 @@ unionfind {} -> {:?}
 
     // number of enodes in the egraph.
     pub fn total_number_of_nodes(&self) -> usize {
-        self.hashcons.len()
+        self._hashcons.len()
     }
 
     pub fn totalNumberOfEclass(&self) -> usize {
@@ -391,7 +395,7 @@ unionfind {} -> {:?}
             }
         }
 
-        assert!(app.m.keys_set() == slots, "{:?} vs {slots:?}", app.m);
+        assert!(&app.m.keys_set() == slots, "{:?} vs {slots:?}", app.m);
         app
     }
 

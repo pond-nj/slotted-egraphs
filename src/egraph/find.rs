@@ -1,5 +1,5 @@
 use crate::*;
-use log::{debug, trace};
+use log::{debug, trace, warn};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // map is vector inside union_find
@@ -31,10 +31,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(i, pai.proof.l.id);
             assert_eq!(pai.elem.id, pai.proof.r.id);
         }
-
-        let mut lock = self.unionfind.borrow_mut();
+        // if i == Id(46957) {
+        //     println!("set unionfind of  Id(46957) to {:?}", pai);
+        // }
+        let mut lock = self._unionfind.borrow_mut();
         assert!(i.0 <= lock.len());
-        trace!("set unionfind {i:?} -> {pai:?}");
+        trace!("set _unionfind {i:?} -> {pai:?}");
         if lock.len() == i.0 {
             lock.push(pai);
         } else {
@@ -43,22 +45,27 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn proven_unionfind_get(&self, i: Id) -> ProvenAppliedId {
-        let mut map = self.unionfind.borrow_mut();
-        self.unionfind_get_impl(i, &mut *map)
+        let mut map = self._unionfind.borrow_mut();
+        let ret = self.unionfind_get_impl(i, &mut *map);
+        // if i == Id(46957) {
+        //     println!("unionfind_get id(46957) get {:?}", ret);
+        // }
+        ret
     }
 
     pub(crate) fn unionfind_get(&self, i: Id) -> AppliedId {
-        self.proven_unionfind_get(i).elem
+        let ret = self.proven_unionfind_get(i).elem;
+        ret
     }
 
     /// Returns whether an id is still alive, or whether it was merged into another class.
     pub fn is_alive(&self, i: Id) -> bool {
-        let map = self.unionfind.borrow();
+        let map = self._unionfind.borrow();
         map[i.0].elem.id == i
     }
 
     pub fn unionfind_iter(&self) -> impl Iterator<Item = (Id, AppliedId)> {
-        let mut map = self.unionfind.borrow_mut();
+        let mut map = self._unionfind.borrow_mut();
         let mut out = Vec::new();
 
         for x in (0..map.len()).map(Id) {
@@ -70,7 +77,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn unionfind_len(&self) -> usize {
-        self.unionfind.borrow().len()
+        self._unionfind.borrow().len()
     }
 
     pub fn find_enode(&self, enode: &L) -> L {
@@ -90,10 +97,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // normalize i.id
     //
     // Example 1:
-    // 'find(c1(s10, s11)) = c2(s11, s10)', where 'c1(s0, s1) -> c2(s1, s0)' in unionfind.
+    // 'find(c1(s10, s11)) = c2(s11, s10)', where 'c1(s0, s1) -> c2(s1, s0)' in _unionfind.
     //
     // Example 2:
-    // 'find(c1(s3, s7, s8)) = c2(s8, s7)', where 'c1(s0, s1, s2) -> c2(s2, s1)' in unionfind,
+    // 'find(c1(s3, s7, s8)) = c2(s8, s7)', where 'c1(s0, s1, s2) -> c2(s2, s1)' in _unionfind,
     pub fn find_applied_id(&self, i: &AppliedId) -> AppliedId {
         #[cfg(feature = "explanations")]
         let i = &self.synify_app_id(i.clone());
@@ -145,7 +152,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // (Pond) only get canonical id
     pub fn ids(&self) -> Vec<Id> {
-        let map = self.unionfind.borrow();
+        let map = self._unionfind.borrow();
         (0..map.len())
             .map(Id)
             .filter(|x| map[x.0].elem.id == *x)

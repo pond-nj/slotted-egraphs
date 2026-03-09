@@ -11,7 +11,7 @@ pub fn dumpCHCEClass(
         return;
     }
 
-    let mut slot_order: Vec<Slot> = eg.slots(i).into();
+    let mut slot_order: Vec<Slot> = eg.slots(i).clone().into();
     let mut slot_sorted = slot_order.clone();
     slot_sorted.sort();
     assert!(slot_order == slot_sorted);

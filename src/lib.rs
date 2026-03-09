@@ -35,6 +35,8 @@ pub const CHECKS: bool = true;
 #[cfg(not(feature = "checks"))]
 pub const CHECKS: bool = false;
 
+pub const TO_CHECKS: bool = true;
+
 pub use slotted_egraphs_derive::define_language;
 
 mod slot;
