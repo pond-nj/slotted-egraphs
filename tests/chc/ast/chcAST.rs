@@ -22,7 +22,7 @@ pub enum ConstrOP {
 }
 
 impl ConstrOP {
-    fn name(&self) -> &str {
+    pub fn name(&self) -> &str {
         match self {
             ConstrOP::Eq => "=",
             ConstrOP::Neq => "=\\=",

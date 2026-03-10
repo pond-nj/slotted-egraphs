@@ -63,15 +63,19 @@ pub fn synSMTLibExpr(eclassId: Id, eg: &CHCEGraph) -> String {
     let mut map = BTreeMap::default();
     let mut calls = BTreeMap::default();
     let expr = eg.getSynExpr(&eclassId, &mut map, &mut calls);
+
     if expr.is_err() {
         return expr.unwrap_err();
     }
+
+    let mut out = String::new();
+    out += &("; ".to_string() + &expr.as_ref().unwrap().to_string() + "\n");
+
     let pattern = re_to_pattern(expr.unwrap());
 
     let mut types = BTreeMap::default();
     aggregateType(&pattern, &mut types);
 
-    let mut out = String::new();
     out += "(set-option :produce-models true)\n";
     out += "(declare-datatypes ((tree 0)) (((binode  (data Int) (left tree) (right tree)) (leaf ))))\n";
     for (s, vt) in types {
@@ -87,9 +91,15 @@ pub fn synSMTLibExpr(eclassId: Id, eg: &CHCEGraph) -> String {
 }
 
 pub fn dumpAndExprSMT(dirName: &str, eg: &CHCEGraph) {
-    if !Path::new(dirName).exists() {
-        std::fs::create_dir(dirName).unwrap();
+    if Path::new(dirName).exists() {
+        let oldDirName = dirName.to_string() + ".old";
+        if Path::new(&oldDirName).exists() {
+            std::fs::remove_dir_all(&oldDirName).unwrap();
+        }
+        std::fs::rename(dirName, oldDirName).unwrap();
     }
+
+    std::fs::create_dir(dirName).unwrap();
 
     let ids = eg.ids();
     for eclassId in ids {

@@ -1,0 +1,12 @@
+#t min(int, int, int) true <2>.
+min(X,Y,Z) :- X<Y, Z=X.
+min(X,Y,Z) :- X>=Y, Z=Y.
+#t minLeaf(node, int) true <1>.
+minLeaf(leaf,M) :- M=0.
+minLeaf(node(X,L,R),M) :- M=M3+1, minLeaf(L,M1), minLeaf(R,M2), min(M1,M2,M3).
+#t leftDrop(int, node, node) true <2>.
+leftDrop(N,leaf ,leaf ).
+leftDrop(N,node(X,L,R),node(X,L,R)) :- N <= 0.
+leftDrop(N,node(X,L,R),T) :- N >= 1, N1=N−1, leftDrop(N1,L,T).
+#t incorrect() false <>.
+incorrect :- N>=0, M+N<K, leftDrop(N,T,U), minLeaf(U,M), minLeaf(T,K).

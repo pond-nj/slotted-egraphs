@@ -1,4 +1,4 @@
-// https://www.semanticscholar.org/paper/Synchronizing-Constrained-Horn-Clauses-Mordvinov-Fedyukovich/0f37e37310dbeaa063589830159467c5a6f958a9
+// https://arxiv.org/pdf/1804.09007
 
 use std::time::Duration;
 
@@ -13,7 +13,7 @@ const TIME_LIMIT_SECS: u64 = 300;
 fn mainTest() {
     initLogger();
     let mut eg = CHCEGraph::default();
-    growEGraph("tests/chc/cases/synchronized_chc.txt", &mut eg);
+    growEGraph("tests/chc/cases/leaf_drop.txt", &mut eg);
     eg.rebuild();
 
     info!("Egraph before");
@@ -29,7 +29,7 @@ fn mainTest() {
             RewriteOption {
                 doConstraintRewrite: true,
                 doFolding: true,
-                doADTDefine: false,
+                doADTDefine: true,
                 doPairingDefine: true,
             },
         ))
@@ -39,6 +39,4 @@ fn mainTest() {
 
     info!("Egraph after");
     dumpCHCEGraph(&runner.egraph);
-
-    checkCHCExists("tests/chc/cases/synchronized_chc_out1.txt", &runner.egraph);
 }

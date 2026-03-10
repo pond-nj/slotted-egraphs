@@ -467,6 +467,20 @@ unionfind {} -> {:?}
         self.getSynExprRecur(&appId, map, calls)
     }
 
+    pub fn getSynExprUnwrap<'a>(
+        self: &Self,
+        i: &Id,
+        map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
+        calls: &mut BTreeMap<Id, usize>,
+    ) -> String {
+        let synExpr = self.getSynExpr(&i, map, calls);
+        if synExpr.is_ok() {
+            synExpr.unwrap().to_string()
+        } else {
+            synExpr.unwrap_err()
+        }
+    }
+
     /// Returns the canonical term corresponding to `i`.
     ///
     /// This function will use [EGraph::get_syn_node] repeatedly to build up this term.

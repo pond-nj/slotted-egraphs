@@ -308,6 +308,24 @@ lookup weak_shape result in hashcons: {:?}
         ret
     }
 
+    pub fn lookupRecExprMut(&mut self, re: RecExpr<L>) -> Option<AppliedId> {
+        let mut n = re.node.clone();
+        let mut refs: Vec<&mut AppliedId> = n.applied_id_occurrences_mut();
+        if CHECKS {
+            assert_eq!(re.children.len(), refs.len());
+        }
+        for (i, child) in (re.children.clone()).into_iter().enumerate() {
+            let childRes = self.lookupRecExprMut(child);
+            if childRes.is_none() {
+                return None;
+            }
+            *(refs[i]) = childRes.unwrap();
+        }
+        let n = n.sorted();
+        let ret = self.lookupMut(&n);
+        ret
+    }
+
     pub(in crate::egraph) fn lookup_internal(
         &self,
         (enodeId, n_bij): (ENodeId, Bijection),

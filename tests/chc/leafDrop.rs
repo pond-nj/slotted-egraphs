@@ -8,7 +8,7 @@ const STACK_SIZE: usize = 32 * 1024 * 1024;
 const ITER_LIMIT: usize = 3;
 const TIME_LIMIT_SECS: u64 = 3600;
 const DO_FOLDING: bool = true;
-const DO_TESTS: bool = false;
+const DO_TESTS: bool = true;
 
 use log::{debug, error, info, set_logger_racy, Log, Metadata, Record};
 
@@ -319,10 +319,10 @@ fn mainTest() {
     child.join().expect("Thread panicked");
 }
 
-fn checkResult(keyword: &str, expr: &String, eg: &CHCEGraph, canLookup: bool) -> Id {
+fn checkResult(keyword: &str, expr: &String, eg: &mut CHCEGraph, canLookup: bool) -> Id {
     info!("checkResult for {:?}", keyword);
     if canLookup {
-        let res = eg.lookupRecExpr(RecExpr::parse(&expr).unwrap());
+        let res = eg.lookupRecExprMut(RecExpr::parse(&expr).unwrap());
         info!("lookup {}: {res:?}", keyword);
         if res.is_some() {
             info!("lookup has result!");

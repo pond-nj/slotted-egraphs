@@ -1,8 +1,11 @@
 use super::*;
+
+use kmpsearch::Haystack;
 use regex::Regex;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::str::{CharIndices, Chars};
 
 fn group_lines(lines: Vec<String>) -> Vec<String> {
     let mut new_lines = Vec::new();
@@ -51,11 +54,108 @@ fn parse_body(expression: &str) -> Vec<String> {
     result
 }
 
+fn find_subslice_kmp(haystack: &[u8], needle: &[u8]) -> Option<usize> {
+    haystack.first_indexof_needle(needle)
+}
+
+// counting at at_pos
+fn get_level(at_pos: usize, from_pos: usize, from_level: usize, expr: &str) -> usize {
+    assert!(at_pos >= from_pos);
+    assert!(at_pos < expr.len());
+
+    let mut level = from_level;
+    let mut currPos = from_pos;
+
+    while currPos <= at_pos {
+        let c = &expr[currPos..currPos + 1].chars().next().unwrap();
+
+        if *c == '(' {
+            level += 1;
+        } else if *c == ')' {
+            level -= 1;
+        }
+
+        currPos += 1;
+    }
+
+    level
+}
+
+// find the first occurence at level 0 of this operator
+fn split_at_level_0(expr: &str, op: ConstrOP) -> Option<(String, String)> {
+    let opChars = op.name();
+
+    let mut currPos = 0;
+    let mut currLevel = 0;
+    let mut nextPos = expr.find(&opChars);
+    while nextPos.is_some() {
+        let mut level = get_level(nextPos.unwrap(), currPos, currLevel, expr);
+        if level == 0 {
+            return Some((
+                expr[0..nextPos.unwrap()].to_string(),
+                expr[nextPos.unwrap()..].to_string(),
+            ));
+        }
+        currLevel = level;
+        currPos = nextPos.unwrap();
+        nextPos = expr[currPos + 1..].find(&opChars);
+    }
+
+    None
+}
+
+fn split_constr(expr: &str) -> Option<(ConstrOP, String, String)> {
+    if let Some((first, rest)) = split_at_level_0(expr, ConstrOP::Neq) {
+        return Some((ConstrOP::Neq, first, rest));
+    } else if let Some((first, rest)) = split_at_level_0(expr, ConstrOP::Leq) {
+        return Some((ConstrOP::Leq, first, rest));
+    } else if let Some((first, rest)) = split_at_level_0(expr, ConstrOP::Geq) {
+        return Some((ConstrOP::Geq, first, rest));
+    } else if let Some((first, rest)) = split_at_level_0(expr, ConstrOP::Lt) {
+        return Some((ConstrOP::Lt, first, rest));
+    } else if let Some((first, rest)) = split_at_level_0(expr, ConstrOP::Gt) {
+        return Some((ConstrOP::Gt, first, rest));
+    } else if let Some((first, rest)) = split_at_level_0(expr, ConstrOP::Eq) {
+        return Some((ConstrOP::Eq, first, rest));
+    }
+
+    None
+}
+
+fn split_args(args: &str) -> Vec<String> {
+    // only split on commas that are not inside parentheses
+    let mut result = vec![];
+    let mut current = String::new();
+    let mut bracket_count = 0;
+
+    for char in args.chars() {
+        if char == '(' {
+            bracket_count += 1;
+            current.push(char);
+        } else if char == ')' {
+            bracket_count -= 1;
+            current.push(char);
+        } else if char == ',' && bracket_count == 0 {
+            result.push(current.trim().to_string());
+            current.clear();
+        } else {
+            current.push(char);
+        }
+    }
+
+    if !current.trim().is_empty() {
+        result.push(current.trim().to_string());
+    }
+
+    result
+}
+
 fn parse_prolog(lines: &Vec<String>) -> Vec<CHCRule> {
     let mut chcs = Vec::new();
     let head_re = Regex::new(r"^(\w*)\((.*)\)$").unwrap();
 
     for line in lines {
+        println!("line {line}");
         let mut line = line.trim().to_string();
         if line.starts_with("%") {
             continue;
@@ -92,9 +192,13 @@ fn parse_prolog(lines: &Vec<String>) -> Vec<CHCRule> {
 
             let caps = head_re.captures(&head).unwrap();
             let args_str = caps.get(2).unwrap().as_str();
-            args_str
-                .split(',')
-                .map(|x: &str| parse_constr(x.trim()).unwrap())
+
+            split_args(args_str)
+                .iter()
+                .map(|x: &String| {
+                    parse_constr(x.trim())
+                        .expect(format!("parse_constr returned None on {x} in {head}").as_str())
+                })
                 .collect()
         } else {
             Vec::new()
@@ -122,14 +226,8 @@ fn parse_prolog(lines: &Vec<String>) -> Vec<CHCRule> {
                     pred_name: b_pred,
                     args: Args::new(b_args),
                 });
-            } else if node_re.is_match(&b) {
-                // Handle node specially if needed, but parse_constr handles it
-                if let Some(parsed) = parse_constr(&b) {
-                    if let Term::Constr(c) = parsed {
-                        constrs.push(c);
-                    }
-                }
             } else {
+                // Handle node specially if needed, but parse_constr handles it
                 if let Some(parsed) = parse_constr(&b) {
                     if let Term::Constr(c) = parsed {
                         constrs.push(c);
@@ -167,7 +265,10 @@ pub fn parse(fname: &str) -> CHCAst {
     let pred_from_rules: BTreeSet<String> =
         rules.iter().map(|r| r.head.pred_name.clone()).collect();
     let pred_from_props: BTreeSet<String> = props.keys().cloned().collect();
-    assert_eq!(pred_from_rules, pred_from_props);
+    assert_eq!(
+        pred_from_rules, pred_from_props,
+        "predicate properties not all specified"
+    );
 
     CHCAst {
         rules,
@@ -236,6 +337,7 @@ fn parse_properties(lines: &Vec<String>) -> BTreeMap<String, PredProp> {
 
 fn parse_constr(constr: &str) -> Option<Term> {
     // let orig_constr = constr.to_string();
+    println!("constr {constr}");
     let mut constr = constr.trim().to_string();
 
     if constr.parse::<i32>().is_ok() {
@@ -298,17 +400,23 @@ fn parse_constr(constr: &str) -> Option<Term> {
         }));
     }
 
+    // split constr into first term and rest using =, =\\=, =<, >=, <, >
+
+    if let Some((op, first, second)) = split_constr(&constr) {
+        let child1 = parse_constr(&first)?;
+        let child2 = parse_constr(&second)?;
+        return Some(Term::Constr(Constr {
+            op,
+            args: vec![child1, child2],
+        }));
+    }
+
     let (first, rest) = constr_get_next_term(&constr);
     let (op_str, next_constr) = constr_get_next_term(&rest);
+
     let op = match op_str.as_str() {
-        "=" => ConstrOP::Eq,
-        "=\\=" => ConstrOP::Neq,
         "+" => ConstrOP::Add,
         "-" => ConstrOP::Minus,
-        "=<" => ConstrOP::Leq,
-        ">=" => ConstrOP::Geq,
-        "<" => ConstrOP::Lt,
-        ">" => ConstrOP::Gt,
         _ => return None,
     };
     let child1 = parse_constr(&first)?;
@@ -320,20 +428,19 @@ fn parse_constr(constr: &str) -> Option<Term> {
 }
 
 fn constr_get_next_term(constr: &str) -> (String, String) {
-    let constr = constr.trim();
+    let constr = constr.trim().chars().collect::<Vec<_>>();
     let mut i = 0;
     let mut bracket_count = 0;
 
     let mut first_is_var_not_op = false;
     if !constr.is_empty() {
-        let first_char = constr.as_bytes()[0] as char;
+        let first_char = constr[0];
         if first_char.is_alphabetic() || first_char.is_ascii_digit() {
             first_is_var_not_op = true;
         }
     }
-
     while i < constr.len() {
-        let c = constr.as_bytes()[i] as char;
+        let c = constr[i];
         if c == ' ' && bracket_count == 0 {
             break;
         }
@@ -354,6 +461,5 @@ fn constr_get_next_term(constr: &str) -> (String, String) {
 
         i += 1;
     }
-
-    (constr[..i].to_string(), constr[i..].to_string())
+    (constr[..i].iter().collect(), constr[i..].iter().collect())
 }

@@ -1,4 +1,5 @@
-RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
+# RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
+RUST_BACKTRACE=1 cargo test chc::leafDrop2::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::pairingPaperArray::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::synchronizedCHC::mainTest -- --nocapture &> tmp.txt
 # RUST_LOG=debug RUST_BACKTRACE=1 cargo test chc::leafDrop::testSortAppId -- --nocapture &> tmp.txt
@@ -23,3 +24,6 @@ RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
 # rust-gdb target/debug/deps/entry-38a92d690cfd6aa3
 # set args --test entry --nocapture lambda::native::y_identity
 # run
+
+# replace min-leaf => minLeaf
+# regex -(\w) => \U$1

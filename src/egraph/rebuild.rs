@@ -1,5 +1,5 @@
 use crate::*;
-use log::{debug, error, info, trace};
+use log::{debug, error, info, trace, warn};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // proof.l should be i.
@@ -55,12 +55,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // We expect `from` to be on the lhs of this equation.
     pub fn shrink_slots(&mut self, from: &AppliedId, cap: &SmallHashSet<Slot>, proof: ProvenEq) {
-        trace!(
-            "shrink slots of {:?} from {:?} to {:?}",
-            from.id,
-            self.eclass(from.id).unwrap().slots(),
-            cap
-        );
+        trace!("shrink slots of {:?} to {:?}", from, cap);
+        let mut fromValues = from.m.values_set();
+        if &fromValues == cap {
+            trace!("skip shrink slots of {:?} to {:?}", from, cap);
+            return;
+        }
 
         #[cfg(feature = "explanations")]
         if CHECKS {
@@ -385,15 +385,25 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // add parent to pending
     // upon touching an e-class, you need to update all usages of it.
     pub(crate) fn touched_class(&mut self, i: Id, pending_ty: PendingType) {
-        for sh in self.classes[&i].usages() {
-            // if i == Id(46957) {
-            //     println!(
-            //         "touched_class: 46957 usage enodeId {sh:?}, enode {:?}",
-            //         self.getENode(*sh)
-            //     );
-            // }
-            let v = self.pending.entry(sh.clone()).or_insert(pending_ty);
+        let usages = self.classes[&i].usages();
+        if usages.len() == 0 {
+            // warn!("eclass {i} has no usages");
+        }
+        let lenBefore = self.pending.len();
+        for shId in usages {
+            let v = self.pending.entry(*shId).or_insert(pending_ty);
             *v = v.merge(pending_ty);
+        }
+        // TODO: most calls to this functions doesn't change the pending len
+        // can we speed up with this information?
+        if self.pending.len() == lenBefore {
+            // warn!("pending len doesn't change {}", lenBefore,);
+        } else {
+            // warn!(
+            //     "pending len changed from {} to {}",
+            //     lenBefore,
+            //     self.pending.len()
+            // );
         }
     }
 
