@@ -82,7 +82,10 @@ pub enum CHCVar {
 impl CHCVar {
     pub fn toSExpr(&self, typeMap: &BTreeMap<CHCVar, ArgType>) -> String {
         match self {
-            CHCVar::Str(s) => match typeMap.get(self).unwrap() {
+            CHCVar::Str(s) => match typeMap
+                .get(self)
+                .expect(&format!("typeMap.get({self:?}) failed"))
+            {
                 ArgType::Int => format!("(intType ${s})"),
                 ArgType::Node(_) => format!("(nodeType ${s})"),
                 ArgType::List(_) => format!("(listType ${s})"),
@@ -127,7 +130,7 @@ pub struct Constr {
 
 impl std::fmt::Display for Constr {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}(", self.op.name())?;
+        write!(f, "({} ", self.op.name())?;
         for (i, arg) in self.args.iter().enumerate() {
             if i > 0 {
                 write!(f, ", ")?;
@@ -167,6 +170,8 @@ impl Constr {
     }
 
     pub fn propagateTypeUp(&self, typeMap: &mut BTreeMap<CHCVar, ArgType>) -> ArgType {
+        println!("call to propagateTypeUp");
+        println!("self {self:?}");
         let mut types = Vec::new();
         for a in self.args.iter() {
             match a {
@@ -322,6 +327,8 @@ impl Constr {
     }
 
     pub fn propagateTypeDown(&self, thisType: ArgType, typeMap: &mut BTreeMap<CHCVar, ArgType>) {
+        println!("call to propagateTypeDown");
+        println!("self {self:?}");
         match self.op {
             ConstrOP::Eq | ConstrOP::Neq | ConstrOP::EmptyList => {}
             ConstrOP::Add
@@ -717,6 +724,9 @@ impl CHCRule {
         //         prop.get(&self.head.pred_name).unwrap().types[i].clone(),
         //     );
         // }
+        println!("call to toSExpr");
+        println!("self {self:?}");
+        println!("typeMap {typeMap:?}");
 
         format!(
             "(new {} {} {})",

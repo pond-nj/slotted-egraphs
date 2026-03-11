@@ -92,8 +92,8 @@ fn split_at_level_0(expr: &str, op: ConstrOP) -> Option<(String, String)> {
         let mut level = get_level(nextPos.unwrap(), currPos, currLevel, expr);
         if level == 0 {
             return Some((
-                expr[0..nextPos.unwrap()].to_string(),
-                expr[nextPos.unwrap()..].to_string(),
+                expr[0..nextPos.unwrap()].trim().to_string(),
+                expr[opChars.len() + nextPos.unwrap()..].trim().to_string(),
             ));
         }
         currLevel = level;
@@ -236,7 +236,8 @@ fn parse_prolog(lines: &Vec<String>) -> Vec<CHCRule> {
             }
         }
 
-        chcs.push(CHCRule {
+        println!("line {line}");
+        let res = CHCRule {
             head: PredApp {
                 pred_name: head_pred,
                 args: Args::new(head_args),
@@ -244,7 +245,9 @@ fn parse_prolog(lines: &Vec<String>) -> Vec<CHCRule> {
             constr: constrs,
             pred_apps,
             original: line,
-        });
+        };
+        println!("{res}");
+        chcs.push(res);
     }
     chcs
 }
@@ -307,6 +310,7 @@ fn parse_properties(lines: &Vec<String>) -> BTreeMap<String, PredProp> {
             match t.as_str() {
                 "int" => types.push(ArgType::Int),
                 "node" => types.push(ArgType::Node(Box::new(ArgType::Unknown))),
+                "node(int)" => types.push(ArgType::Node(Box::new(ArgType::Int))),
                 "list" => types.push(ArgType::List(Box::new(ArgType::Unknown))),
                 "list(int)" => types.push(ArgType::List(Box::new(ArgType::Int))),
                 _ => panic!("Unknown arg type {}", t),
@@ -337,7 +341,6 @@ fn parse_properties(lines: &Vec<String>) -> BTreeMap<String, PredProp> {
 
 fn parse_constr(constr: &str) -> Option<Term> {
     // let orig_constr = constr.to_string();
-    println!("constr {constr}");
     let mut constr = constr.trim().to_string();
 
     if constr.parse::<i32>().is_ok() {
