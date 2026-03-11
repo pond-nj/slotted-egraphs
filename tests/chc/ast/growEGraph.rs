@@ -99,6 +99,7 @@ pub fn getConstrTypes(
 }
 
 pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
+    info!("growing EGraph from {}", fname);
     let (chcs, rulesByPred) = prepareRules(fname);
     let none = ();
     for (predName, rules) in rulesByPred {
@@ -114,9 +115,8 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
                 original,
             } = &rule;
 
-            info!("original {}", original);
+            info!("input line {}", original);
             let typeMap = getConstrTypes(&rule, props, &chcs);
-            debug!("rule {rule:?}");
             debug!("typeMap {:?}", typeMap);
 
             let expr = rule.toSExpr(&chcs.preds, &typeMap);
@@ -154,6 +154,10 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
         let dummyAppId = eg.addExpr(&dummyCompose.unwrap());
         let composeAppId = eg.addExpr(&composeExpr);
         eg.union(&composeAppId, &dummyAppId);
+        info!(
+            "{predName} has compose Id {:?}",
+            eg.find_applied_id(&composeAppId).id
+        );
         eg.shrink_slots(
             &eg.find_applied_id(&composeAppId),
             &headSlots.unwrap().into_iter().collect(),
@@ -165,8 +169,8 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             .insert(predName.clone());
     }
 
-    debug!("end of growEGraph");
-    eg.printUnionFind();
+    info!("Egraph after growEGraph");
+    // eg.printUnionFind();
     dumpCHCEGraph(eg);
 
     if CHECKS {

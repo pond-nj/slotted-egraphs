@@ -56,7 +56,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // We expect `from` to be on the lhs of this equation.
     pub fn shrink_slots(&mut self, from: &AppliedId, cap: &SmallHashSet<Slot>, proof: ProvenEq) {
         trace!("shrink slots of {:?} to {:?}", from, cap);
-        let mut fromValues = from.m.values_set();
+        let fromValues = from.m.values_set();
         if &fromValues == cap {
             trace!("skip shrink slots of {:?} to {:?}", from, cap);
             return;
@@ -152,7 +152,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn rebuild(&mut self) {
-        println!("start rebuild");
+        info!("start rebuild");
         if CHECKS {
             self.check();
         }
@@ -182,7 +182,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             N::modify(self, i);
         }
         trace!("end modify_queue");
-        println!("done rebuild");
+        info!("done rebuild");
     }
 
     pub fn handleSorted(&mut self, sh: &L) {
@@ -210,13 +210,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let enodeShapeId = self.getOrAddENodeId(&enodeShape);
         let lookupSortedRes = self.lookup_internal((enodeShapeId, bij));
         if lookupSortedRes.is_some() && lookupSortedRes.unwrap() != app_i {
-            // println!("eclass {:?}", self.eclass(app_i.id));
-            // println!("enode before find {:?}", enodeBeforeFind);
-            // println!("enode before sort {:?}", enode);
-            // println!("enode after sort {:?}", sortedENode);
-            // println!("app_i {:?}", app_i);
             let afterSortedAppId = self.add(&sortedENode);
-            // assert_ne!(enode, *enodeBeforeFind);
             self.union_justified(
                 &app_i,
                 &afterSortedAppId,

@@ -16,9 +16,6 @@ fn mainTest() {
     growEGraph("tests/chc/cases/leaf_drop.txt", &mut eg);
     eg.rebuild();
 
-    info!("Egraph before");
-    dumpCHCEGraph(&eg);
-
     let mut runner: CHCRunner = Runner::default()
         .with_egraph(eg)
         .with_iter_limit(ITER_LIMIT)
@@ -39,4 +36,6 @@ fn mainTest() {
 
     info!("Egraph after");
     dumpCHCEGraph(&runner.egraph);
+
+    checkCHCExists("tests/chc/cases/leaf_drop_out.txt", &runner.egraph);
 }

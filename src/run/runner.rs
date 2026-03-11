@@ -200,7 +200,7 @@ where
         }
     }
     fn run_one(&mut self, rewrites: &[Rewrite<L, N>]) {
-        println!("start run one");
+        info!("start run one");
         assert!(self.stop_reason.is_none());
 
         // if the runner has not started, start the timer
@@ -245,7 +245,7 @@ where
             self.stop_reason = Some(stop_reason);
         }
         self.hooks = hooks;
-        println!("done run one");
+        info!("done run one");
     }
 }
 

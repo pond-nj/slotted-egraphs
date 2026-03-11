@@ -170,8 +170,6 @@ impl Constr {
     }
 
     pub fn propagateTypeUp(&self, typeMap: &mut BTreeMap<CHCVar, ArgType>) -> ArgType {
-        println!("call to propagateTypeUp");
-        println!("self {self:?}");
         let mut types = Vec::new();
         for a in self.args.iter() {
             match a {
@@ -327,8 +325,6 @@ impl Constr {
     }
 
     pub fn propagateTypeDown(&self, thisType: ArgType, typeMap: &mut BTreeMap<CHCVar, ArgType>) {
-        println!("call to propagateTypeDown");
-        println!("self {self:?}");
         match self.op {
             ConstrOP::Eq | ConstrOP::Neq | ConstrOP::EmptyList => {}
             ConstrOP::Add
@@ -724,9 +720,6 @@ impl CHCRule {
         //         prop.get(&self.head.pred_name).unwrap().types[i].clone(),
         //     );
         // }
-        println!("call to toSExpr");
-        println!("self {self:?}");
-        println!("typeMap {typeMap:?}");
 
         format!(
             "(new {} {} {})",

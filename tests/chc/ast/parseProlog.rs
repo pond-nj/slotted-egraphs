@@ -155,7 +155,6 @@ fn parse_prolog(lines: &Vec<String>) -> Vec<CHCRule> {
     let head_re = Regex::new(r"^(\w*)\((.*)\)$").unwrap();
 
     for line in lines {
-        println!("line {line}");
         let mut line = line.trim().to_string();
         if line.starts_with("%") {
             continue;
@@ -236,7 +235,6 @@ fn parse_prolog(lines: &Vec<String>) -> Vec<CHCRule> {
             }
         }
 
-        println!("line {line}");
         let res = CHCRule {
             head: PredApp {
                 pred_name: head_pred,
@@ -246,7 +244,6 @@ fn parse_prolog(lines: &Vec<String>) -> Vec<CHCRule> {
             pred_apps,
             original: line,
         };
-        println!("{res}");
         chcs.push(res);
     }
     chcs

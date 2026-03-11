@@ -1,5 +1,5 @@
-# RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
-RUST_BACKTRACE=1 cargo test chc::leafDrop2::mainTest -- --nocapture &> tmp.txt
+RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
+# RUST_BACKTRACE=1 cargo test chc::leafDrop2::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::pairingPaperArray::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::synchronizedCHC::mainTest -- --nocapture &> tmp.txt
 # RUST_LOG=debug RUST_BACKTRACE=1 cargo test chc::leafDrop::testSortAppId -- --nocapture &> tmp.txt
@@ -13,6 +13,7 @@ RUST_BACKTRACE=1 cargo test chc::leafDrop2::mainTest -- --nocapture &> tmp.txt
 
 # flamegraph -o pairingPaperArray.svg -- target/debug/deps/entry-aafa1e403367dd3e --nocapture chc::pairingPaperArray::mainTest
 # flamegraph -o leafDrop.svg -- target/debug/deps/entry-aafa1e403367dd3e --nocapture chc::leafDrop::mainTest
+# flamegraph -o leafDrop2.svg -- target/debug/deps/entry-000f562dbec4755a --nocapture chc::leafDrop2::mainTest
 
 # cargo flamegraph --freq 200 --no-inline \
 #   --bin entry-aafa1e403367dd3e \

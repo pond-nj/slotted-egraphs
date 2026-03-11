@@ -143,10 +143,16 @@ impl AppliedId {
     }
 }
 
+// TODO: create a caching from weak shape of appIdsVec with perm to result
+// we can rename ids e.g. id357, id392, id394, id410 -> id0, id1, id2, id3 as long as the ids remain sorted
+// we can also rename slots e.g. f10654, f10655, f10656, f10657 -> 0, 1, 2, 3
+// this way we have more chance to reuse the result
 pub fn canonicalLabelAppIds<'a>(
     appIdsVec: &'a Vec<AppliedId>,
     allPerms: Option<&Vec<Vec<ProvenPerm>>>,
 ) -> (Vec<i32>, Vec<(&'a AppliedId, usize)>, BTreeMap<Slot, usize>) {
+    println!("appIdsVec {appIdsVec:?}");
+    println!("allPerms {allPerms:?}");
     if appIdsVec.len() == 0 {
         return (vec![], vec![], BTreeMap::new());
     }

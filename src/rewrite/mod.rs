@@ -74,10 +74,11 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
             info!("{i} doing apply for {}", rw.name);
             (*rw.applier)(t, eg);
             info!("{i} done apply for {}", rw.name);
-            debug!(
-                "egraph size after {} is {}",
+            info!(
+                "after {}: {} enodes, {} classes",
                 rw.name,
-                eg.total_number_of_nodes()
+                eg.total_number_of_nodes(),
+                eg.ids().len()
             );
         });
 

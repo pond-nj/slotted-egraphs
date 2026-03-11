@@ -1,0 +1,9 @@
+#t new1(int, int, int) false <>.
+new1(N,M,K) :- M=0, K=0.
+new1(N,M,K) :- N=<0, M=M3+1, K=M, new2(M1), new2(M2), min(M1,M2,M3).
+new1(N,M,K) :- N>=1,N1=N−1,K=K3+1, new1(N1,M,K1), new2(K2), min(K1,K2,K3).
+#t new2(int) false <>.
+new2(M) :- M=0.
+new2(M) :- M=M3+1, new2(M1), new2(M2), min(M1,M2,M3).
+#t incorrect() false <>.
+incorrect  :-  N>=0, M+N<K, new1(N,M,K).
