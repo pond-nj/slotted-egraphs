@@ -20,7 +20,7 @@ RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
 #   -- --nocapture chc::pairingPaperArray::mainTest
 
 
-# RUST_BACKTRACE=1 cargo test rise::tst::fission  &> tmp.txt
+# RUST_BACKTRACE=1 cargo test arith::tst::t2  &> tmp.txt
 
 # rust-gdb target/debug/deps/entry-38a92d690cfd6aa3
 # set args --test entry --nocapture lambda::native::y_identity
