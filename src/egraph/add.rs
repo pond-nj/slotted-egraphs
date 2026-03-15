@@ -141,7 +141,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             *(refs[i]) = self.add_expr(child);
         }
 
-        let nSorted = n.sorted();
+        let nSorted = n.sorted(self.canonAppIdsCache());
         let ret = self.add(&n);
 
         let lenBefore = self.total_number_of_nodes();
@@ -303,7 +303,7 @@ lookup weak_shape result in hashcons: {:?}
             }
             *(refs[i]) = childRes.unwrap();
         }
-        let n = n.sorted();
+        let n = n.sorted(self.canonAppIdsCache());
         let ret = self.lookup(&n);
         ret
     }
@@ -321,7 +321,7 @@ lookup weak_shape result in hashcons: {:?}
             }
             *(refs[i]) = childRes.unwrap();
         }
-        let n = n.sorted();
+        let n = n.sorted(self.canonAppIdsCache());
         let ret = self.lookupMut(&n);
         ret
     }
@@ -459,17 +459,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert!(tmp2.is_none());
         }
         let sh = self.getENode(enodeId);
-        trace!(
-            "insert to hashcons\n
-{sh:?}\n
-orig {:?}\n
-shape {:?}\n
-orig_weak_shape {:?}\n
- -> {id:?}",
-            sh.apply_slotmap(&bij),
-            self.shape(&sh),
-            sh.orig_weak_shape()
-        );
+        //         trace!(
+        //             "insert to hashcons\n
+        // {sh:?}\n
+        // orig {:?}\n
+        // shape {:?}\n
+        // orig_weak_shape {:?}\n
+        //  -> {id:?}",
+        //             sh.apply_slotmap(&bij),
+        //             self.shape(&sh),
+        //             sh.orig_weak_shape()
+        //         );
         for ref_id in sh.ids() {
             // if ref_id == Id(46957) {
             //     println!(

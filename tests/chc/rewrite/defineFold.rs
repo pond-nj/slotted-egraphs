@@ -117,6 +117,7 @@ fn define(
     }
 }
 
+// TODO: refactor this function
 pub fn defineUnfoldFold(
     unfoldList: &Rc<RefCell<UnfoldList>>,
     processedDefinedList: &Rc<RefCell<BTreeSet<CHC>>>,
@@ -176,10 +177,11 @@ pub fn defineUnfoldFold(
                     tag,
                 } in syntaxAndNewBody
                 {
-                    let sortedNewBody: Vec<AppliedIdOrStar> = sortAppId(&newBody, true)
-                        .into_iter()
-                        .map(|x| AppliedIdOrStar::AppliedId(x))
-                        .collect();
+                    let sortedNewBody: Vec<AppliedIdOrStar> =
+                        sortAppId(&newBody, true, eg.canonAppIdsCache())
+                            .into_iter()
+                            .map(|x| AppliedIdOrStar::AppliedId(x))
+                            .collect();
                     // 0 -> $f
                     let (sortedToBeFoldShape, map) = weakShapeAppIds(&sortedNewBody);
 

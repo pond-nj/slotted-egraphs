@@ -3,6 +3,7 @@ use log::{debug, error, info, trace};
 use nauty_Traces_sys::{
     densenauty, empty_graph, optionblk, statsblk, ADDONEEDGE, FALSE, SETWORDSNEEDED, TRUE,
 };
+use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
 use std::os::raw::c_int;
 
@@ -212,7 +213,7 @@ fn renameAppIdsAndPerms(
 // we can rename ids e.g. id357, id392, id394, id410 -> id0, id1, id2, id3 as long as the ids remain sorted
 // we can also rename slots e.g. f10654, f10655, f10656, f10657 -> 0, 1, 2, 3
 // this way we have more chance to reuse the result
-pub fn canonicalLabelAppIds<'a>(
+pub fn canonAppIdsOrig<'a>(
     appIdsVec: &'a Vec<AppliedId>,
     allPerms: Option<&Vec<Vec<ProvenPerm>>>,
 ) -> (Vec<i32>, Vec<(&'a AppliedId, usize)>, BTreeMap<Slot, usize>) {
@@ -234,10 +235,11 @@ pub fn canonicalLabelAppIds<'a>(
     // 8(arg) - 10(var)
     // 9(arg) - 11(var)
 
-    let (labAlt, appIdToVAlt, slotsToVAlt) = canonicalLabelAppIdsWithRename(appIdsVec, allPerms);
+    // TODO: remove this
+    // let (labAlt, appIdToVAlt, slotsToVAlt) = canonAppIdsWithRename(appIdsVec, allPerms);
 
-    trace!("canonicalLabelAppIds appIdsVec {appIdsVec:?}");
-    trace!("allPerms {allPerms:?}");
+    // trace!("canonAppIds appIdsVec {appIdsVec:?}");
+    // trace!("allPerms {allPerms:?}");
 
     let mut totalV = 0;
     // total number of vertices = sum (1 + nums_function_args) + nums_variables
@@ -399,220 +401,25 @@ pub fn canonicalLabelAppIds<'a>(
     trace!("appIdsVec {appIdsVec:?}");
     trace!("lab {lab:?}");
 
-    assert_eq!(lab, labAlt);
-    assert_eq!(
-        appIdToV
-            .iter()
-            .map(|(x, v): &(&AppliedId, usize)| ((**x).clone(), *v))
-            .collect::<Vec<(AppliedId, usize)>>(),
-        appIdToVAlt
-    );
-    assert_eq!(slotsToV, slotsToVAlt);
+    // assert_eq!(lab, labAlt);
+    // assert_eq!(
+    //     appIdToV
+    //         .iter()
+    //         .map(|(x, v): &(&AppliedId, usize)| ((**x).clone(), *v))
+    //         .collect::<Vec<(AppliedId, usize)>>(),
+    //     appIdToVAlt
+    // );
+    // assert_eq!(slotsToV, slotsToVAlt);
     (lab, appIdToV, slotsToV)
 }
 
-pub fn canonicalLabelAppIdsWithRename(
-    appIdsVec: &Vec<AppliedId>,
-    allPerms: Option<&Vec<Vec<ProvenPerm>>>,
-) -> (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>) {
-    if appIdsVec.len() == 0 {
-        return (vec![], vec![], BTreeMap::new());
-    }
-
-    println!("original appIdsVec {appIdsVec:?}");
-    println!("original allPerms {allPerms:?}");
-    let (appIdsVec, allPerms, idMap, slotMaps) = renameAppIdsAndPerms(appIdsVec, allPerms);
-    println!("rename result");
-    println!("appIdsVec {appIdsVec:?}");
-    println!("allPerms {allPerms:?}");
-    println!("idMap {idMap:?}");
-    println!("slotMaps {slotMaps:?}");
-
-    // {f(x, y), f(y, x), g(x, y)}
-    // should have a color order f < g < arg < var
-    // 1(f) - 2(arg) - 3(arg)
-    // 4(f) - 5(arg) - 6(arg)
-    // 7(g) - 8(arg) - 9(arg)
-    // x - 10(var)
-    // y - 11(var)
-    // 2(arg) - 10(var)
-    // 5(arg) - 11(var)
-    // 3(arg) - 11(var)
-    // 6(arg) - 10(var)
-    // 8(arg) - 10(var)
-    // 9(arg) - 11(var)
-
-    trace!("canonicalLabelAppIds appIdsVec {appIdsVec:?}");
-    trace!("allPerms {allPerms:?}");
-
-    let mut totalV = 0;
-    // total number of vertices = sum (1 + nums_function_args) + nums_variables
-    let mut allSlots: BTreeSet<Slot> = BTreeSet::new();
-    // must be vec because there might be duplicates
-    let mut appIdToV = Vec::new();
-    let mut argsV = vec![];
-    // vertex for each function + its argument position
-    for child in appIdsVec.iter() {
-        appIdToV.push((child, totalV));
-        for i in 0..child.len() {
-            argsV.push(totalV + i + 1);
-        }
-        totalV += 1 + child.len();
-        allSlots.extend(child.public_slot_occurrences_iter());
-    }
-
-    // vertex for each slot
-    let mut slotsToV = BTreeMap::new();
-    for s in allSlots {
-        slotsToV.insert(s, totalV);
-        totalV += 1;
-    }
-
-    let m = SETWORDSNEEDED(totalV);
-    let mut g = empty_graph(m, totalV);
-
-    // add edges
-    let mut curr = 0;
-    for (_i, child) in appIdsVec.iter().enumerate() {
-        // 1(f) - 2(arg) - 3(arg)
-
-        if child.len() > 0 {
-            // 1(f) - 2(arg)
-            ADDONEEDGE(&mut g, curr, curr + 1, m);
-            // println!("edge {curr} {}", curr + 1);
-        }
-
-        curr += 1;
-        // if there's no children, this will move to the new appId automatically
-
-        // 2(arg) - 3(arg)
-        for (i, s) in child.public_slot_occurrences_iter().enumerate() {
-            if i != child.len() - 1 {
-                ADDONEEDGE(&mut g, curr, curr + 1, m);
-                // println!("edge {curr} {}", curr + 1);
-            }
-
-            // 2(arg) - 10(var)
-            ADDONEEDGE(&mut g, curr, slotsToV[&s], m);
-            curr += 1;
-        }
-    }
-
-    if allPerms.is_some() {
-        let allPerms = allPerms.as_ref().unwrap();
-        assert!(allPerms.len() == appIdToV.len());
-        for (i, perms) in allPerms.iter().enumerate() {
-            let startArgsV = appIdToV[i].1 + 1;
-            for p in perms {
-                let newArgs = p.elem.composePartial(&appIdsVec[i].m);
-                for (j, s) in newArgs.values_immut().enumerate() {
-                    ADDONEEDGE(&mut g, startArgsV + j, slotsToV[s], m);
-                }
-            }
-        }
-    }
-
-    // color sorted by eclass id then follow by args and vars
-    let mut appIdToVVec = appIdToV
-        .iter()
-        .map(|(x, v)| (x.id(), v))
-        .collect::<Vec<_>>();
-    // sort by id
-    appIdToVVec.sort();
-    let mut lab: Vec<i32> = vec![];
-    let mut ptn = vec![];
-
-    // color for ids
-    let mut groupLen = 0;
-    let mut thisGroupId = appIdToVVec[0].0;
-    for (id, v) in &appIdToVVec {
-        lab.push(**v as i32);
-        if *id == thisGroupId {
-            groupLen += 1;
-        } else {
-            for _ in 0..groupLen - 1 {
-                ptn.push(1);
-            }
-            ptn.push(0);
-
-            groupLen = 1;
-            thisGroupId = *id;
-        }
-    }
-    assert!(groupLen > 0);
-    for _ in 0..groupLen - 1 {
-        ptn.push(1);
-    }
-    ptn.push(0);
-    // println!("currLabLen after ids color {}", lab.len());
-
-    // color for args
-    if argsV.len() > 0 {
-        lab.extend(argsV.iter().map(|i| *i as i32));
-        for _ in 0..argsV.len() - 1 {
-            ptn.push(1);
-        }
-        ptn.push(0);
-    }
-
-    // color for vars
-    let currLabLen = lab.len();
-    for i in currLabLen..totalV {
-        lab.push(i as i32);
-    }
-
-    assert_eq!(totalV - currLabLen, slotsToV.len());
-    if slotsToV.len() > 0 {
-        for _ in 0..slotsToV.len() - 1 {
-            ptn.push(1);
-        }
-        ptn.push(0);
-    }
-
-    // output structures
-    let mut orbits = vec![0; totalV];
-    let mut canonG = empty_graph(m, totalV);
-    let mut stats = statsblk::default();
-
-    let mut options = optionblk::default();
-    options.getcanon = TRUE; // Compute canonical labeling
-    options.defaultptn = FALSE; // Use custom lab and ptn for colors
-
-    assert_eq!(lab.len(), totalV);
-    assert_eq!(ptn.len(), totalV);
-    assert!(g.len() == (m * totalV));
-    assert!(canonG.len() == (m * totalV));
-    assert!(*lab.iter().max().unwrap() == (totalV - 1) as i32);
-
-    unsafe {
-        densenauty(
-            g.as_mut_ptr(),
-            lab.as_mut_ptr(),
-            // if ptn[i] = 0, then a group (colour class) ends at position i
-            ptn.as_mut_ptr(),
-            orbits.as_mut_ptr(),
-            &mut options,
-            &mut stats,
-            m as c_int,
-            totalV as c_int,
-            canonG.as_mut_ptr(),
-        );
-    }
-
-    // the value of lab on return is the canonical labelling
-    // of the graph. Precisely, it lists the vertices of g in the order in which they need to
-    // be relabelled to give canong
-    trace!("appIdsVec {appIdsVec:?}");
-    trace!("lab {lab:?}");
-    // println!("translate back slotsToV {slotsToV:?}");
-    // let slotsToV = slotsToV
-    //     .iter()
-    //     .map(|(s, v)| (slotMap.get(*s).unwrap(), *v))
-    //     .collect();
-    println!("translate back appIdToV {appIdToV:?}");
+fn translateBack(
+    appIdToV: &Vec<(AppliedId, usize)>,
+    idMap: &BTreeMap<Id, Id>,
+    slotMaps: &BTreeMap<Id, SlotMap>,
+) -> Vec<(AppliedId, usize)> {
     let idMapInverse: BTreeMap<Id, Id> = idMap.iter().map(|(k, v)| (*v, *k)).collect();
-    println!("idMapInverse {idMapInverse:?}");
-    let appIdToV = appIdToV
+    appIdToV
         .iter()
         .map(|(appId, v)| {
             let origId = *idMapInverse.get(&appId.id).unwrap();
@@ -636,21 +443,243 @@ pub fn canonicalLabelAppIdsWithRename(
                 *v,
             )
         })
-        .collect();
+        .collect()
+}
+
+pub type CanonAppIdsCache = RefCell<
+    BTreeMap<
+        (Vec<AppliedId>, Option<Vec<Vec<ProvenPerm>>>),
+        (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>),
+    >,
+>;
+
+fn canonAppIdsInternal(
+    appIdsVec: &Vec<AppliedId>,
+    allPerms: &Option<Vec<Vec<ProvenPerm>>>,
+    cache: &CanonAppIdsCache,
+) -> (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>) {
+    // {f(x, y), f(y, x), g(x, y)}
+    // should have a color order f < g < arg < var
+    // 1(f) - 2(arg) - 3(arg)
+    // 4(f) - 5(arg) - 6(arg)
+    // 7(g) - 8(arg) - 9(arg)
+    // x - 10(var)
+    // y - 11(var)
+    // 2(arg) - 10(var)
+    // 5(arg) - 11(var)
+    // 3(arg) - 11(var)
+    // 6(arg) - 10(var)
+    // 8(arg) - 10(var)
+    // 9(arg) - 11(var)
+
+    if let Some(cacheResult) = cache.borrow().get(&(appIdsVec.clone(), allPerms.clone())) {
+        println!("hit");
+        return cacheResult.clone();
+    }
+    println!("miss");
+
+    trace!("canonAppIds appIdsVec {appIdsVec:?}");
+    trace!("allPerms {allPerms:?}");
+
+    let mut totalV = 0;
+    // total number of vertices = sum (1 + nums_function_args) + nums_variables
+    let mut allSlots: BTreeSet<Slot> = BTreeSet::new();
+    // must be vec because there might be duplicates
+    let mut appIdToV = Vec::new();
+    let mut argsV = vec![];
+    // vertex for each function + its argument position
+    for child in appIdsVec.iter() {
+        appIdToV.push((child, totalV));
+        for i in 0..child.len() {
+            argsV.push(totalV + i + 1);
+        }
+        totalV += 1 + child.len();
+        allSlots.extend(child.public_slot_occurrences_iter());
+    }
+
+    // vertex for each slot
+    let mut slotsToV = BTreeMap::new();
+    for s in allSlots {
+        slotsToV.insert(s, totalV);
+        totalV += 1;
+    }
+
+    let m = SETWORDSNEEDED(totalV);
+    let mut g = empty_graph(m, totalV);
+
+    // add edges
+    let mut curr = 0;
+    for (_i, child) in appIdsVec.iter().enumerate() {
+        // 1(f) - 2(arg) - 3(arg)
+
+        if child.len() > 0 {
+            // 1(f) - 2(arg)
+            ADDONEEDGE(&mut g, curr, curr + 1, m);
+            // println!("edge {curr} {}", curr + 1);
+        }
+
+        curr += 1;
+        // if there's no children, this will move to the new appId automatically
+
+        // 2(arg) - 3(arg)
+        for (i, s) in child.public_slot_occurrences_iter().enumerate() {
+            if i != child.len() - 1 {
+                ADDONEEDGE(&mut g, curr, curr + 1, m);
+                // println!("edge {curr} {}", curr + 1);
+            }
+
+            // 2(arg) - 10(var)
+            ADDONEEDGE(&mut g, curr, slotsToV[&s], m);
+            curr += 1;
+        }
+    }
+
+    if allPerms.is_some() {
+        let allPerms = allPerms.as_ref().unwrap();
+        assert!(allPerms.len() == appIdToV.len());
+        for (i, perms) in allPerms.iter().enumerate() {
+            let startArgsV = appIdToV[i].1 + 1;
+            for p in perms {
+                let newArgs = p.elem.composePartial(&appIdsVec[i].m);
+                for (j, s) in newArgs.values_immut().enumerate() {
+                    ADDONEEDGE(&mut g, startArgsV + j, slotsToV[s], m);
+                }
+            }
+        }
+    }
+
+    // color sorted by eclass id then follow by args and vars
+    let mut appIdToVVec = appIdToV
+        .iter()
+        .map(|(x, v)| (x.id(), v))
+        .collect::<Vec<_>>();
+    // sort by id
+    appIdToVVec.sort();
+    let mut lab: Vec<i32> = vec![];
+    let mut ptn = vec![];
+
+    // color for ids
+    let mut groupLen = 0;
+    let mut thisGroupId = appIdToVVec[0].0;
+    for (id, v) in &appIdToVVec {
+        lab.push(**v as i32);
+        if *id == thisGroupId {
+            groupLen += 1;
+        } else {
+            for _ in 0..groupLen - 1 {
+                ptn.push(1);
+            }
+            ptn.push(0);
+
+            groupLen = 1;
+            thisGroupId = *id;
+        }
+    }
+    assert!(groupLen > 0);
+    for _ in 0..groupLen - 1 {
+        ptn.push(1);
+    }
+    ptn.push(0);
+    // println!("currLabLen after ids color {}", lab.len());
+
+    // color for args
+    if argsV.len() > 0 {
+        lab.extend(argsV.iter().map(|i| *i as i32));
+        for _ in 0..argsV.len() - 1 {
+            ptn.push(1);
+        }
+        ptn.push(0);
+    }
+
+    // color for vars
+    let currLabLen = lab.len();
+    for i in currLabLen..totalV {
+        lab.push(i as i32);
+    }
+
+    assert_eq!(totalV - currLabLen, slotsToV.len());
+    if slotsToV.len() > 0 {
+        for _ in 0..slotsToV.len() - 1 {
+            ptn.push(1);
+        }
+        ptn.push(0);
+    }
+
+    // output structures
+    let mut orbits = vec![0; totalV];
+    let mut canonG = empty_graph(m, totalV);
+    let mut stats = statsblk::default();
+
+    let mut options = optionblk::default();
+    options.getcanon = TRUE; // Compute canonical labeling
+    options.defaultptn = FALSE; // Use custom lab and ptn for colors
+
+    assert_eq!(lab.len(), totalV);
+    assert_eq!(ptn.len(), totalV);
+    assert!(g.len() == (m * totalV));
+    assert!(canonG.len() == (m * totalV));
+    assert!(*lab.iter().max().unwrap() == (totalV - 1) as i32);
+
+    unsafe {
+        densenauty(
+            g.as_mut_ptr(),
+            lab.as_mut_ptr(),
+            // if ptn[i] = 0, then a group (colour class) ends at position i
+            ptn.as_mut_ptr(),
+            orbits.as_mut_ptr(),
+            &mut options,
+            &mut stats,
+            m as c_int,
+            totalV as c_int,
+            canonG.as_mut_ptr(),
+        );
+    }
+
+    // the value of lab on return is the canonical labelling
+    // of the graph. Precisely, it lists the vertices of g in the order in which they need to
+    // be relabelled to give canong
+
+    let ret = (
+        lab,
+        appIdToV
+            .into_iter()
+            .map(|(x, v)| ((*x).clone(), v))
+            .collect(),
+        slotsToV,
+    );
+
+    cache
+        .borrow_mut()
+        .insert((appIdsVec.clone(), allPerms.clone()), ret.clone());
+
+    ret
+}
+
+pub fn canonAppIdsWithRename(
+    appIdsVec: &Vec<AppliedId>,
+    allPerms: Option<&Vec<Vec<ProvenPerm>>>,
+    cache: &CanonAppIdsCache,
+) -> (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>) {
+    if appIdsVec.len() == 0 {
+        return (vec![], vec![], BTreeMap::new());
+    }
+
+    // TODO: vals in input appIds must start from 0, 1,...
+
+    let (appIdsVec, allPerms, idMap, slotMaps) = renameAppIdsAndPerms(appIdsVec, allPerms);
+
+    let (lab, appIdToV, slotsToV) = canonAppIdsInternal(&appIdsVec, &allPerms, cache);
+    let appIdToV = translateBack(&appIdToV, &idMap, &slotMaps);
+
     (lab, appIdToV, slotsToV)
 }
 
-pub fn checkDedup(eclassId: Id, vec: &OrderVec<AppliedIdOrStar>) -> Result<(), String> {
-    let mut dedup = vec.sorted();
-    dedup.dedup();
-    if dedup.len() != vec.len() {
-        return Err(format!("dedup failed at {eclassId}"));
-    }
-    Ok(())
-}
-
-pub fn checkDedup2(eclassId: Id, vec: &OrderVec<AppliedId>) -> Result<(), String> {
-    let mut dedup = vec.sorted();
+pub fn checkDedup(
+    eclassId: Id,
+    vec: &OrderVec<AppliedIdOrStar>,
+    cache: &CanonAppIdsCache,
+) -> Result<(), String> {
+    let mut dedup = vec.sorted(cache);
     dedup.dedup();
     if dedup.len() != vec.len() {
         return Err(format!("dedup failed at {eclassId}"));
@@ -659,7 +688,11 @@ pub fn checkDedup2(eclassId: Id, vec: &OrderVec<AppliedId>) -> Result<(), String
 }
 
 // This only works with Vector of AppIds
-pub fn sortAppId(appIdsOrigs: &Vec<AppliedId>, dedup: bool) -> Vec<AppliedId> {
+pub fn sortAppId(
+    appIdsOrigs: &Vec<AppliedId>,
+    dedup: bool,
+    cache: &CanonAppIdsCache,
+) -> Vec<AppliedId> {
     if appIdsOrigs.len() == 0 {
         return vec![];
     }
@@ -675,7 +708,7 @@ pub fn sortAppId(appIdsOrigs: &Vec<AppliedId>, dedup: bool) -> Vec<AppliedId> {
         return appIdsSorted;
     }
     debug!("start sortAppId");
-    let (lab, appIdToV, _) = canonicalLabelAppIds(&appIdsSorted, None);
+    let (lab, appIdToV, _) = canonAppIdsWithRename(&appIdsSorted, None, cache);
 
     let mut VToAppIds = BTreeMap::new();
     for (id, v) in appIdToV {

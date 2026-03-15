@@ -87,6 +87,8 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
 
     enodes: Vec<L>,
     enodeWeakShape: BTreeMap<L, ENodeId>,
+
+    _canonAppIdsCache: CanonAppIdsCache,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -121,6 +123,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             modify_queue: Vec::new(),
             enodes: Vec::new(),
             enodeWeakShape: BTreeMap::new(),
+            _canonAppIdsCache: RefCell::new(BTreeMap::new()),
         }
     }
 

@@ -97,7 +97,7 @@ pub trait LanguageChildren: Debug + Clone + Hash + Eq + PartialEq + Ord {
     fn expandChildren(&mut self);
     fn shrinkChildren(&mut self);
     fn defaultNull() -> Self;
-    fn sorted(&self) -> Self;
+    fn sorted(&self, cache: &CanonAppIdsCache) -> Self;
 
     fn len(&self) -> usize {
         todo!()
@@ -175,7 +175,7 @@ impl LanguageChildren for AppliedId {
         AppliedId::null()
     }
 
-    fn sorted(&self) -> Self {
+    fn sorted(&self, _cache: &CanonAppIdsCache) -> Self {
         self.clone()
     }
 
@@ -242,7 +242,7 @@ impl LanguageChildren for Slot {
         Slot::fresh()
     }
 
-    fn sorted(&self) -> Self {
+    fn sorted(&self, _cache: &CanonAppIdsCache) -> Self {
         self.clone()
     }
 
@@ -290,7 +290,7 @@ macro_rules! bare_language_child {
                 todo!()
             }
 
-            fn sorted(&self) -> Self {
+            fn sorted(&self, _cache: &CanonAppIdsCache) -> Self {
                 self.clone()
             }
 
@@ -390,7 +390,7 @@ impl LanguageChildren for AppliedIdOrStar {
         AppliedIdOrStar::AppliedId(AppliedId::null())
     }
 
-    fn sorted(&self) -> Self {
+    fn sorted(&self, _cache: &CanonAppIdsCache) -> Self {
         self.clone()
     }
 
@@ -475,7 +475,7 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
         todo!()
     }
 
-    fn sorted(&self) -> Self {
+    fn sorted(&self, _cache: &CanonAppIdsCache) -> Self {
         self.clone()
     }
 
@@ -621,14 +621,14 @@ impl<L: LanguageChildren + Into<AppliedId> + From<AppliedId>> LanguageChildren f
         self.0.len()
     }
 
-    fn sorted(&self) -> Self {
+    fn sorted(&self, cache: &CanonAppIdsCache) -> Self {
         let appIds: Vec<AppliedId> = self
             .0
             .clone()
             .into_iter()
             .map(|x| x.into())
             .collect::<Vec<_>>();
-        let res: Vec<AppliedId> = sortAppId(&appIds, false);
+        let res: Vec<AppliedId> = sortAppId(&appIds, false, cache);
         res.into_iter().map(|x| x.into()).collect()
     }
 
@@ -722,7 +722,7 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
         vec![]
     }
 
-    fn sorted(&self) -> Self {
+    fn sorted(&self, _cache: &CanonAppIdsCache) -> Self {
         self.clone()
     }
 
@@ -767,7 +767,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     fn expandChildren(&mut self);
     fn shrinkChildren(&mut self);
 
-    fn sorted(&self) -> Self {
+    fn sorted(&self, _cache: &CanonAppIdsCache) -> Self {
         self.clone()
     }
 
@@ -948,7 +948,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     //         let bij = c.weak_shape_inplace();
     //         return (c, bij);
     //     }
-    //     let (lab, _, slotsToV) = canonicalLabelAppIds(&appIds, None);
+    //     let (lab, _, slotsToV) = canonAppIds(&appIds, None);
 
     //     let mut vToSlots = BTreeMap::new();
     //     for (s, v) in slotsToV.iter() {

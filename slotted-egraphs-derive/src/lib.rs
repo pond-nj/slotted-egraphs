@@ -197,7 +197,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                 }
             }
 
-            fn sorted(&self) -> Self {
+            fn sorted(&self, cache: &CanonAppIdsCache) -> Self {
                 match self{
                     #(#getSortedArms),*
                 }
@@ -476,7 +476,7 @@ fn produceSortedArms(name: &Ident, v: &Variant) -> TokenStream2 {
     quote! {
         #name::#variant_name(#(#fields),*) => {
             #name::#variant_name(#(
-                #fields .sorted(),
+                #fields .sorted(cache),
             )*)
 
             // let mut out: Vec<SyntaxElem> = vec![SyntaxElem::String(String::from(#e))];

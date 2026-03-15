@@ -441,10 +441,11 @@ fn createUnfoldedCompose(
             unfoldedComposeChildren.remove(*compose1ReplaceIdx);
             unfoldedComposeChildren.extend(createdNewENodes.iter().map(|x| x.0.clone()));
 
-            let unfoldedComposeChildren: OrderVec<_> = sortAppId(&unfoldedComposeChildren, true)
-                .into_iter()
-                .map(AppliedIdOrStar::from)
-                .collect();
+            let unfoldedComposeChildren: OrderVec<_> =
+                sortAppId(&unfoldedComposeChildren, true, eg.canonAppIdsCache())
+                    .into_iter()
+                    .map(AppliedIdOrStar::from)
+                    .collect();
             let composeENode = CHC::Compose(unfoldedComposeChildren);
 
             let unfoldedComposeAppId = eg.add(&composeENode);
@@ -469,6 +470,7 @@ fn createUnfoldedCompose(
             let composeChildren = sortAppId(
                 &createdNewENodes.iter().map(|x| x.0.clone()).collect(),
                 true,
+                eg.canonAppIdsCache(),
             );
             let composeChildren: OrderVec<_> = composeChildren
                 .into_iter()

@@ -1,8 +1,14 @@
+use std::cell::{Ref, RefMut};
+
 use log::info;
 
 use super::*;
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
+    pub fn canonAppIdsCache(&self) -> &CanonAppIdsCache {
+        &self._canonAppIdsCache
+    }
+
     pub fn orig_shape(&self, e: &L) -> (L, Bijection) {
         let (pnode, bij) = self.proven_shape(e);
         if self.find_enode(&e) != *e {
@@ -69,7 +75,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     .collect()
             })
             .collect();
-        let (lab, _, slotsToV) = canonicalLabelAppIds(&appIds, Some(&allPerms));
+        let (lab, _, slotsToV) = canonAppIdsWithRename(&appIds, Some(&allPerms), self.canonAppIdsCache());
 
         trace!(
             "allPerms {:?}\n orig_weak_shape {:?}",

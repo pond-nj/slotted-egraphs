@@ -384,6 +384,7 @@ fn createSortedDefinedNewENode(
             .map(|x| x.getAppliedId())
             .collect::<Vec<_>>(),
         true,
+        eg.canonAppIdsCache(),
     );
     // $0 -> $f
     let (_, map) = weakShapeAppIds(&sortedChildren);
@@ -426,7 +427,7 @@ pub fn sortNewENode1(
     let mut aggrAppId: Vec<_> = bodyAppIds.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.push(condAppId.clone());
     aggrAppId.push(syntaxAppId.clone());
-    let aggrAppId = sortAppId(&aggrAppId, true);
+    let aggrAppId = sortAppId(&aggrAppId, true, eg.canonAppIdsCache());
 
     let updatedChildren: Vec<_> = aggrAppId
         .into_iter()
@@ -452,7 +453,7 @@ pub fn sortNewENode2(
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.extend(condChildren.iter().map(|a| a.getAppliedId()));
     aggrAppId.push(syntaxAppId.clone());
-    let aggrAppId = sortAppId(&aggrAppId, true);
+    let aggrAppId = sortAppId(&aggrAppId, true, eg.canonAppIdsCache());
 
     let condChildrenSet = BTreeSet::from_iter(condChildren.iter().map(|a| a.getAppliedId()));
 
@@ -476,7 +477,12 @@ pub fn sortNewENode2(
     // trace!("result eclass {:?}", eg.eclass(condAppId.id).unwrap());
 
     if CHECKS {
-        checkDedup(condAppId.id, &sortedCondChildren.into()).unwrap();
+        checkDedup(
+            condAppId.id,
+            &sortedCondChildren.into(),
+            &eg.canonAppIdsCache(),
+        )
+        .unwrap();
     }
 
     debug!("done sortNewENode2");

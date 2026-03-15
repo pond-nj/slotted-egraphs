@@ -1,4 +1,4 @@
-RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
+# RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::leafDrop2::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::pairingPaperArray::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::synchronizedCHC::mainTest -- --nocapture &> tmp.txt
@@ -13,14 +13,14 @@ RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
 
 # flamegraph -o pairingPaperArray.svg -- target/debug/deps/entry-aafa1e403367dd3e --nocapture chc::pairingPaperArray::mainTest
 # flamegraph -o leafDrop.svg -- target/debug/deps/entry-aafa1e403367dd3e --nocapture chc::leafDrop::mainTest
-# flamegraph -o leafDrop2.svg -- target/debug/deps/entry-000f562dbec4755a --nocapture chc::leafDrop2::mainTest
+# flamegraph -o leafDrop2.svg -- target/debug/deps/entry-3b1a1a39475eaf93 --nocapture chc::leafDrop2::mainTest
 
 # cargo flamegraph --freq 200 --no-inline \
 #   --bin entry-aafa1e403367dd3e \
 #   -- --nocapture chc::pairingPaperArray::mainTest
 
 
-# RUST_BACKTRACE=1 cargo test arith::tst::t2  &> tmp.txt
+# RUST_BACKTRACE=1 cargo test lambda::native::y_identity  &> tmp.txt
 
 # rust-gdb target/debug/deps/entry-38a92d690cfd6aa3
 # set args --test entry --nocapture lambda::native::y_identity

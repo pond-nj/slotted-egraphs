@@ -76,6 +76,7 @@ fn testSortAppId() {
                         let sortedChildren = sortAppId(
                             &children.iter().map(|x| x.clone().getAppliedId()).collect(),
                             true,
+                            runner.egraph.canonAppIdsCache(),
                         );
                         for permuteChildren in permute_iter(&children) {
                             let sortedPermuteChildren = sortAppId(
@@ -84,6 +85,7 @@ fn testSortAppId() {
                                     .map(|x| x.clone().getAppliedId())
                                     .collect(),
                                 true,
+                                runner.egraph.canonAppIdsCache(),
                             );
                             if (sortedChildren != sortedPermuteChildren) {
                                 assert_eq!(
@@ -111,6 +113,7 @@ fn testSortAppId() {
                         let sortedChildren = sortAppId(
                             &children.iter().map(|x| x.clone().getAppliedId()).collect(),
                             true,
+                            runner.egraph.canonAppIdsCache(),
                         );
                         for permuteChildren in permute_iter(&children) {
                             let sortedPermuteChildren = sortAppId(
@@ -119,6 +122,7 @@ fn testSortAppId() {
                                     .map(|x| x.clone().getAppliedId())
                                     .collect(),
                                 true,
+                                runner.egraph.canonAppIdsCache(),
                             );
                             if (sortedChildren != sortedPermuteChildren) {
                                 assert_eq!(

@@ -205,7 +205,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let app_i = self.mk_sem_identity_applied_id(i);
         assert_eq!(app_i, self.find_applied_id(&app_i));
 
-        let sortedENode = enode.sorted();
+        let sortedENode = enode.sorted(self.canonAppIdsCache());
         let (enodeShape, bij) = self.shape(&sortedENode);
         let enodeShapeId = self.getOrAddENodeId(&enodeShape);
         let lookupSortedRes = self.lookup_internal((enodeShapeId, bij));

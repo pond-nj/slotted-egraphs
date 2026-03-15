@@ -25,7 +25,7 @@ impl Permutation for Perm {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialOrd, Ord)]
 pub struct ProvenPerm {
     pub elem: Perm,
 
