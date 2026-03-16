@@ -18,6 +18,7 @@ pub enum ConstrOP {
     Gt,
     EmptyList,
     List,
+    Leaf,
     Binode,
 }
 
@@ -34,6 +35,7 @@ impl ConstrOP {
             ConstrOP::Gt => ">",
             ConstrOP::EmptyList => "[]",
             ConstrOP::List => "list",
+            ConstrOP::Leaf => "leaf",
             ConstrOP::Binode => "node",
         }
     }
@@ -49,7 +51,7 @@ impl ConstrOP {
             ConstrOP::Eq | ConstrOP::Neq => true,
             ConstrOP::Add | ConstrOP::Minus => true,
             ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Lt | ConstrOP::Gt => true,
-            ConstrOP::EmptyList | ConstrOP::List | ConstrOP::Binode => false,
+            ConstrOP::Leaf | ConstrOP::EmptyList | ConstrOP::List | ConstrOP::Binode => false,
         }
     }
 
@@ -58,7 +60,7 @@ impl ConstrOP {
             ConstrOP::Eq | ConstrOP::Neq => None,
             ConstrOP::Add | ConstrOP::Minus => Some(ArgType::Int),
             ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Lt | ConstrOP::Gt => Some(ArgType::Int),
-            ConstrOP::EmptyList | ConstrOP::List | ConstrOP::Binode => None,
+            ConstrOP::Leaf | ConstrOP::EmptyList | ConstrOP::List | ConstrOP::Binode => None,
         }
     }
 
@@ -68,7 +70,7 @@ impl ConstrOP {
             ConstrOP::Add | ConstrOP::Minus => ArgType::Int,
             ConstrOP::Leq | ConstrOP::Geq | ConstrOP::Lt | ConstrOP::Gt => ArgType::Bool,
             ConstrOP::EmptyList | ConstrOP::List => ArgType::List(Box::new(ArgType::Unknown)),
-            ConstrOP::Binode => ArgType::Node(Box::new(ArgType::Unknown)),
+            ConstrOP::Leaf | ConstrOP::Binode => ArgType::Node(Box::new(ArgType::Unknown)),
         }
     }
 }
@@ -222,7 +224,7 @@ impl Constr {
         }
 
         match self.op {
-            ConstrOP::EmptyList => self.op.getType(),
+            ConstrOP::EmptyList | ConstrOP::Leaf => self.op.getType(),
             ConstrOP::List => {
                 assert!(self.args.len() == 2);
 
@@ -326,7 +328,7 @@ impl Constr {
 
     pub fn propagateTypeDown(&self, thisType: ArgType, typeMap: &mut BTreeMap<CHCVar, ArgType>) {
         match self.op {
-            ConstrOP::Eq | ConstrOP::Neq | ConstrOP::EmptyList => {}
+            ConstrOP::Eq | ConstrOP::Neq | ConstrOP::EmptyList | ConstrOP::Leaf => {}
             ConstrOP::Add
             | ConstrOP::Minus
             | ConstrOP::Leq

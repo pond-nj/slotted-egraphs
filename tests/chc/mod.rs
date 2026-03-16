@@ -44,6 +44,7 @@ define_language! {
         ListType(Slot) = "listType",
         // TODO: if add new ADT type, must also change some function in rewrite phase - definition
 
+        // TODO: actually, we don't need this
         // wouldn't sort this
         PredSyntax(Vec<AppliedId>) = "pred",
         // TODO: if we change new enode predicate body, would it be better for sorting?

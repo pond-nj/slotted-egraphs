@@ -35,7 +35,10 @@ pub const CHECKS: bool = true;
 #[cfg(not(feature = "checks"))]
 pub const CHECKS: bool = false;
 
-pub const TO_CHECKS: bool = true;
+#[cfg(feature = "callZ3CheckUnsatConstr")]
+pub const CHECK_UNSAT_CONSTR: bool = true;
+#[cfg(not(feature = "callZ3CheckUnsatConstr"))]
+pub const CHECK_UNSAT_CONSTR: bool = false;
 
 pub use slotted_egraphs_derive::define_language;
 

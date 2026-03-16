@@ -13,9 +13,11 @@ profiling = []
 newShape = []
 newSymCal = []
 originalPrint = []
-# default = ["newShape", "newSymCal"]
+callZ3CheckUnsatConstr = []
+# default = ["newShape", "newSymCal", "callZ3CheckUnsatConstr"]
+default = ["newShape", "newSymCal"]
 # default = ["newShape", "newSymCal", "originalPrint"]
-default = ["checks", "newShape", "newSymCal"]
+# default = ["checks", "newShape", "newSymCal", "callZ3CheckUnsatConstr"]
 # default = ["checks"]
 # default = []
 
@@ -43,6 +45,7 @@ rustsat-cadical = "0.7.5"
 rustsat-minisat = "0.7.5"
 rayon = "1.11.0"
 kmpsearch = "1.0.0"
+z3 = "0.19.14"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }

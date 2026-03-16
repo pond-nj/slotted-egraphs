@@ -344,6 +344,13 @@ fn parse_constr(constr: &str) -> Option<Term> {
         return Some(Term::Var(CHCVar::Int(constr.parse::<i32>().unwrap())));
     }
 
+    if constr == "leaf" {
+        return Some(Term::Constr(Constr {
+            op: ConstrOP::Leaf,
+            args: Vec::new(),
+        }));
+    }
+
     if Regex::new(r"^\w+$").unwrap().is_match(&constr) {
         return Some(Term::Var(CHCVar::Str(constr)));
     }

@@ -591,6 +591,10 @@ unfoldResult {unfoldResult:#?}"
         );
         for new1AppId in composeChildren.iter() {
             let new1AppId = eg.find_applied_id(&new1AppId.getAppliedId());
+
+            if CHECK_UNSAT_CONSTR && eg.analysis_data(new1AppId.id).satStatus == SatStatus::Unsat {
+                continue;
+            }
             let new1ENodes = eg.enodes_applied(&new1AppId);
             for new1ENode in new1ENodes {
                 addToUnfoldList(

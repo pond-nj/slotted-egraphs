@@ -3,6 +3,9 @@ use std::cmp::min;
 
 use log::{error, info, trace};
 
+mod satCheck;
+pub use satCheck::*;
+
 use super::*;
 
 #[derive(Default)]
@@ -10,19 +13,29 @@ pub struct CHCAnalysis;
 
 // The implementation in "functionalTransformation" assumes that all the indices between 0 and max(outputIdx)
 // if it's not the output, then it will be the input
-#[derive(Default, Eq, PartialEq, Clone, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct FunctionalInfo {
     pub functional: bool,
     pub outputIdx: Vec<usize>,
+}
+
+impl Default for FunctionalInfo {
+    fn default() -> Self {
+        FunctionalInfo {
+            functional: false,
+            outputIdx: vec![],
+        }
+    }
 }
 
 // TODO: implement Debug to CHC clause using syn_enode
 #[derive(Eq, PartialEq, Clone, Debug, Default)]
 pub struct CHCData {
     pub predNames: HashSet<String>,
-    // pub varTypes: BTreeMap<Slot, VarType>,
+    // TODO: we can extend to eclassType as well
     varTypes: BTreeMap<Slot, VarType>,
     pub functionalInfo: FunctionalInfo,
+    pub satStatus: SatStatus,
 }
 
 impl CHCData {
@@ -241,16 +254,18 @@ fn transformToEgraphNameSpace(sh: &CHC, eg: &CHCEGraph) -> CHC {
     sh.clone()
 }
 
-// fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCData {
-//     let sh = transformToEgraphNameSpace(sh, eg);
-//     let mut hm = BTreeMap::default();
-//     hm.insert(*sh.slots().iter().next().unwrap(), returnType);
-//     CHCData {
-//         predNames: HashSet::default(),
-//         varTypes: hm,
-//         functionalInfo: FunctionalInfo::default(),
-//     }
-// }
+fn mergeSatStatus(x: SatStatus, y: SatStatus) -> SatStatus {
+    if x == SatStatus::Unknown {
+        return y;
+    }
+
+    if y == SatStatus::Unknown {
+        return x;
+    }
+
+    assert!(x == y);
+    x
+}
 
 fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCData {
     let sh = transformToEgraphNameSpace(sh, eg);
@@ -260,6 +275,7 @@ fn CHCDataForPrimitiveVar(sh: &CHC, eg: &CHCEGraph, returnType: VarType) -> CHCD
         predNames: HashSet::default(),
         varTypes: BTreeMap::from([(slots.iter().next().unwrap().clone(), returnType)]),
         functionalInfo: FunctionalInfo::default(),
+        satStatus: SatStatus::Sat,
     }
 }
 
@@ -303,6 +319,31 @@ fn mergePredNames(xPredNames: &HashSet<String>, yPredNames: &HashSet<String>) ->
     newPredNames.extend(yPredNames.clone());
     newPredNames.extend(xPredNames.clone());
     newPredNames
+}
+
+fn makeFunctionalInfo(sh: &CHC, eg: &CHCEGraph) -> FunctionalInfo {
+    match sh {
+        CHC::ComposeInit(_, _, functional, outputIdxAppIds) => {
+            let functional = getBoolVal(&functional.id, eg);
+
+            let mut outputIdx: Vec<usize> = vec![];
+            for appId in outputIdxAppIds.iter() {
+                let enode = getSingleENode(&appId.id, eg);
+                match enode {
+                    CHC::Number(idx) => {
+                        outputIdx.push(idx as usize);
+                    }
+                    _ => panic!(),
+                }
+            }
+
+            FunctionalInfo {
+                functional,
+                outputIdx,
+            }
+        }
+        _ => FunctionalInfo::default(),
+    }
 }
 
 // TODO2: varType not propagate up
@@ -458,6 +499,7 @@ synNode {synNode:?}"
             predNames: mergePredNames(&x.predNames, &y.predNames),
             varTypes: varTypes,
             functionalInfo: mergeFunctionalInfo(x.functionalInfo, y.functionalInfo),
+            satStatus: mergeSatStatus(x.satStatus, y.satStatus),
         }
     }
 
@@ -477,6 +519,7 @@ synNode {synNode:?}"
                     predNames,
                     varTypes: getInterfaceVarType(sh, eg, slots),
                     functionalInfo: FunctionalInfo::default(),
+                    satStatus: SatStatus::Unknown,
                 }
             }
             CHC::IntType(_) => CHCDataForPrimitiveVar(sh, eg, VarType::Int),
@@ -486,6 +529,7 @@ synNode {synNode:?}"
                 predNames: HashSet::default(),
                 varTypes: getInterfaceVarType(sh, eg, slots),
                 functionalInfo: FunctionalInfo::default(),
+                satStatus: makeSatStatus(sh, eg),
             },
         };
         trace!("calling make on {:?}", sh);
@@ -503,28 +547,7 @@ synNode {synNode:?}"
             panic!("slots is not empty, but varTypes is empty");
         }
 
-        let functionalInfo = match sh {
-            CHC::ComposeInit(_, _, functional, outputIdxAppIds) => {
-                let functional = getBoolVal(&functional.id, eg);
-
-                let mut outputIdx: Vec<usize> = vec![];
-                for appId in outputIdxAppIds.iter() {
-                    let enode = getSingleENode(&appId.id, eg);
-                    match enode {
-                        CHC::Number(idx) => {
-                            outputIdx.push(idx as usize);
-                        }
-                        _ => panic!(),
-                    }
-                }
-
-                FunctionalInfo {
-                    functional,
-                    outputIdx,
-                }
-            }
-            _ => FunctionalInfo::default(),
-        };
+        let functionalInfo = makeFunctionalInfo(sh, eg);
 
         if CHECKS {
             getAllVarTypesOfENode(sh, eg);

@@ -55,6 +55,7 @@ fn getVarAppId(s: Slot, vt: VarType, eg: &mut CHCEGraph) -> AppliedId {
             todo!()
         }
         VarType::List => eg.add(&CHC::ListType(s)),
+        VarType::Bool => todo!(),
     }
 }
 
@@ -442,7 +443,6 @@ pub fn sortNewENode1(
     )
 }
 
-// TODO: cache the result here?
 pub fn sortNewENode2(
     syntaxAppId: &AppliedId,
     condChildren: &OrderVec<AppliedIdOrStar>,

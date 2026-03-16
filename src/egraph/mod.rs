@@ -407,16 +407,17 @@ unionfind {} -> {:?}
         enode.map_applied_ids(|app| self.semify_app_id(app))
     }
 
-    #[allow(unused)]
-    fn getENodeExprRecur<'a>(
-        self: &Self,
-        enode: &L,
-        map: &'a mut BTreeMap<AppliedId, RecExpr<L>>,
-        calls: &'a mut BTreeMap<Id, usize>,
-    ) -> result::Result<&'a RecExpr<L>, String> {
+    pub fn getENodeExpr(self: &Self, enode: &L) -> result::Result<RecExpr<L>, String> {
+        let mut map = BTreeMap::default();
+        let mut calls = BTreeMap::default();
+
         let mut cs = vec![];
         for x in enode.applied_id_occurrences() {
-            let x = self.get_syn_expr(x, calls)?;
+            // TODO: can we not clone here?
+            let x = self
+                .getSynExprRecur(x, &mut map, &mut calls)
+                .unwrap()
+                .clone();
             cs.push(x);
         }
 
@@ -425,10 +426,7 @@ unionfind {} -> {:?}
             children: cs,
         };
 
-        let eclassId = self.lookup(enode).unwrap();
-        map.insert(eclassId.clone(), ret);
-
-        Ok(map.get(&eclassId).unwrap())
+        Ok(ret)
     }
 
     fn getSynExprRecur<'a>(

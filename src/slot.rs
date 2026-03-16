@@ -28,12 +28,13 @@ thread_local! {
     });
 }
 
-#[derive(Eq, PartialEq, Clone, Debug, Copy)]
+#[derive(Eq, PartialEq, Clone, Debug, Copy, PartialOrd, Ord)]
 pub enum VarType {
     Unknown,
     Int,
     Node,
     List,
+    Bool,
 }
 
 pub fn generateVar(s: &str, varType: VarType) -> String {
@@ -44,6 +45,7 @@ pub fn generateVar(s: &str, varType: VarType) -> String {
             panic!()
         }
         VarType::List => "listType",
+        VarType::Bool => "boolType",
     };
     format!("({x} {})", s)
 }
@@ -106,6 +108,10 @@ impl Slot {
             tab.named_map.insert(s.to_string(), i);
             Slot(i) // new named
         })
+    }
+
+    pub fn toStr(&self) -> String {
+        format!("{}", self)
     }
 }
 

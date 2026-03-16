@@ -521,6 +521,15 @@ impl<L> IntoIterator for OrderVec<L> {
     }
 }
 
+impl<'a> IntoIterator for &'a OrderVec<AppliedIdOrStar> {
+    type Item = &'a AppliedIdOrStar;
+    type IntoIter = std::slice::Iter<'a, AppliedIdOrStar>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.as_slice().iter()
+    }
+}
+
 impl<L> From<Vec<L>> for OrderVec<L> {
     fn from(v: Vec<L>) -> Self {
         Self(v)

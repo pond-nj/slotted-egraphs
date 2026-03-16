@@ -8,6 +8,7 @@ pub fn toSMTType(varType: &VarType) -> String {
         VarType::Int => "Int".to_string(),
         VarType::Node => "tree".to_string(),
         VarType::List => "list".to_string(),
+        _ => todo!(),
     }
 }
 

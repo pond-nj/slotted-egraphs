@@ -473,10 +473,8 @@ fn canonAppIdsInternal(
     // 9(arg) - 11(var)
 
     if let Some(cacheResult) = cache.borrow().get(&(appIdsVec.clone(), allPerms.clone())) {
-        println!("hit");
         return cacheResult.clone();
     }
-    println!("miss");
 
     trace!("canonAppIds appIdsVec {appIdsVec:?}");
     trace!("allPerms {allPerms:?}");

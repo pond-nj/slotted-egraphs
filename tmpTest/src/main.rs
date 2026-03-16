@@ -1,73 +1,45 @@
-use log::{Level, LevelFilter, Log, Metadata, Record};
-use std::panic;
-use std::sync::{Mutex, Once};
-
-struct RingLogger {
-    buf: Mutex<Vec<String>>,
-    cap: usize,
-}
-
-impl RingLogger {
-    const fn new(cap: usize) -> Self {
-        Self {
-            buf: Mutex::new(Vec::new()),
-            cap,
-        }
-    }
-
-    fn dump_to_stderr(&self) {
-        eprintln!("=== last {} log entries ===", self.cap);
-        let buf = self.buf.lock().unwrap();
-        for line in buf.iter() {
-            eprintln!("{line}");
-        }
-    }
-}
-
-impl Log for RingLogger {
-    fn enabled(&self, metadata: &Metadata) -> bool {
-        metadata.level() <= Level::Info
-    }
-
-    fn log(&self, record: &Record) {
-        if !self.enabled(record.metadata()) {
-            return;
-        }
-
-        let mut buf = self.buf.lock().unwrap();
-        if buf.len() == self.cap {
-            // drop oldest
-            buf.remove(0);
-        }
-        buf.push(format!("{} - {}", record.level(), record.args()));
-    }
-
-    fn flush(&self) {}
-}
-
-// Safe because all interior mutability is behind a Mutex.
-static LOGGER: RingLogger = RingLogger::new(100);
-static INIT: Once = Once::new();
-
-fn init_logging() {
-    INIT.call_once(|| {
-        log::set_logger(&LOGGER).unwrap();
-        log::set_max_level(LevelFilter::Info);
-
-        panic::set_hook(Box::new(|info| {
-            // This log entry itself goes into the ring buffer.
-            log::error!("panic: {info}");
-            // Then we dump the last N entries.
-            LOGGER.dump_to_stderr();
-        }));
-    });
-}
+use z3::{Config, Context, SatResult, Solver, ast::Int};
 
 fn main() {
-    init_logging();
+    // Create configuration and context
+    let mut cfg = Config::new();
+    cfg.set_model_generation(true);
+    let ctx = Context::new(&cfg);
 
-    log::info!("starting up");
-    log::info!("doing some work");
-    // ...
-    panic!("boom");
+    // Create a solver
+    let solver = Solver::new(&ctx);
+
+    // Declare integer variables x and y
+    let x = Int::new_const(&ctx, "x");
+    let y = Int::new_const(&ctx, "y");
+
+    // x + y == 10
+    let sum = Int::add(&ctx, &[&x, &y]);
+    let c = &sum._eq(&Int::from_i64(&ctx, 10));
+    solver.assert(c);
+
+    // x > y
+    solver.assert(&x.gt(&y));
+
+    // Optionally constrain them to be non-negative
+    solver.assert(&x.ge(&Int::from_i64(&ctx, 0)));
+    solver.assert(&y.ge(&Int::from_i64(&ctx, 0)));
+
+    // Check satisfiability
+    match solver.check() {
+        SatResult::Sat => {
+            let model = solver.get_model().unwrap();
+            let x_val = model.eval(&x, true).unwrap();
+            let y_val = model.eval(&y, true).unwrap();
+            println!("SAT:");
+            println!("x = {}", x_val);
+            println!("y = {}", y_val);
+        }
+        SatResult::Unsat => {
+            println!("UNSAT");
+        }
+        SatResult::Unknown => {
+            println!("UNKNOWN");
+        }
+    }
 }
