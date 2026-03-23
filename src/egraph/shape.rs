@@ -28,64 +28,43 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         (pnode.elem, bij)
     }
 
-    #[cfg(feature = "newShape")]
-    // TODO: it seems for some reason this function changes depends on the input slots
-    // like even if the weak shape is the same, it can output two different stuffs
-    pub fn shape(&self, eOrigOrig: &L) -> (L, Bijection) {
-        trace!("call shape eOrig: {:?}", eOrigOrig);
-        let (eOrig, origBij) = eOrigOrig.weak_shape();
-        let eOrig = &eOrig;
-        let e = self.find_enode(eOrig);
-        trace!("call shape eOrig find {e:?}");
-
-        let childrenType = e.getChildrenType();
-        if childrenType.contains(&LanguageChildrenType::Bind) {
-            trace!("change to call orig_shape {eOrig:?}");
-            let ret = self.orig_shape(eOrigOrig);
-            trace!("shape of {:?} ret {:?}", eOrigOrig, ret);
-            return ret;
+    fn checkPermsWithAppIds(&self, appIds: &Vec<&AppliedId>, allPerms: &Vec<Vec<ProvenPerm>>) {
+        for (i, perms) in allPerms.iter().enumerate() {
+            let appId = &appIds[i];
+            for p in perms {
+                assert_eq!(
+                    p.elem.keys_set(),
+                    appId.key_slots(),
+                    "{:?} {appId:?} {p:?}",
+                    self.dumpEClassStr(appId.id)
+                );
+                assert_eq!(
+                    p.elem.values_set(),
+                    appId.key_slots(),
+                    "{:?} {appId:?} {p:?}",
+                    self.dumpEClassStr(appId.id)
+                );
+            }
         }
+    }
 
-        let appIds: Vec<AppliedId> = e
-            .applied_id_occurrences()
-            .into_iter()
-            .map(|x| (*x).clone())
-            .collect();
-        trace!("appIds {appIds:?}");
-
-        if appIds.len() == 0 {
-            trace!(
-                "shape {eOrig:?} -> {:?} {:?}",
-                e.orig_weak_shape().0,
-                e.orig_weak_shape().1
-            );
-            trace!("ret shape {eOrig:?}");
-            let ret = e.orig_weak_shape();
-            let ret = (ret.0, ret.1.compose(&origBij));
-            trace!("shape of {:?} ret {:?}", eOrigOrig, ret);
-            return ret;
-        }
-        let allPerms: Vec<Vec<ProvenPerm>> = appIds
+    fn getAppIdsPerm(&self, appIds: &Vec<&AppliedId>) -> Vec<Vec<ProvenPerm>> {
+        let allPerms = appIds
             .iter()
-            .map(|x| {
-                self.classes[&x.id]
-                    .group()
-                    .all_perms()
-                    .into_iter()
-                    .collect()
-            })
+            .map(|x| self.classes[&x.id].group().all_perms())
             .collect();
-        let (lab, _, slotsToV) = canonAppIdsWithRename(&appIds, Some(&allPerms), self.canonAppIdsCache());
 
-        trace!(
-            "allPerms {:?}\n orig_weak_shape {:?}",
-            allPerms,
-            eOrig.orig_weak_shape()
-        );
+        if CHECKS {
+            self.checkPermsWithAppIds(appIds, &allPerms);
+        }
+        allPerms
+    }
 
+    fn createSlotsToNewIdx(&self, slotsToV: &BTreeMap<Slot, usize>, lab: &Vec<i32>) -> SlotMap {
         let mut vToSlots = BTreeMap::new();
         for (s, v) in slotsToV.iter() {
-            assert!(vToSlots.insert(*v, s.clone()).is_none());
+            let old = vToSlots.insert(*v, s.clone());
+            assert!(old.is_none());
         }
 
         let mut slotsToNewIdx: SlotMap = SlotMap::new();
@@ -96,20 +75,23 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             )
         }
 
-        let mut shaped: Vec<AppliedId> = vec![];
-        for appId in appIds {
-            let perms: Vec<_> = self.classes[&appId.id]
-                .group()
-                .all_perms()
-                .into_iter()
-                .collect();
-            trace!("id {} allPerms {:?}", appId.id, perms);
-            trace!("appId.m {:?}", appId.m);
-            if CHECKS {
-                assert!(slotsToNewIdx.keys_set().is_superset(&appId.m.values_set()));
-            }
+        slotsToNewIdx
+    }
 
-            shaped.push(
+    fn updateAppIds(
+        &self,
+        appIdsMut: &mut Vec<&mut AppliedId>,
+        slotsToNewIdx: &SlotMap,
+        allPerms: &Vec<Vec<ProvenPerm>>,
+    ) {
+        for i in 0..appIdsMut.len() {
+            *appIdsMut[i] = {
+                let appId = &appIdsMut[i];
+                let perms: &Vec<_> = &allPerms[i];
+                if CHECKS {
+                    assert!(slotsToNewIdx.keys_set().is_superset(&appId.m.values_set()));
+                }
+
                 perms
                     .into_iter()
                     .map(|p| AppliedId {
@@ -119,39 +101,86 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                             .compose_intersect(&slotsToNewIdx),
                     })
                     .min()
-                    .unwrap(),
-            );
+                    .unwrap()
+            }
+        }
+    }
+
+    #[cfg(feature = "newShape")]
+    // TODO: it seems for some reason this function changes depends on the input slots
+    // like even if the weak shape is the same, it can output two different stuffs
+    pub fn shape(&self, eOrig: &L) -> (L, Bijection) {
+        if eOrig.hasBind() {
+            let ret = self.orig_shape(&eOrig);
+            return ret;
         }
 
-        let mut eNew = e.clone();
-        let mut appIdsMut = eNew.applied_id_occurrences_mut();
-        let n = appIdsMut.len();
-        for i in 0..n {
-            *appIdsMut[i] = shaped[i].clone();
+        let mut eOrig = eOrig.clone();
+        let origBij = eOrig.weak_shapeMut();
+
+        self.find_enodeMut(&mut eOrig);
+        let mut enodeAfterFind = eOrig;
+
+        let appIds: Vec<&AppliedId> = enodeAfterFind.applied_id_occurrences();
+
+        if appIds.len() == 0 {
+            let bij = enodeAfterFind.weak_shapeMut();
+            return (enodeAfterFind, bij.compose(&origBij));
         }
+
+        // TODO: should we cache this?
+        let allPerms: Vec<Vec<ProvenPerm>> = self.getAppIdsPerm(&appIds);
+        let (lab, _, slotsToV) =
+            canonAppIdsWithRename(&appIds, Some(&allPerms), self.canonAppIdsCache());
+
+        let slotsToNewIdx = self.createSlotsToNewIdx(&slotsToV, &lab);
+        // let shaped = self.createUpdatedAppIds(&appIds, &slotsToNewIdx, &allPerms);
+
+        let mut appIdsMut = enodeAfterFind.applied_id_occurrences_mut();
+        self.updateAppIds(&mut appIdsMut, &slotsToNewIdx, &allPerms);
 
         // find smallest according to canonical label
 
-        trace!(
-            "shape result {eOrig:?} -> {:?} {:?}",
-            eNew,
-            slotsToNewIdx.inverse()
-        );
-        trace!("orig_weak_shape {:?}", eOrig.orig_weak_shape());
-        trace!("eOrig {eOrig:?}");
-        trace!("eOrig orig_weak_shape {:?}", eOrig.orig_weak_shape());
-        trace!("eNew {eNew:?}");
-        let (eNewWS, bij) = eNew.orig_weak_shape();
-        trace!("slotsToNewIdx {slotsToNewIdx:?}");
-        trace!("eNewWS {eNewWS:?}");
-        trace!("bij {bij:?}");
+        let (eNewWS, bij) = enodeAfterFind.orig_weak_shape();
         let res = slotsToNewIdx.composePartial(&bij.inverse()).inverse();
-        trace!("res {res:?}");
-        let ret = 
-        // (eNewWS, res)
-        (eNewWS, res.compose(&origBij));
-        trace!("shape of {:?} ret {:?}", eOrigOrig, ret);
+        let ret = (eNewWS, res.compose(&origBij));
         ret
+    }
+
+    // TODO: we want to change everything to mutable version
+    pub fn shapeMut(&self, eOrig: &mut L) -> Bijection {
+        if eOrig.hasBind() {
+            let ret = self.orig_shape(&eOrig);
+            *eOrig = ret.0;
+            return ret.1;
+        }
+
+        let origBij = eOrig.weak_shapeMut();
+
+        self.find_enodeMut(eOrig);
+
+        let appIds: Vec<&AppliedId> = eOrig.applied_id_occurrences();
+
+        if appIds.len() == 0 {
+            return eOrig.weak_shapeMut().compose(&origBij);
+        }
+
+        // TODO: should we cache this?
+        let allPerms: Vec<Vec<ProvenPerm>> = self.getAppIdsPerm(&appIds);
+        let (lab, _, slotsToV) =
+            canonAppIdsWithRename(&appIds, Some(&allPerms), self.canonAppIdsCache());
+
+        let slotsToNewIdx = self.createSlotsToNewIdx(&slotsToV, &lab);
+        // let shaped = self.createUpdatedAppIds(&appIds, &slotsToNewIdx, &allPerms);
+
+        let mut appIdsMut = eOrig.applied_id_occurrences_mut();
+        self.updateAppIds(&mut appIdsMut, &slotsToNewIdx, &allPerms);
+
+        // find smallest according to canonical label
+
+        let bij = eOrig.weak_shapeMut();
+        let res = slotsToNewIdx.composePartial(&bij.inverse()).inverse();
+        res.compose(&origBij)
     }
 
     #[allow(unused)]

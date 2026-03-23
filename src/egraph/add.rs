@@ -164,16 +164,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // TODO: shape here can make children duplicate
         // e.g. [f(a, b), f(b, a)] might have shape [f(a, b), f(a, b)]
         // this does not maintain the deduplicate invariant
-        let sh = self.shape_called_from_add(enode);
-        let addedId = self.add_internal(&sh);
+        let mut enode = enode.clone();
+        let bij = self.shapeMut(&mut enode);
+        let addedId = self.add_internal(&(enode, bij));
         addedId
-    }
-
-    // create a duplicate Enode with reset mapped slot in AppliedId,
-    // the information of mapping to old one is in the returned Bijection
-    fn shape_called_from_add(&self, enode: &L) -> (L, Bijection) {
-        let ret = self.shape(enode);
-        ret
     }
 
     // self.add(x) = y implies that x.slots() is a superset of y.slots().

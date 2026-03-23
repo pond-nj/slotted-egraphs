@@ -1,5 +1,7 @@
+use std::cell::Ref;
+
 use crate::*;
-use log::{debug, trace, warn};
+use log::{debug, info, trace, warn};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // map is vector inside union_find
@@ -16,12 +18,55 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // entry.0.m :: slots(entry.0.id) -> slots(i)
         // entry_to_leader.0.m :: slots(leader) -> slots(entry.0.id)
         // recursive call to find leader
-        let entry_to_leader = self.unionfind_get_impl(entry.elem.id, map);
-        let new = self.chain_pai(&entry, &entry_to_leader);
+        let nextEntry = self.unionfind_get_impl(entry.elem.id, map);
+        let new = self.chain_pai(&entry, &nextEntry);
 
         // update leader for faster jump
         map[i.0] = new.clone();
         new
+    }
+
+    fn unionfind_getNoMut(&self, i: Id, map: &[ProvenAppliedId]) -> ProvenAppliedId {
+        // entry is like calling find on i?
+        let entry = &map[i.0];
+
+        if entry.elem.id == i {
+            return entry.clone();
+        }
+
+        let entry = entry.clone();
+
+        // entry.0.m :: slots(entry.0.id) -> slots(i)
+        // entry_to_leader.0.m :: slots(leader) -> slots(entry.0.id)
+        // recursive call to find leader
+        let nextEntry = self.unionfind_getNoMut(entry.elem.id, map);
+        let new = self.chain_pai(&entry, &nextEntry);
+
+        new
+    }
+
+    fn unionfind_get_implNew<'a>(
+        &self,
+        i: Id,
+        map: &'a mut [ProvenAppliedId],
+    ) -> &'a mut ProvenAppliedId {
+        // entry is like calling find on i?
+        // let entry = &mut ;
+
+        if map[i.0].elem.id == i {
+            return &mut map[i.0];
+        }
+
+        {
+            let nextEntry = self.unionfind_get_implNew(map[i.0].elem.id, map);
+            // TODO: can we actually dont clone here?
+            let mut nextEntryClone = nextEntry.clone();
+            self.chain_paiMut(&map[i.0], &mut nextEntryClone);
+
+            // update leader for faster jump
+            map[i.0] = nextEntryClone;
+        }
+        &mut map[i.0]
     }
 
     pub(crate) fn unionfind_set(&self, i: Id, pai: ProvenAppliedId) {
@@ -31,9 +76,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(i, pai.proof.l.id);
             assert_eq!(pai.elem.id, pai.proof.r.id);
         }
-        // if i == Id(46957) {
-        //     println!("set unionfind of  Id(46957) to {:?}", pai);
-        // }
         let mut lock = self._unionfind.borrow_mut();
         assert!(i.0 <= lock.len());
         trace!("set _unionfind {i:?} -> {pai:?}");
@@ -47,10 +89,23 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(crate) fn proven_unionfind_get(&self, i: Id) -> ProvenAppliedId {
         let mut map = self._unionfind.borrow_mut();
         let ret = self.unionfind_get_impl(i, &mut *map);
-        // if i == Id(46957) {
-        //     println!("unionfind_get id(46957) get {:?}", ret);
-        // }
         ret
+    }
+
+    pub(crate) fn proven_unionfind_getNoMut(&self, i: Id) -> ProvenAppliedId {
+        let mut map = self._unionfind.borrow();
+        let ret = self.unionfind_getNoMut(i, &*map);
+        ret
+    }
+
+    pub(crate) fn proven_unionfind_getNew(&self, i: Id) -> Ref<ProvenAppliedId> {
+        {
+            let mut map = self._unionfind.borrow_mut();
+            self.unionfind_get_implNew(i, &mut *map);
+        }
+        let refReturn = Ref::map(self._unionfind.borrow(), |v| &v[i.0]);
+
+        refReturn
     }
 
     pub(crate) fn unionfind_get(&self, i: Id) -> AppliedId {
@@ -82,6 +137,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub fn find_enode(&self, enode: &L) -> L {
         self.proven_find_enode(enode).elem
+    }
+
+    pub fn find_enodeMut(&self, enode: &mut L) {
+        self.chain_pn_mapMut(enode, |_, pai| self.findUpdateAppliedId(pai))
     }
 
     pub(crate) fn proven_find_enode(&self, enode: &L) -> ProvenNode<L> {
@@ -127,11 +186,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if CHECKS {
             self.check_pai(&pai);
         }
-
         let mut pai2 = self.proven_unionfind_get(pai.elem.id);
-        trace!("proven_proven_find_applied_id pai {pai:?}");
-        trace!("proven_proven_find_applied_id pai2 {pai2:?}");
-
         pai2.elem.m = pai2.elem.m.compose_intersect(&pai.elem.m);
 
         #[cfg(feature = "explanations")]
@@ -144,6 +199,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         pai2
+    }
+
+    pub(crate) fn findUpdateAppliedId(&self, appId: &mut AppliedId) {
+        // TODO: remove this
+        let pai2 = self.proven_unionfind_getNew(appId.id);
+        appId.id = pai2.elem.id;
+        appId.m = pai2.elem.m.compose_intersect(&appId.m);
     }
 
     pub fn find_id(&self, i: Id) -> Id {

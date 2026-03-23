@@ -151,6 +151,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.touched_class(from.id, PendingType::Full);
     }
 
+    pub fn printStats(&self) {
+        info!(
+            "canonAppIdsCache stats: hits {}, misses {}",
+            self.canonAppIdsCache().hits.borrow(),
+            self.canonAppIdsCache().misses.borrow()
+        );
+    }
+
     pub fn rebuild(&mut self) {
         info!("start rebuild");
         if CHECKS {
@@ -183,6 +191,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
         trace!("end modify_queue");
         info!("done rebuild");
+        info!(
+            "after rebuild: {} enodes, {} classes",
+            self.total_number_of_nodes(),
+            self.ids().len()
+        );
     }
 
     pub fn handleSorted(&mut self, sh: &L) {

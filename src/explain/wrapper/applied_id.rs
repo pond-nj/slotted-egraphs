@@ -1,6 +1,6 @@
 use crate::*;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub(crate) struct ProvenAppliedId {
     pub elem: AppliedId,
 
@@ -43,6 +43,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 &self.proof_registry,
             ),
         }
+    }
+
+    pub(crate) fn chain_paiMut(&self, start: &ProvenAppliedId, next: &mut ProvenAppliedId) {
+        next.elem.apply_slotmapMut(&start.elem.m);
     }
 
     pub(crate) fn refl_pai(&self, app_id: &AppliedId) -> ProvenAppliedId {

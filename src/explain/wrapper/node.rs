@@ -143,4 +143,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
         pn
     }
+
+    pub(crate) fn chain_pn_mapMut(&self, enode: &mut L, f: impl Fn(usize, &mut AppliedId)) {
+        let mut app_ids_mut: Vec<&mut AppliedId> = enode.applied_id_occurrences_mut();
+        let n = app_ids_mut.len();
+
+        for i in 0..n {
+            let old_app_id: &mut AppliedId = app_ids_mut[i];
+            f(i, old_app_id);
+        }
+    }
 }

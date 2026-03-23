@@ -24,13 +24,18 @@ pub use constraint::*;
 mod defineFold;
 pub use defineFold::*;
 
+pub type ConstrRewriteList = Vec<ConstrRewriteComponent>;
+
+pub struct RewriteStats {
+    pub duplicateUnfold: usize,
+}
+
 #[derive(Default)]
 pub struct RewriteList {
-    unfoldList: Rc<RefCell<UnfoldList>>,
-    constrRewriteList: Rc<RefCell<Vec<ConstrRewriteComponent>>>,
-    functionalityComponentsList: Rc<RefCell<Vec<ConstrRewriteComponent>>>,
-    definedList: Rc<RefCell<BTreeSet<CHC>>>,
-    newDefineMap: Rc<RefCell<BTreeMap<FoldPattern, AppliedId>>>,
+    unfoldHelper: UnfoldHelper,
+    constrRewriteList: Rc<RefCell<ConstrRewriteList>>,
+    functionalityComponentsList: Rc<RefCell<ConstrRewriteList>>,
+    defineCache: DefineCache,
 }
 
 fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> OrderVec<AppliedIdOrStar> {
@@ -199,8 +204,8 @@ fn compareAppIdOnInterface(a: &AppliedId, b: &AppliedId, itf: &VecSet<[Slot; 8]>
 }
 
 fn functionalityTransformation(
-    constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
-    functionalityComponentsList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
+    constrRewriteList: &Rc<RefCell<ConstrRewriteList>>,
+    functionalityComponentsList: &Rc<RefCell<ConstrRewriteList>>,
 ) -> CHCRewrite {
     debug!("doing functionalityTransformation");
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
@@ -288,7 +293,7 @@ fn functionalityTransformation(
             //     res.unwrap().clone()
             // };
 
-            let varTypes = getAllVarTypesOfENode(newENode, eg);
+            let varTypes = getAllVarTypesOfENode(&newENode, eg);
 
             for (outputSetsAndChildIdx) in inputToOutputMapping.values() {
                 if outputSetsAndChildIdx.len() == 1 {
@@ -472,10 +477,6 @@ pub fn sortNewENode2(
     let condENode = CHC::And(sortedCondChildren.clone().into());
     let condAppId = eg.add(&condENode);
 
-    trace!("add condENode {condENode:?} to condAppId {condAppId:?}");
-    trace!("result eclass {:?}", eg.dumpEClassStr(condAppId.id));
-    // trace!("result eclass {:?}", eg.eclass(condAppId.id).unwrap());
-
     if CHECKS {
         checkDedup(
             condAppId.id,
@@ -512,14 +513,13 @@ fn eqSwap() -> CHCRewrite {
 // TODO: swapping unfold and define creates some error which should not be
 pub fn getAllRewrites(rewriteList: RewriteList, options: RewriteOption) -> Vec<CHCRewrite> {
     let RewriteList {
-        unfoldList,
+        unfoldHelper,
         constrRewriteList,
         functionalityComponentsList,
-        definedList,
-        newDefineMap,
+        defineCache,
     } = rewriteList;
     // define-fold, unfold
-    let mut rewrites = vec![unfold(&unfoldList, &constrRewriteList)];
+    let mut rewrites = vec![unfold(&unfoldHelper, &constrRewriteList)];
 
     // constraint until saturation
     if options.doConstraintRewrite {
@@ -547,13 +547,7 @@ pub fn getAllRewrites(rewriteList: RewriteList, options: RewriteOption) -> Vec<C
     }
 
     rewrites.extend([
-        defineUnfoldFold(
-            &unfoldList,
-            &definedList,
-            &newDefineMap,
-            &constrRewriteList,
-            options,
-        ),
+        defineUnfoldFold(&unfoldHelper, &defineCache, &constrRewriteList, options),
         trueToAnd(),
         eqSwap(),
     ]);

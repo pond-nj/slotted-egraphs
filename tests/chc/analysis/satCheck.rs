@@ -247,7 +247,7 @@ fn buildZ3RecExpr(expr: &RecExpr<CHC>, sorts: &DefineDataTypes, eg: &CHCEGraph) 
     }
 }
 
-fn solveZ3Constraint(enode: &CHC, eg: &CHCEGraph) -> SatStatus {
+pub fn solveZ3Constraint(enode: &CHC, eg: &CHCEGraph) -> SatStatus {
     // println!("doing solving Z3 constraint");
 
     let CHC::And(..) = enode else {
@@ -270,9 +270,6 @@ fn solveZ3Constraint(enode: &CHC, eg: &CHCEGraph) -> SatStatus {
         SatResult::Unsat => SatStatus::Unsat,
         SatResult::Unknown => SatStatus::Unknown,
     };
-
-    // println!("done solving Z3 constraint");
-    // println!("result {ret:?}");
 
     ret
 }

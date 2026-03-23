@@ -123,7 +123,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             modify_queue: Vec::new(),
             enodes: Vec::new(),
             enodeWeakShape: BTreeMap::new(),
-            _canonAppIdsCache: RefCell::new(BTreeMap::new()),
+            _canonAppIdsCache: CanonAppIdsCache::default(),
         }
     }
 

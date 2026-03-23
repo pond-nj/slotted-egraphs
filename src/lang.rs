@@ -23,7 +23,7 @@ pub enum SyntaxElem {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LanguageChildrenType {
     Slot(Slot),
-    AppliedId(AppliedId),
+    AppliedId,
     Star,
     Vec(Vec<LanguageChildrenType>),
     Bind,
@@ -94,6 +94,7 @@ pub trait LanguageChildren: Debug + Clone + Hash + Eq + PartialEq + Ord {
     fn to_syntax(&self) -> Vec<SyntaxElem>;
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
     fn get_type(&self) -> LanguageChildrenType;
+    fn hasBind(&self) -> bool;
     fn expandChildren(&mut self);
     fn shrinkChildren(&mut self);
     fn defaultNull() -> Self;
@@ -165,7 +166,10 @@ impl LanguageChildren for AppliedId {
         }
     }
     fn get_type(&self) -> LanguageChildrenType {
-        LanguageChildrenType::AppliedId(self.clone())
+        LanguageChildrenType::AppliedId
+    }
+    fn hasBind(&self) -> bool {
+        false
     }
 
     fn expandChildren(&mut self) {}
@@ -234,6 +238,9 @@ impl LanguageChildren for Slot {
     fn get_type(&self) -> LanguageChildrenType {
         LanguageChildrenType::Slot(self.clone())
     }
+    fn hasBind(&self) -> bool {
+        false
+    }
 
     fn expandChildren(&mut self) {}
     fn shrinkChildren(&mut self) {}
@@ -281,6 +288,9 @@ macro_rules! bare_language_child {
                 let mut hasher = DefaultHasher::new();
                 self.hash(&mut hasher);
                 LanguageChildrenType::Bare(hasher.finish())
+            }
+            fn hasBind(&self) -> bool {
+                false
             }
 
             fn expandChildren(&mut self) {}
@@ -382,6 +392,9 @@ impl LanguageChildren for AppliedIdOrStar {
             AppliedIdOrStar::Star(_) => LanguageChildrenType::Star,
         }
     }
+    fn hasBind(&self) -> bool {
+        false
+    }
 
     fn expandChildren(&mut self) {}
     fn shrinkChildren(&mut self) {}
@@ -466,6 +479,9 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
 
     fn get_type(&self) -> LanguageChildrenType {
         LanguageChildrenType::Bind
+    }
+    fn hasBind(&self) -> bool {
+        true
     }
 
     fn expandChildren(&mut self) {}
@@ -614,6 +630,9 @@ impl<L: LanguageChildren + Into<AppliedId> + From<AppliedId>> LanguageChildren f
         }
         LanguageChildrenType::Vec(out)
     }
+    fn hasBind(&self) -> bool {
+        self.iter().any(|x| x.hasBind())
+    }
 
     fn expandChildren(&mut self) {
         self.push(L::defaultNull());
@@ -719,6 +738,9 @@ impl<L: LanguageChildren> LanguageChildren for Vec<L> {
         }
         LanguageChildrenType::Vec(out)
     }
+    fn hasBind(&self) -> bool {
+        self.iter().any(|x| x.hasBind())
+    }
 
     fn expandChildren(&mut self) {
         self.push(L::defaultNull());
@@ -773,6 +795,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     fn weak_shape_inplace(&mut self) -> Bijection;
 
     fn getChildrenType(&self) -> Vec<LanguageChildrenType>;
+    fn hasBind(&self) -> bool;
     fn expandChildren(&mut self);
     fn shrinkChildren(&mut self);
 
@@ -937,6 +960,10 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     #[cfg(feature = "newShape")]
     fn weak_shape(&self) -> (Self, Bijection) {
         self.orig_weak_shape()
+    }
+
+    fn weak_shapeMut(&mut self) -> Bijection {
+        self.weak_shape_inplace()
     }
 
     // #[cfg(feature = "newShape")]

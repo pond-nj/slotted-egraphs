@@ -40,6 +40,11 @@ pub const CHECK_UNSAT_CONSTR: bool = true;
 #[cfg(not(feature = "callZ3CheckUnsatConstr"))]
 pub const CHECK_UNSAT_CONSTR: bool = false;
 
+#[cfg(feature = "useMut")]
+pub const USE_MUT: bool = true;
+#[cfg(not(feature = "useMut"))]
+pub const USE_MUT: bool = false;
+
 pub use slotted_egraphs_derive::define_language;
 
 mod slot;

@@ -111,8 +111,24 @@ impl AppliedId {
         self.apply_slotmap_intersect(m)
     }
 
+    pub fn apply_slotmapMut(&mut self, m: &SlotMap) {
+        if CHECKS {
+            assert!(
+                m.keys_set().is_superset(&self.slots()),
+                "AppliedId::apply_slotmap: The SlotMap doesn't map all free slots! map {:#?} vs {:#?}",
+                m,
+                self.slots()
+            );
+        }
+        self.apply_slotmap_intersectMut(m)
+    }
+
     pub fn apply_slotmap_intersect(&self, m: &SlotMap) -> AppliedId {
         AppliedId::new(self.id, self.m.compose_intersect(m))
+    }
+
+    pub fn apply_slotmap_intersectMut(&mut self, m: &SlotMap) {
+        self.m.compose_intersectMut(m);
     }
 
     pub fn applySlotMapPartial(&self, m: &SlotMap) -> AppliedId {
@@ -121,6 +137,10 @@ impl AppliedId {
 
     pub fn apply_slotmap_fresh(&self, m: &SlotMap) -> AppliedId {
         AppliedId::new(self.id, self.m.compose_fresh(m))
+    }
+
+    pub fn key_slots(&self) -> SmallHashSet<Slot> {
+        self.m.keys_set()
     }
 
     pub fn slots(&self) -> SmallHashSet<Slot> {
@@ -146,7 +166,7 @@ impl AppliedId {
 
 // TODO: assert that appIds vec is initialized in weak shape
 fn renameAppIdsAndPerms(
-    appIdsVec: &Vec<AppliedId>,
+    appIdsVec: &Vec<&AppliedId>,
     allPerms: Option<&Vec<Vec<ProvenPerm>>>,
 ) -> (
     Vec<AppliedId>,
@@ -446,12 +466,17 @@ fn translateBack(
         .collect()
 }
 
-pub type CanonAppIdsCache = RefCell<
-    BTreeMap<
-        (Vec<AppliedId>, Option<Vec<Vec<ProvenPerm>>>),
-        (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>),
+#[derive(Default)]
+pub struct CanonAppIdsCache {
+    cache: RefCell<
+        BTreeMap<
+            (Vec<AppliedId>, Option<Vec<Vec<ProvenPerm>>>),
+            (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>),
+        >,
     >,
->;
+    pub hits: RefCell<usize>,
+    pub misses: RefCell<usize>,
+}
 
 fn canonAppIdsInternal(
     appIdsVec: &Vec<AppliedId>,
@@ -472,9 +497,15 @@ fn canonAppIdsInternal(
     // 8(arg) - 10(var)
     // 9(arg) - 11(var)
 
-    if let Some(cacheResult) = cache.borrow().get(&(appIdsVec.clone(), allPerms.clone())) {
+    if let Some(cacheResult) = cache
+        .cache
+        .borrow()
+        .get(&(appIdsVec.clone(), allPerms.clone()))
+    {
+        *cache.hits.borrow_mut() += 1;
         return cacheResult.clone();
     }
+    *cache.misses.borrow_mut() += 1;
 
     trace!("canonAppIds appIdsVec {appIdsVec:?}");
     trace!("allPerms {allPerms:?}");
@@ -647,6 +678,7 @@ fn canonAppIdsInternal(
     );
 
     cache
+        .cache
         .borrow_mut()
         .insert((appIdsVec.clone(), allPerms.clone()), ret.clone());
 
@@ -654,7 +686,7 @@ fn canonAppIdsInternal(
 }
 
 pub fn canonAppIdsWithRename(
-    appIdsVec: &Vec<AppliedId>,
+    appIdsVec: &Vec<&AppliedId>,
     allPerms: Option<&Vec<Vec<ProvenPerm>>>,
     cache: &CanonAppIdsCache,
 ) -> (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>) {
@@ -706,7 +738,7 @@ pub fn sortAppId(
         return appIdsSorted;
     }
     debug!("start sortAppId");
-    let (lab, appIdToV, _) = canonAppIdsWithRename(&appIdsSorted, None, cache);
+    let (lab, appIdToV, _) = canonAppIdsWithRename(&appIdsSorted.iter().collect(), None, cache);
 
     let mut VToAppIds = BTreeMap::new();
     for (id, v) in appIdToV {

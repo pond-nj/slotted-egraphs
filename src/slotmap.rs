@@ -58,6 +58,10 @@ impl SlotMap {
         self.search(l).ok().map(|i| self.map[i].1)
     }
 
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut (Slot, Slot)> + '_ {
+        self.map.iter_mut()
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = (Slot, Slot)> + '_ {
         self.map.iter().copied()
     }
@@ -115,6 +119,10 @@ impl SlotMap {
         true
     }
 
+    pub fn is_identity(&self) -> bool {
+        self.iter().all(|(x, y)| x == y)
+    }
+
     pub fn is_perm(&self) -> bool {
         self.is_bijection() && self.keys_set() == self.values_set()
     }
@@ -148,6 +156,14 @@ impl SlotMap {
         }
 
         out
+    }
+
+    pub fn compose_intersectMut(&mut self, other: &SlotMap) {
+        for (_, y) in self.iter_mut() {
+            if let Some(z) = other.get(*y) {
+                *y = z;
+            }
+        }
     }
 
     pub fn composePartial(&self, other: &SlotMap) -> SlotMap {

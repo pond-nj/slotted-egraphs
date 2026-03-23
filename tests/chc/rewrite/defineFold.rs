@@ -1,6 +1,19 @@
 use super::*;
 use crate::*;
 
+#[derive(Default, Clone)]
+pub struct DoneDefinedList {
+    pub list: Rc<RefCell<BTreeSet<CHC>>>,
+    pub hits: Rc<RefCell<usize>>,
+    pub misses: Rc<RefCell<usize>>,
+}
+
+#[derive(Default, Clone)]
+pub struct DefineCache {
+    pub doneDefinedList: DoneDefinedList,
+    pub newDefineMap: Rc<RefCell<BTreeMap<FoldPattern, AppliedId>>>,
+}
+
 struct DefineInfo {
     syntax: Vec<Slot>,
     newBody: Vec<AppliedId>,
@@ -117,224 +130,245 @@ fn define(
     }
 }
 
-// TODO: refactor this function
-pub fn defineUnfoldFold(
-    unfoldList: &Rc<RefCell<UnfoldList>>,
-    processedDefinedList: &Rc<RefCell<BTreeSet<CHC>>>,
-    newDefineMap: &Rc<RefCell<BTreeMap<FoldPattern, AppliedId>>>,
-    constrRewriteList: &Rc<RefCell<Vec<ConstrRewriteComponent>>>,
+pub fn defineApply(
+    unfoldHelper: &UnfoldHelper,
+    defineCache: &DefineCache,
+    constrRewriteListCopy: &Rc<RefCell<ConstrRewriteList>>,
     options: RewriteOption,
-) -> CHCRewrite {
-    let processedDefinedListClone = Rc::clone(processedDefinedList);
-    let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
-    let unfoldListClone = Rc::clone(unfoldList);
-    let newDefineMapClone = Rc::clone(newDefineMap);
-    let constrRewriteListCopy = Rc::clone(constrRewriteList);
-    let applier = Box::new(move |substs: (), eg: &mut CHCEGraph| {
-        let ids = eg.ids();
-        for eclassId in ids {
-            let eclassId = eg.find_id(eclassId);
-            let origNewENodeAppId = eg.mk_identity_applied_id(eclassId);
+    eg: &mut CHCEGraph,
+) {
+    let DefineCache {
+        doneDefinedList: DoneDefinedList { list, hits, misses },
+        newDefineMap,
+    } = defineCache;
 
-            let enodesList = eg.enodes(origNewENodeAppId.id);
-            // TODO: can we actually parallelize this?
-            for origNewENode in enodesList {
-                let origENodeShape = origNewENode.weak_shape().0;
-                // check if do this already
-                let mut processedDefinedListClone = processedDefinedListClone.borrow_mut();
-                if processedDefinedListClone.contains(&origENodeShape) {
-                    continue;
-                }
-                processedDefinedListClone.insert(origENodeShape.clone());
+    let UnfoldHelper {
+        unfoldList,
+        falseConstrCache,
+    } = unfoldHelper;
 
-                let CHC::New(origSyntaxAppId, origConstrAppId, bodyAppIds) = &origNewENode else {
-                    continue;
-                };
+    let ids = eg.ids();
+    for eclassId in ids {
+        let eclassId = eg.find_id(eclassId);
+        let origNewENodeAppId = eg.mk_identity_applied_id(eclassId);
 
-                checkNewENode!(origNewENode, eg);
+        let enodesList = eg.enodes(origNewENodeAppId.id);
+        // TODO: can we actually parallelize this?
+        for origNewENode in enodesList {
+            let origENodeShape = origNewENode.weak_shape().0;
+            // check if do this already
+            let mut doneDefinedList = list.borrow_mut();
+            if doneDefinedList.contains(&origENodeShape) {
+                *hits.borrow_mut() += 1;
+                continue;
+            }
+            *misses.borrow_mut() += 1;
+            doneDefinedList.insert(origENodeShape.clone());
 
-                let mut mergeVarTypes: BTreeMap<Slot, VarType> =
-                    getAllVarTypesOfENode(&origNewENode, eg);
+            let CHC::New(origSyntaxAppId, origConstrAppId, bodyAppIds) = &origNewENode else {
+                continue;
+            };
 
-                // divide body into blocks
-                let mut syntaxAndNewBody: Vec<DefineInfo> = vec![];
-                define(
-                    &origNewENode,
-                    &mergeVarTypes,
-                    &options,
-                    eclassId,
-                    eg,
-                    &mut syntaxAndNewBody,
-                );
+            checkNewENode!(origNewENode, eg);
 
-                // for each group/sharing block, define new chc
-                // syntax can be in any order
-                // newBody can be in any order
-                for DefineInfo {
-                    syntax,
-                    newBody,
-                    positions,
-                    tag,
-                } in syntaxAndNewBody
-                {
-                    let sortedNewBody: Vec<AppliedIdOrStar> =
-                        sortAppId(&newBody, true, eg.canonAppIdsCache())
-                            .into_iter()
-                            .map(|x| AppliedIdOrStar::AppliedId(x))
-                            .collect();
-                    // 0 -> $f
-                    let (sortedToBeFoldShape, map) = weakShapeAppIds(&sortedNewBody);
+            let mut mergeVarTypes: BTreeMap<Slot, VarType> =
+                getAllVarTypesOfENode(&origNewENode, eg);
 
-                    let mut newDefineMapClone = Rc::clone(&newDefineMapClone);
-                    let mut newDefineMapClone = newDefineMapClone.borrow_mut();
-                    let defineAppId =
-                        if let Some(savedFolded) = newDefineMapClone.get(&sortedToBeFoldShape) {
-                            trace!("get savedfolded");
-                            savedFolded.clone().apply_slotmap(&map)
-                        } else {
-                            // define
-                            let definedENode = {
-                                let mapInverse = map.inverse();
-                                let mut syntaxVarsNormalized: Vec<_> =
-                                    syntax.into_iter().map(|s| mapInverse[s]).collect();
-                                // sort according to order in weakshape (ordered by nauty-trace)
-                                syntaxVarsNormalized.sort();
-                                let syntaxVars: Vec<_> =
-                                    syntaxVarsNormalized.into_iter().map(|s| map[s]).collect();
+            // divide body into blocks
+            let mut syntaxAndNewBody: Vec<DefineInfo> = vec![];
+            define(
+                &origNewENode,
+                &mergeVarTypes,
+                &options,
+                eclassId,
+                eg,
+                &mut syntaxAndNewBody,
+            );
 
-                                let syntaxAppId = {
-                                    let children = syntaxVars
-                                        .into_iter()
-                                        .map(|s| getVarAppId(s, mergeVarTypes[&s].clone(), eg))
-                                        .collect::<Vec<_>>();
-                                    let syntaxENode = CHC::PredSyntax(children.into());
-                                    eg.add(&syntaxENode)
-                                };
+            // for each group/sharing block, define new chc
+            // syntax can be in any order
+            // newBody can be in any order
+            for DefineInfo {
+                syntax,
+                newBody,
+                positions,
+                tag,
+            } in syntaxAndNewBody
+            {
+                let sortedNewBody: Vec<AppliedIdOrStar> =
+                    sortAppId(&newBody, true, eg.canonAppIdsCache())
+                        .into_iter()
+                        .map(|x| AppliedIdOrStar::AppliedId(x))
+                        .collect();
+                // 0 -> $f
+                let (sortedToBeFoldShape, map) = weakShapeAppIds(&sortedNewBody);
 
-                                let cond = eg.add(&CHC::And(vec![].into()));
-                                CHC::New(syntaxAppId, cond, sortedNewBody.clone().into())
+                let mut newDefineMapClone = newDefineMap.borrow_mut();
+                let defineAppId =
+                    if let Some(savedFolded) = newDefineMapClone.get(&sortedToBeFoldShape) {
+                        trace!("get savedfolded");
+                        savedFolded.clone().apply_slotmap(&map)
+                    } else {
+                        // define
+                        let definedENode = {
+                            let mapInverse = map.inverse();
+                            let mut syntaxVarsNormalized: Vec<_> =
+                                syntax.into_iter().map(|s| mapInverse[s]).collect();
+                            // sort according to order in weakshape (ordered by nauty-trace)
+                            syntaxVarsNormalized.sort();
+                            let syntaxVars: Vec<_> =
+                                syntaxVarsNormalized.into_iter().map(|s| map[s]).collect();
+
+                            let syntaxAppId = {
+                                let children = syntaxVars
+                                    .into_iter()
+                                    .map(|s| getVarAppId(s, mergeVarTypes[&s].clone(), eg))
+                                    .collect::<Vec<_>>();
+                                let syntaxENode = CHC::PredSyntax(children.into());
+                                eg.add(&syntaxENode)
                             };
 
-                            // unfold
-                            let mut composeUnfoldRecipes = vec![];
-                            prepareUnfold(
-                                None,
-                                0,
-                                &vec![].into(),
-                                &AppliedId::null(),
-                                &AppliedId::null(),
-                                &definedENode,
-                                &mut composeUnfoldRecipes,
-                                eg,
-                            );
-
-                            // TODO: it should be more than one
-                            let mut newComposeAppIds = vec![];
-                            {
-                                for composeUnfoldRecipe in composeUnfoldRecipes.into_iter() {
-                                    newComposeAppIds.extend(unfoldApplyInternal(
-                                        &UnfoldOption {
-                                            composeUnfoldRecipe,
-                                            createOrMerge: UnfoldOpType::UnfoldCreateOnly,
-                                            extraTag: tag.clone(),
-                                        },
-                                        &unfoldListClone,
-                                        &Rc::clone(&constrRewriteListCopy),
-                                        eg,
-                                    ));
-                                }
-                            }
-                            {
-
-                                // if composeUnfoldReceipt.len() > 1 {
-                                //     // printENode(&definedENode, eg);
-                                //     // println!("composeUnfoldReceipt {:#?}", composeUnfoldReceipt);
-                                //     // assert!(composeUnfoldReceipt.len() == 1);
-                                //     warn!("composeUnfoldReceipt len > 1 but also use the first one");
-                                //     // warn!("composeUnfoldReceipt {:?}", composeUnfoldReceipt);
-                                // }
-                                // let newComposeAppIds = unfoldApplyInternal(
-                                //     &composeUnfoldReceipt[0],
-                                //     &unfoldListClone,
-                                //     &Rc::clone(&constrRewriteListCopy),
-                                //     UnfoldOpType::UnfoldCreateOnly,
-                                //     &tag,
-                                //     eg,
-                                // );
-
-                                // if (newComposeAppIds.is_empty()) {
-                                //     println!("unfold result is empty");
-                                //     println!("composeRecipes {:?}");
-                                // }
-                            }
-
-                            let first = newComposeAppIds.first().unwrap();
-                            for newComposeAppId in newComposeAppIds[1..].iter() {
-                                eg.union_justified(
-                                    first,
-                                    newComposeAppId,
-                                    Some("define_unfold".to_owned()),
-                                );
-                            }
-
-                            assert!(unfoldListClone.borrow().len() > 0);
-
-                            let saveAppId = eg.find_applied_id(first).apply_slotmap(&map.inverse());
-                            debug!("defineMap {saveAppId:?} <- {sortedToBeFoldShape:?}");
-                            newDefineMapClone.insert(sortedToBeFoldShape.into(), saveAppId);
-
-                            eg.find_applied_id(first)
+                            let cond = eg.add(&CHC::And(vec![].into()));
+                            CHC::New(syntaxAppId, cond, sortedNewBody.clone().into())
                         };
 
-                    eg.analysis_data_mut(defineAppId.id)
-                        .predNames
-                        .insert(format!("define_from_{}_{}", origNewENodeAppId.id, tag));
-
-                    // vv folding vv
-                    if options.doFolding {
-                        let replaceAt = positions.first().unwrap();
-                        debug!("sortedToBeFold {sortedNewBody:?}");
-                        trace!("fold to {defineAppId:?}");
-                        trace!("original body {bodyAppIds:?}");
-                        trace!("positions {positions:?}");
-                        let mut foldedBodyAppIds = vec![];
-                        for (idx, c) in bodyAppIds.iter().enumerate() {
-                            if idx == *replaceAt {
-                                // TODO: defineAppId must be mapped to originalENode namespace
-                                foldedBodyAppIds
-                                    .push(AppliedIdOrStar::AppliedId(defineAppId.clone()));
-                            }
-
-                            if positions.contains(&idx) {
-                                continue;
-                            }
-                            foldedBodyAppIds.push(c.clone());
-                        }
-                        trace!("foldedBodyAppIds {foldedBodyAppIds:?}");
-                        debug!("origNewENode {origNewENode:?}");
-                        let foldedNewENode = sortNewENode1(
-                            origSyntaxAppId,
-                            origConstrAppId,
-                            &foldedBodyAppIds.into(),
+                        // unfold
+                        let mut composeUnfoldRecipes = vec![];
+                        prepareUnfold(
+                            None,
+                            0,
+                            &vec![].into(),
+                            &AppliedId::null(),
+                            &AppliedId::null(),
+                            &definedENode,
+                            &mut composeUnfoldRecipes,
+                            falseConstrCache,
                             eg,
                         );
-                        debug!("foldedNewENode {foldedNewENode:?}");
-                        let foldedAppId = eg.add(&foldedNewENode);
-                        eg.analysis_data_mut(foldedAppId.id)
-                            .predNames
-                            .insert(format!(
-                                "folded_{}_with_{}",
-                                origNewENodeAppId, defineAppId.id
-                            ));
-                        eg.union_justified(
-                            &origNewENodeAppId,
-                            &foldedAppId,
-                            Some("fold".to_owned()),
-                        );
+
+                        // TODO: it should be more than one
+                        let mut newComposeAppIds = vec![];
+                        {
+                            for composeUnfoldRecipe in composeUnfoldRecipes.into_iter() {
+                                newComposeAppIds.extend(unfoldApplyInternal(
+                                    &UnfoldOption {
+                                        composeUnfoldRecipe,
+                                        createOrMerge: UnfoldOpType::UnfoldCreateOnly,
+                                        extraTag: tag.clone(),
+                                    },
+                                    &unfoldList,
+                                    &Rc::clone(&constrRewriteListCopy),
+                                    eg,
+                                ));
+                            }
+                        }
+                        {
+
+                            // if composeUnfoldReceipt.len() > 1 {
+                            //     // printENode(&definedENode, eg);
+                            //     // println!("composeUnfoldReceipt {:#?}", composeUnfoldReceipt);
+                            //     // assert!(composeUnfoldReceipt.len() == 1);
+                            //     warn!("composeUnfoldReceipt len > 1 but also use the first one");
+                            //     // warn!("composeUnfoldReceipt {:?}", composeUnfoldReceipt);
+                            // }
+                            // let newComposeAppIds = unfoldApplyInternal(
+                            //     &composeUnfoldReceipt[0],
+                            //     &unfoldListClone,
+                            //     &Rc::clone(&constrRewriteListCopy),
+                            //     UnfoldOpType::UnfoldCreateOnly,
+                            //     &tag,
+                            //     eg,
+                            // );
+
+                            // if (newComposeAppIds.is_empty()) {
+                            //     println!("unfold result is empty");
+                            //     println!("composeRecipes {:?}");
+                            // }
+                        }
+
+                        let first = newComposeAppIds.first().unwrap();
+                        for newComposeAppId in newComposeAppIds[1..].iter() {
+                            eg.union_justified(
+                                first,
+                                newComposeAppId,
+                                Some("define_unfold".to_owned()),
+                            );
+                        }
+
+                        assert!(unfoldList.borrow().len() > 0);
+
+                        let saveAppId = eg.find_applied_id(first).apply_slotmap(&map.inverse());
+                        debug!("defineMap {saveAppId:?} <- {sortedToBeFoldShape:?}");
+                        newDefineMapClone.insert(sortedToBeFoldShape.into(), saveAppId);
+
+                        eg.find_applied_id(first)
+                    };
+
+                eg.analysis_data_mut(defineAppId.id)
+                    .predNames
+                    .insert(format!("define_from_{}_{}", origNewENodeAppId.id, tag));
+
+                // vv folding vv
+                if options.doFolding {
+                    let replaceAt = positions.first().unwrap();
+                    debug!("sortedToBeFold {sortedNewBody:?}");
+                    trace!("fold to {defineAppId:?}");
+                    trace!("original body {bodyAppIds:?}");
+                    trace!("positions {positions:?}");
+                    let mut foldedBodyAppIds = vec![];
+                    for (idx, c) in bodyAppIds.iter().enumerate() {
+                        if idx == *replaceAt {
+                            // TODO: defineAppId must be mapped to originalENode namespace
+                            foldedBodyAppIds.push(AppliedIdOrStar::AppliedId(defineAppId.clone()));
+                        }
+
+                        if positions.contains(&idx) {
+                            continue;
+                        }
+                        foldedBodyAppIds.push(c.clone());
                     }
+                    trace!("foldedBodyAppIds {foldedBodyAppIds:?}");
+                    debug!("origNewENode {origNewENode:?}");
+                    let foldedNewENode = sortNewENode1(
+                        origSyntaxAppId,
+                        origConstrAppId,
+                        &foldedBodyAppIds.into(),
+                        eg,
+                    );
+                    debug!("foldedNewENode {foldedNewENode:?}");
+                    let foldedAppId = eg.add(&foldedNewENode);
+                    eg.analysis_data_mut(foldedAppId.id)
+                        .predNames
+                        .insert(format!(
+                            "folded_{}_with_{}",
+                            origNewENodeAppId, defineAppId.id
+                        ));
+                    eg.union_justified(&origNewENodeAppId, &foldedAppId, Some("fold".to_owned()));
                 }
             }
         }
+    }
+}
+
+// TODO: refactor this function
+pub fn defineUnfoldFold(
+    unfoldHelper: &UnfoldHelper,
+    defineCache: &DefineCache,
+    constrRewriteList: &Rc<RefCell<ConstrRewriteList>>,
+    options: RewriteOption,
+) -> CHCRewrite {
+    let defineCacheClone = (*defineCache).clone();
+    let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
+    let unfoldHelperClone = unfoldHelper.clone();
+    let constrRewriteListClone = Rc::clone(constrRewriteList);
+    let applier = Box::new(move |substs: (), eg: &mut CHCEGraph| {
+        defineApply(
+            &unfoldHelperClone,
+            &defineCacheClone,
+            &constrRewriteListClone,
+            options.clone(),
+            eg,
+        )
     });
 
     RewriteT {

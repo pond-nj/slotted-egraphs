@@ -14,10 +14,17 @@ newShape = []
 newSymCal = []
 originalPrint = []
 callZ3CheckUnsatConstr = []
+useMut = []
+default = [
+    "newShape",
+    "newSymCal",
+    "callZ3CheckUnsatConstr",
+    "checks",
+    "useMut",
+]
 # default = ["newShape", "newSymCal", "callZ3CheckUnsatConstr"]
-default = ["newShape", "newSymCal"]
+# default = ["newShape", "newSymCal"]
 # default = ["newShape", "newSymCal", "originalPrint"]
-# default = ["checks", "newShape", "newSymCal", "callZ3CheckUnsatConstr"]
 # default = ["checks"]
 # default = []
 
@@ -46,6 +53,7 @@ rustsat-minisat = "0.7.5"
 rayon = "1.11.0"
 kmpsearch = "1.0.0"
 z3 = "0.19.14"
+serde = "1.0.228"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }

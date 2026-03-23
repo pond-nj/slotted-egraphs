@@ -1,45 +1,22 @@
-use z3::{Config, Context, SatResult, Solver, ast::Int};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 fn main() {
-    // Create configuration and context
-    let mut cfg = Config::new();
-    cfg.set_model_generation(true);
-    let ctx = Context::new(&cfg);
+    let counter = RefCell::new(1usize);
 
-    // Create a solver
-    let solver = Solver::new(&ctx);
-
-    // Declare integer variables x and y
-    let x = Int::new_const(&ctx, "x");
-    let y = Int::new_const(&ctx, "y");
-
-    // x + y == 10
-    let sum = Int::add(&ctx, &[&x, &y]);
-    let c = &sum._eq(&Int::from_i64(&ctx, 10));
-    solver.assert(c);
-
-    // x > y
-    solver.assert(&x.gt(&y));
-
-    // Optionally constrain them to be non-negative
-    solver.assert(&x.ge(&Int::from_i64(&ctx, 0)));
-    solver.assert(&y.ge(&Int::from_i64(&ctx, 0)));
-
-    // Check satisfiability
-    match solver.check() {
-        SatResult::Sat => {
-            let model = solver.get_model().unwrap();
-            let x_val = model.eval(&x, true).unwrap();
-            let y_val = model.eval(&y, true).unwrap();
-            println!("SAT:");
-            println!("x = {}", x_val);
-            println!("y = {}", y_val);
-        }
-        SatResult::Unsat => {
-            println!("UNSAT");
-        }
-        SatResult::Unknown => {
-            println!("UNKNOWN");
-        }
+    // owner 1
+    {
+        let mut n = counter.borrow_mut();
+        *n += 1;
     }
+
+    // owner 2
+    {
+        let mut n = counter.borrow_mut();
+        *n += 2;
+    }
+
+    println!("counter = {}", counter.borrow()); // 3
+    println!("c1 counter = {}", counter.borrow()); // 3
+    println!("c2 counter = {}", counter.borrow()); // 3
 }

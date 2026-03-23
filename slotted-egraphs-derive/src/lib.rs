@@ -84,6 +84,11 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .iter()
         .map(|x| produce_get_children_type_arms(&name, x))
         .collect();
+    let has_bind_arms: Vec<TokenStream2> = ie
+        .variants
+        .iter()
+        .map(|x| produce_has_bind_arms(&name, x))
+        .collect();
     let getExpandChildrenArms: Vec<TokenStream2> = ie
         .variants
         .iter()
@@ -182,6 +187,12 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
             fn getChildrenType(&self) -> Vec<slotted_egraphs::LanguageChildrenType> {
                 match self {
                     #(#get_children_type_arms),*
+                }
+            }
+
+            fn hasBind(&self) -> bool {
+                match self {
+                    #(#has_bind_arms),*
                 }
             }
 
@@ -431,6 +442,26 @@ fn produce_get_children_type_arms(name: &Ident, v: &Variant) -> TokenStream2 {
             let mut out: Vec<LanguageChildrenType> = vec![];
             #(
                 out.push(#fields .get_type());
+            )*
+            out
+        }
+    }
+}
+
+fn produce_has_bind_arms(name: &Ident, v: &Variant) -> TokenStream2 {
+    let variant_name = &v.ident;
+    let n = v.fields.len();
+    let fields: Vec<Ident> = (0..n)
+        .map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site()))
+        .collect();
+    quote! {
+        #name::#variant_name(#(#fields),*) => {
+            let mut out: bool = false;
+            #(
+                out = out || #fields .hasBind();
+                if out {
+                    return out;
+                }
             )*
             out
         }

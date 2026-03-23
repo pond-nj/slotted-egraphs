@@ -305,8 +305,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     fn symmetriesBySat(self: &mut EGraph<L, N>, src_id: Id) -> (Vec<SlotMap>, Id) {
         trace!("call symmetriesBySat {:?}", src_id);
         let pc1 = self.pc_from_src_id(src_id);
-        let childrenType = pc1.node.elem.getChildrenType();
-        if childrenType.contains(&LanguageChildrenType::Bind) {
+        if pc1.node.elem.hasBind() {
             warn!("change to orig {:?}", src_id);
             return self.orig_determine_self_symmetries(src_id);
         }
