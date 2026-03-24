@@ -82,8 +82,9 @@ impl UnfoldListElement {
 pub type UnfoldList = DedupVec<(UnfoldListElement)>;
 
 #[derive(Default, Clone)]
-pub struct FalseConstrCache {
-    pub cache: Rc<RefCell<BTreeSet<CHC>>>,
+pub struct ConstrCheckedCache {
+    pub unsatCache: Rc<RefCell<BTreeSet<CHC>>>,
+    pub satCache: Rc<RefCell<BTreeSet<CHC>>>,
     pub hits: Rc<RefCell<usize>>,
     pub misses: Rc<RefCell<usize>>,
 }
@@ -92,7 +93,7 @@ pub struct FalseConstrCache {
 pub struct UnfoldHelper {
     pub unfoldList: Rc<RefCell<UnfoldList>>,
     // set of CHC::AND that are false according to z3
-    pub falseConstrCache: FalseConstrCache,
+    pub constrCheckedCache: ConstrCheckedCache,
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -119,27 +120,37 @@ fn addToUnfoldList(unfoldList: &Rc<RefCell<UnfoldList>>, toBeUnfolded: UnfoldLis
 
 fn isUnsatConstr(
     andChildren: &OrderVec<AppliedId>,
-    falseConstrCache: &FalseConstrCache,
+    constrCheckedCache: &ConstrCheckedCache,
     eg: &CHCEGraph,
 ) -> bool {
     let sortedMergeAndChildren = sortAppId(&andChildren, true, eg.canonAppIdsCache());
 
-    let andCHC = CHC::And(
+    let mut andCHC = CHC::And(
         sortedMergeAndChildren
             .into_iter()
             .map(AppliedIdOrStar::from)
             .collect(),
     );
-    if falseConstrCache.cache.borrow().contains(&andCHC) {
+    andCHC.weak_shapeMut();
+
+    if constrCheckedCache.unsatCache.borrow().contains(&andCHC) {
+        *constrCheckedCache.hits.borrow_mut() += 1;
         return true;
+    }
+    if constrCheckedCache.satCache.borrow().contains(&andCHC) {
+        *constrCheckedCache.hits.borrow_mut() += 1;
+        return false;
     }
 
-    if solveZ3Constraint(&andCHC, eg) == SatStatus::Unsat {
-        *falseConstrCache.hits.borrow_mut() += 1;
-        falseConstrCache.cache.borrow_mut().insert(andCHC.clone());
+    *constrCheckedCache.misses.borrow_mut() += 1;
+
+    let result = solveZ3Constraint(&andCHC, eg);
+    if result == SatStatus::Unsat {
+        constrCheckedCache.unsatCache.borrow_mut().insert(andCHC);
         return true;
     }
-    *falseConstrCache.misses.borrow_mut() += 1;
+    assert_eq!(result, SatStatus::Sat);
+    constrCheckedCache.satCache.borrow_mut().insert(andCHC);
 
     return false;
 }
@@ -153,7 +164,7 @@ pub fn prepareUnfold(
     new1AppId: &AppliedId,
     new1ENode: &CHC,
     composeUnfoldRecipe: &mut Vec<ComposeUnfoldRecipe>,
-    falseConstrCache: &FalseConstrCache,
+    constrCheckedCache: &ConstrCheckedCache,
     eg: &CHCEGraph,
 ) {
     let (syntax1, cond1, new1Children) = match new1ENode.clone() {
@@ -217,7 +228,7 @@ pub fn prepareUnfold(
                                 .iter()
                                 .map(AppliedIdOrStar::getAppliedId)
                                 .collect(),
-                            &falseConstrCache,
+                            &constrCheckedCache,
                             eg,
                         );
                         if isUnsat {
@@ -293,7 +304,7 @@ pub fn unfoldSearchAndPrepare(
 ) -> Vec<ComposeUnfoldRecipe> {
     let UnfoldHelper {
         unfoldList,
-        falseConstrCache,
+        constrCheckedCache,
     } = unfoldHelper;
     let mut composeUnfoldRecipe = vec![];
 
@@ -358,7 +369,7 @@ pub fn unfoldSearchAndPrepare(
             new1AppId,
             &new1ENode,
             &mut composeUnfoldRecipe,
-            falseConstrCache,
+            constrCheckedCache,
             eg,
         );
 

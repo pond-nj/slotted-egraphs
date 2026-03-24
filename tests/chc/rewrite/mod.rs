@@ -510,6 +510,123 @@ fn eqSwap() -> CHCRewrite {
     Rewrite::new("eqSwap", pat, outPat)
 }
 
+fn rebuildENode(enode: &CHC, eg: &CHCEGraph) -> CHC {
+    let enode = eg.find_enode(enode);
+    let mut enode = enode.sorted(eg.canonAppIdsCache());
+    enode.weak_shapeMut();
+    enode
+}
+
+fn rebuildDoneDefinedList(defineCache: &DefineCache, eg: &CHCEGraph) {
+    info!(
+        "doneDefinedList hits/misses {:?}/{:?}",
+        defineCache.doneDefinedList.hits.borrow(),
+        defineCache.doneDefinedList.misses.borrow()
+    );
+    let list = &defineCache.doneDefinedList.list;
+    let originalDoneDefinedListLen = list.borrow().len();
+    let rebuildDoneDefinedList =
+        BTreeSet::from_iter(list.borrow().iter().map(|e| rebuildENode(e, eg)));
+    info!(
+        "rebuildDoneDefinedList: {originalDoneDefinedListLen:?} -> {:?}",
+        rebuildDoneDefinedList.len()
+    );
+    *defineCache.doneDefinedList.list.borrow_mut() = rebuildDoneDefinedList;
+}
+
+fn rebuildFalseConstrCache(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
+    info!(
+        "constrCheckedCache hits/misses {:?}/{:?}",
+        unfoldHelper.constrCheckedCache.hits.borrow(),
+        unfoldHelper.constrCheckedCache.misses.borrow()
+    );
+    let originalUnsatLen = unfoldHelper.constrCheckedCache.unsatCache.borrow().len();
+    let unsatCacheRebuild = BTreeSet::from_iter(
+        unfoldHelper
+            .constrCheckedCache
+            .unsatCache
+            .borrow()
+            .iter()
+            .map(|e| {
+                // let e = eg.find_enode(e);
+                // let CHC::And(children) = e else {
+                //     panic!();
+                // };
+                // let sortedChildren = sortAppId(
+                //     &children.0.iter().map(|x| x.getAppliedId()).collect(),
+                //     true,
+                //     eg.canonAppIdsCache(),
+                // );
+                // let mut newE = CHC::And(
+                //     sortedChildren
+                //         .into_iter()
+                //         .map(AppliedIdOrStar::from)
+                //         .collect::<Vec<_>>()
+                //         .into(),
+                // );
+                // newE.weak_shapeMut();
+                // newE
+                rebuildENode(e, eg)
+            }),
+    );
+    info!(
+        "rebuildUnsatCache: {originalUnsatLen:?} -> {:?}",
+        unsatCacheRebuild.len()
+    );
+    *unfoldHelper.constrCheckedCache.unsatCache.borrow_mut() = unsatCacheRebuild;
+
+    let originalSatLen = unfoldHelper.constrCheckedCache.satCache.borrow().len();
+    let satCacheRebuild = BTreeSet::from_iter(
+        unfoldHelper
+            .constrCheckedCache
+            .satCache
+            .borrow()
+            .iter()
+            .map(|e| {
+                // let e = eg.find_enode(e);
+                // let CHC::And(children) = e else {
+                //     panic!();
+                // };
+                // let sortedChildren = sortAppId(
+                //     &children.0.iter().map(|x| x.getAppliedId()).collect(),
+                //     true,
+                //     eg.canonAppIdsCache(),
+                // );
+                // let mut newE = CHC::And(
+                //     sortedChildren
+                //         .into_iter()
+                //         .map(AppliedIdOrStar::from)
+                //         .collect::<Vec<_>>()
+                //         .into(),
+                // );
+                // newE.weak_shapeMut();
+                // newE
+                rebuildENode(e, eg)
+            }),
+    );
+    info!(
+        "rebuildSatCache: {originalSatLen:?} -> {:?}",
+        satCacheRebuild.len()
+    );
+    *unfoldHelper.constrCheckedCache.satCache.borrow_mut() = satCacheRebuild;
+}
+
+fn rebuildCache(unfoldHelper: &UnfoldHelper, defineCache: &DefineCache) -> CHCRewrite {
+    let unfoldHelper = unfoldHelper.clone();
+    let defineCache = defineCache.clone();
+    let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
+    let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
+        rebuildFalseConstrCache(&unfoldHelper, eg);
+        rebuildDoneDefinedList(&defineCache, eg);
+    });
+    RewriteT {
+        name: "rebuildCache".to_owned(),
+        searcher,
+        applier,
+    }
+    .into()
+}
+
 // TODO: swapping unfold and define creates some error which should not be
 pub fn getAllRewrites(rewriteList: RewriteList, options: RewriteOption) -> Vec<CHCRewrite> {
     let RewriteList {
@@ -519,7 +636,10 @@ pub fn getAllRewrites(rewriteList: RewriteList, options: RewriteOption) -> Vec<C
         defineCache,
     } = rewriteList;
     // define-fold, unfold
-    let mut rewrites = vec![unfold(&unfoldHelper, &constrRewriteList)];
+    let mut rewrites = vec![
+        rebuildCache(&unfoldHelper, &defineCache),
+        unfold(&unfoldHelper, &constrRewriteList),
+    ];
 
     // constraint until saturation
     if options.doConstraintRewrite {

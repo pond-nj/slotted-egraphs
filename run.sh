@@ -13,7 +13,7 @@ RUST_BACKTRACE=full cargo test chc::leafDrop2::mainTest -- --nocapture &> tmp.tx
 
 # flamegraph -o pairingPaperArray.svg -- target/debug/deps/entry-f45f2bd9100da93c --nocapture chc::pairingPaperArray::mainTest
 # flamegraph -o leafDrop.svg -- target/debug/deps/entry-aafa1e403367dd3e --nocapture chc::leafDrop::mainTest
-# flamegraph -o leafDrop2.svg -- target/debug/deps/entry-b637599c1b948713 --nocapture chc::leafDrop2::mainTest
+# flamegraph -o leafDrop2.svg -- target/debug/deps/entry-04618e8c2f3fb2d5 --nocapture chc::leafDrop2::mainTest
 
 # cargo flamegraph --freq 200 --no-inline \
 #   --bin entry-aafa1e403367dd3e \

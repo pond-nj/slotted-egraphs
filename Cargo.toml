@@ -19,7 +19,7 @@ default = [
     "newShape",
     "newSymCal",
     "callZ3CheckUnsatConstr",
-    "checks",
+    # "checks",
     "useMut",
 ]
 # default = ["newShape", "newSymCal", "callZ3CheckUnsatConstr"]

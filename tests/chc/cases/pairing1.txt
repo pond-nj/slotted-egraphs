@@ -1,0 +1,9 @@
+f(N,Z) :- N=<0, Z=0.
+f(N,Z) :- N>=1, N1=N−1, Z=R+N, f(N1,R).
+
+g(N,P,R,R) :- N=<0.
+g(N,P,R,R2) :- N>=1, N1=N−1, R1=P+R, g(N1,P,R1,R2).
+
+su(X,Z) :- f(X,Z).
+pr(X,Y,Z) :- W=0, g(X,Y,W,Z).
+false :- X1=X2, X2=<Y2, Z1>Z2, su(X1,Z1), pr(X2,Y2,Z2).

@@ -60,9 +60,9 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
             .iter()
             .enumerate()
             .map(|(i, rw)| {
-                debug!("{i} doing search for {}", rw.name);
+                info!("{i} doing search for {}", rw.name);
                 let ret = (*rw.searcher)(eg);
-                debug!("{i} done search for {}", rw.name);
+                info!("{i} done search for {}", rw.name);
                 ret
             })
             .collect()

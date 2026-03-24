@@ -1,0 +1,15 @@
+f(N,Z) :- N=<0, Z=0.
+f(N,Z) :- N>=1, N1=N−1, Z=R+N, f(N1,R).
+
+g(N,P,R,R) :- N=<0.
+g(N,P,R,R2) :- N>=1, N1=N−1, R1=P+R, g(N1,P,R1,R2).
+
+false :- X1=X2, X2=<Y2, Z1>Z2, W=0, f(X1,Z1), g(X2,Y2,W, Z2).
+
+false :- X1=X2, X2=<Y2, Z1>Z2, W=0, f(X1,Z1), X2 =< 0.
+false :- X1=X2, X2=<Y2, Z1>Z2, W=0, f(X1,Z1), N>=1, N1=N−1, R1=P+R, g(N1,P,R1,R2).
+
+false :- X1=X2, X2=<Y2, Z1>Z2, W=0, N=<0, Z=0, X2 =< 0.
+false :- X1=X2, X2=<Y2, Z1>Z2, W=0, N>=1, N1=N−1, Z=R+N, f(N1,R), X2 =< 0.
+false :- X1=X2, X2=<Y2, Z1>Z2, W=0, N=<0, Z=0, N>=1, N1=N−1, R1=P+R, g(N1,P,R1,R2).
+false :- X1=X2, X2=<Y2, Z1>Z2, W=0, N>=1, N1=N−1, Z=R+N, f(N1,R), N>=1, N1=N−1, R1=P+R, g(N1,P,R1,R2).
