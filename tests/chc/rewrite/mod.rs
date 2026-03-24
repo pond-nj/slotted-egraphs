@@ -534,7 +534,7 @@ fn rebuildDoneDefinedList(defineCache: &DefineCache, eg: &CHCEGraph) {
     *defineCache.doneDefinedList.list.borrow_mut() = rebuildDoneDefinedList;
 }
 
-fn rebuildFalseConstrCache(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
+fn rebuildConstrCheckedCache(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
     info!(
         "constrCheckedCache hits/misses {:?}/{:?}",
         unfoldHelper.constrCheckedCache.hits.borrow(),
@@ -616,7 +616,9 @@ fn rebuildCache(unfoldHelper: &UnfoldHelper, defineCache: &DefineCache) -> CHCRe
     let defineCache = defineCache.clone();
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
     let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
-        rebuildFalseConstrCache(&unfoldHelper, eg);
+        if CHECK_UNSAT_CONSTR {
+            rebuildConstrCheckedCache(&unfoldHelper, eg);
+        }
         rebuildDoneDefinedList(&defineCache, eg);
     });
     RewriteT {

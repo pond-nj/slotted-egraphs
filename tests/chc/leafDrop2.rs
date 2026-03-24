@@ -27,8 +27,8 @@ fn mainTest() {
                 doConstraintRewrite: true,
                 doFolding: true,
                 doADTDefine: true,
-                // doPairingDefine: false,
-                doPairingDefine: true,
+                doPairingDefine: false,
+                // doPairingDefine: true,
             },
         ))
     });
