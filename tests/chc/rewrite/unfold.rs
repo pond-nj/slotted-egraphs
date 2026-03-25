@@ -1,5 +1,6 @@
 use super::*;
 use crate::*;
+use rayon::prelude::*;
 
 #[derive(Debug, Clone)]
 // recipe for creating unfolded ENode
@@ -79,7 +80,7 @@ impl UnfoldListElement {
     }
 }
 
-pub type UnfoldList = DedupVec<(UnfoldListElement)>;
+pub type UnfoldList = Rc<RefCell<DedupVec<(UnfoldListElement)>>>;
 
 #[derive(Default, Clone)]
 pub struct ConstrCheckedCache {
@@ -91,7 +92,7 @@ pub struct ConstrCheckedCache {
 
 #[derive(Default, Clone)]
 pub struct UnfoldHelper {
-    pub unfoldList: Rc<RefCell<UnfoldList>>,
+    pub unfoldList: UnfoldList,
     // set of CHC::AND that are false according to z3
     pub constrCheckedCache: ConstrCheckedCache,
 }
@@ -102,7 +103,7 @@ pub enum UnfoldOpType {
     UnfoldCreateOnly, //create is for unfold occur in define, which will only create unfolded nodes, there's no old compose.
 }
 
-fn addToUnfoldList(unfoldList: &Rc<RefCell<UnfoldList>>, toBeUnfolded: UnfoldListElement) {
+fn addToUnfoldList(unfoldList: &UnfoldList, toBeUnfolded: UnfoldListElement) {
     trace!("pushing to unfoldList {:?}", toBeUnfolded.getShape().0);
 
     let CHC::New(_, _, new1Children) = &toBeUnfolded.targetNew1ENodeShape else {
@@ -385,7 +386,7 @@ pub fn unfoldSearchAndPrepare(
 fn addUnfoldedNewENode(
     unfoldResultComb: Vec<UnfoldResult>,
     unfoldOption: &UnfoldOption,
-    constrRewriteListCopy: &Rc<RefCell<ConstrRewriteList>>,
+    constrRewriteListCopy: &ConstrRewriteList,
     eg: &mut CHCEGraph,
     createdNewENodes: &mut Vec<(AppliedId, CHC)>,
 ) {
@@ -462,8 +463,21 @@ fn addUnfoldedNewENode(
             tag = format!("{}_{}", tag, extraTag);
         }
 
+        #[cfg(not(feature = "parallelAdd"))]
         constrRewriteListCopy
             .borrow_mut()
+            .push(ConstrRewriteComponent {
+                constrAppId: mergeAndAppId.clone(),
+                constrENode: mergeAnd,
+                newENodeAppId: unfoldedENodeId.clone(),
+                newENode: unfoldedENode.clone(),
+                tag: tag.clone(),
+            });
+
+        #[cfg(feature = "parallelAdd")]
+        constrRewriteListCopy
+            .write()
+            .unwrap()
             .push(ConstrRewriteComponent {
                 constrAppId: mergeAndAppId.clone(),
                 constrENode: mergeAnd,
@@ -562,10 +576,12 @@ fn createUnfoldedCompose(
     ret
 }
 
+// non parallel version
+#[cfg(not(feature = "parallelAdd"))]
 pub fn unfoldApplyInternal(
     unfoldOption: &UnfoldOption,
-    unfoldList: &Rc<RefCell<UnfoldList>>,
-    constrRewriteList: &Rc<RefCell<ConstrRewriteList>>,
+    unfoldList: &UnfoldList,
+    constrRewriteList: &ConstrRewriteList,
     eg: &mut CHCEGraph,
 ) -> Vec<AppliedId> {
     let UnfoldOption {
@@ -671,10 +687,124 @@ unfoldResult {unfoldResult:#?}"
     createdComposeAppIds
 }
 
+#[cfg(feature = "parallelAdd")]
+pub fn unfoldApplyInternal(
+    unfoldOption: &UnfoldOption,
+    unfoldList: &UnfoldList,
+    constrRewriteList: &ConstrRewriteList,
+    eg: &mut CHCEGraph,
+) -> Vec<AppliedId> {
+    let UnfoldOption {
+        composeUnfoldRecipe,
+        createOrMerge,
+        extraTag,
+    } = unfoldOption;
+
+    let ComposeUnfoldRecipe {
+        unfoldResult,
+        compose1ReplaceIdx,
+        compose1Children,
+        compose1AppId,
+        compose2AppId,
+        new1ReplaceIdx,
+        new1AppId,
+        composeUnfoldRecipeTag,
+    } = composeUnfoldRecipe;
+
+    trace!(
+        "unfolding {compose2AppId} (index {new1ReplaceIdx}) in {} under {compose1AppId}",
+        new1AppId.id
+    );
+    // trace!("root compose eclass {:?}", eg.eclass(compose1AppId.id));
+    // trace!("new1EClass eclass {:?}", eg.eclass(new1AppId.id));
+    // trace!("used eclass {:?}", eg.eclass(compose2AppId.id));
+    trace!(
+        "root compose eclass {:?}",
+        eg.dumpEClassStr(compose1AppId.id)
+    );
+    trace!("new1EClass eclass {:?}", eg.dumpEClassStr(new1AppId.id));
+    trace!("used eclass {:?}", eg.dumpEClassStr(compose2AppId.id));
+
+    if *createOrMerge == UnfoldOpType::UnfoldCreateOnly {
+        assert_eq!(compose1Children, &vec![].into());
+        assert_eq!(compose1AppId, &AppliedId::null());
+        assert_eq!(compose1ReplaceIdx, &0);
+        assert_eq!(new1AppId, &AppliedId::null());
+    }
+
+    trace!("composeUnfoldRecipe {composeUnfoldRecipe:?}");
+
+    let unfoldResultCombs = combination(&unfoldResult);
+    assert!(
+        unfoldResultCombs.len() > 0,
+        "unfoldRecipeCombs is empty
+unfoldResult {unfoldResult:#?}"
+    );
+
+    let mut createdComposeAppIds = vec![];
+    unfoldResultCombs
+        .into_par_iter()
+        .for_each(|unfoldResultComb| {
+            let mut createdNewENodes = vec![];
+            addUnfoldedNewENode(
+                unfoldResultComb,
+                unfoldOption,
+                constrRewriteList,
+                eg,
+                &mut createdNewENodes,
+            );
+
+            trace!("createdNewENodes {createdNewENodes:?}");
+
+            let (composeAppId, composeShape) = createUnfoldedCompose(
+                composeUnfoldRecipe,
+                &createdNewENodes,
+                &mut createdComposeAppIds,
+                createOrMerge,
+                eg,
+            );
+
+            let CHC::Compose(composeChildren) = &composeShape else {
+                panic!();
+            };
+
+            trace!(
+                "adding to unfoldList from {:?}",
+                composeShape.weak_shape().0
+            );
+            for new1AppId in composeChildren.iter() {
+                let new1AppId = eg.find_applied_id(&new1AppId.getAppliedId());
+
+                if CHECK_UNSAT_CONSTR
+                    && eg.analysis_data(new1AppId.id).satStatus == SatStatus::Unsat
+                {
+                    panic!();
+                    continue;
+                }
+
+                let new1ENodes = eg.enodes_applied(&new1AppId);
+                for new1ENode in new1ENodes {
+                    addToUnfoldList(
+                        &unfoldList,
+                        UnfoldListElement {
+                            targetCompose1AppId: composeAppId.clone(),
+                            targetCompose1Shape: composeShape.clone(),
+                            targetNew1AppId: new1AppId.clone(),
+                            targetNew1ENodeShape: new1ENode,
+                        },
+                    );
+                }
+            }
+        });
+
+    assert!(createdComposeAppIds.len() > 0);
+    createdComposeAppIds
+}
+
 pub fn unfoldApply(
-    unfoldList: &Rc<RefCell<UnfoldList>>,
+    unfoldList: &UnfoldList,
     composeUnfoldRecipes: Vec<ComposeUnfoldRecipe>,
-    constrRewriteListCopy: &Rc<RefCell<ConstrRewriteList>>,
+    constrRewriteListCopy: &ConstrRewriteList,
     eg: &mut CHCEGraph,
 ) {
     Rc::clone(&unfoldList).borrow_mut().clear();
@@ -703,11 +833,8 @@ pub fn unfoldHelperRebuild(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
 // H <- A', B, C
 // H <- A, B', C
 // H <- A, B, C'
-pub fn unfold(
-    unfoldHelper: &UnfoldHelper,
-    constrRewriteList: &Rc<RefCell<ConstrRewriteList>>,
-) -> CHCRewrite {
-    let constrRewriteListCopy = Rc::clone(constrRewriteList);
+pub fn unfold(unfoldHelper: &UnfoldHelper, constrRewriteList: &ConstrRewriteList) -> CHCRewrite {
+    let constrRewriteListCopy = constrRewriteList.clone();
 
     // unfoldList is taken by searcher
     let unfoldHelperClone = (*unfoldHelper).clone();

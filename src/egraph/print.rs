@@ -113,10 +113,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn printUnionFind(&self) {
-        let uf = &self._unionfind;
+        let uf = &self.getUnionFind();
         println!("unionfind info:");
-        println!("unionfind size {}", uf.borrow().len());
-        for (i, x) in uf.borrow().iter().enumerate() {
+        println!("unionfind size {}", uf.len());
+        for (i, x) in uf.iter().enumerate() {
             println!("Id{i:?} -> {:?}", x.elem);
         }
     }

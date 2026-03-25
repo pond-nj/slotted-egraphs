@@ -15,10 +15,12 @@ newSymCal = []
 originalPrint = []
 callZ3CheckUnsatConstr = []
 useMut = []
+parallelAdd = []
 default = [
     "newShape",
     "newSymCal",
     "callZ3CheckUnsatConstr",
+    "parallelAdd",
     # "checks",
     "useMut",
 ]

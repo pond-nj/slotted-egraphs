@@ -8,10 +8,17 @@ pub struct DoneDefinedList {
     pub misses: Rc<RefCell<usize>>,
 }
 
+#[derive(Default, Clone, Debug)]
+pub struct DefineStats {
+    pub adtDefine: Rc<RefCell<usize>>,
+    pub pairingDefine: Rc<RefCell<usize>>,
+}
+
 #[derive(Default, Clone)]
-pub struct DefineCache {
+pub struct DefineHelper {
     pub doneDefinedList: DoneDefinedList,
     pub newDefineMap: Rc<RefCell<BTreeMap<FoldPattern, AppliedId>>>,
+    pub stats: DefineStats,
 }
 
 struct DefineInfo {
@@ -26,6 +33,7 @@ fn doADTDefine(
     mergeVarTypes: &BTreeMap<Slot, VarType>,
     eclassId: Id,
     syntaxAndNewBody: &mut Vec<DefineInfo>,
+    stats: &DefineStats,
 ) {
     let mut varToChildIdx: BTreeMap<Slot, Vec<usize>> = BTreeMap::default();
     for idx in 0..childAppIds.len() {
@@ -84,6 +92,7 @@ fn doADTDefine(
             .map(|idx| childAppIds[*idx].getAppliedId())
             .collect::<Vec<_>>();
 
+        *stats.adtDefine.borrow_mut() += 1;
         syntaxAndNewBody.push(DefineInfo {
             syntax: basicVars,
             newBody,
@@ -97,6 +106,7 @@ fn doPairingDefine(
     childAppIds: &Vec<AppliedIdOrStar>,
     eclassId: Id,
     syntaxAndNewBody: &mut Vec<DefineInfo>,
+    stats: &DefineStats,
 ) {
     for (i, childAppId1) in childAppIds.iter().enumerate() {
         let childAppId1 = childAppId1.getAppliedId();
@@ -110,6 +120,7 @@ fn doPairingDefine(
             for var in childAppId2.slots() {
                 syntax.push(var);
             }
+            *stats.pairingDefine.borrow_mut() += 1;
             syntaxAndNewBody.push(DefineInfo {
                 syntax,
                 newBody: vec![childAppId1.clone(), childAppId2.clone()],
@@ -128,8 +139,9 @@ fn prepareDefines(
     mergeVarTypes: &BTreeMap<Slot, VarType>,
     options: &RewriteOption,
     eclassId: Id,
-    eg: &CHCEGraph,
     syntaxAndNewBody: &mut Vec<DefineInfo>,
+    eg: &CHCEGraph,
+    stats: &DefineStats,
 ) {
     // ADT
     let CHC::New(origSyntaxAppId, origConstrAppId, childAppIds) = &origNewENode else {
@@ -137,13 +149,19 @@ fn prepareDefines(
     };
 
     if options.doADTDefine {
-        doADTDefine(childAppIds, mergeVarTypes, eclassId, syntaxAndNewBody);
+        doADTDefine(
+            childAppIds,
+            mergeVarTypes,
+            eclassId,
+            syntaxAndNewBody,
+            stats,
+        );
     }
 
     // pairing
     // only support two predicates now
     if options.doPairingDefine {
-        doPairingDefine(childAppIds, eclassId, syntaxAndNewBody);
+        doPairingDefine(childAppIds, eclassId, syntaxAndNewBody, stats);
     }
 }
 
@@ -155,9 +173,9 @@ fn unfoldNewDefine(
     tag: String,
     mergeVarTypes: &BTreeMap<Slot, VarType>,
     newDefineMap: &Rc<RefCell<BTreeMap<FoldPattern, AppliedId>>>,
-    unfoldList: &Rc<RefCell<UnfoldList>>,
+    unfoldList: &UnfoldList,
     constrCheckedCache: &ConstrCheckedCache,
-    constrRewriteListCopy: &Rc<RefCell<ConstrRewriteList>>,
+    constrRewriteListCopy: &ConstrRewriteList,
     eg: &mut CHCEGraph,
 ) -> AppliedId {
     // define
@@ -206,7 +224,7 @@ fn unfoldNewDefine(
                     extraTag: tag.clone(),
                 },
                 &unfoldList,
-                &Rc::clone(&constrRewriteListCopy),
+                &constrRewriteListCopy.clone(),
                 eg,
             ));
         }
@@ -268,15 +286,16 @@ fn doFolding(
 
 pub fn defineApply(
     unfoldHelper: &UnfoldHelper,
-    defineCache: &DefineCache,
-    constrRewriteListCopy: &Rc<RefCell<ConstrRewriteList>>,
+    defineHelper: &DefineHelper,
+    constrRewriteListCopy: &ConstrRewriteList,
     options: RewriteOption,
     eg: &mut CHCEGraph,
 ) {
-    let DefineCache {
+    let DefineHelper {
         doneDefinedList: DoneDefinedList { list, hits, misses },
         newDefineMap,
-    } = defineCache;
+        stats,
+    } = defineHelper;
 
     let UnfoldHelper {
         unfoldList,
@@ -297,6 +316,11 @@ pub fn defineApply(
         let enodesListLen = enodesList.len();
         // TODO: can we actually parallelize this?
         for (j, origNewENode) in enodesList.into_iter().enumerate() {
+            info!(
+                "define stats adtDefine/pairingDefine {:?}/{:?}",
+                stats.adtDefine.borrow(),
+                stats.pairingDefine.borrow()
+            );
             info!("doing define {i}/{idsLen} {j}/{enodesListLen}");
             let origENodeShape = origNewENode.weak_shape().0;
             // check if do this already
@@ -325,8 +349,9 @@ pub fn defineApply(
                 &mergeVarTypes,
                 &options,
                 eclassId,
-                eg,
                 &mut syntaxAndNewBody,
+                eg,
+                stats,
             );
 
             // for each group/sharing block, define new chc
@@ -397,14 +422,14 @@ pub fn defineApply(
 // TODO: refactor this function
 pub fn defineUnfoldFold(
     unfoldHelper: &UnfoldHelper,
-    defineCache: &DefineCache,
-    constrRewriteList: &Rc<RefCell<ConstrRewriteList>>,
+    defineHelper: &DefineHelper,
+    constrRewriteList: &ConstrRewriteList,
     options: RewriteOption,
 ) -> CHCRewrite {
-    let defineCacheClone = (*defineCache).clone();
+    let defineCacheClone = (*defineHelper).clone();
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
     let unfoldHelperClone = unfoldHelper.clone();
-    let constrRewriteListClone = Rc::clone(constrRewriteList);
+    let constrRewriteListClone = constrRewriteList.clone();
     let applier = Box::new(move |substs: (), eg: &mut CHCEGraph| {
         defineApply(
             &unfoldHelperClone,

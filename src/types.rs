@@ -6,6 +6,8 @@ use nauty_Traces_sys::{
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
 use std::os::raw::c_int;
+#[cfg(feature = "parallelAdd")]
+use std::sync::RwLock;
 
 /// Ids identify e-classes.
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -466,6 +468,7 @@ fn translateBack(
         .collect()
 }
 
+#[cfg(not(feature = "parallelAdd"))]
 #[derive(Default)]
 pub struct CanonAppIdsCache {
     cache: RefCell<
@@ -477,6 +480,29 @@ pub struct CanonAppIdsCache {
     pub hits: RefCell<usize>,
     pub misses: RefCell<usize>,
 }
+
+#[cfg(feature = "parallelAdd")]
+#[derive(Default)]
+pub struct CanonAppIdsCache {
+    cache: RwLock<
+        BTreeMap<
+            (Vec<AppliedId>, Option<Vec<Vec<ProvenPerm>>>),
+            (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>),
+        >,
+    >,
+    pub hits: RwLock<usize>,
+    pub misses: RwLock<usize>,
+}
+
+// impl CanonAppIdsCache {
+//     pub fn getHits(&self) -> usize {
+//         self.hits.read().unwrap()
+//     }
+
+//     pub fn getMisses(&self) -> usize {
+//         self.misses.read().unwrap()
+//     }
+// }
 
 fn canonAppIdsInternal(
     appIdsVec: &Vec<AppliedId>,
@@ -503,6 +529,7 @@ fn canonAppIdsInternal(
         .get(&(appIdsVec.clone(), allPerms.clone()))
     {
         *cache.hits.borrow_mut() += 1;
+
         return cacheResult.clone();
     }
     *cache.misses.borrow_mut() += 1;

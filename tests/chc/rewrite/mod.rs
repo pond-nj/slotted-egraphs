@@ -7,6 +7,7 @@ use std::cell::{Ref, RefCell};
 use std::f32::consts::E;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 use vec_collections::VecSet;
@@ -24,7 +25,10 @@ pub use constraint::*;
 mod defineFold;
 pub use defineFold::*;
 
-pub type ConstrRewriteList = Vec<ConstrRewriteComponent>;
+#[cfg(not(feature = "parallelAdd"))]
+pub type ConstrRewriteList = Rc<RefCell<Vec<ConstrRewriteComponent>>>;
+#[cfg(feature = "parallelAdd")]
+pub type ConstrRewriteList = Arc<RwLock<Vec<ConstrRewriteComponent>>>;
 
 pub struct RewriteStats {
     pub duplicateUnfold: usize,
@@ -33,9 +37,9 @@ pub struct RewriteStats {
 #[derive(Default)]
 pub struct RewriteList {
     unfoldHelper: UnfoldHelper,
-    constrRewriteList: Rc<RefCell<ConstrRewriteList>>,
-    functionalityComponentsList: Rc<RefCell<ConstrRewriteList>>,
-    defineCache: DefineCache,
+    constrRewriteList: ConstrRewriteList,
+    functionalityComponentsList: ConstrRewriteList,
+    defineHelper: DefineHelper,
 }
 
 fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> OrderVec<AppliedIdOrStar> {
@@ -204,16 +208,22 @@ fn compareAppIdOnInterface(a: &AppliedId, b: &AppliedId, itf: &VecSet<[Slot; 8]>
 }
 
 fn functionalityTransformation(
-    constrRewriteList: &Rc<RefCell<ConstrRewriteList>>,
-    functionalityComponentsList: &Rc<RefCell<ConstrRewriteList>>,
+    constrRewriteList: &ConstrRewriteList,
+    functionalityComponentsList: &ConstrRewriteList,
 ) -> CHCRewrite {
     debug!("doing functionalityTransformation");
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
 
-    let functionalityComponentsListClone = Rc::clone(&functionalityComponentsList);
-    let constrRewriteListClone = Rc::clone(&constrRewriteList);
+    let functionalityComponentsListClone = functionalityComponentsList.clone();
+    let constrRewriteListClone = constrRewriteList.clone();
     let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
-        for components in Rc::clone(&functionalityComponentsListClone).borrow().iter() {
+        #[cfg(not(feature = "parallelAdd"))]
+        let list = &functionalityComponentsListClone.clone().borrow();
+
+        #[cfg(feature = "parallelAdd")]
+        let list = functionalityComponentsListClone.read().unwrap();
+
+        for components in list.iter() {
             let ConstrRewriteComponent {
                 constrAppId,
                 constrENode,
@@ -347,9 +357,23 @@ fn functionalityTransformation(
 
             checkNewENode!(updatedNewENode, eg);
 
+            #[cfg(not(feature = "parallelAdd"))]
             constrRewriteListClone
                 .clone()
                 .borrow_mut()
+                .push(ConstrRewriteComponent {
+                    constrAppId: newAndAppId.clone(),
+                    constrENode: newAnd.clone(),
+                    newENodeAppId: updatedNewENodeAppId.clone(),
+                    newENode: updatedNewENode.clone(),
+                    tag: "from_functionalityTransformation".to_owned(),
+                });
+
+            #[cfg(feature = "parallelAdd")]
+            constrRewriteListClone
+                .clone()
+                .write()
+                .unwrap()
                 .push(ConstrRewriteComponent {
                     constrAppId: newAndAppId.clone(),
                     constrENode: newAnd.clone(),
@@ -365,7 +389,11 @@ fn functionalityTransformation(
             );
         }
 
+        #[cfg(not(feature = "parallelAdd"))]
         functionalityComponentsListClone.borrow_mut().clear();
+
+        #[cfg(feature = "parallelAdd")]
+        functionalityComponentsListClone.write().unwrap().clear();
     });
 
     debug!("done functionalityTransformation");
@@ -517,13 +545,13 @@ fn rebuildENode(enode: &CHC, eg: &CHCEGraph) -> CHC {
     enode
 }
 
-fn rebuildDoneDefinedList(defineCache: &DefineCache, eg: &CHCEGraph) {
+fn rebuildDoneDefinedList(defineHelper: &DefineHelper, eg: &CHCEGraph) {
     info!(
         "doneDefinedList hits/misses {:?}/{:?}",
-        defineCache.doneDefinedList.hits.borrow(),
-        defineCache.doneDefinedList.misses.borrow()
+        defineHelper.doneDefinedList.hits.borrow(),
+        defineHelper.doneDefinedList.misses.borrow()
     );
-    let list = &defineCache.doneDefinedList.list;
+    let list = &defineHelper.doneDefinedList.list;
     let originalDoneDefinedListLen = list.borrow().len();
     let rebuildDoneDefinedList =
         BTreeSet::from_iter(list.borrow().iter().map(|e| rebuildENode(e, eg)));
@@ -531,7 +559,7 @@ fn rebuildDoneDefinedList(defineCache: &DefineCache, eg: &CHCEGraph) {
         "rebuildDoneDefinedList: {originalDoneDefinedListLen:?} -> {:?}",
         rebuildDoneDefinedList.len()
     );
-    *defineCache.doneDefinedList.list.borrow_mut() = rebuildDoneDefinedList;
+    *defineHelper.doneDefinedList.list.borrow_mut() = rebuildDoneDefinedList;
 }
 
 fn rebuildConstrCheckedCache(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
@@ -611,15 +639,15 @@ fn rebuildConstrCheckedCache(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
     *unfoldHelper.constrCheckedCache.satCache.borrow_mut() = satCacheRebuild;
 }
 
-fn rebuildCache(unfoldHelper: &UnfoldHelper, defineCache: &DefineCache) -> CHCRewrite {
+fn rebuildCache(unfoldHelper: &UnfoldHelper, defineHelper: &DefineHelper) -> CHCRewrite {
     let unfoldHelper = unfoldHelper.clone();
-    let defineCache = defineCache.clone();
+    let defineHelper = defineHelper.clone();
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
     let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
         if CHECK_UNSAT_CONSTR {
             rebuildConstrCheckedCache(&unfoldHelper, eg);
         }
-        rebuildDoneDefinedList(&defineCache, eg);
+        rebuildDoneDefinedList(&defineHelper, eg);
     });
     RewriteT {
         name: "rebuildCache".to_owned(),
@@ -635,11 +663,11 @@ pub fn getAllRewrites(rewriteList: RewriteList, options: RewriteOption) -> Vec<C
         unfoldHelper,
         constrRewriteList,
         functionalityComponentsList,
-        defineCache,
+        defineHelper,
     } = rewriteList;
     // define-fold, unfold
     let mut rewrites = vec![
-        rebuildCache(&unfoldHelper, &defineCache),
+        rebuildCache(&unfoldHelper, &defineHelper),
         unfold(&unfoldHelper, &constrRewriteList),
     ];
 
@@ -669,7 +697,7 @@ pub fn getAllRewrites(rewriteList: RewriteList, options: RewriteOption) -> Vec<C
     }
 
     rewrites.extend([
-        defineUnfoldFold(&unfoldHelper, &defineCache, &constrRewriteList, options),
+        defineUnfoldFold(&unfoldHelper, &defineHelper, &constrRewriteList, options),
         trueToAnd(),
         eqSwap(),
     ]);

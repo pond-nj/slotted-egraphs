@@ -1,9 +1,31 @@
-use std::cell::Ref;
+use std::cell::{Ref, RefMut};
+#[cfg(feature = "parallelAdd")]
+use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 use crate::*;
 use log::{debug, info, trace, warn};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getUnionFindMut(&self) -> RefMut<Vec<ProvenAppliedId>> {
+        self._unionfind.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getUnionFindMut(&self) -> RwLockWriteGuard<Vec<ProvenAppliedId>> {
+        self._unionfind.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getUnionFind(&self) -> Ref<Vec<ProvenAppliedId>> {
+        self._unionfind.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getUnionFind(&self) -> RwLockReadGuard<Vec<ProvenAppliedId>> {
+        self._unionfind.read().unwrap()
+    }
+
     // map is vector inside union_find
     fn unionfind_get_impl(&self, i: Id, map: &mut [ProvenAppliedId]) -> ProvenAppliedId {
         // entry is like calling find on i?
@@ -76,7 +98,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(i, pai.proof.l.id);
             assert_eq!(pai.elem.id, pai.proof.r.id);
         }
-        let mut lock = self._unionfind.borrow_mut();
+        let mut lock = self.getUnionFindMut();
         assert!(i.0 <= lock.len());
         trace!("set _unionfind {i:?} -> {pai:?}");
         if lock.len() == i.0 {
@@ -87,25 +109,38 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn proven_unionfind_get(&self, i: Id) -> ProvenAppliedId {
-        let mut map = self._unionfind.borrow_mut();
+        let mut map = self.getUnionFindMut();
         let ret = self.unionfind_get_impl(i, &mut *map);
         ret
     }
 
     pub(crate) fn proven_unionfind_getNoMut(&self, i: Id) -> ProvenAppliedId {
-        let mut map = self._unionfind.borrow();
+        let mut map = self.getUnionFind();
         let ret = self.unionfind_getNoMut(i, &*map);
         ret
     }
 
+    #[cfg(not(feature = "parallelAdd"))]
     pub(crate) fn proven_unionfind_getNew(&self, i: Id) -> Ref<ProvenAppliedId> {
         {
-            let mut map = self._unionfind.borrow_mut();
+            let mut map = self.getUnionFindMut();
             self.unionfind_get_implNew(i, &mut *map);
         }
-        let refReturn = Ref::map(self._unionfind.borrow(), |v| &v[i.0]);
+        let refReturn = Ref::map(self.getUnionFind(), |v| &v[i.0]);
 
         refReturn
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub(crate) fn proven_unionfind_getNew(&self, i: Id) -> ProvenAppliedId {
+        {
+            let mut map = self.getUnionFindMut();
+            self.unionfind_get_implNew(i, &mut *map);
+        }
+        // let refReturn = Ref::map(self.getUnionFind(), |v| &v[i.0]);
+        self.getUnionFind()[i.0].clone()
+
+        // refReturn
     }
 
     pub(crate) fn unionfind_get(&self, i: Id) -> AppliedId {
@@ -115,12 +150,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     /// Returns whether an id is still alive, or whether it was merged into another class.
     pub fn is_alive(&self, i: Id) -> bool {
-        let map = self._unionfind.borrow();
+        let map = self.getUnionFind();
         map[i.0].elem.id == i
     }
 
     pub fn unionfind_iter(&self) -> impl Iterator<Item = (Id, AppliedId)> {
-        let mut map = self._unionfind.borrow_mut();
+        let mut map = self.getUnionFindMut();
         let mut out = Vec::new();
 
         for x in (0..map.len()).map(Id) {
@@ -132,7 +167,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn unionfind_len(&self) -> usize {
-        self._unionfind.borrow().len()
+        self.getUnionFind().len()
     }
 
     pub fn find_enode(&self, enode: &L) -> L {
@@ -214,7 +249,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // (Pond) only get canonical id
     pub fn ids(&self) -> Vec<Id> {
-        let map = self._unionfind.borrow();
+        let map = self.getUnionFind();
         (0..map.len())
             .map(Id)
             .filter(|x| map[x.0].elem.id == *x)

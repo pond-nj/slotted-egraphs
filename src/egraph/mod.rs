@@ -22,6 +22,8 @@ use vec_collections::AbstractVecSet;
 
 use core::fmt;
 use derive_more::Debug;
+#[cfg(feature = "parallelAdd")]
+use std::sync::RwLock;
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet},
@@ -58,7 +60,10 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     // Each Id i that is an output of the unionfind itself has unionfind[i] = (i, identity()).
 
     // We use RefCell to allow for inter mutability, so that find(&self) can do path compression.
+    #[cfg(not(feature = "parallelAdd"))]
     _unionfind: RefCell<Vec<ProvenAppliedId>>,
+    #[cfg(feature = "parallelAdd")]
+    _unionfind: RwLock<Vec<ProvenAppliedId>>,
 
     // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
     // It's "shallow" if you will.

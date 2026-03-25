@@ -475,8 +475,8 @@ pub fn dedupFromEqRewrite(
 }
 
 pub fn constraintRewrite(
-    constrRewriteList: &Rc<RefCell<ConstrRewriteList>>,
-    functionalityComponentsList: &Rc<RefCell<ConstrRewriteList>>,
+    constrRewriteList: &ConstrRewriteList,
+    functionalityComponentsList: &ConstrRewriteList,
 ) -> CHCRewrite {
     let constrRewriteListCopy = Rc::clone(constrRewriteList);
     let functionalityComponentsListCopy = Rc::clone(functionalityComponentsList);
