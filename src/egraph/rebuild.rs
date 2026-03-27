@@ -154,8 +154,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn printStats(&self) {
         info!(
             "canonAppIdsCache stats: hits {}, misses {}",
-            self.canonAppIdsCache().hits.borrow(),
-            self.canonAppIdsCache().misses.borrow()
+            self.canonAppIdsCache().getHits(),
+            self.canonAppIdsCache().getMisses()
         );
     }
 

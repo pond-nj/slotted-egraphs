@@ -1,3 +1,6 @@
+#[cfg(feature = "parallelAdd")]
+use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+
 use super::*;
 use crate::*;
 use rayon::prelude::*;
@@ -80,8 +83,9 @@ impl UnfoldListElement {
     }
 }
 
-pub type UnfoldList = Rc<RefCell<DedupVec<(UnfoldListElement)>>>;
+pub type UnfoldList = DedupVec<(UnfoldListElement)>;
 
+#[cfg(not(feature = "parallelAdd"))]
 #[derive(Default, Clone)]
 pub struct ConstrCheckedCache {
     pub unsatCache: Rc<RefCell<BTreeSet<CHC>>>,
@@ -90,11 +94,127 @@ pub struct ConstrCheckedCache {
     pub misses: Rc<RefCell<usize>>,
 }
 
+#[cfg(feature = "parallelAdd")]
+#[derive(Default, Clone)]
+pub struct ConstrCheckedCache {
+    pub unsatCache: Arc<RwLock<BTreeSet<CHC>>>,
+    pub satCache: Arc<RwLock<BTreeSet<CHC>>>,
+    pub hits: Arc<RwLock<usize>>,
+    pub misses: Arc<RwLock<usize>>,
+}
+
+impl ConstrCheckedCache {
+    #[cfg(feature = "parallelAdd")]
+    pub fn getUnsatCache(&self) -> RwLockReadGuard<BTreeSet<CHC>> {
+        self.unsatCache.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getUnsatCache(&self) -> &BTreeSet<CHC> {
+        &self.unsatCache.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getUnsatCacheMut(&self) -> RwLockWriteGuard<BTreeSet<CHC>> {
+        self.unsatCache.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getUnsatCacheMut(&self) -> &mut BTreeSet<CHC> {
+        &mut self.unsatCache.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getSatCache(&self) -> RwLockReadGuard<BTreeSet<CHC>> {
+        self.satCache.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getSatCache(&self) -> &BTreeSet<CHC> {
+        &self.satCache.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getSatCacheMut(&self) -> RwLockWriteGuard<BTreeSet<CHC>> {
+        self.satCache.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getSatCacheMut(&self) -> &mut BTreeSet<CHC> {
+        &mut self.satCache.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getHits(&self) -> RwLockReadGuard<usize> {
+        self.hits.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getHits(&self) -> &usize {
+        &self.hits.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getHitsMut(&self) -> RwLockWriteGuard<usize> {
+        self.hits.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getHitsMut(&self) -> &mut usize {
+        &mut self.hits.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getMisses(&self) -> RwLockReadGuard<usize> {
+        self.misses.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getMisses(&self) -> &usize {
+        &self.misses.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getMissesMut(&self) -> RwLockWriteGuard<usize> {
+        self.misses.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getMissesMut(&self) -> &mut usize {
+        &mut self.misses.borrow_mut()
+    }
+}
+
 #[derive(Default, Clone)]
 pub struct UnfoldHelper {
-    pub unfoldList: UnfoldList,
+    #[cfg(not(feature = "parallelAdd"))]
+    pub unfoldList: Rc<RefCell<UnfoldList>>,
+    #[cfg(feature = "parallelAdd")]
+    pub unfoldList: Arc<RwLock<UnfoldList>>,
     // set of CHC::AND that are false according to z3
     pub constrCheckedCache: ConstrCheckedCache,
+}
+
+impl UnfoldHelper {
+    #[cfg(feature = "parallelAdd")]
+    pub fn getUnfoldList(&self) -> RwLockReadGuard<UnfoldList> {
+        self.unfoldList.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getUnfoldList(&self) -> &UnfoldList {
+        &self.unfoldList.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getUnfoldListMut(&self) -> RwLockWriteGuard<UnfoldList> {
+        self.unfoldList.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getUnfoldListMut(&self) -> &mut UnfoldList {
+        &mut self.unfoldList.borrow_mut()
+    }
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -103,7 +223,7 @@ pub enum UnfoldOpType {
     UnfoldCreateOnly, //create is for unfold occur in define, which will only create unfolded nodes, there's no old compose.
 }
 
-fn addToUnfoldList(unfoldList: &UnfoldList, toBeUnfolded: UnfoldListElement) {
+fn addToUnfoldList(unfoldList: &mut UnfoldList, toBeUnfolded: UnfoldListElement) {
     trace!("pushing to unfoldList {:?}", toBeUnfolded.getShape().0);
 
     let CHC::New(_, _, new1Children) = &toBeUnfolded.targetNew1ENodeShape else {
@@ -115,8 +235,7 @@ fn addToUnfoldList(unfoldList: &UnfoldList, toBeUnfolded: UnfoldListElement) {
         return;
     }
 
-    let mut unfoldListCopy = Rc::clone(unfoldList);
-    unfoldListCopy.borrow_mut().push(toBeUnfolded);
+    unfoldList.push(toBeUnfolded);
 }
 
 fn isUnsatConstr(
@@ -134,24 +253,24 @@ fn isUnsatConstr(
     );
     andCHC.weak_shapeMut();
 
-    if constrCheckedCache.unsatCache.borrow().contains(&andCHC) {
-        *constrCheckedCache.hits.borrow_mut() += 1;
+    if constrCheckedCache.getUnsatCache().contains(&andCHC) {
+        *constrCheckedCache.getHitsMut() += 1;
         return true;
     }
-    if constrCheckedCache.satCache.borrow().contains(&andCHC) {
-        *constrCheckedCache.hits.borrow_mut() += 1;
+    if constrCheckedCache.getSatCache().contains(&andCHC) {
+        *constrCheckedCache.getHitsMut() += 1;
         return false;
     }
 
-    *constrCheckedCache.misses.borrow_mut() += 1;
+    *constrCheckedCache.getMissesMut() += 1;
 
     let result = solveZ3Constraint(&andCHC, eg);
     if result == SatStatus::Unsat {
-        constrCheckedCache.unsatCache.borrow_mut().insert(andCHC);
+        constrCheckedCache.getUnsatCacheMut().insert(andCHC);
         return true;
     }
     assert_eq!(result, SatStatus::Sat);
-    constrCheckedCache.satCache.borrow_mut().insert(andCHC);
+    constrCheckedCache.getSatCacheMut().insert(andCHC);
 
     return false;
 }
@@ -307,9 +426,10 @@ pub fn unfoldSearchAndPrepare(
         unfoldList,
         constrCheckedCache,
     } = unfoldHelper;
+    let unfoldList = unfoldHelper.getUnfoldList();
     let mut composeUnfoldRecipe = vec![];
 
-    for toBeUnfolded in Rc::clone(&unfoldList).borrow().iter() {
+    for toBeUnfolded in unfoldList.iter() {
         let (
             UnfoldListElement {
                 targetCompose1AppId,
@@ -690,7 +810,7 @@ unfoldResult {unfoldResult:#?}"
 #[cfg(feature = "parallelAdd")]
 pub fn unfoldApplyInternal(
     unfoldOption: &UnfoldOption,
-    unfoldList: &UnfoldList,
+    unfoldList: &mut UnfoldList,
     constrRewriteList: &ConstrRewriteList,
     eg: &mut CHCEGraph,
 ) -> Vec<AppliedId> {
@@ -785,7 +905,7 @@ unfoldResult {unfoldResult:#?}"
                 let new1ENodes = eg.enodes_applied(&new1AppId);
                 for new1ENode in new1ENodes {
                     addToUnfoldList(
-                        &unfoldList,
+                        unfoldList,
                         UnfoldListElement {
                             targetCompose1AppId: composeAppId.clone(),
                             targetCompose1Shape: composeShape.clone(),
@@ -802,12 +922,12 @@ unfoldResult {unfoldResult:#?}"
 }
 
 pub fn unfoldApply(
-    unfoldList: &UnfoldList,
+    unfoldList: &mut UnfoldList,
     composeUnfoldRecipes: Vec<ComposeUnfoldRecipe>,
     constrRewriteListCopy: &ConstrRewriteList,
     eg: &mut CHCEGraph,
 ) {
-    Rc::clone(&unfoldList).borrow_mut().clear();
+    unfoldList.clear();
     for composeUnfoldRecipe in composeUnfoldRecipes.into_iter() {
         unfoldApplyInternal(
             &UnfoldOption {
@@ -843,7 +963,7 @@ pub fn unfold(unfoldHelper: &UnfoldHelper, constrRewriteList: &ConstrRewriteList
         unfoldSearchAndPrepare(&unfoldHelperClone, eg)
     });
 
-    let unfoldListCopy2 = Rc::clone(&unfoldHelper.unfoldList);
+    let unfoldList = unfoldHelper.getUnfoldList();
     // unfoldList is cleared before applier, to add new element to it
     let applier = Box::new(
         move |composeRecipes: Vec<ComposeUnfoldRecipe>, eg: &mut CHCEGraph| {

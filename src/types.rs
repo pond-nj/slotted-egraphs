@@ -8,6 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::os::raw::c_int;
 #[cfg(feature = "parallelAdd")]
 use std::sync::RwLock;
+use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 /// Ids identify e-classes.
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -481,28 +482,87 @@ pub struct CanonAppIdsCache {
     pub misses: RefCell<usize>,
 }
 
+pub type CanonAppIdsCacheValue = (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>);
+pub type CanonAppIdsCacheKey = (Vec<AppliedId>, Option<Vec<Vec<ProvenPerm>>>);
+
 #[cfg(feature = "parallelAdd")]
 #[derive(Default)]
 pub struct CanonAppIdsCache {
-    cache: RwLock<
-        BTreeMap<
-            (Vec<AppliedId>, Option<Vec<Vec<ProvenPerm>>>),
-            (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>),
-        >,
-    >,
+    cache: RwLock<BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue>>,
     pub hits: RwLock<usize>,
     pub misses: RwLock<usize>,
 }
 
-// impl CanonAppIdsCache {
-//     pub fn getHits(&self) -> usize {
-//         self.hits.read().unwrap()
-//     }
+impl CanonAppIdsCache {
+    #[cfg(feature = "parallelAdd")]
+    pub fn getCache(
+        &self,
+    ) -> RwLockReadGuard<
+        BTreeMap<
+            (Vec<AppliedId>, Option<Vec<Vec<ProvenPerm>>>),
+            (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>),
+        >,
+    > {
+        self.cache.read().unwrap()
+    }
 
-//     pub fn getMisses(&self) -> usize {
-//         self.misses.read().unwrap()
-//     }
-// }
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getCache(&self) -> &BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue> {
+        &self.cache.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getCacheMut(
+        &self,
+    ) -> RwLockWriteGuard<BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue>> {
+        self.cache.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getCacheMut(&self) -> &mut BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue> {
+        &mut self.cache.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getHits(&self) -> RwLockReadGuard<usize> {
+        self.hits.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getHits(&self) -> &usize {
+        &self.hits.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getHitsMut(&self) -> RwLockWriteGuard<usize> {
+        self.hits.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getHitsMut(&self) -> &mut usize {
+        &mut self.hits.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getMisses(&self) -> RwLockReadGuard<usize> {
+        self.misses.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getMisses(&self) -> &usize {
+        &self.misses.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getMissesMut(&self) -> RwLockWriteGuard<usize> {
+        self.misses.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getMissesMut(&self) -> &mut usize {
+        &mut self.misses.borrow_mut()
+    }
+}
 
 fn canonAppIdsInternal(
     appIdsVec: &Vec<AppliedId>,
@@ -523,16 +583,12 @@ fn canonAppIdsInternal(
     // 8(arg) - 10(var)
     // 9(arg) - 11(var)
 
-    if let Some(cacheResult) = cache
-        .cache
-        .borrow()
-        .get(&(appIdsVec.clone(), allPerms.clone()))
-    {
-        *cache.hits.borrow_mut() += 1;
+    if let Some(cacheResult) = cache.getCache().get(&(appIdsVec.clone(), allPerms.clone())) {
+        *cache.getHitsMut() += 1;
 
         return cacheResult.clone();
     }
-    *cache.misses.borrow_mut() += 1;
+    *cache.getMissesMut() += 1;
 
     trace!("canonAppIds appIdsVec {appIdsVec:?}");
     trace!("allPerms {allPerms:?}");
@@ -705,8 +761,7 @@ fn canonAppIdsInternal(
     );
 
     cache
-        .cache
-        .borrow_mut()
+        .getCacheMut()
         .insert((appIdsVec.clone(), allPerms.clone()), ret.clone());
 
     ret

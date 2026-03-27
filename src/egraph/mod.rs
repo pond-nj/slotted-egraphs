@@ -82,6 +82,9 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     // TODO remove this if explanations are disabled.
     pub(crate) proof_registry: ProofRegistry,
 
+    #[cfg(feature = "parallelAdd")]
+    pub(crate) subst_method: RwLock<Option<Box<dyn SubstMethod<L, N>>>>,
+    #[cfg(not(feature = "parallelAdd"))]
     pub(crate) subst_method: Option<Box<dyn SubstMethod<L, N>>>,
 
     pub analysis: N,

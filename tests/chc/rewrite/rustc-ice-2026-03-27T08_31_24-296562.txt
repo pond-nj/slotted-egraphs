@@ -1,0 +1,48 @@
+thread 'main' panicked at /checkout/library/alloc/src/vec/mod.rs:2849:36:
+slice index starts at 16 but ends at 15
+stack backtrace:
+   0:     0x7d77901fcabb - <std[1e8bc1f935b91b92]::backtrace::Backtrace>::create
+   1:     0x7d77901fca05 - <std[1e8bc1f935b91b92]::backtrace::Backtrace>::force_capture
+   2:     0x7d778f1ffba3 - std[1e8bc1f935b91b92]::panicking::update_hook::<alloc[cd5d7e5e2db93604]::boxed::Box<rustc_driver_impl[c459b3cab2ad352e]::install_ice_hook::{closure#1}>>::{closure#0}
+   3:     0x7d779020f9a2 - std[1e8bc1f935b91b92]::panicking::panic_with_hook
+   4:     0x7d77901f20b8 - std[1e8bc1f935b91b92]::panicking::panic_handler::{closure#0}
+   5:     0x7d77901e68b9 - std[1e8bc1f935b91b92]::sys::backtrace::__rust_end_short_backtrace::<std[1e8bc1f935b91b92]::panicking::panic_handler::{closure#0}, !>
+   6:     0x7d77901f3bad - __rustc[ef8d9c2cf4986a62]::rust_begin_unwind
+   7:     0x7d778d55ac3c - core[cd8074c71add9792]::panicking::panic_fmt
+   8:     0x7d778eba79a0 - core[cd8074c71add9792]::slice::index::slice_index_fail::do_panic::runtime
+   9:     0x7d778c9a0af8 - core[cd8074c71add9792]::slice::index::slice_index_fail
+  10:     0x7d778f25329b - <rustc_errors[e39aff7a26434ec0]::styled_buffer::StyledBuffer>::replace
+  11:     0x7d778f243001 - <rustc_errors[e39aff7a26434ec0]::emitter::HumanEmitter>::emit_messages_default_inner::{closure#0}
+  12:     0x7d778f25a84d - <rustc_errors[e39aff7a26434ec0]::emitter::HumanEmitter as rustc_errors[e39aff7a26434ec0]::emitter::Emitter>::emit_diagnostic
+  13:     0x64403bebb6bc - <rustfmt_nightly[4ae17800d87d9de8]::parse::session::SilentOnIgnoredFilesEmitter as rustc_errors[e39aff7a26434ec0]::emitter::Emitter>::emit_diagnostic
+  14:     0x7d7791d5089e - <rustc_errors[e39aff7a26434ec0]::DiagCtxtInner>::emit_diagnostic::{closure#3}
+  15:     0x7d778f225d6f - rustc_errors[e39aff7a26434ec0]::default_track_diagnostic::<core[cd8074c71add9792]::option::Option<rustc_span[935017625644c213]::ErrorGuaranteed>>
+  16:     0x7d7791d4d3b4 - <rustc_errors[e39aff7a26434ec0]::DiagCtxtInner>::emit_diagnostic
+  17:     0x7d7791d4d271 - <rustc_errors[e39aff7a26434ec0]::DiagCtxtHandle>::emit_diagnostic
+  18:     0x7d778d3f9cbc - <rustc_span[935017625644c213]::ErrorGuaranteed as rustc_errors[e39aff7a26434ec0]::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+  19:     0x7d7790a9abbd - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_record_struct_body
+  20:     0x7d7790a9b482 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_item_struct
+  21:     0x7d7791562682 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_item_kind
+  22:     0x7d77915520da - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_item_common
+  23:     0x7d77915502c9 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_item_
+  24:     0x7d779154f746 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_mod
+  25:     0x7d778df690c3 - <rustc_parse[16d61e62c4c4d93b]::parser::Parser>::parse_crate_mod
+  26:     0x64403be34108 - <rustfmt_nightly[4ae17800d87d9de8]::parse::parser::Parser>::parse_crate
+  27:     0x64403bd69d8f - <rustfmt_nightly[4ae17800d87d9de8]::Session<std[1e8bc1f935b91b92]::io::stdio::Stdout>>::format_input_inner::{closure#0}
+  28:     0x64403bd5bce7 - rustfmt[d135df4c87c6bbc5]::format_and_emit_report::<std[1e8bc1f935b91b92]::io::stdio::Stdout>
+  29:     0x64403bd70a28 - rustfmt[d135df4c87c6bbc5]::execute
+  30:     0x64403bd6c717 - rustfmt[d135df4c87c6bbc5]::main
+  31:     0x64403bd67423 - std[1e8bc1f935b91b92]::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  32:     0x64403bd67b09 - std[1e8bc1f935b91b92]::rt::lang_start::<()>::{closure#0}
+  33:     0x7d779197c726 - std[1e8bc1f935b91b92]::rt::lang_start_internal
+  34:     0x64403bd7c168 - main
+  35:     0x7d778b22a1ca - __libc_start_call_main
+                               at ./csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+  36:     0x7d778b22a28b - __libc_start_main_impl
+                               at ./csu/../csu/libc-start.c:360:3
+  37:     0x64403bc5f849 - <unknown>
+  38:                0x0 - <unknown>
+
+
+rustc version: 1.94.0-nightly (4f14395c3 2025-12-22)
+platform: x86_64-unknown-linux-gnu

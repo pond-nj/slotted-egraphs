@@ -173,7 +173,7 @@ fn unfoldNewDefine(
     tag: String,
     mergeVarTypes: &BTreeMap<Slot, VarType>,
     newDefineMap: &Rc<RefCell<BTreeMap<FoldPattern, AppliedId>>>,
-    unfoldList: &UnfoldList,
+    unfoldList: &mut UnfoldList,
     constrCheckedCache: &ConstrCheckedCache,
     constrRewriteListCopy: &ConstrRewriteList,
     eg: &mut CHCEGraph,
@@ -223,7 +223,7 @@ fn unfoldNewDefine(
                     createOrMerge: UnfoldOpType::UnfoldCreateOnly,
                     extraTag: tag.clone(),
                 },
-                &unfoldList,
+                unfoldList,
                 &constrRewriteListCopy.clone(),
                 eg,
             ));
@@ -235,7 +235,7 @@ fn unfoldNewDefine(
         eg.union_justified(first, newComposeAppId, Some("define_unfold".to_owned()));
     }
 
-    assert!(unfoldList.borrow().len() > 0);
+    assert!(unfoldList.len() > 0);
 
     let saveAppId = eg.find_applied_id(first).apply_slotmap(&map.inverse());
     debug!("defineMap {saveAppId:?} <- {sortedToBeFoldShape:?}");
@@ -301,6 +301,7 @@ pub fn defineApply(
         unfoldList,
         constrCheckedCache,
     } = unfoldHelper;
+    let mut unfoldList = unfoldHelper.getUnfoldListMut();
 
     let ids = eg.ids();
     let idsLen = ids.len();
@@ -389,7 +390,7 @@ pub fn defineApply(
                         tag.clone(),
                         &mergeVarTypes,
                         &newDefineMap,
-                        &unfoldList,
+                        &mut unfoldList,
                         &constrCheckedCache,
                         &constrRewriteListCopy,
                         eg,
