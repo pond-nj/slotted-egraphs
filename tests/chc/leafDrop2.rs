@@ -11,6 +11,11 @@ const TIME_LIMIT_SECS: u64 = 300;
 
 #[test]
 fn mainTest() {
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(2)
+        .build_global()
+        .unwrap();
+
     initLogger();
     let mut eg = CHCEGraph::default();
     growEGraph("tests/chc/cases/leaf_drop.txt", &mut eg);

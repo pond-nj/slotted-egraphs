@@ -424,6 +424,7 @@ pub fn unfoldSearchAndPrepare(
     unfoldHelper: &UnfoldHelper,
     eg: &CHCEGraph,
 ) -> Vec<ComposeUnfoldRecipe> {
+    info!("start unfoldSearchAndPrepare");
     let UnfoldHelper {
         unfoldList,
         constrCheckedCache,
@@ -432,6 +433,18 @@ pub fn unfoldSearchAndPrepare(
     let mut composeUnfoldRecipe = vec![];
 
     for toBeUnfolded in unfoldList.iter() {
+        if CHECKS {
+            let mut targetNew1ENodeShape = toBeUnfolded.targetNew1ENodeShape.clone();
+            targetNew1ENodeShape.weak_shapeMut();
+            assert!(
+                eg.getENodeId(&targetNew1ENodeShape).is_some(),
+                "{:?}
+{:?}",
+                toBeUnfolded.targetNew1ENodeShape,
+                targetNew1ENodeShape
+            );
+        }
+
         let (
             UnfoldListElement {
                 targetCompose1AppId,
@@ -502,6 +515,7 @@ pub fn unfoldSearchAndPrepare(
     }
 
     trace!("unfoldSearch return, composeUnfoldRecipe {composeUnfoldRecipe:?}");
+    info!("end unfoldSearchAndPrepare");
     composeUnfoldRecipe
 }
 
@@ -623,6 +637,11 @@ fn addUnfoldedNewENode(
         });
 
         trace!("createdNewENodes {unfoldedENodeId:?} {unfoldedENode:?}");
+        if CHECKS {
+            let mut unfoldedENode = unfoldedENode.clone();
+            unfoldedENode.weak_shapeMut();
+            assert!(egMut.getENodeId(&unfoldedENode).is_some());
+        }
         createdNewENodes.push((unfoldedENodeId.clone(), unfoldedENode.clone()));
     }
 }
@@ -892,6 +911,7 @@ unfoldResult {unfoldResult:#?}"
 
     let mut createdComposeAppIds = RwLock::new(vec![]);
     unfoldResultCombs
+        // .into_iter()
         .into_par_iter()
         .for_each(|unfoldResultComb| {
             let mut createdNewENodes = vec![];
@@ -934,6 +954,11 @@ unfoldResult {unfoldResult:#?}"
 
                 let new1ENodes = egRead.enodes_applied(&new1AppId);
                 for new1ENode in new1ENodes {
+                    if CHECKS {
+                        let mut new1ENode = new1ENode.clone();
+                        new1ENode.weak_shapeMut();
+                        assert!(egRead.getENodeId(&new1ENode).is_some());
+                    }
                     addToUnfoldList(
                         unfoldHelper,
                         UnfoldListElement {

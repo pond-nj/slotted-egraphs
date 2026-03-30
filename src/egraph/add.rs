@@ -34,7 +34,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         ENodeId(id)
     }
 
-    pub(crate) fn getENodeId(&self, enode: &L) -> Option<ENodeId> {
+    pub fn getENodeId(&self, enode: &L) -> Option<ENodeId> {
         if CHECKS {
             let weakShape = enode.weak_shape().0;
             assert_eq!(enode, &weakShape);
@@ -382,10 +382,15 @@ lookup weak_shape result in hashcons: {:?}
     }
 
     pub fn getExactENodeInEClass(&self, n: &L, i: &Id) -> L {
+        if CHECKS {
+            let mut nClone = n.clone();
+            nClone.weak_shapeMut();
+            assert!(self.getENodeId(&nClone).is_some());
+        }
         let (shape, _) = &self.shape(n);
-        let enodeId = self.getENodeId(shape);
+        let enodeId = self.getENodeId(shape).unwrap();
         let c = &self.classes[&i];
-        let cn_bij = &c.nodes[&enodeId.unwrap()].elem;
+        let cn_bij = &c.nodes[&enodeId].elem;
         shape.apply_slotmap(cn_bij)
     }
 }
