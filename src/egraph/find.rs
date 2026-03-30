@@ -115,7 +115,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn proven_unionfind_getNoMut(&self, i: Id) -> ProvenAppliedId {
-        let mut map = self.getUnionFind();
+        let map = self.getUnionFind();
         let ret = self.unionfind_getNoMut(i, &*map);
         ret
     }

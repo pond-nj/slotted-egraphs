@@ -1,4 +1,5 @@
 use core::panic;
+use std::sync::RwLock;
 
 use crate::*;
 use log::debug;
@@ -145,15 +146,22 @@ fn pattern_substInternal<L: Language, N: Analysis<L>>(
             })
             .clone(),
         Pattern::Subst(b, x, t) => {
-            let b = pattern_substInternal(eg, &*b, subst);
-            let x = pattern_substInternal(eg, &*x, subst);
-            let t = pattern_substInternal(eg, &*t, subst);
+            #[cfg(not(feature = "parallelAdd"))]
+            {
+                let b = pattern_substInternal(eg, &*b, subst);
+                let x = pattern_substInternal(eg, &*x, subst);
+                let t = pattern_substInternal(eg, &*t, subst);
 
-            // temporary swap-out so that we can access both the e-graph and the subst-method fully.
-            let mut method = eg.subst_method.take().unwrap();
-            let out = method.subst(b, x, t, eg);
-            eg.subst_method = Some(method);
-            out
+                // temporary swap-out so that we can access both the e-graph and the subst-method fully.
+                let mut method = eg.subst_method.take().unwrap();
+                let out = method.subst(b, x, t, eg);
+                eg.subst_method = Some(method);
+                out
+            }
+            #[cfg(feature = "parallelAdd")]
+            {
+                todo!()
+            }
         }
         Pattern::Star(_) => {
             panic!()

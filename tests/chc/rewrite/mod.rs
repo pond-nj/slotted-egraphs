@@ -7,7 +7,8 @@ use std::cell::{Ref, RefCell};
 use std::f32::consts::E;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, RwLock};
+
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::time::{Duration, Instant};
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 use vec_collections::VecSet;
@@ -34,12 +35,32 @@ pub struct RewriteStats {
     pub duplicateUnfold: usize,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct RewriteList {
     unfoldHelper: UnfoldHelper,
     constrRewriteList: ConstrRewriteList,
     functionalityComponentsList: ConstrRewriteList,
     defineHelper: DefineHelper,
+}
+
+impl RewriteList {
+    pub fn getConstrRewriteList(&self) -> RwLockReadGuard<Vec<ConstrRewriteComponent>> {
+        self.constrRewriteList.read().unwrap()
+    }
+
+    pub fn getConstrRewriteListMut(&self) -> RwLockWriteGuard<Vec<ConstrRewriteComponent>> {
+        self.constrRewriteList.write().unwrap()
+    }
+
+    pub fn getFunctionalityComponentsList(&self) -> RwLockReadGuard<Vec<ConstrRewriteComponent>> {
+        self.functionalityComponentsList.read().unwrap()
+    }
+
+    pub fn getFunctionalityComponentsListMut(
+        &self,
+    ) -> RwLockWriteGuard<Vec<ConstrRewriteComponent>> {
+        self.functionalityComponentsList.write().unwrap()
+    }
 }
 
 fn getAnyAndChildren(appId: &AppliedId, eg: &CHCEGraph) -> OrderVec<AppliedIdOrStar> {
@@ -184,6 +205,11 @@ pub struct ConstrRewriteComponent {
     tag: String,
 }
 
+#[cfg(not(feature = "parallelAdd"))]
+type FunctionalityComponentsList = Rc<RefCell<Vec<ConstrRewriteComponent>>>;
+#[cfg(feature = "parallelAdd")]
+type FunctionalityComponentsList = Arc<RwLock<Vec<ConstrRewriteComponent>>>;
+
 type FoldPattern = Vec<AppliedIdOrStar>;
 
 fn compareAppIdOnInterface(a: &AppliedId, b: &AppliedId, itf: &VecSet<[Slot; 8]>) -> bool {
@@ -207,104 +233,104 @@ fn compareAppIdOnInterface(a: &AppliedId, b: &AppliedId, itf: &VecSet<[Slot; 8]>
     true
 }
 
-fn functionalityTransformation(
+fn functionalityTransformationApply(
+    functionalityComponentsList: &FunctionalityComponentsList,
     constrRewriteList: &ConstrRewriteList,
-    functionalityComponentsList: &ConstrRewriteList,
-) -> CHCRewrite {
-    debug!("doing functionalityTransformation");
-    let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
+    eg: &RwLock<&mut CHCEGraph>,
+) {
+    #[cfg(not(feature = "parallelAdd"))]
+    let list = functionalityComponentsList.borrow();
 
-    let functionalityComponentsListClone = functionalityComponentsList.clone();
-    let constrRewriteListClone = constrRewriteList.clone();
-    let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
-        #[cfg(not(feature = "parallelAdd"))]
-        let list = &functionalityComponentsListClone.clone().borrow();
+    #[cfg(feature = "parallelAdd")]
+    let list = functionalityComponentsList.read().unwrap();
 
-        #[cfg(feature = "parallelAdd")]
-        let list = functionalityComponentsListClone.read().unwrap();
+    for components in list.iter() {
+        let ConstrRewriteComponent {
+            constrAppId,
+            constrENode,
+            newENodeAppId,
+            newENode,
+            tag,
+        } = components;
 
-        for components in list.iter() {
-            let ConstrRewriteComponent {
-                constrAppId,
-                constrENode,
-                newENodeAppId,
-                newENode,
-                tag,
-            } = components;
+        {
+            checkNewENode!(newENode, &eg.read().unwrap());
+        }
 
-            checkNewENode!(newENode, eg);
+        let CHC::New(syntax, andAppId, unfoldedChildren) = newENode.clone() else {
+            panic!();
+        };
 
-            let CHC::New(syntax, andAppId, unfoldedChildren) = newENode.clone() else {
+        let CHC::And(andChildren) = constrENode else {
+            panic!();
+        };
+
+        // input to output mapping
+        // (eclassId, inputSlots) -> Vec<(outputSlots, childIdx)>
+        // one input can mapped to many outputs
+        // those outputs must be equal
+        let mut inputToOutputMapping: BTreeMap<(Id, Vec<Slot>), Vec<(Vec<Slot>, usize)>> =
+            BTreeMap::default();
+        for (childIdx, c) in unfoldedChildren.iter().enumerate() {
+            let AppliedIdOrStar::AppliedId(AppliedId { id, m }) = c else {
                 panic!();
             };
 
-            let CHC::And(andChildren) = constrENode else {
-                panic!();
-            };
-
-            // input to output mapping
-            // (eclassId, inputSlots) -> Vec<(outputSlots, childIdx)>
-            // one input can mapped to many outputs
-            // those outputs must be equal
-            let mut inputToOutputMapping: BTreeMap<(Id, Vec<Slot>), Vec<(Vec<Slot>, usize)>> =
-                BTreeMap::default();
-            for (childIdx, c) in unfoldedChildren.iter().enumerate() {
-                let AppliedIdOrStar::AppliedId(AppliedId { id, m }) = c else {
-                    panic!();
-                };
-
-                let childrenData = eg.analysis_data(*id);
-                if !childrenData.functionalInfo.functional {
-                    continue;
-                }
-
-                let outputIdx: BTreeSet<usize> = childrenData
-                    .functionalInfo
-                    .outputIdx
-                    .iter()
-                    .cloned()
-                    .collect::<BTreeSet<usize>>();
-
-                let maxOutputIdx = *outputIdx.iter().max().unwrap();
-                let mut inputVars = vec![];
-                let mut outputVars = vec![];
-                for (i, s) in m.values_vec().iter().enumerate() {
-                    assert!(i <= maxOutputIdx);
-
-                    if outputIdx.contains(&i) {
-                        outputVars.push(s.clone());
-                    } else {
-                        inputVars.push(s.clone());
-                    }
-                }
-
-                inputToOutputMapping
-                    .entry((*id, inputVars))
-                    .or_insert(vec![])
-                    .push((outputVars, childIdx));
+            let egRead = eg.read().unwrap();
+            let childrenData = egRead.analysis_data(*id);
+            if !childrenData.functionalInfo.functional {
+                continue;
             }
-            let mut newAndChildren: OrderVec<AppliedIdOrStar> = andChildren.clone();
-            let mut filterOutChildIdx = BTreeSet::new();
 
-            // let getVarType = |ofSlot: Slot, appId: AppliedId, egraph: &CHCEGraph| {
-            //     // let varTypes = &egraph.analysis_data(appId.id).varTypes;
-            //     // TODO: optimize here
-            //     let varTypes = getAllVarTypesInEClass(appId.id, egraph);
-            //     let fromSlot = appId.m.inverse()[ofSlot];
-            //     let res = varTypes.get(&fromSlot);
-            //     if res.is_none() {
-            //         error!("eclass {:?}", egraph.eclass(appId.id).unwrap());
-            //         error!("varTypes {varTypes:?}");
-            //         error!("fromSlot {fromSlot}");
-            //         error!("ofSlot {ofSlot}");
-            //         error!("appId {appId:?}");
-            //         assert!(res.is_some());
-            //     }
-            //     res.unwrap().clone()
-            // };
+            let outputIdx: BTreeSet<usize> = childrenData
+                .functionalInfo
+                .outputIdx
+                .iter()
+                .cloned()
+                .collect::<BTreeSet<usize>>();
 
-            let varTypes = getAllVarTypesOfENode(&newENode, eg);
+            let maxOutputIdx = *outputIdx.iter().max().unwrap();
+            let mut inputVars = vec![];
+            let mut outputVars = vec![];
+            for (i, s) in m.values_vec().iter().enumerate() {
+                assert!(i <= maxOutputIdx);
 
+                if outputIdx.contains(&i) {
+                    outputVars.push(s.clone());
+                } else {
+                    inputVars.push(s.clone());
+                }
+            }
+
+            inputToOutputMapping
+                .entry((*id, inputVars))
+                .or_insert(vec![])
+                .push((outputVars, childIdx));
+        }
+        let mut newAndChildren: OrderVec<AppliedIdOrStar> = andChildren.clone();
+        let mut filterOutChildIdx = BTreeSet::new();
+
+        // let getVarType = |ofSlot: Slot, appId: AppliedId, egraph: &CHCEGraph| {
+        //     // let varTypes = &egraph.analysis_data(appId.id).varTypes;
+        //     // TODO: optimize here
+        //     let varTypes = getAllVarTypesInEClass(appId.id, egraph);
+        //     let fromSlot = appId.m.inverse()[ofSlot];
+        //     let res = varTypes.get(&fromSlot);
+        //     if res.is_none() {
+        //         error!("eclass {:?}", egraph.eclass(appId.id).unwrap());
+        //         error!("varTypes {varTypes:?}");
+        //         error!("fromSlot {fromSlot}");
+        //         error!("ofSlot {ofSlot}");
+        //         error!("appId {appId:?}");
+        //         assert!(res.is_some());
+        //     }
+        //     res.unwrap().clone()
+        // };
+
+        let varTypes = getAllVarTypesOfENode(&newENode, &eg.read().unwrap());
+
+        {
+            let mut egMut = eg.write().unwrap();
             for (outputSetsAndChildIdx) in inputToOutputMapping.values() {
                 if outputSetsAndChildIdx.len() == 1 {
                     continue;
@@ -316,79 +342,89 @@ fn functionalityTransformation(
                     assert!(outputLen == outputGroup.len());
 
                     for i in 0..outputLen {
-                        // let firstVarType = getVarType(
-                        //     firstOutputGroup[i],
-                        //     unfoldedChildren[*firstChildIdx].getAppliedId(),
-                        //     eg,
-                        // );
                         let firstVarType = varTypes.get(&firstOutputGroup[i]).unwrap().clone();
-                        let firstGroupVar = getVarAppId(firstOutputGroup[i], firstVarType, eg);
-                        // let varType = getVarType(
-                        //     outputGroup[i],
-                        //     unfoldedChildren[*childIdx].getAppliedId(),
-                        //     eg,
-                        // );
+                        let firstGroupVar =
+                            getVarAppId(firstOutputGroup[i], firstVarType, &mut egMut);
                         let varType = varTypes.get(&outputGroup[i]).unwrap().clone();
-                        let var = getVarAppId(outputGroup[i], varType, eg);
+                        let var = getVarAppId(outputGroup[i], varType, &mut egMut);
 
-                        let eqId = eg.add(&CHC::Eq(firstGroupVar, var));
+                        let eqId = egMut.add(&CHC::Eq(firstGroupVar, var));
                         newAndChildren.push(AppliedIdOrStar::AppliedId(eqId));
                     }
 
                     filterOutChildIdx.insert(*childIdx);
                 }
             }
-
-            if filterOutChildIdx.len() == 0 {
-                continue;
-            }
-
-            let mut newUnfoldedChildren: OrderVec<AppliedIdOrStar> = unfoldedChildren
-                .iter()
-                .enumerate()
-                .filter(|(i, _)| !filterOutChildIdx.contains(i))
-                .map(|(_, c)| c.clone())
-                .collect();
-
-            let (updatedNewENode, newAnd, newAndAppId) =
-                sortNewENode2(&syntax, &newAndChildren, &newUnfoldedChildren, eg);
-            let updatedNewENodeAppId = eg.add(&updatedNewENode.clone());
-            checkVarType!(&updatedNewENodeAppId, eg);
-
-            checkNewENode!(updatedNewENode, eg);
-
-            #[cfg(not(feature = "parallelAdd"))]
-            constrRewriteListClone
-                .clone()
-                .borrow_mut()
-                .push(ConstrRewriteComponent {
-                    constrAppId: newAndAppId.clone(),
-                    constrENode: newAnd.clone(),
-                    newENodeAppId: updatedNewENodeAppId.clone(),
-                    newENode: updatedNewENode.clone(),
-                    tag: "from_functionalityTransformation".to_owned(),
-                });
-
-            #[cfg(feature = "parallelAdd")]
-            constrRewriteListClone
-                .clone()
-                .write()
-                .unwrap()
-                .push(ConstrRewriteComponent {
-                    constrAppId: newAndAppId.clone(),
-                    constrENode: newAnd.clone(),
-                    newENodeAppId: updatedNewENodeAppId.clone(),
-                    newENode: updatedNewENode.clone(),
-                    tag: "from_functionalityTransformation".to_owned(),
-                });
-
-            eg.union_justified(
-                &newENodeAppId,
-                &updatedNewENodeAppId,
-                Some("functionalityTransformation".to_owned()),
-            );
         }
 
+        if filterOutChildIdx.len() == 0 {
+            continue;
+        }
+
+        let mut egMut = eg.write().unwrap();
+
+        let mut newUnfoldedChildren: OrderVec<AppliedIdOrStar> = unfoldedChildren
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| !filterOutChildIdx.contains(i))
+            .map(|(_, c)| c.clone())
+            .collect();
+
+        let (updatedNewENode, newAnd, newAndAppId) =
+            sortNewENode2(&syntax, &newAndChildren, &newUnfoldedChildren, eg);
+        let updatedNewENodeAppId = egMut.add(&updatedNewENode.clone());
+        checkVarType!(&updatedNewENodeAppId, &egMut);
+
+        checkNewENode!(updatedNewENode, &egMut);
+
+        #[cfg(not(feature = "parallelAdd"))]
+        constrRewriteList
+            .clone()
+            .borrow_mut()
+            .push(ConstrRewriteComponent {
+                constrAppId: newAndAppId.clone(),
+                constrENode: newAnd.clone(),
+                newENodeAppId: updatedNewENodeAppId.clone(),
+                newENode: updatedNewENode.clone(),
+                tag: "from_functionalityTransformation".to_owned(),
+            });
+
+        #[cfg(feature = "parallelAdd")]
+        constrRewriteList
+            .clone()
+            .write()
+            .unwrap()
+            .push(ConstrRewriteComponent {
+                constrAppId: newAndAppId.clone(),
+                constrENode: newAnd.clone(),
+                newENodeAppId: updatedNewENodeAppId.clone(),
+                newENode: updatedNewENode.clone(),
+                tag: "from_functionalityTransformation".to_owned(),
+            });
+
+        egMut.union_justified(
+            &newENodeAppId,
+            &updatedNewENodeAppId,
+            Some("functionalityTransformation".to_owned()),
+        );
+    }
+}
+
+fn functionalityTransformation(
+    constrRewriteList: &ConstrRewriteList,
+    functionalityComponentsList: &ConstrRewriteList,
+) -> CHCRewrite {
+    debug!("doing functionalityTransformation");
+    let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
+
+    let functionalityComponentsListClone = functionalityComponentsList.clone();
+    let constrRewriteListClone = constrRewriteList.clone();
+    let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
+        functionalityTransformationApply(
+            &functionalityComponentsListClone,
+            &constrRewriteListClone,
+            &RwLock::new(eg),
+        );
         #[cfg(not(feature = "parallelAdd"))]
         functionalityComponentsListClone.borrow_mut().clear();
 
@@ -480,13 +516,13 @@ pub fn sortNewENode2(
     syntaxAppId: &AppliedId,
     condChildren: &OrderVec<AppliedIdOrStar>,
     predicateChildren: &OrderVec<AppliedIdOrStar>,
-    eg: &mut CHCEGraph,
+    eg: &RwLock<&mut CHCEGraph>,
 ) -> (CHC, CHC, AppliedId) {
     debug!("doing sortNewENode2");
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.extend(condChildren.iter().map(|a| a.getAppliedId()));
     aggrAppId.push(syntaxAppId.clone());
-    let aggrAppId = sortAppId(&aggrAppId, true, eg.canonAppIdsCache());
+    let aggrAppId = sortAppId(&aggrAppId, true, eg.read().unwrap().canonAppIdsCache());
 
     let condChildrenSet = BTreeSet::from_iter(condChildren.iter().map(|a| a.getAppliedId()));
 
@@ -503,13 +539,18 @@ pub fn sortNewENode2(
         .collect();
 
     let condENode = CHC::And(sortedCondChildren.clone().into());
-    let condAppId = eg.add(&condENode);
+    let condAppId = {
+        let mut condENodeForAdd = condENode.clone();
+        let mut egMut = eg.write().unwrap();
+        let bij = egMut.shapeMut(&mut condENodeForAdd);
+        egMut.addShape(condENodeForAdd, bij)
+    };
 
     if CHECKS {
         checkDedup(
             condAppId.id,
             &sortedCondChildren.into(),
-            &eg.canonAppIdsCache(),
+            &eg.read().unwrap().canonAppIdsCache(),
         )
         .unwrap();
     }
@@ -565,15 +606,14 @@ fn rebuildDoneDefinedList(defineHelper: &DefineHelper, eg: &CHCEGraph) {
 fn rebuildConstrCheckedCache(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
     info!(
         "constrCheckedCache hits/misses {:?}/{:?}",
-        unfoldHelper.constrCheckedCache.hits.borrow(),
-        unfoldHelper.constrCheckedCache.misses.borrow()
+        unfoldHelper.constrCheckedCache.getHits(),
+        unfoldHelper.constrCheckedCache.getMisses()
     );
-    let originalUnsatLen = unfoldHelper.constrCheckedCache.unsatCache.borrow().len();
+    let originalUnsatLen = unfoldHelper.constrCheckedCache.getUnsatCache().len();
     let unsatCacheRebuild = BTreeSet::from_iter(
         unfoldHelper
             .constrCheckedCache
-            .unsatCache
-            .borrow()
+            .getUnsatCache()
             .iter()
             .map(|e| {
                 // let e = eg.find_enode(e);
@@ -601,14 +641,13 @@ fn rebuildConstrCheckedCache(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
         "rebuildUnsatCache: {originalUnsatLen:?} -> {:?}",
         unsatCacheRebuild.len()
     );
-    *unfoldHelper.constrCheckedCache.unsatCache.borrow_mut() = unsatCacheRebuild;
+    *unfoldHelper.constrCheckedCache.getUnsatCacheMut() = unsatCacheRebuild;
 
-    let originalSatLen = unfoldHelper.constrCheckedCache.satCache.borrow().len();
+    let originalSatLen = unfoldHelper.constrCheckedCache.getSatCache().len();
     let satCacheRebuild = BTreeSet::from_iter(
         unfoldHelper
             .constrCheckedCache
-            .satCache
-            .borrow()
+            .getSatCache()
             .iter()
             .map(|e| {
                 // let e = eg.find_enode(e);
@@ -636,7 +675,7 @@ fn rebuildConstrCheckedCache(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
         "rebuildSatCache: {originalSatLen:?} -> {:?}",
         satCacheRebuild.len()
     );
-    *unfoldHelper.constrCheckedCache.satCache.borrow_mut() = satCacheRebuild;
+    *unfoldHelper.constrCheckedCache.getSatCacheMut() = satCacheRebuild;
 }
 
 fn rebuildCache(unfoldHelper: &UnfoldHelper, defineHelper: &DefineHelper) -> CHCRewrite {
@@ -664,7 +703,7 @@ pub fn getAllRewrites(rewriteList: RewriteList, options: RewriteOption) -> Vec<C
         constrRewriteList,
         functionalityComponentsList,
         defineHelper,
-    } = rewriteList;
+    } = &rewriteList;
     // define-fold, unfold
     let mut rewrites = vec![
         rebuildCache(&unfoldHelper, &defineHelper),
@@ -674,26 +713,17 @@ pub fn getAllRewrites(rewriteList: RewriteList, options: RewriteOption) -> Vec<C
     // constraint until saturation
     if options.doConstraintRewrite {
         // TODO: can be a while loop?
-        rewrites.push(constraintRewrite(
-            &constrRewriteList,
-            &functionalityComponentsList,
-        ));
+        rewrites.push(constraintRewrite(&rewriteList));
         rewrites.push(functionalityTransformation(
             &constrRewriteList,
             &functionalityComponentsList,
         ));
-        rewrites.push(constraintRewrite(
-            &constrRewriteList,
-            &functionalityComponentsList,
-        ));
+        rewrites.push(constraintRewrite(&rewriteList));
         rewrites.push(functionalityTransformation(
             &constrRewriteList,
             &functionalityComponentsList,
         ));
-        rewrites.push(constraintRewrite(
-            &constrRewriteList,
-            &functionalityComponentsList,
-        ));
+        rewrites.push(constraintRewrite(&rewriteList));
     }
 
     rewrites.extend([

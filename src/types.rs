@@ -4,6 +4,8 @@ use nauty_Traces_sys::{
     densenauty, empty_graph, optionblk, statsblk, ADDONEEDGE, FALSE, SETWORDSNEEDED, TRUE,
 };
 use std::cell::RefCell;
+#[cfg(not(feature = "parallelAdd"))]
+use std::cell::{Ref, RefMut};
 use std::collections::{BTreeMap, BTreeSet};
 use std::os::raw::c_int;
 #[cfg(feature = "parallelAdd")]
@@ -507,8 +509,8 @@ impl CanonAppIdsCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getCache(&self) -> &BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue> {
-        &self.cache.borrow()
+    pub fn getCache(&self) -> Ref<BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue>> {
+        self.cache.borrow()
     }
 
     #[cfg(feature = "parallelAdd")]
@@ -519,8 +521,8 @@ impl CanonAppIdsCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getCacheMut(&self) -> &mut BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue> {
-        &mut self.cache.borrow_mut()
+    pub fn getCacheMut(&self) -> RefMut<BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue>> {
+        self.cache.borrow_mut()
     }
 
     #[cfg(feature = "parallelAdd")]
@@ -529,8 +531,8 @@ impl CanonAppIdsCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getHits(&self) -> &usize {
-        &self.hits.borrow()
+    pub fn getHits(&self) -> Ref<usize> {
+        self.hits.borrow()
     }
 
     #[cfg(feature = "parallelAdd")]
@@ -539,8 +541,8 @@ impl CanonAppIdsCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getHitsMut(&self) -> &mut usize {
-        &mut self.hits.borrow_mut()
+    pub fn getHitsMut(&self) -> RefMut<'_, usize> {
+        self.hits.borrow_mut()
     }
 
     #[cfg(feature = "parallelAdd")]
@@ -549,8 +551,8 @@ impl CanonAppIdsCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getMisses(&self) -> &usize {
-        &self.misses.borrow()
+    pub fn getMisses(&self) -> Ref<usize> {
+        self.misses.borrow()
     }
 
     #[cfg(feature = "parallelAdd")]
@@ -559,8 +561,8 @@ impl CanonAppIdsCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getMissesMut(&self) -> &mut usize {
-        &mut self.misses.borrow_mut()
+    pub fn getMissesMut(&self) -> RefMut<'_, usize> {
+        self.misses.borrow_mut()
     }
 }
 

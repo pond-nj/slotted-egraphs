@@ -201,19 +201,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // when this happends, nodes are still in the from eclass
         {
-            let analysis_from = self.analysis_data(from.id).clone();
-            // let analysis_to = self.analysis_data_mut(to.id);
-            let old_analysis_to = self.analysis_data(to.id);
-            let new_analysis_to = N::merge(
-                analysis_from,
-                old_analysis_to.clone(),
-                from.id,
-                Some(to.id),
-                self,
-            );
-            let changed = *old_analysis_to != new_analysis_to;
-            let updateAnalysis = self.analysis_data_mut(to.id);
-            *updateAnalysis = new_analysis_to;
+            let changed = {
+                let analysis_from = self.analysis_data(from.id).clone();
+                // let analysis_to = self.analysis_data_mut(to.id);
+                let old_analysis_to = self.analysis_data(to.id);
+                let new_analysis_to = N::merge(
+                    analysis_from,
+                    old_analysis_to.clone(),
+                    from.id,
+                    Some(to.id),
+                    self,
+                );
+                let changed = *old_analysis_to != new_analysis_to;
+                self.updateAnalysisData(to.id, |data| *data = new_analysis_to);
+                changed
+            };
 
             if changed {
                 // TODO: why modify only run on these classes?

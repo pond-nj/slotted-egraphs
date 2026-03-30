@@ -173,7 +173,7 @@ fn unfoldNewDefine(
     tag: String,
     mergeVarTypes: &BTreeMap<Slot, VarType>,
     newDefineMap: &Rc<RefCell<BTreeMap<FoldPattern, AppliedId>>>,
-    unfoldList: &mut UnfoldList,
+    unfoldHelper: &UnfoldHelper,
     constrCheckedCache: &ConstrCheckedCache,
     constrRewriteListCopy: &ConstrRewriteList,
     eg: &mut CHCEGraph,
@@ -223,9 +223,9 @@ fn unfoldNewDefine(
                     createOrMerge: UnfoldOpType::UnfoldCreateOnly,
                     extraTag: tag.clone(),
                 },
-                unfoldList,
+                unfoldHelper,
                 &constrRewriteListCopy.clone(),
-                eg,
+                &RwLock::new(eg),
             ));
         }
     }
@@ -235,7 +235,7 @@ fn unfoldNewDefine(
         eg.union_justified(first, newComposeAppId, Some("define_unfold".to_owned()));
     }
 
-    assert!(unfoldList.len() > 0);
+    assert!(unfoldHelper.getUnfoldList().len() > 0);
 
     let saveAppId = eg.find_applied_id(first).apply_slotmap(&map.inverse());
     debug!("defineMap {saveAppId:?} <- {sortedToBeFoldShape:?}");
@@ -275,12 +275,13 @@ fn doFolding(
         eg,
     );
     let foldedAppId = eg.add(&foldedNewENode);
-    eg.analysis_data_mut(foldedAppId.id)
-        .predNames
-        .insert(format!(
+    eg.updateAnalysisData(foldedAppId.id, |data| {
+        data.predNames.insert(format!(
             "folded_{}_with_{}",
             origNewENodeAppId, defineAppId.id
         ));
+    });
+
     eg.union_justified(&origNewENodeAppId, &foldedAppId, Some("fold".to_owned()));
 }
 
@@ -301,7 +302,6 @@ pub fn defineApply(
         unfoldList,
         constrCheckedCache,
     } = unfoldHelper;
-    let mut unfoldList = unfoldHelper.getUnfoldListMut();
 
     let ids = eg.ids();
     let idsLen = ids.len();
@@ -390,7 +390,7 @@ pub fn defineApply(
                         tag.clone(),
                         &mergeVarTypes,
                         &newDefineMap,
-                        &mut unfoldList,
+                        unfoldHelper,
                         &constrCheckedCache,
                         &constrRewriteListCopy,
                         eg,
@@ -399,9 +399,10 @@ pub fn defineApply(
 
                 let defineAppId = savedDefineAppId.unwrap();
 
-                eg.analysis_data_mut(defineAppId.id)
-                    .predNames
-                    .insert(format!("define_from_{}_{}", origNewENodeAppId.id, tag));
+                eg.updateAnalysisData(defineAppId.id, |data| {
+                    data.predNames
+                        .insert(format!("define_from_{}_{}", origNewENodeAppId.id, tag));
+                });
 
                 // vv folding vv
                 if options.doFolding {

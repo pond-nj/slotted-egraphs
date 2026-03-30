@@ -71,16 +71,20 @@ pub fn expandEqRewrite(
     let newConstraintChildren: OrderVec<AppliedIdOrStar> =
         newConstraintChildren.into_iter().collect();
 
-    let (_, newConstraint, newConstraintAppId) =
-        sortNewENode2(&syntax, &newConstraintChildren, &newENodeChildren, eg);
+    let (_, newConstraint, newConstraintAppId) = sortNewENode2(
+        &syntax,
+        &newConstraintChildren,
+        &newENodeChildren,
+        &RwLock::new(eg),
+    );
 
     checkVarType!(&newConstraintAppId, eg);
-    eg.analysis_data_mut(newConstraintAppId.id)
-        .predNames
-        .insert(format!(
+    eg.updateAnalysisData(newConstraintAppId.id, |data| {
+        data.predNames.insert(format!(
             "expandEqRewrite_{}_{}",
             constrAppId.id, originalNewENodeAppId.id
         ));
+    });
 
     eg.union_justified(
         constrAppId,
@@ -172,15 +176,15 @@ pub fn constructorEqRewrite(
         &syntax,
         &andChildren.into_iter().collect(),
         &newENodeChildren,
-        eg,
+        &RwLock::new(eg),
     );
 
-    eg.analysis_data_mut(newConstraintAppId.id)
-        .predNames
-        .insert(format!(
+    eg.updateAnalysisData(newConstraintAppId.id, |data| {
+        data.predNames.insert(format!(
             "constructorEqRewrite_fromConstr_{}_fromNewENode_{}",
             constrAppId.id, originalNewENodeAppId.id
         ));
+    });
 
     checkVarType!(&newConstraintAppId, eg);
     eg.union_justified(
@@ -453,14 +457,18 @@ pub fn dedupFromEqRewrite(
 
     let updatedNewChildren = rewriteChildrenFromEqMapping(newChildren, &eqMapping, eg);
 
-    let (updatedNew, newConstraint, newConstraintAppId) =
-        sortNewENode2(syntax, &updatedConstrChildren, &updatedNewChildren, eg);
-    eg.analysis_data_mut(newConstraintAppId.id)
-        .predNames
-        .insert(format!(
+    let (updatedNew, newConstraint, newConstraintAppId) = sortNewENode2(
+        syntax,
+        &updatedConstrChildren,
+        &updatedNewChildren,
+        &RwLock::new(eg),
+    );
+    eg.updateAnalysisData(newConstraintAppId.id, |data| {
+        data.predNames.insert(format!(
             "dedupFromEqRewrite_fromConstr_{}_fromNewENode_{}",
             constrAppId.id, newENodeAppId.id
         ));
+    });
 
     let updatedNewAppId = eg.add(&updatedNew.clone());
 
@@ -474,15 +482,11 @@ pub fn dedupFromEqRewrite(
     (newConstraint, updatedNew)
 }
 
-pub fn constraintRewrite(
-    constrRewriteList: &ConstrRewriteList,
-    functionalityComponentsList: &ConstrRewriteList,
-) -> CHCRewrite {
-    let constrRewriteListCopy = Rc::clone(constrRewriteList);
-    let functionalityComponentsListCopy = Rc::clone(functionalityComponentsList);
+pub fn constraintRewrite(rewriteList: &RewriteList) -> CHCRewrite {
     let searcher = Box::new(move |eg: &CHCEGraph| -> () {});
+    let rewriteListClone = rewriteList.clone();
     let applier = Box::new(move |_: (), eg: &mut CHCEGraph| {
-        for constrRewriteComponent in Rc::clone(&constrRewriteListCopy).borrow().iter() {
+        for constrRewriteComponent in rewriteListClone.getConstrRewriteList().iter() {
             let ConstrRewriteComponent {
                 constrAppId,
                 constrENode,
@@ -512,9 +516,8 @@ pub fn constraintRewrite(
             checkNewENode!(updatedNewENode, eg);
 
             // TODO: only push if new children is effected
-            functionalityComponentsListCopy
-                .clone()
-                .borrow_mut()
+            rewriteListClone
+                .getFunctionalityComponentsListMut()
                 .push(ConstrRewriteComponent {
                     constrAppId: constrAppId.clone(),
                     constrENode: newConstraint.clone(),
@@ -524,7 +527,7 @@ pub fn constraintRewrite(
                 });
         }
 
-        constrRewriteListCopy.borrow_mut().clear();
+        rewriteListClone.getConstrRewriteListMut().clear();
     });
     RewriteT {
         name: "constraintRewrite".to_owned(),

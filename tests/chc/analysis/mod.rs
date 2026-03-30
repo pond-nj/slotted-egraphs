@@ -229,7 +229,7 @@ pub fn getAllVarTypesInEClass(id: Id, eg: &CHCEGraph) -> BTreeMap<Slot, VarType>
 pub fn getVarTypesAfterShrinked(
     appIdBefore: &AppliedId,
     shrinkedSlots: &SmallHashSet<Slot>,
-    eg: &mut CHCEGraph,
+    eg: &CHCEGraph,
 ) -> BTreeMap<Slot, VarType> {
     trace!("updating varType of {:?}", appIdBefore.id);
     appIdBefore

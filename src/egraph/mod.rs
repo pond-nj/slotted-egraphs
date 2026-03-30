@@ -22,13 +22,16 @@ use vec_collections::AbstractVecSet;
 
 use core::fmt;
 use derive_more::Debug;
-#[cfg(feature = "parallelAdd")]
-use std::sync::RwLock;
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet},
     fmt::*,
     io, result,
+};
+#[cfg(feature = "parallelAdd")]
+use std::{
+    cell::RefMut,
+    sync::{RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
 
 mod print;
@@ -67,6 +70,9 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
 
     // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
     // It's "shallow" if you will.
+    #[cfg(not(feature = "parallelAdd"))]
+    pub(crate) classes: RefCell<BTreeMap<Id, EClass<L, N>>>,
+    #[cfg(feature = "parallelAdd")]
     pub(crate) classes: BTreeMap<Id, EClass<L, N>>,
 
     // For each shape contained in the EGraph, maps to the EClass that contains it.
@@ -82,8 +88,6 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     // TODO remove this if explanations are disabled.
     pub(crate) proof_registry: ProofRegistry,
 
-    #[cfg(feature = "parallelAdd")]
-    pub(crate) subst_method: RwLock<Option<Box<dyn SubstMethod<L, N>>>>,
     #[cfg(not(feature = "parallelAdd"))]
     pub(crate) subst_method: Option<Box<dyn SubstMethod<L, N>>>,
 
@@ -94,6 +98,7 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     modify_queue: Vec<Id>,
 
     enodes: Vec<L>,
+
     enodeWeakShape: BTreeMap<L, ENodeId>,
 
     _canonAppIdsCache: CanonAppIdsCache,
@@ -118,6 +123,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     /// Creates an empty e-graph, while specifying the substitution method to use.
+    ///
     pub fn with_subst_method<S: SubstMethod<L, N>>(analysis: N) -> Self {
         EGraph {
             _unionfind: Default::default(),
@@ -126,6 +132,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             syn_hashcons: Default::default(),
             pending: Default::default(),
             proof_registry: ProofRegistry::default(),
+            #[cfg(not(feature = "parallelAdd"))]
             subst_method: Some(S::new_boxed()),
             analysis,
             modify_queue: Vec::new(),
@@ -159,11 +166,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.classes[&id].syn_enode().slots()
     }
 
+    #[cfg(not(feature = "parallelAdd"))]
     pub fn analysis_data(&self, i: Id) -> &N::Data {
         &self.classes[&self.find_id(i)].analysis_data
     }
 
-    pub fn analysis_data_mut(&mut self, i: Id) -> &mut N::Data {
+    #[cfg(feature = "parallelAdd")]
+    pub fn analysis_data(&self, i: Id) -> &N::Data {
+        &self.classes[&self.find_id(i)].analysis_data
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn analysisDataMut(&mut self, i: Id) -> &mut N::Data {
         &mut self
             .classes
             .get_mut(&self.find_id(i))
@@ -171,6 +185,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .analysis_data
     }
 
+    #[cfg(feature = "parallelAdd")]
+    pub fn updateAnalysisData(&mut self, id: Id, f: impl FnOnce(&mut N::Data)) {
+        let eclass = self.classes.get_mut(&id).unwrap();
+        let mut data = &mut eclass.analysis_data;
+        f(&mut data);
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn eclass(&self, i: Id) -> Option<&EClass<L, N>> {
+        self.classes.get(&self.find_id(i))
+    }
+
+    #[cfg(feature = "parallelAdd")]
     pub fn eclass(&self, i: Id) -> Option<&EClass<L, N>> {
         self.classes.get(&self.find_id(i))
     }

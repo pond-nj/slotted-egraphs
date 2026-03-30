@@ -1,22 +1,36 @@
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::sync::{RwLock, RwLockWriteGuard};
 
-fn main() {
-    let counter = RefCell::new(1usize);
+struct SomeStruct {
+    field: u32,
+}
 
-    // owner 1
-    {
-        let mut n = counter.borrow_mut();
-        *n += 1;
+struct S {
+    field: SomeStruct,
+}
+
+impl S {
+    fn get_mut_field(&mut self) -> &mut SomeStruct {
+        &mut self.field
     }
+}
 
-    // owner 2
-    {
-        let mut n = counter.borrow_mut();
-        *n += 2;
+// Wrapper that owns the RwLock
+pub struct Handle {
+    inner: RwLock<S>,
+}
+
+impl Handle {
+    pub fn write_field(&self) -> S::WriteFieldGuard<'_> {
+        S::WriteFieldGuard {
+            guard: self.inner.write().unwrap(),
+        }
     }
+}
 
-    println!("counter = {}", counter.borrow()); // 3
-    println!("c1 counter = {}", counter.borrow()); // 3
-    println!("c2 counter = {}", counter.borrow()); // 3
+// Wrapper that holds the guard and exposes the field
+
+impl<'a> WriteFieldGuard<'a> {
+    pub fn field(&mut self) -> &mut SomeStruct {
+        &mut self.guard.field
+    }
 }

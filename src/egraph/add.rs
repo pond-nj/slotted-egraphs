@@ -22,8 +22,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(enode, &weakShape);
         }
 
-        if self.enodeWeakShape.contains_key(&enode.weak_shape().0) {
-            return self.enodeWeakShape[&enode.weak_shape().0];
+        let enodeId = self.enodeWeakShape.get(&enode.weak_shape().0);
+        if enodeId.is_some() {
+            return enodeId.unwrap().clone();
         }
 
         let id = self.enodes.len();
@@ -168,6 +169,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let bij = self.shapeMut(&mut enode);
         let addedId = self.add_internal(&(enode, bij));
         addedId
+    }
+
+    pub fn addShape(self: &mut Self, enode: L, bij: SlotMap) -> AppliedId {
+        self.add_internal(&(enode, bij))
     }
 
     // self.add(x) = y implies that x.slots() is a superset of y.slots().

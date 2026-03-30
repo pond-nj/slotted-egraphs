@@ -27,22 +27,26 @@ fn minCHC(x: &str, y: &str, z: &str, eg: &mut CHCEGraph) -> AppliedId {
     let chc1 = format!("(new {syntax} {cond1} <>)");
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
-    *eg.analysis_data_mut(chc1AppId.id).varTypesMut() =
-        getVarTypesAfterShrinked(&chc1AppId, &syntaxAppId.slots(), eg);
+    let varTypeAfterShrink = getVarTypesAfterShrinked(&chc1AppId, &syntaxAppId.slots(), eg);
+    eg.updateAnalysisData(chc1AppId.id, |data| {
+        *data.varTypesMut() = varTypeAfterShrink;
+    });
 
     // min(X,Y,Z) <- X >= Y, Z=Y
     let cond2 = format!("(and <(geq {x} {y}) (eq {z} {y})>)");
     let chc2 = format!("(new {syntax} {cond2} <>)");
     let chc2AppId = eg.addExpr(&chc2);
     eg.shrink_slots(&chc2AppId, &syntaxAppId.slots(), ());
-    *eg.analysis_data_mut(chc2AppId.id).varTypesMut() =
-        getVarTypesAfterShrinked(&chc2AppId, &syntaxAppId.slots(), eg);
+    let varTypeAfterShrink = getVarTypesAfterShrinked(&chc2AppId, &syntaxAppId.slots(), eg);
+    eg.updateAnalysisData(chc2AppId.id, |data| {
+        *data.varTypesMut() = varTypeAfterShrink;
+    });
 
     let composeAppId = eg.addExpr(&format!("(compose <{chc1} {chc2}>)"));
 
-    eg.analysis_data_mut(composeAppId.id)
-        .predNames
-        .insert("min".to_string());
+    eg.updateAnalysisData(composeAppId.id, |data| {
+        data.predNames.insert("min".to_string());
+    });
 
     composeAppId
 }
@@ -70,8 +74,10 @@ fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedI
     let chc1 = format!("(new {syntax} {cond1} <>)");
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
-    *eg.analysis_data_mut(chc1AppId.id).varTypesMut() =
-        getVarTypesAfterShrinked(&chc1AppId, &syntaxAppId.slots(), eg);
+    let varTypeAfterShrink = getVarTypesAfterShrinked(&chc1AppId, &syntaxAppId.slots(), eg);
+    eg.updateAnalysisData(chc1AppId.id, |data| {
+        *data.varTypesMut() = varTypeAfterShrink;
+    });
 
     // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
     let cond2 = format!("(and <(eq {x} (binode {a} {l} {r})) (eq {y} (add {m3} 1))>)");
@@ -83,14 +89,16 @@ fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedI
     );
     let chc2AppId = eg.addExpr(&chc2);
     eg.shrink_slots(&chc2AppId, &syntaxAppId.slots(), ());
-    *eg.analysis_data_mut(chc2AppId.id).varTypesMut() =
-        getVarTypesAfterShrinked(&chc2AppId, &syntaxAppId.slots(), eg);
+    let varTypeAfterShrink = getVarTypesAfterShrinked(&chc2AppId, &syntaxAppId.slots(), eg);
+    eg.updateAnalysisData(chc2AppId.id, |data| {
+        *data.varTypesMut() = varTypeAfterShrink;
+    });
 
     let composeAppId = eg.addExpr(&format!("(compose <{chc1} {chc2}>)"));
 
-    eg.analysis_data_mut(composeAppId.id)
-        .predNames
-        .insert("minLeaf".to_string());
+    eg.updateAnalysisData(composeAppId.id, |data| {
+        data.predNames.insert("minLeaf".to_string());
+    });
 
     composeAppId
 }
@@ -115,8 +123,10 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     let chc1 = format!("(new {syntax} {cond1} <>)");
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &syntaxAppId.slots(), ());
-    *eg.analysis_data_mut(chc1AppId.id).varTypesMut() =
-        getVarTypesAfterShrinked(&chc1AppId, &syntaxAppId.slots(), eg);
+    let varTypeAfterShrink = getVarTypesAfterShrinked(&chc1AppId, &syntaxAppId.slots(), eg);
+    eg.updateAnalysisData(chc1AppId.id, |data| {
+        *data.varTypesMut() = varTypeAfterShrink;
+    });
 
     // left-drop(x, y ,z) ← x ≤0, y = node(a,L,R), z = node(a,L,R)
     let l = generateVarFromCount(count, VarType::Node);
@@ -127,8 +137,10 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     let chc2 = format!("(new {syntax} {cond2} <>)");
     let chc2AppId = eg.addExpr(&chc2);
     eg.shrink_slots(&chc2AppId, &syntaxAppId.slots(), ());
-    *eg.analysis_data_mut(chc2AppId.id).varTypesMut() =
-        getVarTypesAfterShrinked(&chc2AppId, &syntaxAppId.slots(), eg);
+    let varTypeAfterShrink = getVarTypesAfterShrinked(&chc2AppId, &syntaxAppId.slots(), eg);
+    eg.updateAnalysisData(chc2AppId.id, |data| {
+        *data.varTypesMut() = varTypeAfterShrink;
+    });
 
     // left-drop(x,y,z) ← y= node(a,L,R), x ≥1,N1=x−1, left-drop(N1,L,z)
     let l1 = generateVarFromCount(count, VarType::Node);
@@ -140,14 +152,16 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     let chc3 = format!("(new {syntax} {cond3} <{}>)", leafDropDummy(&n1, &l1, z));
     let chc3AppId = eg.addExpr(&chc3);
     eg.shrink_slots(&chc3AppId, &syntaxAppId.slots(), ());
-    *eg.analysis_data_mut(chc3AppId.id).varTypesMut() =
-        getVarTypesAfterShrinked(&chc3AppId, &syntaxAppId.slots(), eg);
+    let varTypeAfterShrink = getVarTypesAfterShrinked(&chc3AppId, &syntaxAppId.slots(), eg);
+    eg.updateAnalysisData(chc3AppId.id, |data| {
+        *data.varTypesMut() = varTypeAfterShrink;
+    });
 
     let composeAppId = eg.addExpr(&format!("(compose <{chc1} {chc2} {chc3}>)"));
 
-    eg.analysis_data_mut(composeAppId.id)
-        .predNames
-        .insert("leafDrop".to_string());
+    eg.updateAnalysisData(composeAppId.id, |data| {
+        data.predNames.insert("leafDrop".to_string());
+    });
 
     composeAppId
 }
@@ -168,15 +182,15 @@ fn rootCHC(n: &str, m: &str, k: &str, t: &str, u: &str, eg: &mut CHCEGraph) -> A
         minLeafDummy(t, k)
     );
     let rootCHCId = eg.addExpr(&rootCHC);
-    eg.analysis_data_mut(rootCHCId.id)
-        .predNames
-        .insert("rootCHC".to_string());
+    eg.updateAnalysisData(rootCHCId.id, |data| {
+        data.predNames.insert("rootCHC".to_string());
+    });
 
     let composeAppId = eg.addExpr(&format!("(compose <{rootCHC}>)"));
 
-    eg.analysis_data_mut(composeAppId.id)
-        .predNames
-        .insert("rootCHC".to_string());
+    eg.updateAnalysisData(composeAppId.id, |data| {
+        data.predNames.insert("rootCHC".to_string());
+    });
 
     composeAppId
 }

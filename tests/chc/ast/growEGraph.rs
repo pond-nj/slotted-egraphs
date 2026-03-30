@@ -140,12 +140,14 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             let appId = &eg.find_applied_id(&newENodeId);
             let shrinkSlots = headSlots.clone().unwrap().into_iter().collect();
             eg.shrink_slots(appId, &shrinkSlots, none);
-            *eg.analysis_data_mut(appId.id).varTypesMut() =
-                getVarTypesAfterShrinked(&appId, &shrinkSlots, eg);
+            let varTypeAfterShrink = getVarTypesAfterShrinked(&appId, &shrinkSlots, eg);
+            eg.updateAnalysisData(appId.id, |data| {
+                *data.varTypesMut() = varTypeAfterShrink;
+            });
 
-            eg.analysis_data_mut(eg.find_applied_id(&newENodeId).id)
-                .predNames
-                .insert(predName.clone());
+            eg.updateAnalysisData(eg.find_applied_id(&newENodeId).id, |data| {
+                data.predNames.insert(predName.clone());
+            });
 
             dummyCompose = Some(head.toTailSExpr(props, &typeMap));
         }
@@ -164,9 +166,9 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
             none,
         );
 
-        eg.analysis_data_mut(eg.find_applied_id(&composeAppId).id)
-            .predNames
-            .insert(predName.clone());
+        eg.updateAnalysisData(eg.find_applied_id(&composeAppId).id, |data| {
+            data.predNames.insert(predName.clone());
+        });
     }
 
     info!("Egraph after growEGraph");

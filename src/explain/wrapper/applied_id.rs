@@ -1,7 +1,7 @@
 use crate::*;
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct ProvenAppliedId {
+pub struct ProvenAppliedId {
     pub elem: AppliedId,
 
     #[cfg(feature = "explanations")]

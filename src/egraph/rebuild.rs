@@ -358,10 +358,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // merge with old data
         trace!("merge call from update_analysis");
         let new = N::merge(oldData.clone(), v, i, None, self);
-        let updateData = self.analysis_data_mut(i);
-        // c.analysis_data = new.clone();
         let changed = new != oldData;
-        *updateData = new;
+        self.updateAnalysisData(i, |data| *data = new);
 
         if changed {
             self.modify_queue.push(i);
