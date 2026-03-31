@@ -70,9 +70,6 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
 
     // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
     // It's "shallow" if you will.
-    #[cfg(not(feature = "parallelAdd"))]
-    pub(crate) classes: RefCell<BTreeMap<Id, EClass<L, N>>>,
-    #[cfg(feature = "parallelAdd")]
     pub(crate) classes: BTreeMap<Id, EClass<L, N>>,
 
     // For each shape contained in the EGraph, maps to the EClass that contains it.
@@ -176,16 +173,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         &self.classes[&self.find_id(i)].analysis_data
     }
 
-    #[cfg(not(feature = "parallelAdd"))]
-    pub fn analysisDataMut(&mut self, i: Id) -> &mut N::Data {
-        &mut self
-            .classes
-            .get_mut(&self.find_id(i))
-            .unwrap()
-            .analysis_data
-    }
-
-    #[cfg(feature = "parallelAdd")]
     pub fn updateAnalysisData(&mut self, id: Id, f: impl FnOnce(&mut N::Data)) {
         let eclass = self.classes.get_mut(&id).unwrap();
         let mut data = &mut eclass.analysis_data;
@@ -258,23 +245,37 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let class_slots = &class.slots;
 
         let mut result = Vec::with_capacity(class.nodes.len());
-        assert!(
-            class.nodes.len() > 0,
-            "{:?}
+        if CHECKS {
+            assert!(
+                class.nodes.len() > 0,
+                "{:?}
 class.nodes is empty
 class {}: {:?}
 unionfind {} -> {:?}
 ",
-            self,
-            i.id,
-            self.dumpEClassStr(i.id),
-            i.id,
-            self.unionfind_get(i.id)
-        );
+                self,
+                i.id,
+                self.dumpEClassStr(i.id),
+                i.id,
+                self.unionfind_get(i.id)
+            );
+        }
 
         for (x, psn) in &class.nodes {
+            if CHECKS {
+                let enodeFromX = self.getENode(*x);
+                assert_eq!(self.getENodeId(enodeFromX).unwrap(), *x);
+            }
             let x = self.getENode(*x);
+            debug!(
+                "{:?} enode before applied {x:?}",
+                rayon::current_thread_index()
+            );
             let mut x = x.apply_slotmap(&psn.elem);
+            debug!(
+                "{:?} enode after applied psn {x:?}",
+                rayon::current_thread_index()
+            );
 
             // (Pond) Create a mapping of unfound slots (of this enode) in eclass slots to fresh slots.
             let mut map: SmallHashMap<Slot, Slot> = SmallHashMap::default();
@@ -290,10 +291,18 @@ unionfind {} -> {:?}
                     }
                 }
             }
+            debug!("map {map:?}");
+            debug!(
+                "{:?} enode after applied psn {x:?}",
+                rayon::current_thread_index()
+            );
 
-            // m contains unmapped slot from x
+            // if there is no mapping of some x's (value) slots in i
+            // add fresh mapping to m
             let mut m = SlotMap::new();
-            for slot in x.slots() {
+            let xSlots = x.slots();
+            debug!("xSlots {xSlots:?}");
+            for slot in xSlots {
                 if !i.m.contains_key(slot) {
                     m.insert(slot, Slot::fresh());
                 }
@@ -305,7 +314,25 @@ unionfind {} -> {:?}
                 m.insert(x, y);
             }
 
+            debug!(
+                "{:?} enode before applied all {x:?}",
+                rayon::current_thread_index()
+            );
             x = x.apply_slotmap(&m);
+            {
+                debug!("i {i:?}");
+                debug!("m {m:?}");
+                debug!(
+                    "{:?} enode after applied all {x:?}",
+                    rayon::current_thread_index()
+                );
+                let mut x = x.clone();
+                x.weak_shapeMut();
+                debug!(
+                    "{:?} enode after applied all weak_shape {x:?}",
+                    rayon::current_thread_index()
+                );
+            }
             result.push(x);
         }
 
@@ -471,11 +498,9 @@ unionfind {} -> {:?}
         calls: &mut BTreeMap<Id, usize>,
     ) -> result::Result<&'a RecExpr<L>, String> {
         if map.contains_key(i) {
-            // println!("{} -> {}", i, map[i]);
             return Ok(map.get(i).unwrap());
         }
         let enode = self.get_syn_node(i);
-        // println!("syn enode {i:?} {enode:?}");
 
         let mut cs = vec![];
         for x in enode.applied_id_occurrences() {
@@ -526,12 +551,7 @@ unionfind {} -> {:?}
         calls: &mut BTreeMap<Id, usize>,
     ) -> result::Result<RecExpr<L>, String> {
         let enode = self.get_syn_node(i);
-        // println!(
-        //     "get_syn_expr {:?} {:?} {:?}",
-        //     i,
-        //     self.find_applied_id(i),
-        //     enode
-        // );
+
         let entry = calls.entry(i.id).or_insert(0);
         *entry += 1;
         if *entry > 1 {
@@ -595,8 +615,6 @@ fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item = Vec<&'a T>> + u
     // for i in 0..n {
     //     expectOutLen *= input[i].len();
     // }
-
-    // println!("cartesian expectOutLen {}", expectOutLen);
 
     let f = move || {
         if done {

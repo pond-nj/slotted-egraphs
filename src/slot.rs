@@ -3,6 +3,8 @@ use log::debug;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::fmt::*;
+#[cfg(feature = "parallelAdd")]
+use std::sync::RwLock;
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 /// Slots represent Variable names.
@@ -20,6 +22,7 @@ struct SlotTable {
     named_map: BTreeMap<String, u32>,
 }
 
+#[cfg(not(feature = "parallelAdd"))]
 thread_local! {
     static SLOT_TABLE: RefCell<SlotTable> = RefCell::new(SlotTable {
         fresh_idx: 1,
@@ -27,6 +30,13 @@ thread_local! {
         named_map: BTreeMap::default(),
     });
 }
+
+#[cfg(feature = "parallelAdd")]
+static SLOT_TABLE: RwLock<SlotTable> = RwLock::new(SlotTable {
+    fresh_idx: 1,
+    named_vec: Vec::new(),
+    named_map: BTreeMap::new(),
+});
 
 #[derive(Eq, PartialEq, Clone, Debug, Copy, PartialOrd, Ord)]
 pub enum VarType {
@@ -64,12 +74,23 @@ pub fn isNonBasicVar(varType: &VarType) -> bool {
     }
 }
 
+#[cfg(not(feature = "parallelAdd"))]
+fn updateSlotTable(f: impl FnOnce(&mut SlotTable) -> Slot) -> Slot {
+    SLOT_TABLE.with_borrow_mut(f)
+}
+
+#[cfg(feature = "parallelAdd")]
+fn updateSlotTable(f: impl FnOnce(&mut SlotTable) -> Slot) -> Slot {
+    let mut tab = SLOT_TABLE.write().unwrap();
+    f(&mut tab)
+}
+
 impl Slot {
     /// Generates a fresh slot.
     ///
     /// Any slot returned from this function has never been constructed before.
     pub fn fresh() -> Self {
-        SLOT_TABLE.with_borrow_mut(|tab| {
+        updateSlotTable(|tab| {
             let old_val = tab.fresh_idx;
             tab.fresh_idx += 4;
             Slot(old_val)
@@ -87,7 +108,7 @@ impl Slot {
             return Slot(x * 4); // numeric
         }
 
-        SLOT_TABLE.with_borrow_mut(|tab| {
+        updateSlotTable(|tab| {
             if s.starts_with("f") {
                 if let Ok(x) = s[1..].parse::<u32>() {
                     let out = x * 4 + 1;
@@ -128,7 +149,17 @@ impl Display for Slot {
             // named:
             2 => {
                 let idx = ((u - 2) / 4) as usize;
-                SLOT_TABLE.with_borrow(|tab| write!(f, "${}", tab.named_vec[idx]))
+
+                #[cfg(not(feature = "parallelAdd"))]
+                {
+                    SLOT_TABLE.with_borrow(|tab| write!(f, "${}", tab.named_vec[idx]))
+                }
+
+                #[cfg(feature = "parallelAdd")]
+                {
+                    let tab = SLOT_TABLE.read().unwrap();
+                    write!(f, "${}", tab.named_vec[idx])
+                }
             }
 
             // unused:

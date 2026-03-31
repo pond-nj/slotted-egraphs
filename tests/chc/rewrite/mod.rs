@@ -2,6 +2,8 @@ use super::*;
 use crate::*;
 use derive_more::derive;
 use log::{debug, error, info, trace, warn};
+#[cfg(not(feature = "parallelAdd"))]
+use std::cell::RefMut;
 use std::cell::{Ref, RefCell};
 
 use std::f32::consts::E;
@@ -44,18 +46,42 @@ pub struct RewriteList {
 }
 
 impl RewriteList {
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getConstrRewriteList(&self) -> Ref<Vec<ConstrRewriteComponent>> {
+        self.constrRewriteList.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
     pub fn getConstrRewriteList(&self) -> RwLockReadGuard<Vec<ConstrRewriteComponent>> {
         self.constrRewriteList.read().unwrap()
     }
 
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getConstrRewriteListMut(&self) -> RefMut<'_, Vec<ConstrRewriteComponent>> {
+        self.constrRewriteList.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
     pub fn getConstrRewriteListMut(&self) -> RwLockWriteGuard<Vec<ConstrRewriteComponent>> {
         self.constrRewriteList.write().unwrap()
     }
 
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getFunctionalityComponentsList(&self) -> Ref<Vec<ConstrRewriteComponent>> {
+        self.functionalityComponentsList.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
     pub fn getFunctionalityComponentsList(&self) -> RwLockReadGuard<Vec<ConstrRewriteComponent>> {
         self.functionalityComponentsList.read().unwrap()
     }
 
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getFunctionalityComponentsListMut(&self) -> RefMut<'_, Vec<ConstrRewriteComponent>> {
+        self.functionalityComponentsList.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
     pub fn getFunctionalityComponentsListMut(
         &self,
     ) -> RwLockWriteGuard<Vec<ConstrRewriteComponent>> {
@@ -236,7 +262,8 @@ fn compareAppIdOnInterface(a: &AppliedId, b: &AppliedId, itf: &VecSet<[Slot; 8]>
 fn functionalityTransformationApply(
     functionalityComponentsList: &FunctionalityComponentsList,
     constrRewriteList: &ConstrRewriteList,
-    eg: &RwLock<&mut CHCEGraph>,
+    #[cfg(not(feature = "parallelAdd"))] eg: &mut CHCEGraph,
+    #[cfg(feature = "parallelAdd")] eg: &RwLock<&mut CHCEGraph>,
 ) {
     #[cfg(not(feature = "parallelAdd"))]
     let list = functionalityComponentsList.borrow();
@@ -254,7 +281,7 @@ fn functionalityTransformationApply(
         } = components;
 
         {
-            checkNewENode!(newENode, &eg.read().unwrap());
+            checkNewENode!(newENode, &getEg(eg));
         }
 
         let CHC::New(syntax, andAppId, unfoldedChildren) = newENode.clone() else {
@@ -276,7 +303,7 @@ fn functionalityTransformationApply(
                 panic!();
             };
 
-            let egRead = eg.read().unwrap();
+            let egRead = getEg(eg);
             let childrenData = egRead.analysis_data(*id);
             if !childrenData.functionalInfo.functional {
                 continue;
@@ -327,10 +354,10 @@ fn functionalityTransformationApply(
         //     res.unwrap().clone()
         // };
 
-        let varTypes = getAllVarTypesOfENode(&newENode, &eg.read().unwrap());
+        let varTypes = getAllVarTypesOfENode(&newENode, &getEg(eg));
 
         {
-            let mut egMut = eg.write().unwrap();
+            let mut egMut = getEgMut(eg);
             for (outputSetsAndChildIdx) in inputToOutputMapping.values() {
                 if outputSetsAndChildIdx.len() == 1 {
                     continue;
@@ -361,7 +388,7 @@ fn functionalityTransformationApply(
             continue;
         }
 
-        let mut egMut = eg.write().unwrap();
+        let mut egMut = getEgMut(eg);
 
         let mut newUnfoldedChildren: OrderVec<AppliedIdOrStar> = unfoldedChildren
             .iter()
@@ -371,7 +398,7 @@ fn functionalityTransformationApply(
             .collect();
 
         let (updatedNewENode, newAnd, newAndAppId) =
-            sortNewENode2(&syntax, &newAndChildren, &newUnfoldedChildren, eg);
+            sortNewENode2(&syntax, &newAndChildren, &newUnfoldedChildren, egMut);
         let updatedNewENodeAppId = egMut.add(&updatedNewENode.clone());
         checkVarType!(&updatedNewENodeAppId, &egMut);
 
@@ -423,6 +450,9 @@ fn functionalityTransformation(
         functionalityTransformationApply(
             &functionalityComponentsListClone,
             &constrRewriteListClone,
+            #[cfg(not(feature = "parallelAdd"))]
+            eg,
+            #[cfg(feature = "parallelAdd")]
             &RwLock::new(eg),
         );
         #[cfg(not(feature = "parallelAdd"))]
@@ -516,13 +546,14 @@ pub fn sortNewENode2(
     syntaxAppId: &AppliedId,
     condChildren: &OrderVec<AppliedIdOrStar>,
     predicateChildren: &OrderVec<AppliedIdOrStar>,
-    eg: &RwLock<&mut CHCEGraph>,
+    #[cfg(not(feature = "parallelAdd"))] eg: &mut CHCEGraph,
+    #[cfg(feature = "parallelAdd")] eg: &RwLock<&mut CHCEGraph>,
 ) -> (CHC, CHC, AppliedId) {
     debug!("doing sortNewENode2");
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.extend(condChildren.iter().map(|a| a.getAppliedId()));
     aggrAppId.push(syntaxAppId.clone());
-    let aggrAppId = sortAppId(&aggrAppId, true, eg.read().unwrap().canonAppIdsCache());
+    let aggrAppId = sortAppId(&aggrAppId, true, getEg(eg).canonAppIdsCache());
 
     let condChildrenSet = BTreeSet::from_iter(condChildren.iter().map(|a| a.getAppliedId()));
 
@@ -541,7 +572,7 @@ pub fn sortNewENode2(
     let condENode = CHC::And(sortedCondChildren.clone().into());
     let condAppId = {
         let mut condENodeForAdd = condENode.clone();
-        let mut egMut = eg.write().unwrap();
+        let mut egMut = getEgMut(eg);
         let bij = egMut.shapeMut(&mut condENodeForAdd);
         egMut.addShape(condENodeForAdd, bij)
     };
@@ -550,7 +581,7 @@ pub fn sortNewENode2(
         checkDedup(
             condAppId.id,
             &sortedCondChildren.into(),
-            &eg.read().unwrap().canonAppIdsCache(),
+            &getEg(eg).canonAppIdsCache(),
         )
         .unwrap();
     }

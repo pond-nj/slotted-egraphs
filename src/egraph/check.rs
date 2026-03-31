@@ -77,8 +77,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             usages.insert(*i, BTreeSet::default());
         }
 
-        // println!("{}", self);
-
         // redundancy-check for leaders.
         // TODO add a similar check for followers, using unionfind_get.
         for (i, _) in &self.classes {

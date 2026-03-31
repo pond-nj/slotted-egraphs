@@ -305,13 +305,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             groups.iter().map(|x| x.len()).product::<usize>()
         );
 
-        // println!("doing cartesian on groups {groups:?}");
         for l in cartesian(&groups) {
-            // println!("l {l:?}");
             let pn = enode.clone();
-            // println!("pn before {pn:?}");
+
             let pn = self.chain_pn_map(&pn, |i, pai| self.chain_pai_pp(&pai, l[i]));
-            // println!("pn after {pn:?}");
+
             // TODO fix check.
             // if CHECKS { pn.check_base(enode.base()); }
             out.push(pn);

@@ -971,7 +971,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         //     minDummy(m1, m2, m3),
         // );
         // let alter5Res3 = ematchQueryall(&eg, &Pattern::parse(&alter5Chc3).unwrap());
-        // println!("unfold31 alter1Res3Functional2: {alter5Res3:?}");
+
         // checkRes!(alter5Res3);
     } else {
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3),
@@ -999,6 +999,6 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     // TODO: this takes a very long time to run, why?
     // let composeUnfold31 = format!("(compose <{chc2} {chc3} *0>)");
     // let resCompose = ematchQueryall(&eg, &Pattern::parse(&composeUnfold31).unwrap());
-    // println!("unfold31 resCompose: {resCompose:?}");
+
     // checkRes!(resCompose);
 }

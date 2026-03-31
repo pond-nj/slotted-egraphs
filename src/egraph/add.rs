@@ -17,6 +17,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn getOrAddENodeId(&mut self, enode: &L) -> ENodeId {
+        debug!(
+            "{:?} getOrAddENodeId {enode:?}",
+            rayon::current_thread_index()
+        );
         if CHECKS {
             let weakShape = enode.weak_shape().0;
             assert_eq!(enode, &weakShape);
@@ -167,6 +171,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // this does not maintain the deduplicate invariant
         let mut enode = enode.clone();
         let bij = self.shapeMut(&mut enode);
+        debug!(
+            "{:?} add, enode after shape {enode:?}",
+            rayon::current_thread_index()
+        );
         let addedId = self.add_internal(&(enode, bij));
         addedId
     }
@@ -229,12 +237,11 @@ lookup weak_shape result in hashcons: {:?}
             assert!(self.getHashcons(weakShapeEnodeId).is_none());
             assert!(self.syn_hashcons.get(&weakShapeEnodeId).is_none());
         }
-        // println!("enode before = {:?}", enode.weak_shape().0);
+
         // assert!(self.semifyEnode(enode.clone()) == self.synify_enode(enode.clone()));
         // TODO: Pond why we dont need this?
         // let enode = self.synify_enode(enode);
         // let enode = self.semifyEnode(enode);
-        // println!("enode after = {:?}", enode.weak_shape().0);
 
         // make takes up most of the time here
         let syn = self.mk_singleton_class(&enode);

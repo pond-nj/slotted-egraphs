@@ -71,7 +71,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // "finds" both the node & the id to be "up-to-date".
     // get smallest weak shape
     pub(crate) fn pc_find(&self, pc: &ProvenContains<L>) -> ProvenContains<L> {
-        // println!("call pc_find {pc:?}");
         trace!("pc.node.elem {:?}", pc.node.elem.weak_shape().0);
         let sh = self.shape(&pc.node.elem);
         trace!("pc_find sh {sh:?}");

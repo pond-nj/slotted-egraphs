@@ -248,8 +248,6 @@ fn buildZ3RecExpr(expr: &RecExpr<CHC>, sorts: &DefineDataTypes, eg: &CHCEGraph) 
 }
 
 pub fn solveZ3Constraint(enode: &CHC, eg: &CHCEGraph) -> SatStatus {
-    // println!("doing solving Z3 constraint");
-
     let CHC::And(..) = enode else {
         panic!();
     };
@@ -262,7 +260,7 @@ pub fn solveZ3Constraint(enode: &CHC, eg: &CHCEGraph) -> SatStatus {
     };
 
     let solver = Solver::new();
-    // println!("{:?}", constraint);
+
     solver.assert(&constraint);
 
     let ret = match solver.check() {

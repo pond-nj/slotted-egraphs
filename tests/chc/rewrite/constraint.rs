@@ -75,6 +75,9 @@ pub fn expandEqRewrite(
         &syntax,
         &newConstraintChildren,
         &newENodeChildren,
+        #[cfg(not(feature = "parallelAdd"))]
+        eg,
+        #[cfg(feature = "parallelAdd")]
         &RwLock::new(eg),
     );
 
@@ -176,6 +179,9 @@ pub fn constructorEqRewrite(
         &syntax,
         &andChildren.into_iter().collect(),
         &newENodeChildren,
+        #[cfg(not(feature = "parallelAdd"))]
+        eg,
+        #[cfg(feature = "parallelAdd")]
         &RwLock::new(eg),
     );
 
@@ -461,6 +467,9 @@ pub fn dedupFromEqRewrite(
         syntax,
         &updatedConstrChildren,
         &updatedNewChildren,
+        #[cfg(not(feature = "parallelAdd"))]
+        eg,
+        #[cfg(feature = "parallelAdd")]
         &RwLock::new(eg),
     );
     eg.updateAnalysisData(newConstraintAppId.id, |data| {

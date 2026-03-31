@@ -225,6 +225,9 @@ fn unfoldNewDefine(
                 },
                 unfoldHelper,
                 &constrRewriteListCopy.clone(),
+                #[cfg(not(feature = "parallelAdd"))]
+                eg,
+                #[cfg(feature = "parallelAdd")]
                 &RwLock::new(eg),
             ));
         }

@@ -300,7 +300,6 @@ pub fn canonAppIdsOrig<'a>(
         if child.len() > 0 {
             // 1(f) - 2(arg)
             ADDONEEDGE(&mut g, curr, curr + 1, m);
-            // println!("edge {curr} {}", curr + 1);
         }
 
         curr += 1;
@@ -310,7 +309,6 @@ pub fn canonAppIdsOrig<'a>(
         for (i, s) in child.public_slot_occurrences_iter().enumerate() {
             if i != child.len() - 1 {
                 ADDONEEDGE(&mut g, curr, curr + 1, m);
-                // println!("edge {curr} {}", curr + 1);
             }
 
             // 2(arg) - 10(var)
@@ -365,7 +363,6 @@ pub fn canonAppIdsOrig<'a>(
         ptn.push(1);
     }
     ptn.push(0);
-    // println!("currLabLen after ids color {}", lab.len());
 
     // color for args
     if argsV.len() > 0 {
@@ -629,7 +626,6 @@ fn canonAppIdsInternal(
         if child.len() > 0 {
             // 1(f) - 2(arg)
             ADDONEEDGE(&mut g, curr, curr + 1, m);
-            // println!("edge {curr} {}", curr + 1);
         }
 
         curr += 1;
@@ -639,7 +635,6 @@ fn canonAppIdsInternal(
         for (i, s) in child.public_slot_occurrences_iter().enumerate() {
             if i != child.len() - 1 {
                 ADDONEEDGE(&mut g, curr, curr + 1, m);
-                // println!("edge {curr} {}", curr + 1);
             }
 
             // 2(arg) - 10(var)
@@ -694,7 +689,6 @@ fn canonAppIdsInternal(
         ptn.push(1);
     }
     ptn.push(0);
-    // println!("currLabLen after ids color {}", lab.len());
 
     // color for args
     if argsV.len() > 0 {

@@ -776,6 +776,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     /// Public Slots are those, which are visible from the outside of that e-node.
     /// * A typical example would be a `(var $x)` e-node, which has a *public* slot `$x`.
     /// * A typical counter-example would be the `(lam $x body)` e-node, which has a *private* slot `$x`.
+    // chain from public_slot_occurrences_iter_mut
     fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot>;
 
     /// List the mutable references to all child [AppliedId]s in your E-Node, in the order of occurrence.
@@ -791,6 +792,7 @@ pub trait Language: Debug + Clone + Hash + Eq + Ord {
     /// This function will be used to parse your E-Node.
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
 
+    // get slots from public slots
     fn slots(&self) -> SmallHashSet<Slot>;
     fn weak_shape_inplace(&mut self) -> Bijection;
 
