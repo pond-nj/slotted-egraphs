@@ -525,7 +525,7 @@ pub fn getEg(eg: &mut CHCEGraph) -> &mut CHCEGraph {
 }
 
 #[cfg(feature = "parallelAdd")]
-pub fn getEg(eg: &RwLock<&mut CHCEGraph>) -> RwLockReadGuard<&mut CHCEGraph> {
+pub fn getEg<'a>(eg: &'a RwLock<&'a mut CHCEGraph>) -> RwLockReadGuard<'a, &'a mut CHCEGraph> {
     eg.read().unwrap()
 }
 
@@ -535,16 +535,16 @@ pub fn getEgMut(eg: &mut CHCEGraph) -> &mut CHCEGraph {
 }
 
 #[cfg(feature = "parallelAdd")]
-pub fn getEgMut(eg: &RwLock<&mut CHCEGraph>) -> RwLockWriteGuard<&mut CHCEGraph> {
+pub fn getEgMut<'a>(eg: &'a RwLock<&'a mut CHCEGraph>) -> RwLockWriteGuard<'a, &'a mut CHCEGraph> {
     eg.write().unwrap()
 }
 
-fn addUnfoldedNewENode(
+fn addUnfoldedNewENode<'a>(
     unfoldResultComb: Vec<UnfoldResult>,
     unfoldOption: &UnfoldOption,
     constrRewriteListCopy: &ConstrRewriteList,
     #[cfg(not(feature = "parallelAdd"))] eg: &mut CHCEGraph,
-    #[cfg(feature = "parallelAdd")] eg: &RwLock<&mut CHCEGraph>,
+    #[cfg(feature = "parallelAdd")] eg: &'a RwLock<&'a mut CHCEGraph>,
     createdNewENodes: &mut Vec<(AppliedId, CHC)>,
 ) {
     let UnfoldOption {
@@ -674,14 +674,14 @@ fn addUnfoldedNewENode(
     }
 }
 
-fn createUnfoldedCompose(
+fn createUnfoldedCompose<'a>(
     composeUnfoldRecipe: &ComposeUnfoldRecipe,
     createdNewENodes: &Vec<(AppliedId, CHC)>,
     #[cfg(not(feature = "parallelAdd"))] createdComposeAppIds: &mut Vec<AppliedId>,
     #[cfg(feature = "parallelAdd")] createdComposeAppIds: &RwLock<Vec<AppliedId>>,
     createOrMerge: &UnfoldOpType,
     #[cfg(not(feature = "parallelAdd"))] eg: &mut CHCEGraph,
-    #[cfg(feature = "parallelAdd")] eg: &RwLock<&mut CHCEGraph>,
+    #[cfg(feature = "parallelAdd")] eg: &'a RwLock<&'a mut CHCEGraph>,
 ) -> (AppliedId, CHC) {
     let ComposeUnfoldRecipe {
         unfoldResult,
@@ -770,12 +770,12 @@ fn createUnfoldedCompose(
     ret
 }
 
-pub fn unfoldApplyInternal(
+pub fn unfoldApplyInternal<'a>(
     unfoldOption: &UnfoldOption,
     unfoldHelper: &UnfoldHelper,
     constrRewriteList: &ConstrRewriteList,
     #[cfg(not(feature = "parallelAdd"))] eg: &mut CHCEGraph,
-    #[cfg(feature = "parallelAdd")] eg: &RwLock<&mut CHCEGraph>,
+    #[cfg(feature = "parallelAdd")] eg: &'a RwLock<&'a mut CHCEGraph>,
 ) -> Vec<AppliedId> {
     let UnfoldOption {
         composeUnfoldRecipe,
@@ -827,12 +827,18 @@ unfoldResult {unfoldResult:#?}"
     #[cfg(not(feature = "parallelAdd"))]
     let mut createdComposeAppIds = vec![];
     #[cfg(feature = "parallelAdd")]
-    let mut createdComposeAppIds = &RwLock::new(vec![]);
+    let mut createdComposeAppIds = RwLock::new(vec![]);
 
     #[cfg(not(feature = "parallelAdd"))]
     let iter = unfoldResultCombs.into_iter();
     #[cfg(feature = "parallelAdd")]
-    let iter = unfoldResultCombs.into_par_iter();
+    let iter = {
+        info!(
+            "parallelizing unfoldResultCombs len {}",
+            unfoldResultCombs.len()
+        );
+        unfoldResultCombs.into_par_iter()
+    };
 
     iter.for_each(|unfoldResultComb| {
         let mut createdNewENodes = vec![];
@@ -908,12 +914,12 @@ unfoldResult {unfoldResult:#?}"
     createdComposeAppIds.into_inner().unwrap()
 }
 
-pub fn unfoldApply(
+pub fn unfoldApply<'a>(
     unfoldHelper: &UnfoldHelper,
     composeUnfoldRecipes: Vec<ComposeUnfoldRecipe>,
     constrRewriteListCopy: &ConstrRewriteList,
     #[cfg(not(feature = "parallelAdd"))] eg: &mut CHCEGraph,
-    #[cfg(feature = "parallelAdd")] eg: &RwLock<&mut CHCEGraph>,
+    #[cfg(feature = "parallelAdd")] eg: &'a RwLock<&'a mut CHCEGraph>,
 ) {
     {
         unfoldHelper.getUnfoldListMut().clear();

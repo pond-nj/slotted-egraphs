@@ -11,10 +11,10 @@ const TIME_LIMIT_SECS: u64 = 300;
 
 #[test]
 fn mainTest() {
-    rayon::ThreadPoolBuilder::new()
-        .num_threads(2)
-        .build_global()
-        .unwrap();
+    // rayon::ThreadPoolBuilder::new()
+    //     .num_threads(2)
+    //     .build_global()
+    //     .unwrap();
 
     initLogger();
     let mut eg = CHCEGraph::default();
@@ -32,8 +32,8 @@ fn mainTest() {
                 doConstraintRewrite: true,
                 doFolding: true,
                 doADTDefine: true,
-                doPairingDefine: false,
-                // doPairingDefine: true,
+                // doPairingDefine: false,
+                doPairingDefine: true,
             },
         ))
     });

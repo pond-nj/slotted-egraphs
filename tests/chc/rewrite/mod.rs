@@ -259,11 +259,11 @@ fn compareAppIdOnInterface(a: &AppliedId, b: &AppliedId, itf: &VecSet<[Slot; 8]>
     true
 }
 
-fn functionalityTransformationApply(
+fn functionalityTransformationApply<'a>(
     functionalityComponentsList: &FunctionalityComponentsList,
     constrRewriteList: &ConstrRewriteList,
     #[cfg(not(feature = "parallelAdd"))] eg: &mut CHCEGraph,
-    #[cfg(feature = "parallelAdd")] eg: &RwLock<&mut CHCEGraph>,
+    #[cfg(feature = "parallelAdd")] eg: &'a RwLock<&'a mut CHCEGraph>,
 ) {
     #[cfg(not(feature = "parallelAdd"))]
     let list = functionalityComponentsList.borrow();
@@ -397,8 +397,15 @@ fn functionalityTransformationApply(
             .map(|(_, c)| c.clone())
             .collect();
 
-        let (updatedNewENode, newAnd, newAndAppId) =
-            sortNewENode2(&syntax, &newAndChildren, &newUnfoldedChildren, egMut);
+        let (updatedNewENode, newAnd, newAndAppId) = sortNewENode2(
+            &syntax,
+            &newAndChildren,
+            &newUnfoldedChildren,
+            #[cfg(not(feature = "parallelAdd"))]
+            egMut,
+            #[cfg(feature = "parallelAdd")]
+            eg,
+        );
         let updatedNewENodeAppId = egMut.add(&updatedNewENode.clone());
         checkVarType!(&updatedNewENodeAppId, &egMut);
 
@@ -542,12 +549,12 @@ pub fn sortNewENode1(
     )
 }
 
-pub fn sortNewENode2(
+pub fn sortNewENode2<'a>(
     syntaxAppId: &AppliedId,
     condChildren: &OrderVec<AppliedIdOrStar>,
     predicateChildren: &OrderVec<AppliedIdOrStar>,
     #[cfg(not(feature = "parallelAdd"))] eg: &mut CHCEGraph,
-    #[cfg(feature = "parallelAdd")] eg: &RwLock<&mut CHCEGraph>,
+    #[cfg(feature = "parallelAdd")] eg: &'a RwLock<&'a mut CHCEGraph>,
 ) -> (CHC, CHC, AppliedId) {
     debug!("doing sortNewENode2");
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
