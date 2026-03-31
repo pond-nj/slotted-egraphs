@@ -4,7 +4,7 @@ use env_logger::Builder;
 use log::{debug, LevelFilter};
 
 static _INIT_LOGGER: Once = Once::new();
-const LOG: bool = false;
+const LOG: bool = true;
 
 pub fn initLogger() {
     if LOG {

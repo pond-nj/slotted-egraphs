@@ -294,7 +294,8 @@ pub fn prepareUnfold(
         _ => panic!(),
     };
 
-    let and1Children = getAnyAndChildren(&cond1, eg);
+    // let eg = getEgNoMut(eg);
+    let and1Children = getAnyAndChildren(&cond1, &eg);
     for (new1ReplaceIdx, compose2AppId) in new1Children.iter().enumerate() {
         let compose2AppId = compose2AppId.getAppliedId();
         let compose2AppId = eg.find_applied_id(&compose2AppId);
@@ -323,7 +324,7 @@ pub fn prepareUnfold(
                 let new2Vec = eg.enodes_applied(&new2AppId);
                 assert!(new2Vec.len() > 0);
                 for new2 in new2Vec {
-                    checkNewENode!(new2, eg);
+                    checkNewENode!(new2, &eg);
                     let CHC::New(syntax2, cond2, new2Children) = new2 else {
                         panic!();
                     };
@@ -339,7 +340,7 @@ pub fn prepareUnfold(
                     }
 
                     // TODO: is this correct? Can it be any and children?
-                    let and2Children = getAnyAndChildren(&cond2, eg);
+                    let and2Children = getAnyAndChildren(&cond2, &eg);
                     let mut mergeAndChildren = OrderVec::new();
                     mergeAndChildren.extend(and1Children.clone());
                     mergeAndChildren.extend(and2Children);
@@ -351,7 +352,7 @@ pub fn prepareUnfold(
                                 .map(AppliedIdOrStar::getAppliedId)
                                 .collect(),
                             &constrCheckedCache,
-                            eg,
+                            &eg,
                         );
                         if isUnsat {
                             continue;
@@ -506,7 +507,7 @@ pub fn unfoldSearchAndPrepare(
             &new1ENode,
             &mut composeUnfoldRecipe,
             constrCheckedCache,
-            eg,
+            &eg,
         );
 
         if composeUnfoldRecipe.len() == composeUnfoldRecipeLenBefore {
@@ -526,6 +527,11 @@ pub fn getEg(eg: &mut CHCEGraph) -> &mut CHCEGraph {
 
 #[cfg(feature = "parallelAdd")]
 pub fn getEg<'a>(eg: &'a RwLock<&'a mut CHCEGraph>) -> RwLockReadGuard<'a, &'a mut CHCEGraph> {
+    eg.read().unwrap()
+}
+
+#[cfg(feature = "parallelAdd")]
+pub fn getEgNoMut<'a>(eg: &'a RwLock<&'a CHCEGraph>) -> RwLockReadGuard<'a, &'a CHCEGraph> {
     eg.read().unwrap()
 }
 
@@ -701,27 +707,30 @@ fn createUnfoldedCompose<'a>(
             unfoldedComposeChildren.remove(*compose1ReplaceIdx);
             unfoldedComposeChildren.extend(createdNewENodes.iter().map(|x| x.0.clone()));
 
-            let unfoldedComposeChildren: OrderVec<_> =
+            let unfoldedComposeChildren: OrderVec<_> = {
                 sortAppId(&unfoldedComposeChildren, true, getEg(eg).canonAppIdsCache())
                     .into_iter()
                     .map(AppliedIdOrStar::from)
-                    .collect();
+                    .collect()
+            };
             let composeENode = CHC::Compose(unfoldedComposeChildren);
+            let unfoldedComposeAppId = {
+                let mut egMut = getEgMut(eg);
+                // TODO: change to addShape
+                let unfoldedComposeAppId = egMut.add(&composeENode);
+                debug!(
+                    "UnfoldOpType::UnfoldMerge added composeENode {:?}",
+                    composeENode.weak_shape().0
+                );
 
-            let mut egMut = getEgMut(eg);
-            // TODO: change to addShape
-            let unfoldedComposeAppId = egMut.add(&composeENode);
-            debug!(
-                "UnfoldOpType::UnfoldMerge added composeENode {:?}",
-                composeENode.weak_shape().0
-            );
-
-            checkVarType!(&unfoldedComposeAppId, egMut);
-            egMut.union_justified(
-                &compose1AppId,
-                &unfoldedComposeAppId,
-                Some("unfold".to_owned()),
-            );
+                checkVarType!(&unfoldedComposeAppId, egMut);
+                egMut.union_justified(
+                    &compose1AppId,
+                    &unfoldedComposeAppId,
+                    Some("unfold".to_owned()),
+                );
+                unfoldedComposeAppId
+            };
             #[cfg(not(feature = "parallelAdd"))]
             createdComposeAppIds.push(unfoldedComposeAppId.clone());
             #[cfg(feature = "parallelAdd")]
@@ -735,11 +744,13 @@ fn createUnfoldedCompose<'a>(
         // just create unfold node
         UnfoldOpType::UnfoldCreateOnly => {
             // TODO: can change this funciton to iter, so we dont have to create a vec
-            let composeChildren = sortAppId(
-                &createdNewENodes.iter().map(|x| x.0.clone()).collect(),
-                true,
-                getEg(eg).canonAppIdsCache(),
-            );
+            let composeChildren = {
+                sortAppId(
+                    &createdNewENodes.iter().map(|x| x.0.clone()).collect(),
+                    true,
+                    getEg(eg).canonAppIdsCache(),
+                )
+            };
             let composeChildren: OrderVec<_> = composeChildren
                 .into_iter()
                 .map(AppliedIdOrStar::from)
@@ -750,9 +761,12 @@ fn createUnfoldedCompose<'a>(
                 composeENode.weak_shape().0
             );
 
-            let mut egMut = getEgMut(eg);
-            // TODO: change to addShape
-            let composeAppId = egMut.add(&composeENode);
+            let composeAppId = {
+                let mut egMut = getEgMut(eg);
+                // TODO: change to addShape
+                egMut.add(&composeENode)
+            };
+
             #[cfg(not(feature = "parallelAdd"))]
             createdComposeAppIds.push(composeAppId.clone());
             #[cfg(feature = "parallelAdd")]
@@ -829,18 +843,7 @@ unfoldResult {unfoldResult:#?}"
     #[cfg(feature = "parallelAdd")]
     let mut createdComposeAppIds = RwLock::new(vec![]);
 
-    #[cfg(not(feature = "parallelAdd"))]
-    let iter = unfoldResultCombs.into_iter();
-    #[cfg(feature = "parallelAdd")]
-    let iter = {
-        info!(
-            "parallelizing unfoldResultCombs len {}",
-            unfoldResultCombs.len()
-        );
-        unfoldResultCombs.into_par_iter()
-    };
-
-    iter.for_each(|unfoldResultComb| {
+    unfoldResultCombs.into_iter().for_each(|unfoldResultComb| {
         let mut createdNewENodes = vec![];
         addUnfoldedNewENode(
             unfoldResultComb,

@@ -1,6 +1,11 @@
+#[cfg(feature = "parallelAdd")]
+use rayon::iter::IntoParallelIterator;
+use rayon::iter::ParallelIterator;
+
 use super::*;
 use crate::*;
 
+#[cfg(not(feature = "parallelAdd"))]
 #[derive(Default, Clone)]
 pub struct DoneDefinedList {
     pub list: Rc<RefCell<BTreeSet<CHC>>>,
@@ -8,17 +13,162 @@ pub struct DoneDefinedList {
     pub misses: Rc<RefCell<usize>>,
 }
 
+#[cfg(feature = "parallelAdd")]
+#[derive(Default, Clone)]
+pub struct DoneDefinedList {
+    pub list: Arc<RwLock<BTreeSet<CHC>>>,
+    pub hits: Arc<RwLock<usize>>,
+    pub misses: Arc<RwLock<usize>>,
+}
+
+impl DoneDefinedList {
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getList(&self) -> Ref<BTreeSet<CHC>> {
+        self.list.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getList(&self) -> RwLockReadGuard<BTreeSet<CHC>> {
+        self.list.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getListMut(&self) -> RefMut<'_, BTreeSet<CHC>> {
+        self.list.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getListMut(&self) -> RwLockWriteGuard<BTreeSet<CHC>> {
+        self.list.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getHits(&self) -> Ref<usize> {
+        self.hits.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getHits(&self) -> RwLockReadGuard<usize> {
+        self.hits.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getHitsMut(&self) -> RefMut<'_, usize> {
+        self.hits.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getHitsMut(&self) -> RwLockWriteGuard<usize> {
+        self.hits.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getMisses(&self) -> Ref<usize> {
+        self.misses.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getMisses(&self) -> RwLockReadGuard<usize> {
+        self.misses.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getMissesMut(&self) -> RefMut<'_, usize> {
+        self.misses.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getMissesMut(&self) -> RwLockWriteGuard<usize> {
+        self.misses.write().unwrap()
+    }
+}
+
+#[cfg(not(feature = "parallelAdd"))]
 #[derive(Default, Clone, Debug)]
 pub struct DefineStats {
     pub adtDefine: Rc<RefCell<usize>>,
     pub pairingDefine: Rc<RefCell<usize>>,
 }
 
+#[cfg(feature = "parallelAdd")]
+#[derive(Default, Clone, Debug)]
+pub struct DefineStats {
+    pub adtDefine: Arc<RwLock<usize>>,
+    pub pairingDefine: Arc<RwLock<usize>>,
+}
+
+impl DefineStats {
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getAdtDefine(&self) -> Ref<usize> {
+        *self.adtDefine.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getAdtDefine(&self) -> RwLockReadGuard<'_, usize> {
+        self.adtDefine.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getAdtDefineMut(&self) -> RefMut<'_, usize> {
+        self.adtDefine.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getAdtDefineMut(&self) -> RwLockWriteGuard<usize> {
+        self.adtDefine.write().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getPairingDefine(&self) -> Ref<usize> {
+        *self.pairingDefine.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getPairingDefine(&self) -> RwLockReadGuard<'_, usize> {
+        self.pairingDefine.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getPairingDefineMut(&self) -> RefMut<'_, usize> {
+        self.pairingDefine.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getPairingDefineMut(&self) -> RwLockWriteGuard<usize> {
+        self.pairingDefine.write().unwrap()
+    }
+}
+
 #[derive(Default, Clone)]
 pub struct DefineHelper {
     pub doneDefinedList: DoneDefinedList,
+    #[cfg(not(feature = "parallelAdd"))]
     pub newDefineMap: Rc<RefCell<BTreeMap<FoldPattern, AppliedId>>>,
+    #[cfg(feature = "parallelAdd")]
+    pub newDefineMap: Arc<RwLock<BTreeMap<FoldPattern, AppliedId>>>,
     pub stats: DefineStats,
+}
+
+impl DefineHelper {
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getNewDefineMap(&self) -> Ref<BTreeMap<FoldPattern, AppliedId>> {
+        self.newDefineMap.borrow()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getNewDefineMap(&self) -> RwLockReadGuard<BTreeMap<FoldPattern, AppliedId>> {
+        self.newDefineMap.read().unwrap()
+    }
+
+    #[cfg(not(feature = "parallelAdd"))]
+    pub fn getNewDefineMapMut(&self) -> RefMut<'_, BTreeMap<FoldPattern, AppliedId>> {
+        self.newDefineMap.borrow_mut()
+    }
+
+    #[cfg(feature = "parallelAdd")]
+    pub fn getNewDefineMapMut(&self) -> RwLockWriteGuard<BTreeMap<FoldPattern, AppliedId>> {
+        self.newDefineMap.write().unwrap()
+    }
 }
 
 struct DefineInfo {
@@ -92,7 +242,7 @@ fn doADTDefine(
             .map(|idx| childAppIds[*idx].getAppliedId())
             .collect::<Vec<_>>();
 
-        *stats.adtDefine.borrow_mut() += 1;
+        *stats.getAdtDefineMut() += 1;
         syntaxAndNewBody.push(DefineInfo {
             syntax: basicVars,
             newBody,
@@ -120,7 +270,7 @@ fn doPairingDefine(
             for var in childAppId2.slots() {
                 syntax.push(var);
             }
-            *stats.pairingDefine.borrow_mut() += 1;
+            *stats.getPairingDefineMut() += 1;
             syntaxAndNewBody.push(DefineInfo {
                 syntax,
                 newBody: vec![childAppId1.clone(), childAppId2.clone()],
@@ -165,18 +315,18 @@ fn prepareDefines(
     }
 }
 
-fn unfoldNewDefine(
+fn unfoldNewDefine<'a>(
     syntax: &Vec<Slot>,
     sortedNewBody: &Vec<AppliedIdOrStar>,
     sortedToBeFoldShape: Vec<AppliedIdOrStar>,
     map: &SlotMap,
     tag: String,
     mergeVarTypes: &BTreeMap<Slot, VarType>,
-    newDefineMap: &Rc<RefCell<BTreeMap<FoldPattern, AppliedId>>>,
+    newDefineMap: &mut BTreeMap<FoldPattern, AppliedId>,
     unfoldHelper: &UnfoldHelper,
     constrCheckedCache: &ConstrCheckedCache,
     constrRewriteListCopy: &ConstrRewriteList,
-    eg: &mut CHCEGraph,
+    eg: &'a RwLock<&'a mut CHCEGraph>,
 ) -> AppliedId {
     // define
     let definedENode = {
@@ -186,32 +336,35 @@ fn unfoldNewDefine(
         syntaxVarsNormalized.sort();
         let syntaxVars: Vec<_> = syntaxVarsNormalized.into_iter().map(|s| map[s]).collect();
 
+        let egMut = &mut getEgMut(eg);
         let syntaxAppId = {
             let children = syntaxVars
                 .into_iter()
-                .map(|s| getVarAppId(s, mergeVarTypes[&s].clone(), eg))
+                .map(|s| getVarAppId(s, mergeVarTypes[&s].clone(), egMut))
                 .collect::<Vec<_>>();
             let syntaxENode = CHC::PredSyntax(children.into());
-            eg.add(&syntaxENode)
+            egMut.add(&syntaxENode)
         };
 
-        let cond = eg.add(&CHC::And(vec![].into()));
+        let cond = egMut.add(&CHC::And(vec![].into()));
         CHC::New(syntaxAppId, cond, sortedNewBody.clone().into())
     };
 
     // unfold
     let mut composeUnfoldRecipes = vec![];
-    prepareUnfold(
-        None,
-        0,
-        &vec![].into(),
-        &AppliedId::null(),
-        &AppliedId::null(),
-        &definedENode,
-        &mut composeUnfoldRecipes,
-        constrCheckedCache,
-        eg,
-    );
+    {
+        prepareUnfold(
+            None,
+            0,
+            &vec![].into(),
+            &AppliedId::null(),
+            &AppliedId::null(),
+            &definedENode,
+            &mut composeUnfoldRecipes,
+            constrCheckedCache,
+            &getEg(eg),
+        );
+    }
 
     // TODO: it should be more than one
     let mut newComposeAppIds = vec![];
@@ -228,25 +381,24 @@ fn unfoldNewDefine(
                 #[cfg(not(feature = "parallelAdd"))]
                 eg,
                 #[cfg(feature = "parallelAdd")]
-                &RwLock::new(eg),
+                &eg,
             ));
         }
     }
 
+    let mut egMut = getEgMut(eg);
     let first = newComposeAppIds.first().unwrap();
     for newComposeAppId in newComposeAppIds[1..].iter() {
-        eg.union_justified(first, newComposeAppId, Some("define_unfold".to_owned()));
+        egMut.union_justified(first, newComposeAppId, Some("define_unfold".to_owned()));
     }
 
     assert!(unfoldHelper.getUnfoldList().len() > 0);
 
-    let saveAppId = eg.find_applied_id(first).apply_slotmap(&map.inverse());
+    let saveAppId = egMut.find_applied_id(first).apply_slotmap(&map.inverse());
     debug!("defineMap {saveAppId:?} <- {sortedToBeFoldShape:?}");
-    newDefineMap
-        .borrow_mut()
-        .insert(sortedToBeFoldShape, saveAppId);
+    newDefineMap.insert(sortedToBeFoldShape, saveAppId);
 
-    eg.find_applied_id(first)
+    egMut.find_applied_id(first)
 }
 
 fn doFolding(
@@ -295,11 +447,7 @@ pub fn defineApply(
     options: RewriteOption,
     eg: &mut CHCEGraph,
 ) {
-    let DefineHelper {
-        doneDefinedList: DoneDefinedList { list, hits, misses },
-        newDefineMap,
-        stats,
-    } = defineHelper;
+    let stats = &defineHelper.stats;
 
     let UnfoldHelper {
         unfoldList,
@@ -308,55 +456,73 @@ pub fn defineApply(
 
     let ids = eg.ids();
     let idsLen = ids.len();
-    for (i, eclassId) in ids.into_iter().enumerate() {
-        info!("doing define {i}/{idsLen}");
-        if i == idsLen / 2 {
-            break;
-        }
-        let eclassId = eg.find_id(eclassId);
-        let origNewENodeAppId = eg.mk_identity_applied_id(eclassId);
 
-        let enodesList = eg.enodes(origNewENodeAppId.id);
+    #[cfg(not(feature = "parallelAdd"))]
+    let iter = ids.into_iter();
+    #[cfg(feature = "parallelAdd")]
+    let iter = ids
+        .into_iter()
+        .enumerate()
+        .collect::<Vec<_>>()
+        .into_par_iter();
+
+    let eg = RwLock::new(eg);
+
+    iter.for_each(|(i, eclassId)| {
+        info!("doing define {i}/{idsLen}");
+
+        let (enodesList, origNewENodeAppId) = {
+            let egRead = getEg(&eg);
+            let eclassId = egRead.find_id(eclassId);
+            let origNewENodeAppId = egRead.mk_identity_applied_id(eclassId);
+
+            (egRead.enodes(origNewENodeAppId.id), origNewENodeAppId)
+        };
         let enodesListLen = enodesList.len();
-        // TODO: can we actually parallelize this?
         for (j, origNewENode) in enodesList.into_iter().enumerate() {
             info!(
                 "define stats adtDefine/pairingDefine {:?}/{:?}",
-                stats.adtDefine.borrow(),
-                stats.pairingDefine.borrow()
+                stats.getAdtDefine(),
+                stats.getPairingDefine()
             );
             info!("doing define {i}/{idsLen} {j}/{enodesListLen}");
             let origENodeShape = origNewENode.weak_shape().0;
             // check if do this already
             // TODO: I think we need refresh the cache here?
-            let mut doneDefinedList = list.borrow_mut();
-            if doneDefinedList.contains(&origENodeShape) {
-                *hits.borrow_mut() += 1;
-                continue;
+            {
+                let mut doneDefinedList = defineHelper.doneDefinedList.getListMut();
+                if doneDefinedList.contains(&origENodeShape) {
+                    *defineHelper.doneDefinedList.getHitsMut() += 1;
+                    continue;
+                }
+                *defineHelper.doneDefinedList.getMissesMut() += 1;
+                doneDefinedList.insert(origENodeShape.clone());
             }
-            *misses.borrow_mut() += 1;
-            doneDefinedList.insert(origENodeShape.clone());
 
             let CHC::New(origSyntaxAppId, origConstrAppId, bodyAppIds) = &origNewENode else {
                 continue;
             };
 
-            checkNewENode!(origNewENode, eg);
+            let mut mergeVarTypes = {
+                let egRead = getEg(&eg);
+                checkNewENode!(origNewENode, &egRead);
 
-            let mut mergeVarTypes: BTreeMap<Slot, VarType> =
-                getAllVarTypesOfENode(&origNewENode, eg);
+                getAllVarTypesOfENode(&origNewENode, &egRead)
+            };
 
             // divide body into blocks
             let mut syntaxAndNewBody: Vec<DefineInfo> = vec![];
-            prepareDefines(
-                &origNewENode,
-                &mergeVarTypes,
-                &options,
-                eclassId,
-                &mut syntaxAndNewBody,
-                eg,
-                stats,
-            );
+            {
+                prepareDefines(
+                    &origNewENode,
+                    &mergeVarTypes,
+                    &options,
+                    eclassId,
+                    &mut syntaxAndNewBody,
+                    &getEg(&eg),
+                    stats,
+                );
+            }
 
             // for each group/sharing block, define new chc
             // syntax can be in any order
@@ -368,21 +534,23 @@ pub fn defineApply(
                 tag,
             } in syntaxAndNewBody
             {
-                let sortedNewBody: Vec<AppliedIdOrStar> =
-                    sortAppId(&newBody, true, eg.canonAppIdsCache())
+                let sortedNewBody: Vec<AppliedIdOrStar> = {
+                    sortAppId(&newBody, true, getEg(&eg).canonAppIdsCache())
                         .into_iter()
                         .map(|x| AppliedIdOrStar::AppliedId(x))
-                        .collect();
+                        .collect()
+                };
                 // 0 -> $f
                 let (sortedToBeFoldShape, map) = weakShapeAppIds(&sortedNewBody);
 
-                let mut savedDefineAppId =
-                    if let Some(savedFolded) = newDefineMap.borrow().get(&sortedToBeFoldShape) {
-                        trace!("get savedfolded");
-                        Some(savedFolded.clone().apply_slotmap(&map))
-                    } else {
-                        None
-                    };
+                let mut savedDefineAppId = if let Some(savedFolded) =
+                    defineHelper.getNewDefineMap().get(&sortedToBeFoldShape)
+                {
+                    trace!("get savedfolded");
+                    Some(savedFolded.clone().apply_slotmap(&map))
+                } else {
+                    None
+                };
 
                 if savedDefineAppId.is_none() {
                     savedDefineAppId = Some(unfoldNewDefine(
@@ -392,20 +560,23 @@ pub fn defineApply(
                         &map,
                         tag.clone(),
                         &mergeVarTypes,
-                        &newDefineMap,
+                        &mut defineHelper.getNewDefineMapMut(),
                         unfoldHelper,
                         &constrCheckedCache,
                         &constrRewriteListCopy,
-                        eg,
+                        &eg,
                     ));
                 }
 
                 let defineAppId = savedDefineAppId.unwrap();
 
-                eg.updateAnalysisData(defineAppId.id, |data| {
-                    data.predNames
-                        .insert(format!("define_from_{}_{}", origNewENodeAppId.id, tag));
-                });
+                {
+                    let mut egMut = getEgMut(&eg);
+                    egMut.updateAnalysisData(defineAppId.id, |data| {
+                        data.predNames
+                            .insert(format!("define_from_{}_{}", origNewENodeAppId.id, tag));
+                    });
+                }
 
                 // vv folding vv
                 if options.doFolding {
@@ -416,12 +587,12 @@ pub fn defineApply(
                         &positions,
                         origSyntaxAppId,
                         origConstrAppId,
-                        eg,
+                        &mut getEgMut(&eg),
                     )
                 }
             }
         }
-    }
+    });
 }
 
 // TODO: refactor this function

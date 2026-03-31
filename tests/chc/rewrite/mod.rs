@@ -627,18 +627,20 @@ fn rebuildENode(enode: &CHC, eg: &CHCEGraph) -> CHC {
 fn rebuildDoneDefinedList(defineHelper: &DefineHelper, eg: &CHCEGraph) {
     info!(
         "doneDefinedList hits/misses {:?}/{:?}",
-        defineHelper.doneDefinedList.hits.borrow(),
-        defineHelper.doneDefinedList.misses.borrow()
+        defineHelper.doneDefinedList.getHits(),
+        defineHelper.doneDefinedList.getMisses()
     );
-    let list = &defineHelper.doneDefinedList.list;
-    let originalDoneDefinedListLen = list.borrow().len();
-    let rebuildDoneDefinedList =
-        BTreeSet::from_iter(list.borrow().iter().map(|e| rebuildENode(e, eg)));
-    info!(
-        "rebuildDoneDefinedList: {originalDoneDefinedListLen:?} -> {:?}",
-        rebuildDoneDefinedList.len()
-    );
-    *defineHelper.doneDefinedList.list.borrow_mut() = rebuildDoneDefinedList;
+    let rebuildDoneDefinedList = {
+        let list = &defineHelper.doneDefinedList.getList();
+        let originalDoneDefinedListLen = list.len();
+        let rebuildDoneDefinedList = BTreeSet::from_iter(list.iter().map(|e| rebuildENode(e, eg)));
+        info!(
+            "rebuildDoneDefinedList: {originalDoneDefinedListLen:?} -> {:?}",
+            rebuildDoneDefinedList.len()
+        );
+        rebuildDoneDefinedList
+    };
+    *defineHelper.doneDefinedList.getListMut() = rebuildDoneDefinedList;
 }
 
 fn rebuildConstrCheckedCache(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
