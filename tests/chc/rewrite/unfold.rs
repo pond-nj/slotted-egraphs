@@ -112,6 +112,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getUnsatCache(&self) -> Ref<'_, BTreeSet<CHC>> {
         self.unsatCache.borrow()
     }
@@ -122,6 +123,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getUnsatCacheMut(&self) -> RefMut<'_, BTreeSet<CHC>> {
         self.unsatCache.borrow_mut()
     }
@@ -132,6 +134,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getSatCache(&self) -> Ref<'_, BTreeSet<CHC>> {
         self.satCache.borrow()
     }
@@ -142,6 +145,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getSatCacheMut(&self) -> RefMut<'_, BTreeSet<CHC>> {
         self.satCache.borrow_mut()
     }
@@ -152,6 +156,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getHits(&self) -> Ref<'_, usize> {
         self.hits.borrow()
     }
@@ -162,6 +167,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getHitsMut(&self) -> RefMut<'_, usize> {
         self.hits.borrow_mut()
     }
@@ -172,6 +178,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getMisses(&self) -> Ref<'_, usize> {
         self.misses.borrow()
     }
@@ -182,6 +189,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getMissesMut(&self) -> RefMut<'_, usize> {
         self.misses.borrow_mut()
     }
@@ -204,6 +212,7 @@ impl UnfoldHelper {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getUnfoldList(&self) -> Ref<'_, UnfoldList> {
         self.unfoldList.borrow()
     }
@@ -214,6 +223,7 @@ impl UnfoldHelper {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getUnfoldListMut(&self) -> RefMut<'_, UnfoldList> {
         self.unfoldList.borrow_mut()
     }
@@ -521,6 +531,7 @@ pub fn unfoldSearchAndPrepare(
 }
 
 #[cfg(not(feature = "parallelAdd"))]
+#[inline]
 pub fn getLockEg(eg: &mut CHCEGraph) -> &mut CHCEGraph {
     eg
 }
@@ -531,6 +542,7 @@ pub fn getLockEg(eg: &mut CHCEGraph) -> RwLock<&mut CHCEGraph> {
 }
 
 #[cfg(not(feature = "parallelAdd"))]
+#[inline]
 pub fn getEg(eg: &mut CHCEGraph) -> &mut CHCEGraph {
     eg
 }
@@ -546,6 +558,7 @@ pub fn getEgNoMut<'a>(eg: &'a RwLock<&'a CHCEGraph>) -> RwLockReadGuard<'a, &'a 
 }
 
 #[cfg(not(feature = "parallelAdd"))]
+#[inline]
 pub fn getEgMut(eg: &mut CHCEGraph) -> &mut CHCEGraph {
     eg
 }

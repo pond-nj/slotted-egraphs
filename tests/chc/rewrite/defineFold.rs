@@ -23,6 +23,7 @@ pub struct DoneDefinedList {
 
 impl DoneDefinedList {
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getList(&self) -> Ref<'_, BTreeSet<CHC>> {
         self.list.borrow()
     }
@@ -33,6 +34,7 @@ impl DoneDefinedList {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getListMut(&self) -> RefMut<'_, BTreeSet<CHC>> {
         self.list.borrow_mut()
     }
@@ -43,6 +45,7 @@ impl DoneDefinedList {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getHits(&self) -> Ref<'_, usize> {
         self.hits.borrow()
     }
@@ -53,6 +56,7 @@ impl DoneDefinedList {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getHitsMut(&self) -> RefMut<'_, usize> {
         self.hits.borrow_mut()
     }
@@ -63,6 +67,7 @@ impl DoneDefinedList {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getMisses(&self) -> Ref<'_, usize> {
         self.misses.borrow()
     }
@@ -73,6 +78,7 @@ impl DoneDefinedList {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getMissesMut(&self) -> RefMut<'_, usize> {
         self.misses.borrow_mut()
     }
@@ -99,6 +105,7 @@ pub struct DefineStats {
 
 impl DefineStats {
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getAdtDefine(&self) -> Ref<'_, usize> {
         self.adtDefine.borrow()
     }
@@ -109,6 +116,7 @@ impl DefineStats {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getAdtDefineMut(&self) -> RefMut<'_, usize> {
         self.adtDefine.borrow_mut()
     }
@@ -119,6 +127,7 @@ impl DefineStats {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getPairingDefine(&self) -> Ref<'_, usize> {
         self.pairingDefine.borrow()
     }
@@ -129,6 +138,7 @@ impl DefineStats {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getPairingDefineMut(&self) -> RefMut<'_, usize> {
         self.pairingDefine.borrow_mut()
     }
@@ -151,6 +161,7 @@ pub struct DefineHelper {
 
 impl DefineHelper {
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getNewDefineMap(&self) -> Ref<'_, BTreeMap<FoldPattern, AppliedId>> {
         self.newDefineMap.borrow()
     }
@@ -161,6 +172,7 @@ impl DefineHelper {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getNewDefineMapMut(&self) -> RefMut<'_, BTreeMap<FoldPattern, AppliedId>> {
         self.newDefineMap.borrow_mut()
     }

@@ -47,6 +47,7 @@ pub struct RewriteList {
 
 impl RewriteList {
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getConstrRewriteList(&self) -> Ref<'_, Vec<ConstrRewriteComponent>> {
         self.constrRewriteList.borrow()
     }
@@ -57,6 +58,7 @@ impl RewriteList {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getConstrRewriteListMut(&self) -> RefMut<'_, Vec<ConstrRewriteComponent>> {
         self.constrRewriteList.borrow_mut()
     }
@@ -67,6 +69,7 @@ impl RewriteList {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getFunctionalityComponentsList(&self) -> Ref<'_, Vec<ConstrRewriteComponent>> {
         self.functionalityComponentsList.borrow()
     }
@@ -77,6 +80,7 @@ impl RewriteList {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getFunctionalityComponentsListMut(&self) -> RefMut<'_, Vec<ConstrRewriteComponent>> {
         self.functionalityComponentsList.borrow_mut()
     }

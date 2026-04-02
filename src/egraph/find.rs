@@ -7,21 +7,25 @@ use log::{debug, info, trace, warn};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getUnionFindMut(&self) -> RefMut<'_, Vec<ProvenAppliedId>> {
         self._unionfind.borrow_mut()
     }
 
     #[cfg(feature = "parallelAdd")]
+    #[inline]
     pub fn getUnionFindMut(&self) -> RwLockWriteGuard<Vec<ProvenAppliedId>> {
         self._unionfind.write().unwrap()
     }
 
     #[cfg(not(feature = "parallelAdd"))]
+    #[inline]
     pub fn getUnionFind(&self) -> Ref<'_, Vec<ProvenAppliedId>> {
         self._unionfind.borrow()
     }
 
     #[cfg(feature = "parallelAdd")]
+    #[inline]
     pub fn getUnionFind(&self) -> RwLockReadGuard<Vec<ProvenAppliedId>> {
         self._unionfind.read().unwrap()
     }
