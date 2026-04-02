@@ -32,8 +32,8 @@ fn mainTest() {
                 doConstraintRewrite: true,
                 doFolding: true,
                 doADTDefine: true,
-                doPairingDefine: false,
-                // doPairingDefine: true,
+                // doPairingDefine: false,
+                doPairingDefine: true,
             },
         ))
     });
@@ -43,5 +43,5 @@ fn mainTest() {
     info!("Egraph after");
     dumpCHCEGraph(&runner.egraph);
 
-    // checkCHCExists("tests/chc/cases/leaf_drop_out.txt", &runner.egraph);
+    checkCHCExists("tests/chc/cases/leaf_drop_out.txt", &runner.egraph);
 }
