@@ -112,7 +112,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getUnsatCache(&self) -> Ref<BTreeSet<CHC>> {
+    pub fn getUnsatCache(&self) -> Ref<'_, BTreeSet<CHC>> {
         self.unsatCache.borrow()
     }
 
@@ -132,7 +132,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getSatCache(&self) -> Ref<BTreeSet<CHC>> {
+    pub fn getSatCache(&self) -> Ref<'_, BTreeSet<CHC>> {
         self.satCache.borrow()
     }
 
@@ -152,7 +152,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getHits(&self) -> Ref<usize> {
+    pub fn getHits(&self) -> Ref<'_, usize> {
         self.hits.borrow()
     }
 
@@ -172,7 +172,7 @@ impl ConstrCheckedCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getMisses(&self) -> Ref<usize> {
+    pub fn getMisses(&self) -> Ref<'_, usize> {
         self.misses.borrow()
     }
 
@@ -204,7 +204,7 @@ impl UnfoldHelper {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getUnfoldList(&self) -> Ref<UnfoldList> {
+    pub fn getUnfoldList(&self) -> Ref<'_, UnfoldList> {
         self.unfoldList.borrow()
     }
 
@@ -518,6 +518,16 @@ pub fn unfoldSearchAndPrepare(
     trace!("unfoldSearch return, composeUnfoldRecipe {composeUnfoldRecipe:?}");
     info!("end unfoldSearchAndPrepare");
     composeUnfoldRecipe
+}
+
+#[cfg(not(feature = "parallelAdd"))]
+pub fn getLockEg(eg: &mut CHCEGraph) -> &mut CHCEGraph {
+    eg
+}
+
+#[cfg(feature = "parallelAdd")]
+pub fn getLockEg(eg: &mut CHCEGraph) -> RwLock<&mut CHCEGraph> {
+    RwLock::new(eg)
 }
 
 #[cfg(not(feature = "parallelAdd"))]

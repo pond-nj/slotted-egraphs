@@ -506,7 +506,7 @@ impl CanonAppIdsCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getCache(&self) -> Ref<BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue>> {
+    pub fn getCache(&self) -> Ref<'_, BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue>> {
         self.cache.borrow()
     }
 
@@ -518,7 +518,7 @@ impl CanonAppIdsCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getCacheMut(&self) -> RefMut<BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue>> {
+    pub fn getCacheMut(&self) -> RefMut<'_, BTreeMap<CanonAppIdsCacheKey, CanonAppIdsCacheValue>> {
         self.cache.borrow_mut()
     }
 
@@ -528,7 +528,7 @@ impl CanonAppIdsCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getHits(&self) -> Ref<usize> {
+    pub fn getHits(&self) -> Ref<'_, usize> {
         self.hits.borrow()
     }
 
@@ -548,7 +548,7 @@ impl CanonAppIdsCache {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getMisses(&self) -> Ref<usize> {
+    pub fn getMisses(&self) -> Ref<'_, usize> {
         self.misses.borrow()
     }
 

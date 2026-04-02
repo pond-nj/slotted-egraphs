@@ -7,7 +7,7 @@ use log::{debug, info, trace, warn};
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getUnionFindMut(&self) -> RefMut<Vec<ProvenAppliedId>> {
+    pub fn getUnionFindMut(&self) -> RefMut<'_, Vec<ProvenAppliedId>> {
         self._unionfind.borrow_mut()
     }
 
@@ -17,7 +17,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     #[cfg(not(feature = "parallelAdd"))]
-    pub fn getUnionFind(&self) -> Ref<Vec<ProvenAppliedId>> {
+    pub fn getUnionFind(&self) -> Ref<'_, Vec<ProvenAppliedId>> {
         self._unionfind.borrow()
     }
 
@@ -45,25 +45,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // update leader for faster jump
         map[i.0] = new.clone();
-        new
-    }
-
-    fn unionfind_getNoMut(&self, i: Id, map: &[ProvenAppliedId]) -> ProvenAppliedId {
-        // entry is like calling find on i?
-        let entry = &map[i.0];
-
-        if entry.elem.id == i {
-            return entry.clone();
-        }
-
-        let entry = entry.clone();
-
-        // entry.0.m :: slots(entry.0.id) -> slots(i)
-        // entry_to_leader.0.m :: slots(leader) -> slots(entry.0.id)
-        // recursive call to find leader
-        let nextEntry = self.unionfind_getNoMut(entry.elem.id, map);
-        let new = self.chain_pai(&entry, &nextEntry);
-
         new
     }
 
@@ -114,14 +95,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         ret
     }
 
-    pub(crate) fn proven_unionfind_getNoMut(&self, i: Id) -> ProvenAppliedId {
-        let map = self.getUnionFind();
-        let ret = self.unionfind_getNoMut(i, &*map);
-        ret
-    }
-
     #[cfg(not(feature = "parallelAdd"))]
-    pub(crate) fn proven_unionfind_getNew(&self, i: Id) -> Ref<ProvenAppliedId> {
+    pub(crate) fn proven_unionfind_getNew(&self, i: Id) -> Ref<'_, ProvenAppliedId> {
         {
             let mut map = self.getUnionFindMut();
             self.unionfind_get_implNew(i, &mut *map);
