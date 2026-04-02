@@ -26,25 +26,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         new
     }
 
-    fn unionfind_getNoMut(&self, i: Id, map: &[ProvenAppliedId]) -> ProvenAppliedId {
-        // entry is like calling find on i?
-        let entry = &map[i.0];
-
-        if entry.elem.id == i {
-            return entry.clone();
-        }
-
-        let entry = entry.clone();
-
-        // entry.0.m :: slots(entry.0.id) -> slots(i)
-        // entry_to_leader.0.m :: slots(leader) -> slots(entry.0.id)
-        // recursive call to find leader
-        let nextEntry = self.unionfind_getNoMut(entry.elem.id, map);
-        let new = self.chain_pai(&entry, &nextEntry);
-
-        new
-    }
-
     fn unionfind_get_implNew<'a>(
         &self,
         i: Id,
@@ -92,13 +73,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         ret
     }
 
-    pub(crate) fn proven_unionfind_getNoMut(&self, i: Id) -> ProvenAppliedId {
-        let mut map = self._unionfind.borrow();
-        let ret = self.unionfind_getNoMut(i, &*map);
-        ret
-    }
-
-    pub(crate) fn proven_unionfind_getNew(&self, i: Id) -> Ref<ProvenAppliedId> {
+    pub(crate) fn proven_unionfind_getNew(&self, i: Id) -> Ref<'_, ProvenAppliedId> {
         {
             let mut map = self._unionfind.borrow_mut();
             self.unionfind_get_implNew(i, &mut *map);
