@@ -562,7 +562,7 @@ pub fn sortNewENode2<'a>(
     #[cfg(not(feature = "parallelAdd"))] eg: &mut CHCEGraph,
     #[cfg(feature = "parallelAdd")] eg: &'a RwLock<&'a mut CHCEGraph>,
 ) -> (CHC, CHC, AppliedId) {
-    debug!("doing sortNewENode2");
+    trace!("doing sortNewENode2");
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.extend(condChildren.iter().map(|a| a.getAppliedId()));
     aggrAppId.push(syntaxAppId.clone());
@@ -599,7 +599,7 @@ pub fn sortNewENode2<'a>(
         .unwrap();
     }
 
-    debug!("done sortNewENode2");
+    trace!("done sortNewENode2");
     (
         CHC::New(
             syntaxAppId.clone(),

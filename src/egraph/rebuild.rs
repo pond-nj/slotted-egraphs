@@ -10,7 +10,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         cap: &SmallHashSet<Slot>,
         #[allow(unused)] proof: ProvenEq,
     ) {
-        debug!("start record_redundancy_witness");
         if CHECKS {
             assert!(self.is_alive(i));
 
@@ -50,7 +49,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 proof: prf,
             },
         );
-        debug!("done record_redundancy_witness");
     }
 
     // We expect `from` to be on the lhs of this equation.
@@ -203,7 +201,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn handleSorted(&mut self, sh: &L) {
-        debug!("start handleSorted");
+        trace!("start handleSorted");
         let lenBefore = self.total_number_of_nodes();
         let enodeId = self.getENodeId(sh).unwrap();
         if self.getHashcons(enodeId).is_none() {
@@ -235,11 +233,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             );
         }
         // assert!(self.total_number_of_nodes() == lenBefore);
-        debug!("end handleSorted");
+        trace!("end handleSorted");
     }
 
     fn handle_pending(&mut self, sh: &L, _pending_ty: PendingType) {
-        debug!("start handle_pending");
+        trace!("start handle_pending");
         trace!("handle_pending {sh:?}");
         let enodeId = self.getENodeId(sh).unwrap();
         if self.getHashcons(enodeId).is_none() {
@@ -345,7 +343,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         );
 
         self.determine_self_symmetries(src_id);
-        debug!("end handle_pending");
+        trace!("end handle_pending");
     }
 
     fn update_analysis(&mut self, sh: &L, i: Id, slots: &Vec<Slot>) {

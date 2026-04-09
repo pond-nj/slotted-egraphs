@@ -12,7 +12,7 @@ pub fn expandEqRewrite(
     originalNewENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> CHC {
-    debug!("doing expandEqRewrite");
+    trace!("doing expandEqRewrite");
     let CHC::And(andChildren) = constrENode else {
         panic!();
     };
@@ -95,7 +95,7 @@ pub fn expandEqRewrite(
         Some("expandEq".to_owned()),
     );
 
-    debug!("done expandEqRewrite");
+    trace!("done expandEqRewrite");
     return newConstraint;
 }
 
@@ -108,7 +108,7 @@ pub fn constructorEqRewrite(
     originalNewENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> CHC {
-    debug!("doing constructorEqRewrite");
+    trace!("doing constructorEqRewrite");
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
     let CHC::And(andChildrenOrig) = constrENode else {
@@ -199,7 +199,7 @@ pub fn constructorEqRewrite(
         Some("constructorEqRewrite".to_owned()),
     );
 
-    debug!("done constructorEqRewrite");
+    trace!("done constructorEqRewrite");
     newConstraint
 }
 
@@ -438,7 +438,7 @@ pub fn dedupFromEqRewrite(
     newENode: &CHC,
     eg: &mut CHCEGraph,
 ) -> (CHC, CHC) {
-    debug!("doing dedupFromEqRewrite");
+    trace!("doing dedupFromEqRewrite");
     let constrAppId = eg.find_applied_id(constrAppId);
     let constrENode = eg.find_enode(constrENode);
     let CHC::And(andChildrenOrig) = constrENode.clone() else {
@@ -487,7 +487,7 @@ pub fn dedupFromEqRewrite(
         Some("dedupFromEqRewrite".to_owned()),
     );
 
-    debug!("done dedupFromEqRewrite");
+    trace!("done dedupFromEqRewrite");
     (newConstraint, updatedNew)
 }
 

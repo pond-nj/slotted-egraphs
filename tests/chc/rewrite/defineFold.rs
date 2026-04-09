@@ -408,7 +408,7 @@ fn unfoldNewDefine<'a>(
     assert!(unfoldHelper.getUnfoldList().len() > 0);
 
     let saveAppId = egMut.find_applied_id(first).apply_slotmap(&map.inverse());
-    debug!("defineMap {saveAppId:?} <- {sortedToBeFoldShape:?}");
+    trace!("defineMap {saveAppId:?} <- {sortedToBeFoldShape:?}");
     newDefineMap.insert(sortedToBeFoldShape, saveAppId);
 
     egMut.find_applied_id(first)

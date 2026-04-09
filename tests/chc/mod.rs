@@ -16,8 +16,8 @@ pub use rewrite::*;
 mod utils;
 pub use utils::*;
 
-mod ast;
-pub use ast::*;
+mod ast_old;
+pub use ast_old::*;
 
 mod analysis;
 pub use analysis::*;

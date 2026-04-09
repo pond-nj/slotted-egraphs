@@ -180,8 +180,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let ret = self.proven_find_applied_id(i).elem;
         if *i != ret {
-            debug!("call find_applied_id {i:?}");
-            debug!("ret {ret:?}");
+            trace!("call find_applied_id {i:?}");
+            trace!("ret {ret:?}");
         }
         ret
     }
@@ -190,8 +190,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let pai = self.refl_pai(i);
         let ret = self.proven_proven_find_applied_id(&pai);
         if *i != pai.elem {
-            debug!("call proven_find_applied_id {i:?}");
-            debug!("ret {ret:?}");
+            trace!("call proven_find_applied_id {i:?}");
+            trace!("ret {ret:?}");
         }
         ret
     }

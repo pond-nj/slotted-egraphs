@@ -239,8 +239,6 @@ where
             result = result.and_then(|_| Err(StopReason::Saturated));
         }
 
-        debug!("run result: {result:#?}");
-
         if let Err(stop_reason) = result {
             self.stop_reason = Some(stop_reason);
         }

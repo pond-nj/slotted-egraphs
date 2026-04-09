@@ -66,7 +66,7 @@ impl UnfoldListElement {
     }
 
     pub fn getShape(&self) -> (UnfoldListElement, SlotMap) {
-        debug!("toBeUnfolded before getShape {self:#?}");
+        trace!("toBeUnfolded before getShape {self:#?}");
         let (targetCompose1Shape, m) = self.targetCompose1Shape.weak_shape();
 
         let ret = (
@@ -79,7 +79,7 @@ impl UnfoldListElement {
             m,
         );
 
-        debug!("toBeUnfolded after getShape {:#?}", ret.0);
+        trace!("toBeUnfolded after getShape {:#?}", ret.0);
 
         ret
     }
@@ -243,7 +243,7 @@ fn addToUnfoldList(unfoldHelper: &UnfoldHelper, toBeUnfolded: UnfoldListElement)
     };
 
     if new1Children.len() == 0 {
-        debug!("skip toBeUnfolded {toBeUnfolded:#?}");
+        trace!("skip toBeUnfolded {toBeUnfolded:#?}");
         return;
     }
 
@@ -633,10 +633,6 @@ fn addUnfoldedNewENode<'a>(
         {
             let mut unfoldedENode = unfoldedENode.clone();
             unfoldedENode.weak_shapeMut();
-            debug!(
-                "{:?} unfoldedENode {unfoldedENode:?}",
-                rayon::current_thread_index()
-            );
         }
         let unfoldedENodeId = egMut.add(&unfoldedENode);
         trace!(
@@ -688,7 +684,7 @@ fn addUnfoldedNewENode<'a>(
 
         checkVarType!(&unfoldedENodeId, &egMut);
 
-        debug!("adding unfoldedENode {tag} {unfoldedENodeId:?} {unfoldedENode:?}");
+        trace!("adding unfoldedENode {tag} {unfoldedENodeId:?} {unfoldedENode:?}");
         egMut.updateAnalysisData(unfoldedENodeId.id, |data| {
             data.predNames.insert(tag);
         });
@@ -741,7 +737,7 @@ fn createUnfoldedCompose<'a>(
                 let mut egMut = getEgMut(eg);
                 // TODO: change to addShape
                 let unfoldedComposeAppId = egMut.add(&composeENode);
-                debug!(
+                trace!(
                     "UnfoldOpType::UnfoldMerge added composeENode {:?}",
                     composeENode.weak_shape().0
                 );
@@ -779,7 +775,7 @@ fn createUnfoldedCompose<'a>(
                 .map(AppliedIdOrStar::from)
                 .collect();
             let composeENode = CHC::Compose(composeChildren);
-            debug!(
+            trace!(
                 "UnfoldOpType::UnfoldMerge added composeENode {:?}",
                 composeENode.weak_shape().0
             );
