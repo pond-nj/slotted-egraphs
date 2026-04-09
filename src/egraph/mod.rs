@@ -267,15 +267,7 @@ unionfind {} -> {:?}
                 assert_eq!(self.getENodeId(enodeFromX).unwrap(), *x);
             }
             let x = self.getENode(*x);
-            debug!(
-                "{:?} enode before applied {x:?}",
-                rayon::current_thread_index()
-            );
             let mut x = x.apply_slotmap(&psn.elem);
-            debug!(
-                "{:?} enode after applied psn {x:?}",
-                rayon::current_thread_index()
-            );
 
             // (Pond) Create a mapping of unfound slots (of this enode) in eclass slots to fresh slots.
             let mut map: SmallHashMap<Slot, Slot> = SmallHashMap::default();
@@ -291,17 +283,11 @@ unionfind {} -> {:?}
                     }
                 }
             }
-            debug!("map {map:?}");
-            debug!(
-                "{:?} enode after applied psn {x:?}",
-                rayon::current_thread_index()
-            );
 
             // if there is no mapping of some x's (value) slots in i
             // add fresh mapping to m
             let mut m = SlotMap::new();
             let xSlots = x.slots();
-            debug!("xSlots {xSlots:?}");
             for slot in xSlots {
                 if !i.m.contains_key(slot) {
                     m.insert(slot, Slot::fresh());
@@ -314,24 +300,10 @@ unionfind {} -> {:?}
                 m.insert(x, y);
             }
 
-            debug!(
-                "{:?} enode before applied all {x:?}",
-                rayon::current_thread_index()
-            );
             x = x.apply_slotmap(&m);
             {
-                debug!("i {i:?}");
-                debug!("m {m:?}");
-                debug!(
-                    "{:?} enode after applied all {x:?}",
-                    rayon::current_thread_index()
-                );
                 let mut x = x.clone();
                 x.weak_shapeMut();
-                debug!(
-                    "{:?} enode after applied all weak_shape {x:?}",
-                    rayon::current_thread_index()
-                );
             }
             result.push(x);
         }

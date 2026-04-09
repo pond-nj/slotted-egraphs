@@ -832,7 +832,6 @@ pub fn sortAppId(
     if appIdsSet.len() == appIdsSorted.len() {
         return appIdsSorted;
     }
-    debug!("start sortAppId");
     let (lab, appIdToV, _) = canonAppIdsWithRename(&appIdsSorted.iter().collect(), None, cache);
 
     let mut VToAppIds = BTreeMap::new();
@@ -846,7 +845,6 @@ pub fn sortAppId(
     }
     sortedAppIds.dedup();
 
-    debug!("done sortAppId");
     sortedAppIds
 }
 

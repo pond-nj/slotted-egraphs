@@ -304,7 +304,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // Call only on new symmetries update
     #[cfg(feature = "newSymCal")]
     fn symmetriesBySat(self: &mut EGraph<L, N>, src_id: Id) -> (Vec<SlotMap>, Id) {
-        trace!("call symmetriesBySat {:?}", src_id);
+        debug!("call symmetriesBySat {:?}", src_id);
         let pc1 = self.pc_from_src_id(src_id);
         if pc1.node.elem.hasBind() {
             warn!("change to orig {:?}", src_id);
@@ -344,7 +344,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 nextId += 1;
             }
         }
-        trace!("total var {}", nextId);
+        debug!("total var to SAT {}", nextId);
 
         // perm1 or perm2 or ...
         for (_, appId) in appIds.iter().enumerate() {
@@ -409,6 +409,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let enodeAppIdMapInverse = pc1.pai.elem.m.inverse();
         let eclassId = pc1.target_id();
         let mut solver = Minisat::default();
+        debug!("clause count to SAT {}", instance.len());
         solver.add_cnf(instance).unwrap();
         let mut allPerms = vec![];
         while solver.solve().unwrap() == SolverResult::Sat {
@@ -453,13 +454,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             rustsat::solvers::Solve::add_clause(&mut solver, blocking).unwrap();
         }
 
-        trace!("done symmetriesBySat {:?}", src_id);
+        debug!("done symmetriesBySat {:?}", src_id);
         (allPerms, eclassId)
     }
 
     #[cfg(feature = "newSymCal")]
     pub(crate) fn determine_self_symmetries(&mut self, src_id: Id) {
         let totalPerm = self.getTotalPerms(src_id);
+        debug!("totalPerm {}", totalPerm);
 
         let (allPerms, i) = if totalPerm > 1000 {
             self.symmetriesBySat(src_id)
@@ -480,6 +482,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     #[cfg(not(feature = "newSymCal"))]
     pub(crate) fn determine_self_symmetries(&mut self, src_id: Id) {
+        debug!("start determine_self_symmetries");
+        let totalPerm = self.getTotalPerms(src_id);
+        debug!("totalPerm {}", totalPerm);
+
         let (allPerms, i) = self.orig_determine_self_symmetries(src_id);
 
         for perm in allPerms {
@@ -490,6 +496,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 self.touched_class(i, PendingType::Full);
             }
         }
+        debug!("done determine_self_symmetries");
     }
 
     // finds self-symmetries caused by the e-node `src_id`.

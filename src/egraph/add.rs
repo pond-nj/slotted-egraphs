@@ -17,10 +17,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn getOrAddENodeId(&mut self, enode: &L) -> ENodeId {
-        debug!(
-            "{:?} getOrAddENodeId {enode:?}",
-            rayon::current_thread_index()
-        );
         if CHECKS {
             let weakShape = enode.weak_shape().0;
             assert_eq!(enode, &weakShape);
@@ -56,7 +52,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             *(refs[i]) = self.add_syn_expr(&child);
         }
         let ret = self.add_syn(&n);
-        debug!("add_syn_expr: {} <-> {}", ret, re);
+        trace!("add_syn_expr: {} <-> {}", ret, re);
         ret
     }
 
@@ -161,7 +157,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn add(&mut self, enode: &L) -> AppliedId {
-        debug!(
+        trace!(
             "add enode {enode:?}
 {:?}",
             enode.weak_shape()
@@ -171,10 +167,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // this does not maintain the deduplicate invariant
         let mut enode = enode.clone();
         let bij = self.shapeMut(&mut enode);
-        debug!(
-            "{:?} add, enode after shape {enode:?}",
-            rayon::current_thread_index()
-        );
+
         let addedId = self.add_internal(&(enode, bij));
         addedId
     }

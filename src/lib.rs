@@ -35,6 +35,11 @@ pub const CHECKS: bool = true;
 #[cfg(not(feature = "checks"))]
 pub const CHECKS: bool = false;
 
+#[cfg(feature = "tmp")]
+pub const TMP: bool = true;
+#[cfg(not(feature = "tmp"))]
+pub const TMP: bool = false;
+
 #[cfg(feature = "callZ3CheckUnsatConstr")]
 pub const CHECK_UNSAT_CONSTR: bool = true;
 #[cfg(not(feature = "callZ3CheckUnsatConstr"))]

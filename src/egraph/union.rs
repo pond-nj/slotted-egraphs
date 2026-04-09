@@ -82,7 +82,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     fn union_leaders(&mut self, l: AppliedId, r: AppliedId, proof: ProvenEq) -> bool {
         // early return, if union should not be made.
         if self.eq(&l, &r) {
-            debug!("eq, will not union");
+            trace!("eq, will not union");
             return false;
         }
 
@@ -190,7 +190,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // moves everything from `from` to `to`.
     fn move_to(&mut self, from: &AppliedId, to: &AppliedId, #[allow(unused)] proof: ProvenEq) {
-        debug!("choose merged to {to:?}");
+        trace!("choose merged to {to:?}");
         if CHECKS {
             assert_eq!(from.slots(), to.slots());
             #[cfg(feature = "explanations")]
@@ -264,7 +264,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let oldPendingLen = self.pending.len();
             self.pending.insert(shId, PendingType::Full);
             let newPendingLen = self.pending.len();
-            debug!("insert to pending len from move_to by {oldPendingLen} to {newPendingLen}");
+            trace!("insert to pending len from move_to by {oldPendingLen} to {newPendingLen}");
         }
 
         assert!(self.eclass(to.id).unwrap().nodes.len() != 0);

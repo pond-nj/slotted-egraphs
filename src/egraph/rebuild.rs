@@ -166,11 +166,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         trace!("start pending loops");
+        let mut batchCount = 0;
         while !self.pending.is_empty() {
             let pending_batch = std::mem::take(&mut self.pending);
+            info!("pending batch {batchCount}");
+            batchCount += 1;
             // TODO: actually can we parallelize this?
-            for (sh, pending_ty) in pending_batch {
-                trace!("deal with pending {sh:?}");
+            let len = pending_batch.len();
+            for (i, (sh, pending_ty)) in pending_batch.into_iter().enumerate() {
+                info!("doing pending {i}/{len}");
                 // TODO: maybe this doesn't need to be translated to L at all
                 let sh = self.getENode(sh).clone();
                 self.handleSorted(&sh);

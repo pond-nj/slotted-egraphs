@@ -17,13 +17,15 @@ callZ3CheckUnsatConstr = []
 useMut = []
 parallelAdd = []
 sortENodesByNT = []
+tmp = []
 default = [
-    # "newShape",
+    "newShape",
     # "newSymCal",
-    "callZ3CheckUnsatConstr",
+    # "callZ3CheckUnsatConstr",
     "sortENodesByNT",
     # "parallelAdd",
     # "checks",
+    # "tmp",
 ]
 # default = ["newShape", "newSymCal", "callZ3CheckUnsatConstr"]
 # default = ["newShape", "newSymCal"]

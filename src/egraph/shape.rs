@@ -279,9 +279,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             })
             .collect();
 
-        trace!("cartesian: ");
+        info!("cartesian: ");
         for g in groups.iter() {
-            trace!("{} ", g.len());
+            info!("{} ", g.len());
         }
         trace!("allPerms {:?}", groups);
         for perms in &groups {
