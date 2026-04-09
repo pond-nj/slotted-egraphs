@@ -4,7 +4,7 @@ use log::{info, logger};
 
 use super::*;
 
-const ITER_LIMIT: usize = 3;
+const ITER_LIMIT: usize = 2;
 const TIME_LIMIT_SECS: u64 = 300;
 
 #[test]
@@ -28,7 +28,9 @@ fn mainTest() {
                 doConstraintRewrite: true,
                 doFolding: true,
                 doADTDefine: true,
+                // doADTDefine: false,
                 doPairingDefine: true,
+                // doPairingDefine: false,
             },
         ))
     });

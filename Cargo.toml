@@ -16,10 +16,12 @@ originalPrint = []
 callZ3CheckUnsatConstr = []
 useMut = []
 parallelAdd = []
+sortENodesByNT = []
 default = [
-    "newShape",
-    "newSymCal",
+    # "newShape",
+    # "newSymCal",
     "callZ3CheckUnsatConstr",
+    "sortENodesByNT",
     # "parallelAdd",
     # "checks",
 ]

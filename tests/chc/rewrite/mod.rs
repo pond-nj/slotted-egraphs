@@ -497,6 +497,7 @@ fn createSortedDefinedNewENode(
         true,
         eg.canonAppIdsCache(),
     );
+
     // $0 -> $f
     let (_, map) = weakShapeAppIds(&sortedChildren);
     let mapInverse = map.inverse();
@@ -538,6 +539,7 @@ pub fn sortNewENode1(
     let mut aggrAppId: Vec<_> = bodyAppIds.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.push(condAppId.clone());
     aggrAppId.push(syntaxAppId.clone());
+
     let aggrAppId = sortAppId(&aggrAppId, true, eg.canonAppIdsCache());
 
     let updatedChildren: Vec<_> = aggrAppId
@@ -722,6 +724,10 @@ fn rebuildConstrCheckedCache(unfoldHelper: &UnfoldHelper, eg: &CHCEGraph) {
     *unfoldHelper.constrCheckedCache.getSatCacheMut() = satCacheRebuild;
 }
 
+fn printRewriteStats(eg: &CHCEGraph) {
+    eg.canonAppIdsCache().printStats();
+}
+
 fn rebuildCache(unfoldHelper: &UnfoldHelper, defineHelper: &DefineHelper) -> CHCRewrite {
     let unfoldHelper = unfoldHelper.clone();
     let defineHelper = defineHelper.clone();
@@ -731,6 +737,8 @@ fn rebuildCache(unfoldHelper: &UnfoldHelper, defineHelper: &DefineHelper) -> CHC
             rebuildConstrCheckedCache(&unfoldHelper, eg);
         }
         rebuildDoneDefinedList(&defineHelper, eg);
+
+        printRewriteStats(eg);
     });
     RewriteT {
         name: "rebuildCache".to_owned(),

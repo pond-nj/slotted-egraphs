@@ -98,6 +98,7 @@ pub trait LanguageChildren: Debug + Clone + Hash + Eq + PartialEq + Ord {
     fn expandChildren(&mut self);
     fn shrinkChildren(&mut self);
     fn defaultNull() -> Self;
+
     fn sorted(&self, cache: &CanonAppIdsCache) -> Self;
 
     fn len(&self) -> usize {

@@ -174,7 +174,7 @@ where
                 break;
             }
             self.run_one(rewrites);
-            debug!("done iter {:?}", self.iterations.len());
+            info!("done iter {:?}", self.iterations.len());
         }
         Report {
             iterations: self.iterations.len(),

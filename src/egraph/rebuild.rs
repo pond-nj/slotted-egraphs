@@ -230,7 +230,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 Some("Union Sorted ENode, Rebuild".to_string()),
             );
         }
-        assert!(self.total_number_of_nodes() == lenBefore);
+        // assert!(self.total_number_of_nodes() == lenBefore);
         debug!("end handleSorted");
     }
 

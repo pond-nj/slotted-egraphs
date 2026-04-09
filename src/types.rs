@@ -481,6 +481,16 @@ pub struct CanonAppIdsCache {
     pub misses: RefCell<usize>,
 }
 
+impl CanonAppIdsCache {
+    pub fn printStats(&self) {
+        info!(
+            "CanonAppIdsCache hits {}, misses {}",
+            self.getHits(),
+            self.getMisses()
+        );
+    }
+}
+
 pub type CanonAppIdsCacheValue = (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>);
 pub type CanonAppIdsCacheKey = (Vec<AppliedId>, Option<Vec<Vec<ProvenPerm>>>);
 
@@ -802,6 +812,7 @@ pub fn checkDedup(
 }
 
 // This only works with Vector of AppIds
+#[cfg(feature = "sortENodesByNT")]
 pub fn sortAppId(
     appIdsOrigs: &Vec<AppliedId>,
     dedup: bool,
@@ -837,6 +848,25 @@ pub fn sortAppId(
 
     debug!("done sortAppId");
     sortedAppIds
+}
+
+#[cfg(not(feature = "sortENodesByNT"))]
+pub fn sortAppId(
+    appIdsOrigs: &Vec<AppliedId>,
+    dedup: bool,
+    _: &CanonAppIdsCache,
+) -> Vec<AppliedId> {
+    if appIdsOrigs.len() == 0 {
+        return vec![];
+    }
+
+    let mut appIdsSorted = appIdsOrigs.clone();
+    appIdsSorted.sort();
+    if dedup {
+        appIdsSorted.dedup();
+    }
+
+    appIdsSorted
 }
 
 pub fn weakShapeAppIds<L: LanguageChildren>(appIds: &Vec<L>) -> (Vec<L>, SlotMap) {
