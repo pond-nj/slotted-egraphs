@@ -27,8 +27,8 @@ fn mainTest() {
             RewriteOption {
                 doConstraintRewrite: true,
                 doFolding: true,
-                doADTDefine: true,
-                // doADTDefine: false,
+                // doADTDefine: true,
+                doADTDefine: false,
                 doPairingDefine: true,
                 // doPairingDefine: false,
             },

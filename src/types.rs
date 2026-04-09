@@ -170,6 +170,82 @@ impl AppliedId {
 }
 
 // TODO: assert that appIds vec is initialized in weak shape
+fn renameAppIdsAndPermsTmp(
+    appIdsVec: &Vec<&AppliedId>,
+    allPerms: Option<&Vec<Vec<ProvenPerm>>>,
+) -> (
+    Vec<AppliedId>,
+    Option<Vec<Vec<ProvenPerm>>>,
+    BTreeMap<Id, Id>,
+    BTreeMap<Id, SlotMap>,
+    SlotMap,
+) {
+    let mut fromSlotMaps: BTreeMap<Id, SlotMap> = BTreeMap::new();
+
+    let mut idMap: BTreeMap<Id, Id> = BTreeMap::new();
+    {
+        let mut appIdsVecSort = appIdsVec.clone();
+        appIdsVecSort.sort();
+        for appId in appIdsVecSort.iter() {
+            let idMapLen = Id(idMap.len());
+            idMap.entry(appId.id).or_insert(idMapLen);
+        }
+    }
+
+    let mut newAppIds = vec![];
+    let mut toSlotMap = SlotMap::new();
+    for appId in appIdsVec.iter() {
+        let newId = *idMap.get(&appId.id).unwrap();
+
+        let mut updatedMap = SlotMap::new();
+        let mut fromSlotMap = SlotMap::new();
+        for (i, (from, to)) in appId.m.iter().enumerate() {
+            assert!(!fromSlotMap.contains_key(from));
+            let newFromSlot = Slot::numeric(i as u32);
+            fromSlotMap.insert(from, newFromSlot);
+
+            let newToSlot = if let Some(toSlot) = toSlotMap.get(to) {
+                toSlot
+            } else {
+                let newToSlot = Slot::numeric(toSlotMap.len() as u32);
+                toSlotMap.insert(to, newToSlot);
+                newToSlot
+            };
+            updatedMap.insert(newFromSlot, newToSlot);
+        }
+        fromSlotMaps.insert(appId.id, fromSlotMap);
+        newAppIds.push(AppliedId {
+            id: newId,
+            m: updatedMap,
+        });
+    }
+
+    let newAllPerms = if let Some(allPerms) = allPerms {
+        let mut newAllPerms: Vec<Vec<ProvenPerm>> = vec![];
+        for (i, perms) in allPerms.iter().enumerate() {
+            let mut newPerms: Vec<ProvenPerm> = vec![];
+            let id = appIdsVec[i].id;
+            for perm in perms.iter() {
+                let mut newPerm: Perm = SlotMap::new();
+                for (from, to) in perm.iter() {
+                    // all perms are in the "from" of AppIds
+                    // so we can just get .0
+                    let newFrom = fromSlotMaps[&id].get(from).unwrap();
+                    let newTo = fromSlotMaps[&id].get(to).unwrap();
+                    newPerm.insert(newFrom, newTo);
+                }
+                newPerms.push(ProvenPerm { elem: newPerm });
+            }
+            newAllPerms.push(newPerms);
+        }
+        Some(newAllPerms)
+    } else {
+        None
+    };
+
+    (newAppIds, newAllPerms, idMap, fromSlotMaps, toSlotMap)
+}
+
 fn renameAppIdsAndPerms(
     appIdsVec: &Vec<&AppliedId>,
     allPerms: Option<&Vec<Vec<ProvenPerm>>>,
@@ -433,6 +509,41 @@ pub fn canonAppIdsOrig<'a>(
     // );
     // assert_eq!(slotsToV, slotsToVAlt);
     (lab, appIdToV, slotsToV)
+}
+
+fn translateBackTmp(
+    appIdToV: &Vec<(AppliedId, usize)>,
+    idMap: &BTreeMap<Id, Id>,
+    fromSlotMaps: &BTreeMap<Id, SlotMap>,
+    toSlotMap: &SlotMap,
+) -> Vec<(AppliedId, usize)> {
+    let idMapInverse: BTreeMap<Id, Id> = idMap.iter().map(|(k, v)| (*v, *k)).collect();
+    let toSlotMapInverse = toSlotMap.inverse();
+    appIdToV
+        .iter()
+        .map(|(appId, v)| {
+            let origId = *idMapInverse.get(&appId.id).unwrap();
+            let fromSlotMapInverse = fromSlotMaps.get(&origId).unwrap().inverse();
+            (
+                AppliedId {
+                    id: origId,
+                    m: appId
+                        .m
+                        .iter()
+                        .map(|(from, to)| {
+                            (
+                                fromSlotMapInverse
+                                    .get(from)
+                                    .expect(&format!("{from} not found")),
+                                toSlotMapInverse.get(to).expect(&format!("{to} not found")),
+                            )
+                        })
+                        .collect(),
+                },
+                *v,
+            )
+        })
+        .collect()
 }
 
 fn translateBack(
@@ -789,14 +900,48 @@ pub fn canonAppIdsWithRename(
     }
 
     // TODO: vals in input appIds must start from 0, 1,...
+    // debug!("original {appIdsVec:?}, {allPerms:?}");
+    // {
+    //     let (appIdsVec, allPerms, idMap, slotMaps) = renameAppIdsAndPerms(appIdsVec, allPerms);
+    //     debug!("actual after rename ({appIdsVec:?}, {allPerms:?}, {idMap:?}, {slotMaps:?})");
+    //     let (lab, appIdToV, slotsToV) = canonAppIdsInternal(&appIdsVec, &allPerms, cache);
+    //     let appIdToV = translateBack(&appIdToV, &idMap, &slotMaps);
 
-    let (appIdsVec, allPerms, idMap, slotMaps) = renameAppIdsAndPerms(appIdsVec, allPerms);
+    //     debug!("actual ({lab:?}, {appIdToV:?}, {slotsToV:?})");
+    // }
 
+    let (appIdsVec, allPerms, idMap, fromSlotMaps, toSlotMap) =
+        renameAppIdsAndPermsTmp(appIdsVec, allPerms);
+    debug!(
+        "ret after rename ({appIdsVec:?},
+        {allPerms:?},
+        {idMap:?},
+        {fromSlotMaps:?}
+        {toSlotMap:?}))"
+    );
     let (lab, appIdToV, slotsToV) = canonAppIdsInternal(&appIdsVec, &allPerms, cache);
-    let appIdToV = translateBack(&appIdToV, &idMap, &slotMaps);
+    let appIdToV = translateBackTmp(&appIdToV, &idMap, &fromSlotMaps, &toSlotMap);
 
+    debug!("ret ({lab:?}, {appIdToV:?}, {slotsToV:?})");
     (lab, appIdToV, slotsToV)
 }
+
+// pub fn canonAppIdsWithRename(
+//     appIdsVec: &Vec<&AppliedId>,
+//     allPerms: Option<&Vec<Vec<ProvenPerm>>>,
+//     cache: &CanonAppIdsCache,
+// ) -> (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>) {
+//     if appIdsVec.len() == 0 {
+//         return (vec![], vec![], BTreeMap::new());
+//     }
+
+//     let (appIdsVec, allPerms, idMap, slotMaps) = renameAppIdsAndPerms(appIdsVec, allPerms);
+//     debug!("actual after rename ({appIdsVec:?}, {allPerms:?}, {idMap:?}, {slotMaps:?})");
+//     let (lab, appIdToV, slotsToV) = canonAppIdsInternal(&appIdsVec, &allPerms, cache);
+//     let appIdToV = translateBack(&appIdToV, &idMap, &slotMaps);
+
+//     (lab, appIdToV, slotsToV)
+// }
 
 pub fn checkDedup(
     eclassId: Id,
