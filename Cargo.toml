@@ -19,8 +19,8 @@ parallelAdd = []
 sortENodesByNT = []
 tmp = []
 default = [
-    # "newShape",
-    # "newSymCal",
+    "newShape",
+    "newSymCal",
     # "callZ3CheckUnsatConstr",
     "sortENodesByNT",
     # "parallelAdd",
