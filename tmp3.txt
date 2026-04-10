@@ -1,9 +1,0 @@
-original 
-[id3: ($f2 -> $0), id4: ($f3 -> $1)],
- Some([[ProvenPerm { elem: ($f2 -> $f2) }], [ProvenPerm { elem: ($f3 -> $f3) }]])
-actual after rename 
-([id0: ($0 -> $0), id1: ($0 -> $1)], Some([[ProvenPerm { elem: ($0 -> $0) }], 
-[ProvenPerm { elem: ($0 -> $0) }]]), {id3: id0, id4: id1}, {id3: ($f2 -> $0), id4: ($f3 -> $0)})
-actual ([0, 2, 1, 3, 5, 4], [(id3: ($f2 -> $0), 0), (id4: ($f3 -> $1), 2)], {$0: 4, $1: 5})
-ret after rename ([id0: ($0 -> $0), id1: ($0 -> $0)], Some([[ProvenPerm { elem: ($0 -> $0) }], [ProvenPerm { elem: ($0 -> $0) }]]), {id3: id0, id4: id1}, {id3: (($f2 -> $0), ($0 -> $0)), id4: (($f3 -> $0), ($1 -> $0))})
-ret ([0, 2, 1, 3, 4], [(id3: ($f2 -> $0), 0), (id4: ($f3 -> $1), 2)], {$0: 4})
