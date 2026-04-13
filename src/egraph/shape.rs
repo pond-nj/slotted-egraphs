@@ -333,6 +333,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn get_group_compatible_weak_variants(&self, enode: &L) -> Vec<L> {
+        // println!("get_group_compatible_weak_variants {enode:?}");
         let set = self.get_group_compatible_variants(enode);
         let mut shapes = SmallHashSet::empty();
         let mut out = Vec::new();
@@ -345,6 +346,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             shapes.insert(sh);
             out.push(x);
         }
+
+        // println!("{out:?}");
 
         out
     }

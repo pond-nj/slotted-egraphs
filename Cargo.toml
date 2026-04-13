@@ -18,11 +18,13 @@ useMut = []
 parallelAdd = []
 sortENodesByNT = []
 tmp = []
+nodeLimitHigh = []
 default = [
     "newShape",
-    "newSymCal",
+    # "newSymCal",
     # "callZ3CheckUnsatConstr",
     "sortENodesByNT",
+    "nodeLimitHigh",
     # "parallelAdd",
     # "checks",
     "tmp",

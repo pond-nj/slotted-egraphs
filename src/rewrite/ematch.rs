@@ -27,15 +27,20 @@ pub fn mergeSubst(subst1: &mut Subst, subst2: &Subst) {
 pub fn ematch_all<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
     pattern: &Pattern<L>,
-) -> Vec<(Subst, Id)> {
+) -> Vec<(Subst, AppliedId)> {
     debug!("=== Call EmatchAll ===");
     debug!("pattern = {pattern}");
     debug!("= {pattern:#?}");
-    let mut out: Vec<(Subst, Id)> = Vec::new();
+    let mut out: Vec<(Subst, AppliedId)> = Vec::new();
     for i in eg.ids() {
         let appId = eg.mk_sem_identity_applied_id(i);
-        let result = ematchAllInEclassInternal(pattern, State::default(), appId, eg);
-        out.extend(result.into_iter().map(final_subst).map(|x| (x, i)));
+        let result = ematchAllInEclassInternal(pattern, State::default(), appId.clone(), eg);
+        out.extend(
+            result
+                .into_iter()
+                .map(final_subst)
+                .map(|x| (x.1, appId.apply_slotmap(&x.0))),
+        );
     }
     debug!("ematch_all result {out:?} for pattern {pattern}");
     out
@@ -56,7 +61,7 @@ pub fn ematchAllInEclass<L: Language, N: Analysis<L>>(
             r.partial_slotmap.insert(s.0, s.1);
         }
     }
-    out.extend(result.into_iter().map(final_subst));
+    out.extend(result.into_iter().map(final_subst).map(|x| x.1));
     out
 }
 
@@ -283,8 +288,8 @@ pub fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) ->
     ret
 }
 
-pub fn final_subst(s: State) -> Subst {
-    // debug!("final_subst s {:#?}", s);
+pub fn final_subst(s: State) -> (SlotMap, Subst) {
+    // println!("final_subst s {:?}", s);
     let State {
         partial_subst: mut subst,
         partial_slotmap: mut slotmap,
@@ -303,5 +308,5 @@ pub fn final_subst(s: State) -> Subst {
         *v = v.apply_slotmap(&slotmap);
     }
 
-    subst
+    (slotmap, subst)
 }

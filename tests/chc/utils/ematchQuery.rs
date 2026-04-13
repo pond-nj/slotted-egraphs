@@ -15,7 +15,7 @@ pub fn ematchQueryall(eg: &CHCEGraph, pattern: &Pattern<CHC>) -> Vec<(Subst, Id)
             debug!("no match in eclass {i:?} for pattern {pattern}");
         }
 
-        out.extend(result.into_iter().map(final_subst).map(|x| (x, i)));
+        out.extend(result.into_iter().map(final_subst).map(|x| (x.1, i)));
     }
 
     out
@@ -29,7 +29,7 @@ pub fn ematchQueryAllInEclass(
     let mut out: Vec<(Subst, Id)> = Vec::new();
     let appId = eg.mk_sem_identity_applied_id(eclassId);
     let result = ematchQueryAllInEclassInternal(pattern, State::default(), appId, eg);
-    out.extend(result.into_iter().map(final_subst).map(|x| (x, eclassId)));
+    out.extend(result.into_iter().map(final_subst).map(|x| (x.1, eclassId)));
 
     out
 }
