@@ -1,0 +1,205 @@
+[
+  {
+    "test_num": 1,
+    "testcase": "arith2::tst::t7",
+    "extra": null,
+    "features": [],
+    "features_with_always": [
+      "log"
+    ],
+    "success": true,
+    "time": 106.023228171,
+    "wall_clock_time": 104.44897675514221,
+    "time_source": "extracted from output",
+    "timestamp": "2026-04-13T19:31:06.871383"
+  },
+  {
+    "test_num": 2,
+    "testcase": "arith2::tst::t7",
+    "extra": null,
+    "features": [
+      "newShape"
+    ],
+    "features_with_always": [
+      "newShape",
+      "log"
+    ],
+    "success": true,
+    "time": 34.985146144,
+    "wall_clock_time": 34.55984425544739,
+    "time_source": "extracted from output",
+    "timestamp": "2026-04-13T19:31:41.431843"
+  },
+  {
+    "test_num": 4,
+    "testcase": "arith2::tst::t7",
+    "extra": null,
+    "features": [
+      "sortENodesByNT"
+    ],
+    "features_with_always": [
+      "sortENodesByNT",
+      "log"
+    ],
+    "success": true,
+    "time": 282.259494463,
+    "wall_clock_time": 296.8922333717346,
+    "time_source": "extracted from output",
+    "timestamp": "2026-04-13T19:38:39.481318"
+  },
+  {
+    "test_num": 4,
+    "testcase": "arith2::tst::t7",
+    "extra": null,
+    "features": [
+      "newShape",
+      "sortENodesByNT"
+    ],
+    "features_with_always": [
+      "sortENodesByNT",
+      "newShape",
+      "log"
+    ],
+    "success": true,
+    "time": 191.257274741,
+    "wall_clock_time": 188.79189586639404,
+    "time_source": "extracted from output",
+    "timestamp": "2026-04-13T19:45:22.070989"
+  },
+  {
+    "test_num": 5,
+    "testcase": "chc::pairingPaperArray::mainTest",
+    "extra": "adtDefine",
+    "features": [],
+    "features_with_always": [
+      "log"
+    ],
+    "success": true,
+    "time": 138.490150068,
+    "wall_clock_time": 138.490150068,
+    "time_source": "extracted from output",
+    "timestamp": "2026-04-13T19:50:35.766870"
+  },
+  {
+    "test_num": 6,
+    "testcase": "chc::pairingPaperArray::mainTest",
+    "extra": "adtDefine",
+    "features": [
+      "newShape"
+    ],
+    "features_with_always": [
+      "log",
+      "newShape"
+    ],
+    "success": true,
+    "time": 153.457819317,
+    "wall_clock_time": 173.25242948532104,
+    "time_source": "extracted from output",
+    "timestamp": "2026-04-13T19:58:20.353469"
+  },
+  {
+    "test_num": 7,
+    "testcase": "chc::pairingPaperArray::mainTest",
+    "extra": "adtDefine",
+    "features": [
+      "sortENodesByNT"
+    ],
+    "features_with_always": [
+      "log",
+      "sortENodesByNT"
+    ],
+    "success": false,
+    "time": 300,
+    "wall_clock_time": 300,
+    "time_source": "timeout",
+    "timestamp": "2026-04-13T20:03:14.692222",
+    "error": "TIMEOUT"
+  },
+  {
+    "test_num": 8,
+    "testcase": "chc::pairingPaperArray::mainTest",
+    "extra": "adtDefine",
+    "features": [
+      "newShape",
+      "sortENodesByNT"
+    ],
+    "features_with_always": [
+      "newShape",
+      "log",
+      "sortENodesByNT"
+    ],
+    "success": false,
+    "time": 300,
+    "wall_clock_time": 300,
+    "time_source": "timeout",
+    "timestamp": "2026-04-13T20:14:31.913404",
+    "error": "TIMEOUT"
+  },
+  {
+    "test_num": 9,
+    "testcase": "chc::leafDrop2::mainTest",
+    "extra": "adtDefine",
+    "features": [],
+    "features_with_always": [
+      "log"
+    ],
+    "success": true,
+    "time": 7.835951307,
+    "wall_clock_time": 8.849475383758545,
+    "time_source": "extracted from output",
+    "timestamp": "2026-04-13T20:27:37.723806"
+  },
+  {
+    "test_num": 10,
+    "testcase": "chc::leafDrop2::mainTest",
+    "extra": "adtDefine",
+    "features": [
+      "newShape"
+    ],
+    "features_with_always": [
+      "log",
+      "newShape"
+    ],
+    "success": true,
+    "time": 8.33176864,
+    "wall_clock_time": 25.326566219329834,
+    "time_source": "extracted from output",
+    "timestamp": "2026-04-13T20:28:03.317050"
+  },
+  {
+    "test_num": 11,
+    "testcase": "chc::leafDrop2::mainTest",
+    "extra": "adtDefine",
+    "features": [
+      "sortENodesByNT"
+    ],
+    "features_with_always": [
+      "log",
+      "sortENodesByNT"
+    ],
+    "success": true,
+    "time": 9.868177522,
+    "wall_clock_time": 26.740575790405273,
+    "time_source": "extracted from output",
+    "timestamp": "2026-04-13T20:28:29.831945"
+  },
+  {
+    "test_num": 12,
+    "testcase": "chc::leafDrop2::mainTest",
+    "extra": "adtDefine",
+    "features": [
+      "newShape",
+      "sortENodesByNT"
+    ],
+    "features_with_always": [
+      "log",
+      "newShape",
+      "sortENodesByNT"
+    ],
+    "success": true,
+    "time": 10.524671436,
+    "wall_clock_time": 27.530421257019043,
+    "time_source": "extracted from output",
+    "timestamp": "2026-04-13T20:28:57.584007"
+  }
+]

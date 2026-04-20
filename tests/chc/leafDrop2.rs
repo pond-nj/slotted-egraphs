@@ -6,8 +6,9 @@ use log::{info, logger};
 
 use super::*;
 
-const ITER_LIMIT: usize = 4;
-const TIME_LIMIT_SECS: u64 = 300;
+const ITER_LIMIT: usize = 3;
+const TIME_LIMIT_SECS: u64 = 600;
+const NODE_LIMIT: usize = 1_000_000;
 
 #[test]
 fn mainTest() {
@@ -24,6 +25,7 @@ fn mainTest() {
     let mut runner: CHCRunner = Runner::default()
         .with_egraph(eg)
         .with_iter_limit(ITER_LIMIT)
+        .with_node_limit(NODE_LIMIT)
         .with_time_limit(Duration::from_secs(TIME_LIMIT_SECS));
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
@@ -31,14 +33,20 @@ fn mainTest() {
             RewriteOption {
                 doConstraintRewrite: true,
                 doFolding: true,
+
+                #[cfg(not(feature = "adtDefine"))]
+                doADTDefine: false,
+                #[cfg(feature = "adtDefine")]
                 doADTDefine: true,
-                // doADTDefine: false,
-                // doPairingDefine: true,
+
+                #[cfg(not(feature = "pairingDefine"))]
                 doPairingDefine: false,
+                #[cfg(feature = "pairingDefine")]
+                doPairingDefine: true,
             },
         ))
     });
-    info!("use time {t:?}");
+    info!("total time = {t:?}");
     info!("report {report:?}");
 
     info!("Egraph after");

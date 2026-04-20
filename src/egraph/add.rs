@@ -142,15 +142,28 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             *(refs[i]) = self.add_expr(child);
         }
 
-        let nSorted = n.sorted(self.canonAppIdsCache());
-        let ret = self.add(&n);
+        #[cfg(feature = "mergeSortOnAdd")]
+        let ret = {
+            let nSorted = n.sorted(self.canonAppIdsCache());
+            let ret = self.add(&n);
 
-        let lenBefore = self.total_number_of_nodes();
-        let sortedAppId = self.add(&nSorted);
+            let lenBefore = self.total_number_of_nodes();
+            let sortedAppId = self.add(&nSorted);
 
-        if self.total_number_of_nodes() != lenBefore {
-            self.union_justified(&ret, &sortedAppId, Some("add_expr, sorted".to_owned()));
-        }
+            if self.total_number_of_nodes() != lenBefore {
+                self.union_justified(&ret, &sortedAppId, Some("add_expr, sorted".to_owned()));
+            }
+
+            ret
+        };
+
+        #[cfg(not(feature = "mergeSortOnAdd"))]
+        let ret = {
+            let nSorted = n.sorted(self.canonAppIdsCache());
+            let ret = self.add(&nSorted);
+
+            ret
+        };
 
         trace!("add_expr ret {ret:?}");
         ret
@@ -166,6 +179,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // e.g. [f(a, b), f(b, a)] might have shape [f(a, b), f(a, b)]
         // this does not maintain the deduplicate invariant
         let mut enode = enode.clone();
+        enode = enode.sorted(self.canonAppIdsCache());
         let bij = self.shapeMut(&mut enode);
 
         let addedId = self.add_internal(&(enode, bij));

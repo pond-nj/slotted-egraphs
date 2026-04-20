@@ -999,17 +999,18 @@ pub fn sortAppId(
     dedup: bool,
     _: &CanonAppIdsCache,
 ) -> Vec<AppliedId> {
-    if appIdsOrigs.len() == 0 {
-        return vec![];
-    }
+    // if appIdsOrigs.len() == 0 {
+    //     return vec![];
+    // }
 
-    let mut appIdsSorted = appIdsOrigs.clone();
-    appIdsSorted.sort();
-    if dedup {
-        appIdsSorted.dedup();
-    }
+    // let mut appIdsSorted = appIdsOrigs.clone();
+    // appIdsSorted.sort();
+    // if dedup {
+    //     appIdsSorted.dedup();
+    // }
 
-    appIdsSorted
+    // appIdsSorted
+    appIdsOrigs.clone()
 }
 
 pub fn weakShapeAppIds<L: LanguageChildren>(appIds: &Vec<L>) -> (Vec<L>, SlotMap) {

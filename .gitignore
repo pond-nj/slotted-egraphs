@@ -12,3 +12,4 @@ tmp.txt
 leafDrop_sat_count.txt
 pairingPaper_sat_count.txt
 tests/chc/smt/leafDrop/*
+logs*

@@ -117,10 +117,7 @@ where
             stop_reason: None,
             limits: RunnerLimits {
                 iter_limit: 30,
-                #[cfg(not(feature="nodeLimitHigh"))]
                 node_limit: 10_000,
-                #[cfg(feature="nodeLimitHigh")]
-                node_limit: 1_000_000,
                 time_limit: Duration::from_secs(60),
                 // The start_time is initialized when the Runner is ran
                 start_time: None,

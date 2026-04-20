@@ -7,6 +7,9 @@ use log::debug;
 mod tst;
 pub use tst::*;
 
+mod tst_canonical;
+pub use tst_canonical::*;
+
 mod rewrite;
 pub use rewrite::*;
 

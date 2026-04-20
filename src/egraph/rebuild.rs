@@ -171,12 +171,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             batchCount += 1;
             // TODO: actually can we parallelize this?
             let len = pending_batch.len();
-            for (i, (sh, pending_ty)) in pending_batch.into_iter().enumerate() {
+            for (i, (enodeId, pending_ty)) in pending_batch.into_iter().enumerate() {
                 info!("doing pending {i}/{len}");
-                // TODO: maybe this doesn't need to be translated to L at all
-                let sh = self.getENode(sh).clone();
-                self.handleSorted(&sh);
-                self.handle_pending(&sh, pending_ty);
+
+                // #[cfg(feature = "sortOnRebuild")]
+                // self.handleSorted(enodeId);
+
+                self.handle_pending(enodeId, pending_ty);
             }
 
             // expensive invariants check: run once per batch instead of once per item
@@ -200,13 +201,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         );
     }
 
-    pub fn handleSorted(&mut self, sh: &L) {
+    #[cfg(feature = "sortOnRebuild")]
+    pub fn handleSorted(&mut self, enodeId: ENodeId) {
         trace!("start handleSorted");
         let lenBefore = self.total_number_of_nodes();
-        let enodeId = self.getENodeId(sh).unwrap();
         if self.getHashcons(enodeId).is_none() {
             return;
         }
+        let sh = self.getENode(enodeId);
 
         let i = self.getHashcons(enodeId).unwrap();
 
@@ -236,10 +238,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         trace!("end handleSorted");
     }
 
-    fn handle_pending(&mut self, sh: &L, _pending_ty: PendingType) {
+    fn handle_pending(&mut self, enodeId: ENodeId, _pending_ty: PendingType) {
         trace!("start handle_pending");
-        trace!("handle_pending {sh:?}");
-        let enodeId = self.getENodeId(sh).unwrap();
         if self.getHashcons(enodeId).is_none() {
             return;
         }
@@ -249,6 +249,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // self.eclass(eclassId).unwrap()
             self.dumpEClassStr(eclassId)
         );
+        let sh = self.getENode(enodeId);
 
         /*
         let t = self.shape(&sh);
@@ -265,7 +266,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         //     return;
         // }
 
-        trace!("handle pending sh {sh:?}");
+        // trace!("handle pending sh {sh:?}");
         trace!("handle_pending eclassId {eclassId:?}");
         let psn = self.classes[&eclassId].nodes[&enodeId].clone();
         trace!("psn {psn:?}");

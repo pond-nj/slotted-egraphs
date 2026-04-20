@@ -4,6 +4,9 @@ use env_logger::Builder;
 use log::{debug, LevelFilter};
 
 static _INIT_LOGGER: Once = Once::new();
+#[cfg(not(feature = "log"))]
+const LOG: bool = false;
+#[cfg(feature = "log")]
 const LOG: bool = true;
 
 pub fn initLogger() {

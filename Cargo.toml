@@ -14,19 +14,23 @@ newShape = []
 newSymCal = []
 originalPrint = []
 callZ3CheckUnsatConstr = []
-useMut = []
 parallelAdd = []
 sortENodesByNT = []
 tmp = []
-nodeLimitHigh = []
+mergeSortOnAdd = []
+sortOnRebuild = []
+adtDefine = []
+pairingDefine = []
+log = []
 default = [
-    "newShape",
+    # "newShape",
     # "newSymCal",
     # "callZ3CheckUnsatConstr",
-    "sortENodesByNT",
-    "nodeLimitHigh",
+    # "sortENodesByNT",
     # "parallelAdd",
     # "checks",
+    # "adtDefine",
+    "log",
     "tmp",
 ]
 # default = ["newShape", "newSymCal", "callZ3CheckUnsatConstr"]

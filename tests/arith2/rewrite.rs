@@ -6,7 +6,7 @@ pub fn get_all_rewrites2() -> Vec<Rewrite<Arith2>> {
         add_assoc2(),
         add_long(),
         add_long_expand(),
-        add_long_sort(),
+        add_long_permute(),
     ]
 }
 
@@ -72,10 +72,10 @@ fn add_long_expand() -> Rewrite<Arith2> {
     .into()
 }
 
-fn add_long_sort() -> Rewrite<Arith2> {
+fn add_long_permute() -> Rewrite<Arith2> {
     let pat = "(addLong <(add ?a ?b) *0>)";
     RewriteT {
-        name: "add-long-sort".to_owned(),
+        name: "add-long-permute".to_owned(),
         searcher: Box::new(move |eg| {}),
         applier: Box::new(move |(), eg| {
             let ids = eg.ids();
@@ -92,7 +92,7 @@ fn add_long_sort() -> Rewrite<Arith2> {
                     let permuteChildren = permute_iter(&children);
 
                     for mut children in permuteChildren {
-                        children.sort();
+                        // children.sort();
 
                         let newENode = Arith2::AddLong(children.into());
                         let newENodeId = eg.add(&newENode);
