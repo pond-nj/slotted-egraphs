@@ -3,7 +3,7 @@ use log::{info, trace};
 use super::*;
 
 // fn createDummy(predName: &str, args: &Vec<String>, props: &BTreeMap<String, PredProp>) -> String {
-//     let syntax = format!("(pred <{}>)", args.join(" "));
+//     let syntax = format!("(head <{}>)", args.join(" "));
 //     format!(
 //         "(composeInit {predName} {syntax} ({}) <{}>)",
 //         props.get(predName).unwrap().functional,

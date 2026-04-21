@@ -593,7 +593,7 @@ impl PredApp {
         assert!(self.args.isAllVar());
 
         format!(
-            "(pred <{}>)",
+            "(head <{}>)",
             self.args
                 .iter()
                 .map(|a| a.toSExpr(typeMap))
@@ -604,9 +604,9 @@ impl PredApp {
 
     pub fn toTailSExpr(&self, props: &PredProp, typeMap: &BTreeMap<CHCVar, ArgType>) -> String {
         let predName = self.pred_name.clone();
-        let syntax = self.toHeadSExpr(typeMap);
+        let head = self.toHeadSExpr(typeMap);
         format!(
-            "(composeInit {predName} {syntax} ({}) <{}>)",
+            "(composeInit {predName} {head} ({}) <{}>)",
             props.functional,
             props
                 .outputIdx

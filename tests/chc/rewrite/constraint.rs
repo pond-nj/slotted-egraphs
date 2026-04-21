@@ -64,7 +64,7 @@ pub fn expandEqRewrite(
         return constrENode.clone();
     }
 
-    let CHC::New(syntax, _, newENodeChildren) = originalNewENode.clone() else {
+    let CHC::New(head, _, newENodeChildren) = originalNewENode.clone() else {
         panic!();
     };
 
@@ -72,7 +72,7 @@ pub fn expandEqRewrite(
         newConstraintChildren.into_iter().collect();
 
     let (_, newConstraint, newConstraintAppId) = sortNewENode2(
-        &syntax,
+        &head,
         &newConstraintChildren,
         &newENodeChildren,
         #[cfg(not(feature = "parallelAdd"))]
@@ -171,12 +171,12 @@ pub fn constructorEqRewrite(
         }
     }
 
-    let CHC::New(syntax, _, newENodeChildren) = originalNewENode.clone() else {
+    let CHC::New(head, _, newENodeChildren) = originalNewENode.clone() else {
         panic!();
     };
 
     let (_, newConstraint, newConstraintAppId) = sortNewENode2(
-        &syntax,
+        &head,
         &andChildren.into_iter().collect(),
         &newENodeChildren,
         #[cfg(not(feature = "parallelAdd"))]
@@ -445,15 +445,15 @@ pub fn dedupFromEqRewrite(
         panic!();
     };
 
-    let CHC::New(syntax, _, newChildren) = &newENode else {
+    let CHC::New(head, _, newChildren) = &newENode else {
         panic!();
     };
 
     // get eqMapping
-    let eqMapping = getEqMapping(&andChildrenOrig, &syntax.slots(), eg);
+    let eqMapping = getEqMapping(&andChildrenOrig, &head.slots(), eg);
 
     // should not rewrite head variables into something else
-    for s in syntax.slots() {
+    for s in head.slots() {
         assert!(!eqMapping.contains_key(s));
     }
     let updatedConstrChildren = rewriteConstraintFromEqMapping(&andChildrenOrig, &eqMapping, eg);
@@ -464,7 +464,7 @@ pub fn dedupFromEqRewrite(
     let updatedNewChildren = rewriteChildrenFromEqMapping(newChildren, &eqMapping, eg);
 
     let (updatedNew, newConstraint, newConstraintAppId) = sortNewENode2(
-        syntax,
+        head,
         &updatedConstrChildren,
         &updatedNewChildren,
         #[cfg(not(feature = "parallelAdd"))]

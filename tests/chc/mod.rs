@@ -49,7 +49,7 @@ define_language! {
 
         // TODO: actually, we don't need this
         // wouldn't sort this
-        PredSyntax(Vec<AppliedId>) = "pred",
+        Head(Vec<AppliedId>) = "head",
         // TODO: if we change new enode predicate body, would it be better for sorting?
         New(AppliedId, AppliedId, OrderVec<AppliedIdOrStar>) = "new",
         Compose(OrderVec<AppliedIdOrStar>) = "compose",
@@ -77,7 +77,7 @@ define_language! {
 
         Number(u32),
 
-        // (composeInit predName syntax functional outputIdx)
+        // (composeInit predName head functional outputIdx)
         // use to create empty compose eclass for recursive definition
         ComposeInit(AppliedId, AppliedId, AppliedId, OrderVec<AppliedId>) = "composeInit",
         PredName(String),
@@ -115,12 +115,12 @@ pub fn getSingleENode(eclassId: &Id, eg: &CHCEGraph) -> CHC {
 
 fn weakShapeCHC(enode: &CHC) -> (CHC, SlotMap) {
     match enode {
-        CHC::New(syntax, cond, children) => {
+        CHC::New(head, cond, children) => {
             let m = &mut (slotted_egraphs::SlotMap::new(), 0);
 
-            // syntax first
-            let mut updatedSyntax = syntax.clone();
-            updatedSyntax.weak_shape_impl(m);
+            // head first
+            let mut updatedHead = head.clone();
+            updatedHead.weak_shape_impl(m);
 
             // children next
             let mut updatedChildren = children.clone();
@@ -131,7 +131,7 @@ fn weakShapeCHC(enode: &CHC) -> (CHC, SlotMap) {
             updatedCond.weak_shape_impl(m);
 
             (
-                CHC::New(updatedSyntax, updatedCond, updatedChildren),
+                CHC::New(updatedHead, updatedCond, updatedChildren),
                 m.0.inverse(),
             )
         }

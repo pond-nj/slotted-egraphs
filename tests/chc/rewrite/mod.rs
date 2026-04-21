@@ -150,13 +150,13 @@ macro_rules! checkVarType {
 macro_rules! checkNewENode {
     ($enode: expr, $eg: expr) => {
         if CHECKS {
-            let (syntax, cond, children) = match &$enode {
-                CHC::New(syntax, cond, children) => (syntax, cond, children),
+            let (head, cond, children) = match &$enode {
+                CHC::New(head, cond, children) => (head, cond, children),
                 _ => panic!(),
             };
 
             let mut found = false;
-            for s in syntax.m.values_set() {
+            for s in head.m.values_set() {
                 if cond.m.values_set().contains(&s) {
                     found = true;
                     continue;
@@ -170,7 +170,7 @@ macro_rules! checkNewENode {
                 }
             }
 
-            if !found && syntax.m.values_set().len() != 0 {
+            if !found && head.m.values_set().len() != 0 {
                 warn!(
                     "alert enode, head var not in body = {:?}",
                     $enode.weak_shape().0
@@ -184,9 +184,9 @@ macro_rules! checkNewENode {
 
 #[macro_export]
 macro_rules! checkNewENodeComponent {
-    ($syntax:expr, $cond:expr, $children:expr) => {
+    ($head:expr, $cond:expr, $children:expr) => {
         let mut found = false;
-        for s in $syntax.m.values_set() {
+        for s in $head.m.values_set() {
             for condChild in $cond {
                 if condChild.getAppliedId().m.values_set().contains(&s) {
                     found = true;
@@ -201,11 +201,11 @@ macro_rules! checkNewENodeComponent {
                 }
             }
         }
-        if !found && $syntax.m.values_set().len() != 0 {
+        if !found && $head.m.values_set().len() != 0 {
             warn!("alert var in head not not in body");
             // warn!(
-            //     "syntax = {:?}, cond = {:?}, children = {:?}",
-            //     $syntax, $cond, $children
+            //     "head = {:?}, cond = {:?}, children = {:?}",
+            //     $head, $cond, $children
             // );
         }
     };
@@ -288,7 +288,7 @@ fn functionalityTransformationApply<'a>(
             checkNewENode!(newENode, &getEg(eg));
         }
 
-        let CHC::New(syntax, andAppId, unfoldedChildren) = newENode.clone() else {
+        let CHC::New(head, andAppId, unfoldedChildren) = newENode.clone() else {
             panic!();
         };
 
@@ -402,7 +402,7 @@ fn functionalityTransformationApply<'a>(
             .collect();
 
         let (updatedNewENode, newAnd, newAndAppId) = sortNewENode2(
-            &syntax,
+            &head,
             &newAndChildren,
             &newUnfoldedChildren,
             #[cfg(not(feature = "parallelAdd"))]
@@ -484,7 +484,7 @@ fn functionalityTransformation(
 
 // TODO: change this to sort by nauty-trace
 fn createSortedDefinedNewENode(
-    syntaxVars: &Vec<Slot>,
+    headVars: &Vec<Slot>,
     children: &OrderVec<AppliedIdOrStar>,
     varTypes: &BTreeMap<Slot, VarType>,
     eg: &mut CHCEGraph,
@@ -501,25 +501,25 @@ fn createSortedDefinedNewENode(
     // $0 -> $f
     let (_, map) = weakShapeAppIds(&sortedChildren);
     let mapInverse = map.inverse();
-    let mut syntaxVars: Vec<_> = syntaxVars.into_iter().map(|s| mapInverse[*s]).collect();
-    syntaxVars.sort();
-    let syntaxVars: Vec<_> = syntaxVars.into_iter().map(|s| map[s]).collect();
+    let mut headVars: Vec<_> = headVars.into_iter().map(|s| mapInverse[*s]).collect();
+    headVars.sort();
+    let headVars: Vec<_> = headVars.into_iter().map(|s| map[s]).collect();
 
-    let syntaxAppId = {
-        let children = syntaxVars
+    let headAppId = {
+        let children = headVars
             .into_iter()
             .map(|s| getVarAppId(s, varTypes[&s].clone(), eg))
             .collect::<Vec<_>>();
-        let syntaxENode = CHC::PredSyntax(children.into());
-        eg.add(&syntaxENode)
+        let headENode = CHC::Head(children.into());
+        eg.add(&headENode)
     };
 
     let cond = eg.add(&CHC::And(vec![].into()));
 
     (
-        syntaxAppId.clone(),
+        headAppId.clone(),
         CHC::New(
-            syntaxAppId,
+            headAppId,
             cond,
             sortedChildren
                 .iter()
@@ -531,32 +531,28 @@ fn createSortedDefinedNewENode(
 }
 
 pub fn sortNewENode1(
-    syntaxAppId: &AppliedId,
+    headAppId: &AppliedId,
     condAppId: &AppliedId,
     bodyAppIds: &Vec<AppliedIdOrStar>,
     eg: &mut CHCEGraph,
 ) -> CHC {
     let mut aggrAppId: Vec<_> = bodyAppIds.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.push(condAppId.clone());
-    aggrAppId.push(syntaxAppId.clone());
+    aggrAppId.push(headAppId.clone());
 
     let aggrAppId = sortAppId(&aggrAppId, true, eg.canonAppIdsCache());
 
     let updatedChildren: Vec<_> = aggrAppId
         .into_iter()
-        .filter(|x| x != syntaxAppId && x != condAppId)
+        .filter(|x| x != headAppId && x != condAppId)
         .map(|x| AppliedIdOrStar::AppliedId(x))
         .collect();
 
-    CHC::New(
-        syntaxAppId.clone(),
-        condAppId.clone(),
-        updatedChildren.into(),
-    )
+    CHC::New(headAppId.clone(), condAppId.clone(), updatedChildren.into())
 }
 
 pub fn sortNewENode2<'a>(
-    syntaxAppId: &AppliedId,
+    headAppId: &AppliedId,
     condChildren: &OrderVec<AppliedIdOrStar>,
     predicateChildren: &OrderVec<AppliedIdOrStar>,
     #[cfg(not(feature = "parallelAdd"))] eg: &mut CHCEGraph,
@@ -565,20 +561,20 @@ pub fn sortNewENode2<'a>(
     trace!("doing sortNewENode2");
     let mut aggrAppId: Vec<_> = predicateChildren.iter().map(|a| a.getAppliedId()).collect();
     aggrAppId.extend(condChildren.iter().map(|a| a.getAppliedId()));
-    aggrAppId.push(syntaxAppId.clone());
+    aggrAppId.push(headAppId.clone());
     let aggrAppId = sortAppId(&aggrAppId, true, getEg(eg).canonAppIdsCache());
 
     let condChildrenSet = BTreeSet::from_iter(condChildren.iter().map(|a| a.getAppliedId()));
 
     let sortedPredicateChildren: Vec<_> = aggrAppId
         .iter()
-        .filter(|x| *x != syntaxAppId && !condChildrenSet.contains(x))
+        .filter(|x| *x != headAppId && !condChildrenSet.contains(x))
         .map(|x| AppliedIdOrStar::AppliedId(x.clone()))
         .collect();
 
     let sortedCondChildren: Vec<_> = aggrAppId
         .into_iter()
-        .filter(|x| x != syntaxAppId && condChildrenSet.contains(x))
+        .filter(|x| x != headAppId && condChildrenSet.contains(x))
         .map(|x| AppliedIdOrStar::AppliedId(x))
         .collect();
 
@@ -602,7 +598,7 @@ pub fn sortNewENode2<'a>(
     trace!("done sortNewENode2");
     (
         CHC::New(
-            syntaxAppId.clone(),
+            headAppId.clone(),
             condAppId.clone(),
             sortedPredicateChildren.into(),
         ),

@@ -184,7 +184,7 @@ impl DefineHelper {
 }
 
 struct DefineInfo {
-    syntax: Vec<Slot>,
+    head: Vec<Slot>,
     newBody: Vec<AppliedId>,
     positions: Vec<usize>,
     tag: String,
@@ -194,7 +194,7 @@ fn doADTDefine(
     childAppIds: &Vec<AppliedIdOrStar>,
     mergeVarTypes: &BTreeMap<Slot, VarType>,
     eclassId: Id,
-    syntaxAndNewBody: &mut Vec<DefineInfo>,
+    headAndNewBody: &mut Vec<DefineInfo>,
     stats: &DefineStats,
 ) {
     let mut varToChildIdx: BTreeMap<Slot, Vec<usize>> = BTreeMap::default();
@@ -255,8 +255,8 @@ fn doADTDefine(
             .collect::<Vec<_>>();
 
         *stats.getAdtDefineMut() += 1;
-        syntaxAndNewBody.push(DefineInfo {
-            syntax: basicVars,
+        headAndNewBody.push(DefineInfo {
+            head: basicVars,
             newBody,
             positions,
             tag: format!("ADTon{eclassId}"),
@@ -267,7 +267,7 @@ fn doADTDefine(
 fn doPairingDefine(
     childAppIds: &Vec<AppliedIdOrStar>,
     eclassId: Id,
-    syntaxAndNewBody: &mut Vec<DefineInfo>,
+    headAndNewBody: &mut Vec<DefineInfo>,
     stats: &DefineStats,
 ) {
     for (i, childAppId1) in childAppIds.iter().enumerate() {
@@ -275,16 +275,16 @@ fn doPairingDefine(
         for (j, childAppId2) in childAppIds[i + 1..].iter().enumerate() {
             let childAppId2 = childAppId2.getAppliedId();
             let group = vec![i, j + i + 1];
-            let mut syntax = vec![];
+            let mut head = vec![];
             for var in childAppId1.slots() {
-                syntax.push(var);
+                head.push(var);
             }
             for var in childAppId2.slots() {
-                syntax.push(var);
+                head.push(var);
             }
             *stats.getPairingDefineMut() += 1;
-            syntaxAndNewBody.push(DefineInfo {
-                syntax,
+            headAndNewBody.push(DefineInfo {
+                head,
                 newBody: vec![childAppId1.clone(), childAppId2.clone()],
                 positions: group,
                 tag: format!(
@@ -301,7 +301,7 @@ fn prepareDefines(
     mergeVarTypes: &BTreeMap<Slot, VarType>,
     options: &RewriteOption,
     eclassId: Id,
-    syntaxAndNewBody: &mut Vec<DefineInfo>,
+    headAndNewBody: &mut Vec<DefineInfo>,
     eg: &CHCEGraph,
     stats: &DefineStats,
 ) {
@@ -311,24 +311,18 @@ fn prepareDefines(
     };
 
     if options.doADTDefine {
-        doADTDefine(
-            childAppIds,
-            mergeVarTypes,
-            eclassId,
-            syntaxAndNewBody,
-            stats,
-        );
+        doADTDefine(childAppIds, mergeVarTypes, eclassId, headAndNewBody, stats);
     }
 
     // pairing
     // only support two predicates now
     if options.doPairingDefine {
-        doPairingDefine(childAppIds, eclassId, syntaxAndNewBody, stats);
+        doPairingDefine(childAppIds, eclassId, headAndNewBody, stats);
     }
 }
 
 fn unfoldNewDefine<'a>(
-    syntax: &Vec<Slot>,
+    head: &Vec<Slot>,
     sortedNewBody: &Vec<AppliedIdOrStar>,
     sortedToBeFoldShape: Vec<AppliedIdOrStar>,
     map: &SlotMap,
@@ -344,23 +338,23 @@ fn unfoldNewDefine<'a>(
     // define
     let definedENode = {
         let mapInverse = map.inverse();
-        let mut syntaxVarsNormalized: Vec<_> = syntax.into_iter().map(|s| mapInverse[*s]).collect();
+        let mut headVarsNormalized: Vec<_> = head.into_iter().map(|s| mapInverse[*s]).collect();
         // sort according to order in weakshape (ordered by nauty-trace)
-        syntaxVarsNormalized.sort();
-        let syntaxVars: Vec<_> = syntaxVarsNormalized.into_iter().map(|s| map[s]).collect();
+        headVarsNormalized.sort();
+        let headVars: Vec<_> = headVarsNormalized.into_iter().map(|s| map[s]).collect();
 
         let egMut = &mut getEgMut(eg);
-        let syntaxAppId = {
-            let children = syntaxVars
+        let headAppId = {
+            let children = headVars
                 .into_iter()
                 .map(|s| getVarAppId(s, mergeVarTypes[&s].clone(), egMut))
                 .collect::<Vec<_>>();
-            let syntaxENode = CHC::PredSyntax(children.into());
-            egMut.add(&syntaxENode)
+            let headENode = CHC::Head(children.into());
+            egMut.add(&headENode)
         };
 
         let cond = egMut.add(&CHC::And(vec![].into()));
-        CHC::New(syntaxAppId, cond, sortedNewBody.clone().into())
+        CHC::New(headAppId, cond, sortedNewBody.clone().into())
     };
 
     // unfold
@@ -524,28 +518,28 @@ pub fn defineApply(
             };
 
             // divide body into blocks
-            let mut syntaxAndNewBody: Vec<DefineInfo> = vec![];
+            let mut headAndNewBody: Vec<DefineInfo> = vec![];
             {
                 prepareDefines(
                     &origNewENode,
                     &mergeVarTypes,
                     &options,
                     eclassId,
-                    &mut syntaxAndNewBody,
+                    &mut headAndNewBody,
                     &getEg(eg),
                     stats,
                 );
             }
 
             // for each group/sharing block, define new chc
-            // syntax can be in any order
+            // head can be in any order
             // newBody can be in any order
             for DefineInfo {
-                syntax,
+                head,
                 newBody,
                 positions,
                 tag,
-            } in syntaxAndNewBody
+            } in headAndNewBody
             {
                 let sortedNewBody: Vec<AppliedIdOrStar> = {
                     sortAppId(&newBody, true, getEg(eg).canonAppIdsCache())
@@ -567,7 +561,7 @@ pub fn defineApply(
 
                 if savedDefineAppId.is_none() {
                     savedDefineAppId = Some(unfoldNewDefine(
-                        &syntax,
+                        &head,
                         &sortedNewBody,
                         sortedToBeFoldShape,
                         &map,
