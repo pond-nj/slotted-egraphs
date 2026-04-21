@@ -1,10 +1,10 @@
 # RUST_BACKTRACE=1 cargo test chc::leafDrop::mainTest -- --nocapture &> tmp.txt
-# RUST_BACKTRACE=full cargo test chc::leafDrop2::mainTest -- --nocapture &> tmp.txt
+RUST_BACKTRACE=full cargo test chc::leafDrop2::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test chc::pairingPaperArray::mainTest -- --nocapture &> tmp.txt
 # RUST_BACKTRACE=1 cargo test --release arith2::tst::t7 -- --nocapture &> tmp.txt
 # cargo test --release --test entry chc::leafDrop2::mainTest --features log,adtDefine -- --test-threads=1 --nocapture &> tmp.txt
 # cargo test --release --test entry chc::pairingPaperArray::mainTest --features log,adtDefine,pairingDefine -- --test-threads=1 --nocapture &> tmp.txt
-RUST_BACKTRACE=1 cargo test chc::synchronizedCHC::mainTest -- --nocapture &> tmp.txt
+# RUST_BACKTRACE=1 cargo test chc::synchronizedCHC::mainTest -- --nocapture &> tmp.txt
 # RUST_LOG=debug RUST_BACKTRACE=1 cargo test chc::leafDrop::testSortAppId -- --nocapture &> tmp.txt
  
 # RUST_LOG=debug RUST_BACKTRACE=1 cargo test tmptest -- --nocapture &> tmp2 

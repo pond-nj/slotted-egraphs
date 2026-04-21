@@ -33,10 +33,10 @@ pub fn dumpCHCEClass(
 
     for node in eclassNodes {
         print!(" - {node:?}\n");
-        let (sh, m) = node.weak_shape();
-        print!(" >-  {sh:?}\n");
-        let (sh, m) = weakShapeCHC(&node);
-        print!(" - or  {sh:?}\n");
+        // let (sh, m) = node.weak_shape();
+        // print!(" >-  {sh:?}\n");
+        // let (sh, m) = weakShapeCHC(&node);
+        // print!(" - or  {sh:?}\n");
     }
     let permute = eg.getSlotPermutation(&i);
     for p in permute {
