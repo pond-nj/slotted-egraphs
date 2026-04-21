@@ -238,7 +238,7 @@ pub enum UnfoldOpType {
 fn addToUnfoldList(unfoldHelper: &UnfoldHelper, toBeUnfolded: UnfoldListElement) {
     trace!("pushing to unfoldList {:?}", toBeUnfolded.getShape().0);
 
-    let CHC::New(_, _, new1Children) = &toBeUnfolded.targetNew1ENodeShape else {
+    let CHC::Clause(_, _, new1Children) = &toBeUnfolded.targetNew1ENodeShape else {
         panic!();
     };
 
@@ -300,7 +300,7 @@ pub fn prepareUnfold(
     eg: &CHCEGraph,
 ) {
     let (syntax1, cond1, new1Children) = match new1ENode.clone() {
-        CHC::New(syntax1, cond1, new1Children) => (syntax1, cond1, new1Children),
+        CHC::Clause(syntax1, cond1, new1Children) => (syntax1, cond1, new1Children),
         _ => panic!(),
     };
 
@@ -335,7 +335,7 @@ pub fn prepareUnfold(
                 assert!(new2Vec.len() > 0);
                 for new2 in new2Vec {
                     checkNewENode!(new2, &eg);
-                    let CHC::New(syntax2, cond2, new2Children) = new2 else {
+                    let CHC::Clause(syntax2, cond2, new2Children) = new2 else {
                         panic!();
                     };
 

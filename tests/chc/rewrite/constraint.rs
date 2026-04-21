@@ -64,7 +64,7 @@ pub fn expandEqRewrite(
         return constrENode.clone();
     }
 
-    let CHC::New(head, _, newENodeChildren) = originalNewENode.clone() else {
+    let CHC::Clause(head, _, newENodeChildren) = originalNewENode.clone() else {
         panic!();
     };
 
@@ -171,7 +171,7 @@ pub fn constructorEqRewrite(
         }
     }
 
-    let CHC::New(head, _, newENodeChildren) = originalNewENode.clone() else {
+    let CHC::Clause(head, _, newENodeChildren) = originalNewENode.clone() else {
         panic!();
     };
 
@@ -445,7 +445,7 @@ pub fn dedupFromEqRewrite(
         panic!();
     };
 
-    let CHC::New(head, _, newChildren) = &newENode else {
+    let CHC::Clause(head, _, newChildren) = &newENode else {
         panic!();
     };
 

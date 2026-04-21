@@ -48,11 +48,11 @@ fn testSortAppId() {
             // test permute and sorted is the same
             for enode in runner.egraph.enodes(id) {
                 match enode {
-                    CHC::New(head, cond, children) => {
+                    CHC::Clause(head, cond, children) => {
                         let sortedENode =
                             sortNewENode1(&head, &cond, &children, &mut runner.egraph);
                         for permuteChildren in permute_iter(&children) {
-                            let permuteENode = CHC::New(
+                            let permuteENode = CHC::Clause(
                                 head.clone(),
                                 cond.clone(),
                                 permuteChildren.clone().into(),

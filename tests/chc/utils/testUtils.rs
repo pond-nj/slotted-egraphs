@@ -34,7 +34,7 @@ pub fn checkSelfCycle(eg: &CHCEGraph) {
                     };
 
                     for newENode in eg.enodes(child.id) {
-                        let CHC::New(head, constr, predChildren) = newENode else {
+                        let CHC::Clause(head, constr, predChildren) = newENode else {
                             panic!();
                         };
 

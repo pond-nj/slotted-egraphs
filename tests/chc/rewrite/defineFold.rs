@@ -306,7 +306,7 @@ fn prepareDefines(
     stats: &DefineStats,
 ) {
     // ADT
-    let CHC::New(origSyntaxAppId, origConstrAppId, childAppIds) = &origNewENode else {
+    let CHC::Clause(origSyntaxAppId, origConstrAppId, childAppIds) = &origNewENode else {
         panic!();
     };
 
@@ -354,7 +354,7 @@ fn unfoldNewDefine<'a>(
         };
 
         let cond = egMut.add(&CHC::And(vec![].into()));
-        CHC::New(headAppId, cond, sortedNewBody.clone().into())
+        CHC::Clause(headAppId, cond, sortedNewBody.clone().into())
     };
 
     // unfold
@@ -506,7 +506,7 @@ pub fn defineApply(
                 doneDefinedList.insert(origENodeShape.clone());
             }
 
-            let CHC::New(origSyntaxAppId, origConstrAppId, bodyAppIds) = &origNewENode else {
+            let CHC::Clause(origSyntaxAppId, origConstrAppId, bodyAppIds) = &origNewENode else {
                 continue;
             };
 

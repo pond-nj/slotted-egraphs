@@ -207,7 +207,7 @@ pub fn getExprRecur(
 
         let mut typeMap = getConstrTypes(rule, props, chcs);
         let expr = format!(
-            "(new {} {} {})",
+            "(clause {} {} {})",
             rule.head.toHeadSExpr(&typeMap),
             format!(
                 "(and <{}>)",
@@ -264,7 +264,7 @@ pub fn getPredExpr(
 
         let mut typeMap = getConstrTypes(&rule, props, chcs);
         let expr = format!(
-            "(new {} {} {})",
+            "(clause {} {} {})",
             rule.head.toHeadSExpr(&typeMap),
             format!(
                 "(and <{}>)",

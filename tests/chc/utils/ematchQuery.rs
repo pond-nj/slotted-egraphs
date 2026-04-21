@@ -153,7 +153,7 @@ fn ematchQueryCheckEnodeAndChildren(
 
             allSetOfChildren.extend(childrenPermute);
         }
-        CHC::New(..) => {
+        CHC::Clause(..) => {
             let childrenPermute = permute_iter(&patternChildren[2..]);
 
             if childrenPermute.len() == 0 {

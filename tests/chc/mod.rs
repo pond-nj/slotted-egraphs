@@ -51,7 +51,7 @@ define_language! {
         // wouldn't sort this
         Head(Vec<AppliedId>) = "head",
         // TODO: if we change new enode predicate body, would it be better for sorting?
-        New(AppliedId, AppliedId, OrderVec<AppliedIdOrStar>) = "new",
+        Clause(AppliedId, AppliedId, OrderVec<AppliedIdOrStar>) = "clause",
         Compose(OrderVec<AppliedIdOrStar>) = "compose",
         True() = "true",
         False() = "false",
@@ -115,7 +115,7 @@ pub fn getSingleENode(eclassId: &Id, eg: &CHCEGraph) -> CHC {
 
 fn weakShapeCHC(enode: &CHC) -> (CHC, SlotMap) {
     match enode {
-        CHC::New(head, cond, children) => {
+        CHC::Clause(head, cond, children) => {
             let m = &mut (slotted_egraphs::SlotMap::new(), 0);
 
             // head first
@@ -131,7 +131,7 @@ fn weakShapeCHC(enode: &CHC) -> (CHC, SlotMap) {
             updatedCond.weak_shape_impl(m);
 
             (
-                CHC::New(updatedHead, updatedCond, updatedChildren),
+                CHC::Clause(updatedHead, updatedCond, updatedChildren),
                 m.0.inverse(),
             )
         }

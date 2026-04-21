@@ -292,7 +292,7 @@ pub fn makeSatStatus(enode: &CHC, eg: &CHCEGraph) -> SatStatus {
             }
             satStatus
         }
-        CHC::New(_, constr, bodies) => {
+        CHC::Clause(_, constr, bodies) => {
             let mut satStatus = SatStatus::Unknown;
 
             satStatus = satStatus.and(&eg.analysis_data(constr.id).satStatus);

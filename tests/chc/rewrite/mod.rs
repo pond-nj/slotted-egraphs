@@ -151,7 +151,7 @@ macro_rules! checkNewENode {
     ($enode: expr, $eg: expr) => {
         if CHECKS {
             let (head, cond, children) = match &$enode {
-                CHC::New(head, cond, children) => (head, cond, children),
+                CHC::Clause(head, cond, children) => (head, cond, children),
                 _ => panic!(),
             };
 
@@ -288,7 +288,7 @@ fn functionalityTransformationApply<'a>(
             checkNewENode!(newENode, &getEg(eg));
         }
 
-        let CHC::New(head, andAppId, unfoldedChildren) = newENode.clone() else {
+        let CHC::Clause(head, andAppId, unfoldedChildren) = newENode.clone() else {
             panic!();
         };
 
@@ -518,7 +518,7 @@ fn createSortedDefinedNewENode(
 
     (
         headAppId.clone(),
-        CHC::New(
+        CHC::Clause(
             headAppId,
             cond,
             sortedChildren
@@ -548,7 +548,7 @@ pub fn sortNewENode1(
         .map(|x| AppliedIdOrStar::AppliedId(x))
         .collect();
 
-    CHC::New(headAppId.clone(), condAppId.clone(), updatedChildren.into())
+    CHC::Clause(headAppId.clone(), condAppId.clone(), updatedChildren.into())
 }
 
 pub fn sortNewENode2<'a>(
@@ -597,7 +597,7 @@ pub fn sortNewENode2<'a>(
 
     trace!("done sortNewENode2");
     (
-        CHC::New(
+        CHC::Clause(
             headAppId.clone(),
             condAppId.clone(),
             sortedPredicateChildren.into(),

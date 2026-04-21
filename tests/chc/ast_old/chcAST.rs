@@ -631,7 +631,7 @@ impl CHCRule {
             );
         }
         format!(
-            "(new {} {} {})",
+            "(clause {} {} {})",
             self.head.toHeadSExpr(typeMap),
             format!(
                 "(and <{}>)",

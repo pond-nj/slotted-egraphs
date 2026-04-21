@@ -24,7 +24,7 @@ fn minCHC(x: &str, y: &str, z: &str, eg: &mut CHCEGraph) -> AppliedId {
     let headAppId = eg.addExpr(&head);
     // min(X,Y,Z) <- X< Y, Z=X
     let cond1 = format!("(and <(lt {x} {y}) (eq {z} {x})>)");
-    let chc1 = format!("(new {head} {cond1} <>)");
+    let chc1 = format!("(clause {head} {cond1} <>)");
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &headAppId.slots(), ());
     let varTypeAfterShrink = getVarTypesAfterShrinked(&chc1AppId, &headAppId.slots(), eg);
@@ -34,7 +34,7 @@ fn minCHC(x: &str, y: &str, z: &str, eg: &mut CHCEGraph) -> AppliedId {
 
     // min(X,Y,Z) <- X >= Y, Z=Y
     let cond2 = format!("(and <(geq {x} {y}) (eq {z} {y})>)");
-    let chc2 = format!("(new {head} {cond2} <>)");
+    let chc2 = format!("(clause {head} {cond2} <>)");
     let chc2AppId = eg.addExpr(&chc2);
     eg.shrink_slots(&chc2AppId, &headAppId.slots(), ());
     let varTypeAfterShrink = getVarTypesAfterShrinked(&chc2AppId, &headAppId.slots(), eg);
@@ -71,7 +71,7 @@ fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedI
 
     // min-leaf(X,Y) <- X=leaf, Y=0
     let cond1 = format!("(and <(eq {y} 0) (eq {x} (leaf))>)");
-    let chc1 = format!("(new {head} {cond1} <>)");
+    let chc1 = format!("(clause {head} {cond1} <>)");
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &headAppId.slots(), ());
     let varTypeAfterShrink = getVarTypesAfterShrinked(&chc1AppId, &headAppId.slots(), eg);
@@ -82,7 +82,7 @@ fn minLeafCHC(x: &str, y: &str, count: &mut u32, eg: &mut CHCEGraph) -> AppliedI
     // min-leaf(X,Y) <- X=node(A,L,R), Y=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
     let cond2 = format!("(and <(eq {x} (binode {a} {l} {r})) (eq {y} (add {m3} 1))>)");
     let chc2 = format!(
-        "(new {head} {cond2} <{} {} {}>)",
+        "(clause {head} {cond2} <{} {} {}>)",
         minLeafDummy(&l, &m1),
         minLeafDummy(&r, &m2),
         minDummy(&m1, &m2, &m3)
@@ -120,7 +120,7 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     // it is not always the case that variable in the head will appear in the body.
     // left-drop(x,y,z) ← y=leaf, z=leaf
     let cond1 = format!("(and <(eq {y} (leaf)) (eq {z} (leaf))>)");
-    let chc1 = format!("(new {head} {cond1} <>)");
+    let chc1 = format!("(clause {head} {cond1} <>)");
     let chc1AppId = eg.addExpr(&chc1);
     eg.shrink_slots(&chc1AppId, &headAppId.slots(), ());
     let varTypeAfterShrink = getVarTypesAfterShrinked(&chc1AppId, &headAppId.slots(), eg);
@@ -134,7 +134,7 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     let a = generateVarFromCount(count, VarType::Int);
     let cond2 =
         format!("(and <(leq {x} 0) (eq {y} (binode {a} {l} {r})) (eq {z} (binode {a} {l} {r}))>)");
-    let chc2 = format!("(new {head} {cond2} <>)");
+    let chc2 = format!("(clause {head} {cond2} <>)");
     let chc2AppId = eg.addExpr(&chc2);
     eg.shrink_slots(&chc2AppId, &headAppId.slots(), ());
     let varTypeAfterShrink = getVarTypesAfterShrinked(&chc2AppId, &headAppId.slots(), eg);
@@ -149,7 +149,7 @@ fn leafDropCHC(x: &str, y: &str, z: &str, count: &mut u32, eg: &mut CHCEGraph) -
     let n1 = generateVarFromCount(count, VarType::Int);
     let cond3 =
         format!("(and <(eq {y} (binode {a1} {l1} {r1})) (geq {x} 1) (eq {n1} (minus {x} 1))>)");
-    let chc3 = format!("(new {head} {cond3} <{}>)", leafDropDummy(&n1, &l1, z));
+    let chc3 = format!("(clause {head} {cond3} <{}>)", leafDropDummy(&n1, &l1, z));
     let chc3AppId = eg.addExpr(&chc3);
     eg.shrink_slots(&chc3AppId, &headAppId.slots(), ());
     let varTypeAfterShrink = getVarTypesAfterShrinked(&chc3AppId, &headAppId.slots(), eg);
@@ -176,7 +176,7 @@ fn rootCHC(n: &str, m: &str, k: &str, t: &str, u: &str, eg: &mut CHCEGraph) -> A
     let head = "(head <>)";
     let cond = format!("(and <(geq {n} 0) (lt (add {m} {n}) {k})>)");
     let rootCHC: String = format!(
-        "(new {head} {cond} <{} {} {}>)",
+        "(clause {head} {cond} <{} {} {}>)",
         leafDropDummy(n, t, u),
         minLeafDummy(u, m),
         minLeafDummy(t, k)
@@ -251,7 +251,7 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
                 // for eclassId in egraph.ids() {
                 //     for enode in egraph.enodes(eclassId) {
                 //         match enode {
-                //             CHC::New(_, _, children) => {
+                //             CHC::Clause(_, _, children) => {
                 //                 checkDedup(eclassId, &children)?;
                 //             }
                 //             CHC::Compose(children) => {
@@ -381,7 +381,7 @@ fn checkUnfoldNewDefineFoldExists(
 
     // new1(N,K,M) ← T = leaf, U = leaf, min-leaf(U,M), min-leaf(T,K)
     let chc1 = format!(
-        "(new {head} (and <
+        "(clause {head} (and <
 (eq {t} (leaf)) 
 (eq {u} (leaf))>) <{} {}>)",
         minLeafDummy(u, m),
@@ -397,7 +397,7 @@ fn checkUnfoldNewDefineFoldExists(
 
     // new1(N,K,M)← N <= 0 , T = node(a, l, r), U = node(a, l, r), min-leaf(U,M), min-leaf(T,K)
     let chc2 = format!(
-        "(new {head} (and <
+        "(clause {head} (and <
 (leq {n} 0) 
 (eq {t} (binode {a} {l} {r})) 
 (eq {u} (binode {a} {l} {r}))>) <{} {}>)",
@@ -415,7 +415,7 @@ fn checkUnfoldNewDefineFoldExists(
 
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
     let chc3 = format!(
-        "(new {head} (and <
+        "(clause {head} (and <
 (eq {t} (binode {a} {l} {r})) 
 (geq {n} 1) 
 (eq {n1} (minus {n} 1))>) <{} {} {}>)",
@@ -433,7 +433,7 @@ fn checkUnfoldNewDefineFoldExists(
     // false ← N≥0,M+N<K, new1(n, k, m).
     if DO_FOLDING {
         let foldedCHC = format!(
-            "(new (head <>) (and <(geq {n} 0) (lt (add {m} {n}) {k})>) <{}>)",
+            "(clause (head <>) (and <(geq {n} 0) (lt (add {m} {n}) {k})>) <{}>)",
             compose
         );
         let foldedCHCRes = checkResult("foldedCHCRes", &foldedCHC, eg, true);
@@ -476,7 +476,7 @@ fn checkUnfold2NewDefineWithMinLeaf(
     let u = &generateVarFromCount(&mut count, VarType::Node);
 
     let originalCHC = format!(
-        "(new {head} 
+        "(clause {head} 
 (and <(eq {t} (leaf)) 
 (eq {u} (leaf))>) <{} {}>)",
         minLeafDummy(u, m),
@@ -493,7 +493,7 @@ fn checkUnfold2NewDefineWithMinLeaf(
     // unfold_id13_in_id76_using_id55
     // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, min-leaf(T,K)
     let unfoldChc1 = format!(
-        "(new {head} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0)>) <{}>)",
+        "(clause {head} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0)>) <{}>)",
         minLeafDummy(t, k)
     );
     checkResult("unfoldCHC1", &unfoldChc1, eg, true);
@@ -512,7 +512,7 @@ fn checkUnfold2NewDefineWithMinLeaf(
     // unfold_id13_in_id76_using_id60
     // new1(N,K,M)←T = leaf, U = leaf, U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
     let unfoldChc2 = format!(
-        "(new {head} (and <
+        "(clause {head} (and <
 (eq {t} (leaf)) 
 (eq {u} (leaf)) 
 (eq {u} (binode {a} {l} {r})) 
@@ -560,7 +560,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), min-leaf(U,M), min-leaf(T,K)
     let origChc = format!(
-        "(new {head} (and <
+        "(clause {head} (and <
 (leq {n} 0) 
 (eq {t} (binode {a} {l} {r})) 
 (eq {u} (binode {a} {l} {r}))>) <{} {}>)",
@@ -572,7 +572,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     if doConstraintRewrite {
         // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), T = U, min-leaf(U,M), min-leaf(T,K)
         let alterOrigChc1 = format!(
-            "(new {head} (and <
+            "(clause {head} (and <
 (leq {n} 0) 
 (eq {t} (binode {a} {l} {r})) 
 (eq {u} (binode {a} {l} {r})) 
@@ -586,7 +586,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=leaf, M=0 , min-leaf(T,K)
     let chc2 = format!(
-        "(new {head} (and <
+        "(clause {head} (and <
 (leq {n} 0) 
 (eq {t} (binode {a} {l} {r})) 
 (eq {u} (binode {a} {l} {r})) 
@@ -612,7 +612,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         // can be used to test constructorEqRewrite and dedupFromEqRewrite
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), M=M3+1, min-leaf(l,M1), min-leaf(r,M2), min(M1,M2,M3), min-leaf(T,K)
         chc3 = Some(format!(
-            "(new {head} (and <
+            "(clause {head} (and <
 (leq {n} 0)
 (eq {t} (binode {a} {l} {r}))
 (eq {m} (add {m3} 1))>) <{} {} {} {}>)",
@@ -626,7 +626,7 @@ fn checkUnfold21NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), U = node(a, l, r), U=node(a1,l1,r1), M=M3+1,
         //  min-leaf(l1,M1), min-leaf(r1,M2), min(M1,M2,M3), min-leaf(T,K)
         chc3 = Some(format!(
-            "(new {head} (and <
+            "(clause {head} (and <
 (leq {n} 0) 
 (eq {t} (binode {a} {l} {r})) 
 (eq {u} (binode {a} {l} {r})) 
@@ -678,7 +678,7 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
 
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), min-leaf(T,K)
     let chc = format!(
-        "(new {head} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (minus {n} 1))>) <{} {} {}>)",
+        "(clause {head} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (minus {n} 1))>) <{} {} {}>)",
         leafDropDummy(n1, l1, u),
         minLeafDummy(u, m),
         minLeafDummy(t, k)
@@ -687,7 +687,7 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
 
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M), T = leaf, K = 0
     let chc2 = format!(
-        "(new {head} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (minus {n} 1)) (eq {t} (leaf)) (eq {k} 0)>) <{} {}>)",
+        "(clause {head} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (minus {n} 1)) (eq {t} (leaf)) (eq {k} 0)>) <{} {}>)",
         leafDropDummy(n1, l1, u),
         minLeafDummy(u, m),
     );
@@ -703,7 +703,7 @@ fn checkUnfold22NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     // new1(N,K,M)← T = node(a, L, R), N>= 1, N1=N-1, left-drop(N1, L, U), min-leaf(U,M),
     //  T=node(A1,L1,R1), K=M3+1, min-leaf(L1,M1), min-leaf(R1,M2), min(M1,M2,M3)
     let chc3 = format!(
-        "(new {head} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (minus {n} 1)) (eq {t} (binode {a2} {l2} {r2})) (eq {k} (add {m3} 1))>) <{} {} {} {} {}>)",
+        "(clause {head} (and <(eq {t} (binode {a1} {l1} {r1})) (geq {n} 1) (eq {n1} (minus {n} 1)) (eq {t} (binode {a2} {l2} {r2})) (eq {k} (add {m3} 1))>) <{} {} {} {} {}>)",
         leafDropDummy(n1, l1, u),
         minLeafDummy(u, m),
         minLeafDummy(l2, m1),
@@ -743,14 +743,15 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     // unfold_id13_in_id76_using_id55
     // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, min-leaf(T,K)
     let fromUnfoldChc1 = format!(
-        "(new {head} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0)>) <{}>)",
+        "(clause {head} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0)>) <{}>)",
         minLeafDummy(t, k)
     );
     checkResult("fromUnfoldChc1", &fromUnfoldChc1, eg, true);
 
     // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, T = leaf, K = 0
-    let toUnfoldChc1 =
-        format!("(new {head} (and <(eq {u} (leaf)) (eq {m} 0) (eq {t} (leaf)) (eq {k} 0)>) <>)",);
+    let toUnfoldChc1 = format!(
+        "(clause {head} (and <(eq {u} (leaf)) (eq {m} 0) (eq {t} (leaf)) (eq {k} 0)>) <>)",
+    );
     checkResult("toUnfoldChc1", &toUnfoldChc1, eg, true);
 
     let t = &generateVarFromCount(&mut count, VarType::Node);
@@ -763,7 +764,7 @@ fn checkUnfold3NewDefineWithMinLeaf(eg: &mut CHCEGraph) {
     let m3 = &generateVarFromCount(&mut count, VarType::Int);
     // new1(N,K,M)←T = leaf, U = leaf, U = leaf, M = 0, T = node(A,L,R), K=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
     let toUnfoldChc2 = format!(
-        "(new {head} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0) (eq {t} (binode {a} {l} {r})) (eq {k} (add {m3} 1))>) <{} {} {}>)",
+        "(clause {head} (and <(eq {t} (leaf)) (eq {u} (leaf)) (eq {m} 0) (eq {t} (binode {a} {l} {r})) (eq {k} (add {m3} 1))>) <{} {} {}>)",
         minLeafDummy(&l, &m1),
         minLeafDummy(&r, &m2),
         minDummy(&m1, &m2, &m3),
@@ -811,7 +812,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 
     // new1(N,K,M)← N <= 0 , T = node(a, L, R), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), min-leaf(T,K)
     let origChc = format!(
-        "(new {head} 
+        "(clause {head} 
 (and <
 (leq {n} 0) 
 (eq {t} (binode {a} {l} {r})) 
@@ -830,7 +831,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     if doConstraintRewrite {
         // new1(N,K,M)← N <= 0 , T = node(a, L, R), M=M3+1, T=leaf, K=0, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3)
         chc2 = Some(format!(
-            "(new {head} (and <
+            "(clause {head} (and <
     (leq {n} 0)
     (eq {t} (binode {a} {l} {r}))
     (eq {m} (add {m3} 1))
@@ -846,7 +847,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
     } else {
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3), T=leaf, K=0
         chc2 = Some(format!(
-            "(new {head} (and <
+            "(clause {head} (and <
     (leq {n} 0)
     (eq {t} (binode {a} {l} {r}))
     (eq {u} (binode {a} {l} {r}))
@@ -886,7 +887,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), M=M3+1, K=M32+1,
         // min-leaf(l,M1), min-leaf(r,M2), min(M1,M2,M3), min-leaf(l,M12), min-leaf(r,M22), min(M12,M22,M32)
         let alter1Chc3 = format!(
-            "(new {head}
+            "(clause {head}
         (and <
         (leq {n} 0)
         (eq {t} (binode {a} {l} {r}))
@@ -904,7 +905,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 
         // after functionality
         let alter2Chc3 = format!(
-            "(new {head}
+            "(clause {head}
         (and <
         (leq {n} 0)
         (eq {t} (binode {a} {l} {r}))
@@ -923,7 +924,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 
         // after constraint again
         let alter3Chc3 = format!(
-            "(new {head}
+            "(clause {head}
 (and <
 (leq {n} 0)
 (eq {t} (binode {a} {l} {r}))
@@ -940,7 +941,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 
         // after functionality again
         let alter4Chc3 = format!(
-            "(new {head}
+            "(clause {head}
 (and <
 (leq {n} 0)
 (eq {t} (binode {a} {l} {r}))
@@ -957,7 +958,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
 
         // after constraint again, TODO
         // let alter5Chc3 = format!(
-        //     "(new {head}
+        //     "(clause {head}
         // (and <
         // (leq {n} 0)
         // (eq {t} (binode {a} {l} {r}))
@@ -977,7 +978,7 @@ fn checkUnfold31NewDefineWithMinLeaf(doConstraintRewrite: bool, eg: &mut CHCEGra
         // new1(N,K,M)← N <= 0 , T = node(a, l, r), U = node(a, l, r), U=node(A,L,R), M=M3+1, min-leaf(L,M1), min-leaf(R,M2), min(M1,M2,M3),
         // T=node(A2,L2,R2), K=M32+1, min-leaf(L2,M12), min-leaf(R2,M22), min(M12,M22,M32)
         let chc3 = format!(
-            "(new {head}
+            "(clause {head}
 (and <
 (leq {n} 0)
 (eq {t} (binode {a} {l} {r}))
