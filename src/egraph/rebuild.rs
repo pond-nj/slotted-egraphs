@@ -249,28 +249,31 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // self.eclass(eclassId).unwrap()
             self.dumpEClassStr(eclassId)
         );
-        let sh = self.getENode(enodeId);
+        let (enode, psn) = {
+            let sh = &self.getENode(enodeId);
 
-        /*
-        let t = self.shape(&sh);
-        if t.0 != sh {
-            let psn = self.raw_remove_from_class(i, sh.clone());
-            self.raw_add_to_class(i.id, (t.clone(), todo!());
-        }
-        */
+            /*
+            let t = self.shape(&sh);
+            if t.0 != sh {
+                let psn = self.raw_remove_from_class(i, sh.clone());
+                self.raw_add_to_class(i.id, (t.clone(), todo!());
+            }
+            */
 
-        // self.update_analysis(&sh, i);
+            // self.update_analysis(&sh, i);
 
-        // if let PendingType::OnlyAnalysis = pending_ty {
-        //     debug!("end handling pending at OnlyAnalysis");
-        //     return;
-        // }
+            // if let PendingType::OnlyAnalysis = pending_ty {
+            //     debug!("end handling pending at OnlyAnalysis");
+            //     return;
+            // }
 
-        // trace!("handle pending sh {sh:?}");
-        trace!("handle_pending eclassId {eclassId:?}");
-        let psn = self.classes[&eclassId].nodes[&enodeId].clone();
-        trace!("psn {psn:?}");
-        let enode = &sh.apply_slotmap(&psn.elem);
+            // trace!("handle pending sh {sh:?}");
+            trace!("handle_pending eclassId {eclassId:?}");
+            let psn = self.classes[&eclassId].nodes[&enodeId].clone();
+            trace!("psn {psn:?}");
+            let enode = sh.apply_slotmap(&psn.elem);
+            (enode, psn)
+        };
         self.raw_remove_from_class(eclassId, enodeId);
         let app_i = self.mk_sem_identity_applied_id(eclassId);
 

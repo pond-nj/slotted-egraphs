@@ -30,7 +30,7 @@ default = [
     # "parallelAdd",
     # "checks",
     # "adtDefine",
-    "log",
+    # "log",
     "tmp",
 ]
 # default = ["newShape", "newSymCal", "callZ3CheckUnsatConstr"]

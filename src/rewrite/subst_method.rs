@@ -34,10 +34,14 @@ impl<L: Language, N: Analysis<L>> SubstMethod<L, N> for SynExprSubst {
     ) -> AppliedId {
         let mut calls = BTreeMap::new();
         let term = eg.get_syn_expr(&eg.synify_app_id(b), &mut calls);
-        if term.is_err() {
-            error!("Egraph state {eg}");
-        }
-        let term = term.unwrap();
+        // if term.is_err() {
+        //     error!("Egraph state {eg}");
+        //     eprintln!(
+        //         "get_syn_expr failed: {}\nEGraph state:\n{eg}",
+        //         term.as_ref().unwrap_err()
+        //     );
+        // }
+        // let term = term.unwrap();
         do_term_subst(eg, &term, &x, &t)
     }
 }

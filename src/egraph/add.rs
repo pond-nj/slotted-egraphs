@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    cell::Ref,
+    collections::{BTreeMap, BTreeSet},
+};
 
 use vec_collections::AbstractVecSet;
 
@@ -7,30 +10,36 @@ use log::{debug, info, trace, warn};
 
 // syntactic add:
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
-    pub fn getENode(&self, enodeId: ENodeId) -> &L {
-        let ret = &self.enodes[enodeId.0];
+    pub fn getENode(&self, enodeId: ENodeId) -> Ref<L> {
+        let borrow = self.enodes.borrow();
         if CHECKS {
+            let ret = &borrow[enodeId.0];
             let weakShape = ret.weak_shape().0;
             assert_eq!(ret, &weakShape);
         }
-        ret
+        Ref::map(borrow, |v| &v[enodeId.0])
     }
 
-    pub fn getOrAddENodeId(&mut self, enode: &L) -> ENodeId {
+    pub fn getOrAddENodeId(&self, enode: &L) -> ENodeId {
         if CHECKS {
             let weakShape = enode.weak_shape().0;
             assert_eq!(enode, &weakShape);
         }
 
-        let enodeId = self.enodeWeakShape.get(&enode.weak_shape().0);
+        let enodeId = {
+            let cacheENodes = self.enodeWeakShape.borrow();
+            let enodeId = cacheENodes.get(&enode.weak_shape().0).cloned();
+            enodeId
+        };
         if enodeId.is_some() {
             return enodeId.unwrap().clone();
         }
 
-        let id = self.enodes.len();
+        let id = self.enodes.borrow().len();
         self.enodeWeakShape
+            .borrow_mut()
             .insert(enode.weak_shape().0, ENodeId(id));
-        self.enodes.push(enode.clone());
+        self.enodes.borrow_mut().push(enode.clone());
         ENodeId(id)
     }
 
@@ -39,7 +48,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let weakShape = enode.weak_shape().0;
             assert_eq!(enode, &weakShape);
         }
-        self.enodeWeakShape.get(&enode.weak_shape().0).cloned()
+        self.enodeWeakShape
+            .borrow()
+            .get(&enode.weak_shape().0)
+            .cloned()
     }
 
     pub fn add_syn_expr(&mut self, re: &RecExpr<L>) -> AppliedId {
@@ -267,7 +279,7 @@ lookup weak_shape result in hashcons: {:?}
 
     pub fn lookup(&self, n: &L) -> Option<AppliedId> {
         let (enodeShape, bij) = self.shape(n);
-        let enodeShapeId = self.getENodeId(&enodeShape).unwrap();
+        let enodeShapeId = self.getOrAddENodeId(&enodeShape);
         self.lookup_internal((enodeShapeId, bij))
     }
 
@@ -476,19 +488,22 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert!(tmp1.is_none());
             assert!(tmp2.is_none());
         }
-        let sh = self.getENode(enodeId);
-        //         trace!(
-        //             "insert to hashcons\n
-        // {sh:?}\n
-        // orig {:?}\n
-        // shape {:?}\n
-        // orig_weak_shape {:?}\n
-        //  -> {id:?}",
-        //             sh.apply_slotmap(&bij),
-        //             self.shape(&sh),
-        //             sh.orig_weak_shape()
-        //         );
-        for ref_id in sh.ids() {
+        let ids = {
+            let sh = self.getENode(enodeId);
+            //         trace!(
+            //             "insert to hashcons\n
+            // {sh:?}\n
+            // orig {:?}\n
+            // shape {:?}\n
+            // orig_weak_shape {:?}\n
+            //  -> {id:?}",
+            //             sh.apply_slotmap(&bij),
+            //             self.shape(&sh),
+            //             sh.orig_weak_shape()
+            //         );
+            sh.ids()
+        };
+        for ref_id in ids {
             // if ref_id == Id(46957) {
             //     println!(
             //         "raw_add_to_class enodeId {enodeId:?} enode {sh:?}, use {:?}",
@@ -508,21 +523,23 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     ) -> ProvenSourceNode {
         let opt_psn = self.classes.get_mut(&id).unwrap().nodes.remove(&enodeId);
         let opt_id = self.removeFromHashcons(enodeId);
-        let sh = self.getENode(enodeId);
-
-        trace!(
-            "remove from hashcons\n
+        let ids = {
+            let sh = self.getENode(enodeId);
+            trace!(
+                "remove from hashcons\n
 orig_weak_shape {:?}\n
 {:?}\n
  -> {opt_id:?}",
-            sh.orig_weak_shape(),
-            sh
-        );
+                sh.orig_weak_shape(),
+                sh
+            );
+            sh.ids()
+        };
         if CHECKS {
             assert!(opt_psn.is_some());
             assert!(opt_id.is_some());
         }
-        for ref_id in sh.ids() {
+        for ref_id in ids {
             let usages = &mut self.classes.get_mut(&ref_id).unwrap().usagesMut();
             usages.remove(&enodeId);
         }

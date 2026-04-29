@@ -94,9 +94,9 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     // We delay handling modify so that all invariants can be rebuild again, first.
     modify_queue: Vec<Id>,
 
-    enodes: Vec<L>,
+    enodes: RefCell<Vec<L>>,
 
-    enodeWeakShape: BTreeMap<L, ENodeId>,
+    enodeWeakShape: RefCell<BTreeMap<L, ENodeId>>,
 
     _canonAppIdsCache: CanonAppIdsCache,
 }
@@ -133,8 +133,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             subst_method: Some(S::new_boxed()),
             analysis,
             modify_queue: Vec::new(),
-            enodes: Vec::new(),
-            enodeWeakShape: BTreeMap::new(),
+            enodes: RefCell::new(Vec::new()),
+            enodeWeakShape: RefCell::new(BTreeMap::new()),
             _canonAppIdsCache: CanonAppIdsCache::default(),
         }
     }
@@ -264,7 +264,7 @@ unionfind {} -> {:?}
         for (x, psn) in &class.nodes {
             if CHECKS {
                 let enodeFromX = self.getENode(*x);
-                assert_eq!(self.getENodeId(enodeFromX).unwrap(), *x);
+                assert_eq!(self.getENodeId(&enodeFromX).unwrap(), *x);
             }
             let x = self.getENode(*x);
             let mut x = x.apply_slotmap(&psn.elem);
@@ -476,7 +476,8 @@ unionfind {} -> {:?}
 
         let mut cs = vec![];
         for x in enode.applied_id_occurrences() {
-            let x = self.get_syn_expr(x, calls)?;
+            // let x = self.get_syn_expr(x, calls)?;
+            let x = self.get_syn_expr(x, calls);
             cs.push(x);
         }
 
@@ -517,44 +518,57 @@ unionfind {} -> {:?}
     /// Returns the canonical term corresponding to `i`.
     ///
     /// This function will use [EGraph::get_syn_node] repeatedly to build up this term.
-    pub fn get_syn_expr(
-        &self,
-        i: &AppliedId,
-        calls: &mut BTreeMap<Id, usize>,
-    ) -> result::Result<RecExpr<L>, String> {
-        let enode = self.get_syn_node(i);
+    // pub fn get_syn_expr(
+    //     &self,
+    //     i: &AppliedId,
+    //     calls: &mut BTreeMap<Id, usize>,
+    // ) -> result::Result<RecExpr<L>, String> {
+    //     let enode = self.get_syn_node(i);
 
-        let entry = calls.entry(i.id).or_insert(0);
-        *entry += 1;
-        if *entry > 1 {
-            return Err(format!("{entry} > 1 with syn enode {enode:?}"));
-        }
-        let mut cs = vec![];
-        for x in enode.applied_id_occurrences() {
-            let x = self.get_syn_expr(x, calls)?;
-            cs.push(x);
-        }
-        let entry = calls.entry(i.id).or_insert(0);
-        *entry -= 1;
-        Ok(RecExpr {
+    //     let entry = calls.entry(i.id).or_insert(0);
+    //     *entry += 1;
+    //     if *entry > 1 {
+    //         return Err(format!("{entry} > 1 with syn enode {enode:?}"));
+    //     }
+    //     let mut cs = vec![];
+    //     for x in enode.applied_id_occurrences() {
+    //         let x = self.get_syn_expr(x, calls)?;
+    //         cs.push(x);
+    //     }
+    //     let entry = calls.entry(i.id).or_insert(0);
+    //     *entry -= 1;
+    //     Ok(RecExpr {
+    //         node: nullify_app_ids(&enode),
+    //         children: cs,
+    //     })
+    // }
+
+    pub fn get_syn_expr(&self, i: &AppliedId, calls: &mut BTreeMap<Id, usize>) -> RecExpr<L> {
+        let enode = self.get_syn_node(i);
+        let cs = enode
+            .applied_id_occurrences()
+            .iter()
+            .map(|x| self.get_syn_expr(x, calls))
+            .collect();
+        RecExpr {
             node: nullify_app_ids(&enode),
             children: cs,
-        })
+        }
     }
 
     /// Returns the canonical e-node corresponding to `i`.
     pub fn get_syn_node(&self, i: &AppliedId) -> L {
         let syn_enode = self.classes[&i.id].syn_enode();
-        let syn = self.find_enode(syn_enode);
+        // let syn = self.find_enode(syn_enode);
 
-        let _syn_slots = syn.slots();
+        let _syn_slots = syn_enode.slots();
         // if !i.m.keys().is_superset(&syn_slots) {
         //     println!("i = {:?}", i);
         //     println!("eclass {:?}", self.eclass(i.id));
         //     println!("syn_slots = {syn_slots:?}");
         //     println!("i.m = {:?}", i.m);
         // }
-        syn.apply_slotmap_partial(&i.m)
+        syn_enode.apply_slotmap_partial(&i.m)
     }
 
     pub fn getSynNodeNoSubst(&self, i: &Id) -> &L {
