@@ -208,3 +208,157 @@ impl<L: Language> std::fmt::Debug for RecExpr<L> {
         write!(f, "{:?}", re_to_pattern(self))
     }
 }
+
+// ── DOT / Graphviz dump ─────────────────────────────────────────────────────
+
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
+    /// Dump the e-graph as a Graphviz DOT string.
+    ///
+    /// Compile the result with:
+    /// ```text
+    /// dot -Tpng egraph.dot -o egraph.png
+    /// ```
+    ///
+    /// The diagram mirrors `example/egraph diag.png`:
+    /// * Each e-class is a dashed box whose header shows its free slots.
+    /// * Each e-node inside a box is a rounded rectangle whose label shows
+    ///   the operator followed by its slot / applied-id arguments.
+    /// * Arrows connect e-nodes to the e-class they reference.
+    pub fn to_dot(&self) -> String {
+        let mut out = String::new();
+
+        out.push_str("digraph egraph {\n");
+        out.push_str("    compound=true;\n");
+        out.push_str("    graph [fontname=\"Courier\", bgcolor=\"#f8f8f8\"];\n");
+        out.push_str("    node  [fontname=\"Courier\", fontsize=11];\n");
+        out.push_str("    edge  [fontname=\"Courier\"];\n\n");
+
+        let mut ids = self.ids();
+        ids.sort();
+
+        // ── clusters (one per canonical e-class) ──────────────────────────
+        for &id in &ids {
+            let eclass = self.eclass(id).unwrap();
+
+            let mut slot_order: Vec<Slot> = eclass.slots.iter().cloned().collect();
+            slot_order.sort();
+            let slot_str = slot_order
+                .iter()
+                .map(|s| format!("{}", s))
+                .collect::<Vec<_>>()
+                .join(", ");
+            let header = if slot_str.is_empty() {
+                format!("id{}:", id.0)
+            } else {
+                format!("({}):", slot_str)
+            };
+
+            out.push_str(&format!("    subgraph cluster_{} {{\n", id.0));
+            out.push_str("        style=dashed;\n");
+            out.push_str("        bgcolor=white;\n");
+            // Bold HTML label for the eclass header
+            out.push_str(&format!(
+                "        label=<<B>{}</B>>;\n",
+                dot_html_escape(&header)
+            ));
+            out.push_str("        labeljust=l;\n");
+
+            // Invisible anchor so incoming edges can attach to the cluster
+            out.push_str(&format!(
+                "        anchor_{} [style=invis, shape=point, width=0, height=0];\n",
+                id.0
+            ));
+
+            // One node per e-node inside the cluster
+            let enodes: Vec<L> = self.enodes(id).into_iter().collect();
+            for (idx, enode) in enodes.iter().enumerate() {
+                let label = enode_dot_label(enode);
+                out.push_str(&format!(
+                    "        enode_{}_{}  [label={}, shape=record, style=rounded];\n",
+                    id.0, idx, label
+                ));
+            }
+
+            out.push_str("    }\n\n");
+        }
+
+        // ── edges (e-node → target e-class) ───────────────────────────────
+        for &id in &ids {
+            let enodes: Vec<L> = self.enodes(id).into_iter().collect();
+            for (idx, enode) in enodes.iter().enumerate() {
+                for (child_idx, applied_id) in enode.applied_id_occurrences().iter().enumerate() {
+                    let target = self.find_id(applied_id.id);
+                    out.push_str(&format!(
+                        "    enode_{}_{}:child_{} -> anchor_{} [lhead=cluster_{}, minlen=2];\n",
+                        id.0, idx, child_idx, target.0, target.0
+                    ));
+                }
+            }
+        }
+
+        out.push_str("}\n");
+        out
+    }
+}
+
+/// Build a quoted DOT label for a single e-node using its syntax elements.
+fn enode_dot_label<L: Language>(enode: &L) -> String {
+    let mut label = String::new();
+    let syntax = enode.to_syntax();
+    let mut child_idx = 0;
+    // label.push('{');
+    for (i, elem) in syntax.iter().enumerate() {
+        if i > 0 {
+            label.push('|');
+        }
+        if matches!(elem, SyntaxElem::AppliedId(_)) {
+            label.push_str(&format!("<child_{}> ", child_idx));
+            child_idx += 1;
+        }
+        syntax_elem_to_label_str(elem, &mut label);
+    }
+    // label.push('}');
+    // Return as a double-quoted DOT string
+    format!("\"{}\"", label.replace('\\', "\\\\").replace('"', "\\\""))
+}
+
+fn syntax_elem_to_label_str(elem: &SyntaxElem, out: &mut String) {
+    match elem {
+        SyntaxElem::String(s) => out.push_str(s),
+        SyntaxElem::Slot(s) => out.push_str(&format!("{}", s)),
+        SyntaxElem::AppliedId(a) => {
+            // Show the range of the slot map: the slots passed in as arguments
+            let mut pairs: Vec<(Slot, Slot)> = a.m.iter().collect();
+            pairs.sort_by_key(|(k, _)| *k);
+            let inner = pairs
+                .iter()
+                .map(|(_, v)| format!("{}", v))
+                .collect::<Vec<_>>()
+                .join(", ");
+            if inner.is_empty() {
+                out.push_str("()");
+            } else {
+                out.push_str(&format!("({})", inner));
+            }
+        }
+        SyntaxElem::Vec(v) => {
+            out.push('<');
+            for (i, elem) in v.iter().enumerate() {
+                if i > 0 {
+                    out.push(' ');
+                }
+                syntax_elem_to_label_str(elem, out);
+            }
+            out.push('>');
+        }
+        SyntaxElem::Star(_) => out.push('*'),
+    }
+}
+
+/// Escape characters that are special in a DOT HTML label (`<label=<…>>`).
+fn dot_html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+}

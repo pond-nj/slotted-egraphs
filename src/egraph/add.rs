@@ -279,7 +279,7 @@ lookup weak_shape result in hashcons: {:?}
 
     pub fn lookup(&self, n: &L) -> Option<AppliedId> {
         let (enodeShape, bij) = self.shape(n);
-        let enodeShapeId = self.getOrAddENodeId(&enodeShape);
+        let enodeShapeId = self.getENodeId(&enodeShape)?;
         self.lookup_internal((enodeShapeId, bij))
     }
 

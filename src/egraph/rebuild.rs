@@ -208,7 +208,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if self.getHashcons(enodeId).is_none() {
             return;
         }
-        let sh = self.getENode(enodeId);
+        let sh = self.getENode(enodeId).clone();
 
         let i = self.getHashcons(enodeId).unwrap();
 

@@ -1,0 +1,38 @@
+digraph egraph {
+    compound=true;
+    graph [fontname="Courier", bgcolor="#f8f8f8"];
+    node  [fontname="Courier", fontsize=11];
+    edge  [fontname="Courier"];
+
+    subgraph cluster_0 {
+        style=dashed;
+        bgcolor=white;
+        label=<<B>($f0):</B>>;
+        labeljust=l;
+        anchor_0 [style=invis, shape=point, width=0, height=0];
+        enode_0_0  [label="var|$f0", shape=record, style=rounded];
+    }
+
+    subgraph cluster_1 {
+        style=dashed;
+        bgcolor=white;
+        label=<<B>($f1, $f2):</B>>;
+        labeljust=l;
+        anchor_1 [style=invis, shape=point, width=0, height=0];
+        enode_1_0  [label="add|<child_0> ($f1)|<child_1> ($f2)", shape=record, style=rounded];
+    }
+
+    subgraph cluster_2 {
+        style=dashed;
+        bgcolor=white;
+        label=<<B>($f3, $f4, $f5):</B>>;
+        labeljust=l;
+        anchor_2 [style=invis, shape=point, width=0, height=0];
+        enode_2_0  [label="add|<child_0> ($f3)|<child_1> ($f4, $f5)", shape=record, style=rounded];
+    }
+
+    enode_1_0:child_0 -> anchor_0 [lhead=cluster_0, minlen=2];
+    enode_1_0:child_1 -> anchor_0 [lhead=cluster_0, minlen=2];
+    enode_2_0:child_0 -> anchor_0 [lhead=cluster_0, minlen=2];
+    enode_2_0:child_1 -> anchor_1 [lhead=cluster_1, minlen=2];
+}

@@ -180,6 +180,7 @@ fn renameAppIdsAndPermsTmp(
     BTreeMap<Id, SlotMap>,
     SlotMap,
 ) {
+    trace!("renameAppIdsAndPermsTmp get appIdsVec {appIdsVec:?}");
     let mut fromSlotMaps: BTreeMap<Id, SlotMap> = BTreeMap::new();
 
     let mut idMap: BTreeMap<Id, Id> = BTreeMap::new();
@@ -855,6 +856,9 @@ fn canonAppIdsInternal(
     assert!(canonG.len() == (m * totalV));
     assert!(*lab.iter().max().unwrap() == (totalV - 1) as i32);
 
+    trace!("appIdToV {appIdToV:?}");
+    trace!("slotsToV {slotsToV:?}");
+
     unsafe {
         densenauty(
             g.as_mut_ptr(),
@@ -873,6 +877,8 @@ fn canonAppIdsInternal(
     // the value of lab on return is the canonical labelling
     // of the graph. Precisely, it lists the vertices of g in the order in which they need to
     // be relabelled to give canong
+
+    trace!("out lab {lab:?}");
 
     let ret = (
         lab,

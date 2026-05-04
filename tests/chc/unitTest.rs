@@ -1,3 +1,6 @@
+use log::{logger, trace};
+use smallvec::SmallVec;
+
 use super::*;
 
 #[test]
@@ -150,4 +153,51 @@ fn testSortAppId() {
         }
     });
     println!("testTime {testTime:?}");
+}
+
+#[test]
+fn sortExample() {
+    initLogger();
+
+    // let farg2 = Slot::fresh();
+    // let farg1 = Slot::fresh();
+
+    // let garg1 = Slot::fresh();
+    // let garg2 = Slot::fresh();
+    // let y = Slot::fresh();
+    // let x = Slot::fresh();
+
+    let farg1 = Slot::fresh();
+    let farg2 = Slot::fresh();
+
+    let garg1 = Slot::fresh();
+    let garg2 = Slot::fresh();
+    let x = Slot::fresh();
+    let y = Slot::fresh();
+
+    let appIds = vec![
+        AppliedId::new(
+            Id(0),
+            SlotMap {
+                map: SmallVec::from_vec(vec![(farg1, x), (farg2, y)]),
+            },
+        ),
+        AppliedId::new(
+            Id(0),
+            SlotMap {
+                map: SmallVec::from_vec(vec![(farg1, y), (farg2, x)]),
+            },
+        ),
+        AppliedId::new(
+            Id(1),
+            SlotMap {
+                map: SmallVec::from_vec(vec![(garg1, y), (garg2, x)]),
+            },
+        ),
+    ];
+
+    trace!("appIds {appIds:?}");
+
+    let cache = CanonAppIdsCache::default();
+    let sorted = sortAppId(&appIds, false, &cache);
 }

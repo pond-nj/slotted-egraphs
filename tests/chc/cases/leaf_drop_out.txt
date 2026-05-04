@@ -1,3 +1,6 @@
+#t min(int, int, int) true <2>.
+min(X,Y,Z) :- X<Y, Z=X.
+min(X,Y,Z) :- X>=Y, Z=Y.
 #t new1(int, int, int) false <>.
 new1(N,M,K) :- M=0, K=0.
 new1(N,M,K) :- N=<0, M=M3+1, K=M, new2(M1), new2(M2), min(M1,M2,M3).

@@ -278,8 +278,9 @@ pub fn getPredExpr(
                 "<{}>",
                 rule.pred_apps
                     .iter()
-                    .map(|p| {
-                        let newVar = format!("{}_{i}", p.pred_name);
+                    .enumerate()
+                    .map(|(j, p)| {
+                        let newVar = format!("{}_{}_{}", p.pred_name, i, j);
                         patternVars
                             .entry(p.pred_name.clone())
                             .or_insert(vec![])

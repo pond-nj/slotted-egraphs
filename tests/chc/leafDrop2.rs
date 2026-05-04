@@ -6,7 +6,7 @@ use log::{info, logger};
 
 use super::*;
 
-const ITER_LIMIT: usize = 3;
+const ITER_LIMIT: usize = 10;
 const TIME_LIMIT_SECS: u64 = 600;
 const NODE_LIMIT: usize = 1_000_000;
 
@@ -33,16 +33,8 @@ fn mainTest() {
             RewriteOption {
                 doConstraintRewrite: true,
                 doFolding: true,
-
-                #[cfg(not(feature = "adtDefine"))]
-                doADTDefine: false,
-                #[cfg(feature = "adtDefine")]
                 doADTDefine: true,
-
-                #[cfg(not(feature = "pairingDefine"))]
                 doPairingDefine: false,
-                #[cfg(feature = "pairingDefine")]
-                doPairingDefine: true,
             },
         ))
     });
@@ -52,5 +44,5 @@ fn mainTest() {
     info!("Egraph after");
     dumpCHCEGraph(&runner.egraph);
 
-    // checkCHCExists("tests/chc/cases/leaf_drop_out.txt", &runner.egraph);
+    checkCHCExists("tests/chc/cases/leaf_drop_out.txt", &runner.egraph);
 }
