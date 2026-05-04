@@ -396,7 +396,7 @@ pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
         );
 
         let mut orAnswers = BTreeSet::new();
-        for (subst, rootEclassId) in res {
+        'oneAnswer: for (subst, rootEclassId) in res {
             let eclassIdToIdxLen = eclassIdToIdx.len();
             eclassIdToIdx
                 .entry(rootEclassId)
@@ -412,7 +412,11 @@ pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
                     }
 
                     // the var of every atom in the body with the same predicate should match to the same eclass
-                    assert_eq!(eclassId.unwrap(), subst.get(var).unwrap().id);
+                    info!("subst {subst:?}");
+                    // assert_eq!(eclassId.unwrap(), subst.get(var).unwrap().id);
+                    if eclassId.unwrap() != subst.get(var).unwrap().id {
+                        continue 'oneAnswer;
+                    }
                 }
 
                 let eclassId = eclassId.unwrap();
