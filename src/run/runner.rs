@@ -163,12 +163,15 @@ where
         self.limits
             .check_limits(self.iterations.len(), &self.egraph)
     }
-    pub fn run(&mut self, rewrites: &[Rewrite<L, N>]) -> Report<CustomErrorT> {
+
+    pub fn prepareRun(&mut self, rewrites: &[Rewrite<L, N>]) {
         self.limits.rw_apply_time.clear();
         for _ in rewrites {
             self.limits.rw_apply_time.push(Duration::new(0, 0));
         }
-
+    }
+    pub fn run(&mut self, rewrites: &[Rewrite<L, N>]) -> Report<CustomErrorT> {
+        self.prepareRun(rewrites);
         loop {
             if let Some(_) = self.stop_reason {
                 break;
@@ -199,7 +202,7 @@ where
             rebuild_time: self.limits.total_rebuild_time.as_secs_f64(),
         }
     }
-    fn run_one(&mut self, rewrites: &[Rewrite<L, N>]) {
+    pub fn run_one(&mut self, rewrites: &[Rewrite<L, N>]) {
         info!("start run one");
         assert!(self.stop_reason.is_none());
 

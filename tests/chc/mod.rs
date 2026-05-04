@@ -25,6 +25,9 @@ pub use ast::*;
 mod analysis;
 pub use analysis::*;
 
+mod extract;
+pub use extract::*;
+
 mod toSMT;
 pub use toSMT::*;
 // test

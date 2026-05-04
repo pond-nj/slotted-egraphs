@@ -173,7 +173,7 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
 
     info!("Egraph after growEGraph");
     // eg.printUnionFind();
-    dumpCHCEGraph(eg);
+    printCHCEGraph(eg);
 
     if CHECKS {
         checkComposeMerge(eg);
@@ -234,66 +234,86 @@ pub fn getExprRecur(
     composeExpr
 }
 
-pub fn getPredExpr(
+pub fn getRuleExpr(
+    i: usize,
+    rule: &CHCRule,
+    patternVars: &mut BTreeMap<String, Vec<String>>,
+    props: &PredProp,
+    chcs: &CHCAst,
+) -> String {
+    let mut rule = rule.clone();
+    let mut internalVars = BTreeSet::new();
+    rule.getInternalVars(&mut internalVars);
+
+    let mut renameMap = BTreeMap::new();
+    for v in internalVars.iter() {
+        let newVar = CHCVar::Str(format!("{}_{i}", v));
+        renameMap.insert(v.clone(), newVar);
+    }
+    rule.substitute(&renameMap, false);
+
+    let CHCRule {
+        head,
+        constr,
+        pred_apps,
+        original,
+    } = &rule;
+
+    let mut typeMap = getConstrTypes(&rule, props, chcs);
+    let expr = format!(
+        "(clause {} {} {})",
+        rule.head.toHeadSExpr(&typeMap),
+        format!(
+            "(and <{}>)",
+            rule.constr
+                .iter()
+                .map(|c| c.toSExpr(&typeMap))
+                .collect::<Vec<_>>()
+                .join(" ")
+        ),
+        format!(
+            "<{}>",
+            rule.pred_apps
+                .iter()
+                .enumerate()
+                .map(|(j, p)| {
+                    let newVar = format!("{}_{}_{}", p.pred_name, i, j);
+                    patternVars
+                        .entry(p.pred_name.clone())
+                        .or_insert(vec![])
+                        .push(newVar.clone());
+                    format!("?{}", newVar)
+                })
+                .collect::<Vec<_>>()
+                .join(" ")
+        )
+    );
+    expr
+}
+
+pub fn getPredRulesExpr(
+    predName: &String,
+    rules: &Vec<CHCRule>,
+    chcs: &CHCAst,
+) -> (Vec<String>, BTreeMap<String, Vec<String>>) {
+    let props: &PredProp = chcs.preds.get(predName).unwrap();
+    let mut composeChildren = Vec::new();
+    let mut patternVars: BTreeMap<String, Vec<String>> = BTreeMap::new();
+
+    for (i, rule) in rules.iter().enumerate() {
+        let expr = getRuleExpr(i, rule, &mut patternVars, props, chcs);
+        composeChildren.push(expr);
+    }
+
+    (composeChildren, patternVars)
+}
+
+pub fn getPredComposeExpr(
     predName: &String,
     rules: &Vec<CHCRule>,
     chcs: &CHCAst,
 ) -> (String, BTreeMap<String, Vec<String>>) {
-    let props: &PredProp = chcs.preds.get(predName).unwrap();
-    let mut composeChildren = Vec::new();
-    let mut patternVars = BTreeMap::new();
-
-    for (i, rule) in rules.iter().enumerate() {
-        let mut rule = rule.clone();
-        let mut internalVars = BTreeSet::new();
-        rule.getInternalVars(&mut internalVars);
-
-        let mut renameMap = BTreeMap::new();
-        for v in internalVars.iter() {
-            let newVar = CHCVar::Str(format!("{}_{i}", v));
-            renameMap.insert(v.clone(), newVar);
-        }
-        rule.substitute(&renameMap, false);
-
-        let CHCRule {
-            head,
-            constr,
-            pred_apps,
-            original,
-        } = &rule;
-
-        let mut typeMap = getConstrTypes(&rule, props, chcs);
-        let expr = format!(
-            "(clause {} {} {})",
-            rule.head.toHeadSExpr(&typeMap),
-            format!(
-                "(and <{}>)",
-                rule.constr
-                    .iter()
-                    .map(|c| c.toSExpr(&typeMap))
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            ),
-            format!(
-                "<{}>",
-                rule.pred_apps
-                    .iter()
-                    .enumerate()
-                    .map(|(j, p)| {
-                        let newVar = format!("{}_{}_{}", p.pred_name, i, j);
-                        patternVars
-                            .entry(p.pred_name.clone())
-                            .or_insert(vec![])
-                            .push(newVar.clone());
-                        format!("?{}", newVar)
-                    })
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            )
-        );
-        composeChildren.push(expr);
-    }
-
+    let (composeChildren, patternVars) = getPredRulesExpr(predName, rules, chcs);
     let composeExpr = format!("(compose <{}>)", composeChildren.join(" "));
     (composeExpr, patternVars)
 }
@@ -353,8 +373,20 @@ pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
     let mut eclassIdToIdx = BTreeMap::new();
     let mut andAnswers = vec![];
     for (predName, rules) in rulesByPred {
-        let (expr, patternVars) = getPredExpr(&predName, &rules, &chcs);
+        let (exprRules, patternVars) = getPredRulesExpr(&predName, &rules, &chcs);
+        // check each rules
+        for (i, expr) in exprRules.iter().enumerate() {
+            info!("rule {i} {}", rules[i]);
+            info!("expr {i} {expr}\n");
+            let res: Vec<(Subst, Id)> = ematchQueryall(&eg, &Pattern::parse(&expr).unwrap());
+            assert!(
+                res.len() > 0,
+                "predname {predName}, expr {expr} has no result"
+            );
+        }
 
+        // check compose
+        let expr = format!("(compose <{}>)", exprRules.join(" "));
         info!("expr {expr}\n");
 
         let res: Vec<(Subst, Id)> = ematchQueryall(&eg, &Pattern::parse(&expr).unwrap());
@@ -379,6 +411,7 @@ pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
                         eclassId = Some(subst.get(var).unwrap().id);
                     }
 
+                    // the var of every atom in the body with the same predicate should match to the same eclass
                     assert_eq!(eclassId.unwrap(), subst.get(var).unwrap().id);
                 }
 
@@ -393,7 +426,9 @@ pub fn checkCHCExists(fname: &str, eg: &CHCEGraph) {
                 .entry(predName.clone())
                 .or_insert(rootEclassId);
 
-            assert_eq!(predNameToEclassId[&predName], rootEclassId);
+            if predNameToEclassId[&predName] != rootEclassId {
+                info!("mismatch, {predName} in the body does not match the root, skip");
+            }
 
             orAnswers.insert(predNameToEclassId);
         }

@@ -10,13 +10,13 @@ const NODE_LIMIT: usize = 1_000_000;
 
 #[test]
 fn mainTest() {
-    initLogger(); 
+    initLogger();
     let mut eg = CHCEGraph::default();
     growEGraph("tests/chc/cases/pairing_paper_array.txt", &mut eg);
     eg.rebuild();
 
     info!("Egraph before");
-    dumpCHCEGraph(&eg);
+    printCHCEGraph(&eg);
 
     let mut runner: CHCRunner = Runner::default()
         .with_egraph(eg)
@@ -25,7 +25,7 @@ fn mainTest() {
         .with_time_limit(Duration::from_secs(TIME_LIMIT_SECS));
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
-            RewriteList::default(),
+            &RewriteList::default(),
             RewriteOption {
                 doConstraintRewrite: true,
                 doFolding: true,
@@ -46,5 +46,5 @@ fn mainTest() {
     info!("report {report:?}");
 
     info!("Egraph after");
-    dumpCHCEGraph(&runner.egraph);
+    printCHCEGraph(&runner.egraph);
 }

@@ -299,6 +299,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out.push_str("}\n");
         out
     }
+
+    pub fn to_dot_file(&self, filename: &str) {
+        let mut out = String::new();
+        out.push_str(&self.to_dot());
+        std::fs::write(filename, out).expect("Failed to write egraph.dot");
+    }
 }
 
 /// Build a quoted DOT label for a single e-node using its syntax elements.

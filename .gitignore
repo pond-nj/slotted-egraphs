@@ -16,3 +16,5 @@ logs*
 desc
 decs/*
 *.md
+*.dump
+*.dot

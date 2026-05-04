@@ -26,7 +26,7 @@ default = [
     # "newShape",
     # "newSymCal",
     # "callZ3CheckUnsatConstr",
-    # "sortENodesByNT",
+    "sortENodesByNT",
     # "parallelAdd",
     # "checks",
     # "adtDefine",

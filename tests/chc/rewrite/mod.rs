@@ -745,7 +745,7 @@ fn rebuildCache(unfoldHelper: &UnfoldHelper, defineHelper: &DefineHelper) -> CHC
 }
 
 // TODO: swapping unfold and define creates some error which should not be
-pub fn getAllRewrites(rewriteList: RewriteList, options: RewriteOption) -> Vec<CHCRewrite> {
+pub fn getAllRewrites(rewriteList: &RewriteList, options: RewriteOption) -> Vec<CHCRewrite> {
     let RewriteList {
         unfoldHelper,
         constrRewriteList,

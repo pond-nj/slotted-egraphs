@@ -132,17 +132,31 @@ pub struct Constr {
 
 impl std::fmt::Display for Constr {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "({} ", self.op.name())?;
-        for (i, arg) in self.args.iter().enumerate() {
-            if i > 0 {
-                write!(f, ", ")?;
+        let fmt_term = |f: &mut std::fmt::Formatter, t: &Term| -> std::fmt::Result {
+            match t {
+                Term::Var(v) => write!(f, "{:?}", v),
+                Term::Constr(c) => write!(f, "{}", c),
             }
-            match arg {
-                Term::Var(v) => write!(f, "{:?}", v)?,
-                Term::Constr(c) => write!(f, "{}", c)?,
+        };
+        match self.op {
+            ConstrOP::EmptyList => write!(f, "[]"),
+            ConstrOP::Leaf | ConstrOP::List | ConstrOP::Binode => {
+                write!(f, "{}(", self.op.name())?;
+                for (i, arg) in self.args.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    fmt_term(f, arg)?;
+                }
+                write!(f, ")")
+            }
+            _ => {
+                // binary infix: arg0 op arg1
+                fmt_term(f, &self.args[0])?;
+                write!(f, " {} ", self.op.name())?;
+                fmt_term(f, &self.args[1])
             }
         }
-        write!(f, ")")
     }
 }
 
@@ -382,6 +396,15 @@ impl Constr {
 pub enum Term {
     Var(CHCVar),
     Constr(Constr),
+}
+
+impl std::fmt::Display for Term {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Term::Var(v) => write!(f, "{}", v),
+            Term::Constr(c) => write!(f, "{}", c),
+        }
+    }
 }
 
 impl std::fmt::Debug for Term {

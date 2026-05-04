@@ -229,7 +229,7 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
     let minLeafId = minLeafCHC(x, y, count, &mut eg);
     eg.union(&minLeafDummyId, &minLeafId);
 
-    dumpCHCEGraph(&eg);
+    printCHCEGraph(&eg);
 
     let mut runner: CHCRunner = Runner::default()
         .with_egraph(eg)
@@ -273,7 +273,7 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
 
     let (report, t): (Report, _) = time(|| {
         runner.run(&mut getAllRewrites(
-            RewriteList::default(),
+            &RewriteList::default(),
             RewriteOption {
                 doConstraintRewrite: true,
                 doFolding: DO_FOLDING,
@@ -292,7 +292,7 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
     println!("report {report:?}");
 
     println!("egraph after run");
-    dumpCHCEGraph(&runner.egraph);
+    printCHCEGraph(&runner.egraph);
     if CHECKS {
         runner.egraph.check();
     }
