@@ -775,10 +775,13 @@ fn canonAppIdsInternal(
         let allPerms = allPerms.as_ref().unwrap();
         assert!(allPerms.len() == appIdToV.len());
         for (i, perms) in allPerms.iter().enumerate() {
+            // first argument vertex of appId at i
             let startArgsV = appIdToV[i].1 + 1;
             for p in perms {
+                // to appIds namespace
                 let newArgs = p.elem.composePartial(&appIdsVec[i].m);
                 for (j, s) in newArgs.values_immut().enumerate() {
+                    // edge between arg and slots
                     ADDONEEDGE(&mut g, startArgsV + j, slotsToV[s], m);
                 }
             }
@@ -987,10 +990,12 @@ pub fn sortAppId(
 
     let mut VToAppIds = BTreeMap::new();
     for (id, v) in appIdToV {
-        assert!(VToAppIds.insert(v, id).is_none());
+        let old = VToAppIds.insert(v, id);
+        assert!(old.is_none());
     }
 
     let mut sortedAppIds = vec![];
+    // push in label order
     for i in &lab[0..appIdsSorted.len()] {
         sortedAppIds.push(VToAppIds[&(*i as usize)].clone());
     }

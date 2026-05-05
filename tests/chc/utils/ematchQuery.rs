@@ -1,5 +1,5 @@
 use super::*;
-use log::{debug, trace};
+use log::{debug, info, trace};
 
 // TODO: parallelize this
 pub fn ematchQueryall(eg: &CHCEGraph, pattern: &Pattern<CHC>) -> Vec<(Subst, Id)> {
@@ -181,7 +181,7 @@ fn ematchQueryCheckEnodeAndChildren(
     let outLenBefore = out.len();
 
     assert!(allSetOfChildren.len() > 0);
-    for patternChildren in allSetOfChildren {
+    for (i, patternChildren) in allSetOfChildren.into_iter().enumerate() {
         debug!(
             "try match to {eclassEnode:?} with patEnode {patternEnode:?} and {patternChildren:?}"
         );
