@@ -1,4 +1,4 @@
-use log::{logger, trace};
+use log::{info, logger, trace};
 use smallvec::SmallVec;
 
 use super::*;
@@ -153,6 +153,57 @@ fn testSortAppId() {
         }
     });
     println!("testTime {testTime:?}");
+}
+
+// Test for shapeMut based on the scenario described in proven_proven_get_group_compatible_variants:
+// Given c[$x,$y] = c[$y,$x] (eclass has a swap symmetry group),
+// shapeMut on f(c[$x,$y], c[$y,$x]) should canonicalize both children to c[$0,$1],
+// producing f(c[$0,$1], c[$0,$1]) — the "strong shape".
+#[test]
+fn testShapeMutSymmetry() {
+    initLogger();
+    let mut eg = CHCEGraph::default();
+
+    // Use fresh named slots as the "variables" inside c
+    let x = Slot::fresh();
+    let y = Slot::fresh();
+
+    // Build c[$x, $y] = Eq(intType($x), intType($y))
+    let ix = eg.add(&CHC::IntType(x));
+    let iy = eg.add(&CHC::IntType(y));
+    let c_xy = eg.add(&CHC::Eq(ix.clone(), iy.clone()));
+
+    // Build c[$y, $x] = Eq(intType($y), intType($x))  (slots swapped)
+    let c_yx = eg.add(&CHC::Eq(iy.clone(), ix.clone()));
+
+    // Union them: now the eclass has a non-trivial swap symmetry group {id, x<->y}
+    eg.union(&c_xy, &c_yx);
+    eg.rebuild();
+
+    // Build f(c[$x,$y], c[$y,$x]): Eq as the outer node (non-symmetric container)
+    let mut f = CHC::Eq(c_xy.clone(), c_yx.clone());
+
+    info!("before shapeMut");
+    info!("f: {f:?}");
+
+    // shapeMut should exploit the swap symmetry of c's eclass to canonicalize
+    // both AppliedIds to the same form.
+    eg.shapeMut(&mut f);
+
+    info!("after shapeMut");
+    info!("f: {f:?}");
+
+    let (out_child1, out_child2) = match &f {
+        CHC::Eq(c1, c2) => (c1.clone(), c2.clone()),
+        _ => panic!("expected Eq"),
+    };
+
+    // Both should point to the same eclass with the same slot mapping —
+    // i.e. the strong shape collapses c[$x,$y] and c[$y,$x] to c[$0,$1].
+    assert_eq!(
+        out_child1, out_child2,
+        "shapeMut must canonicalize symmetric children to the same AppliedId"
+    );
 }
 
 #[test]

@@ -23,7 +23,7 @@ adtDefine = []
 pairingDefine = []
 log = []
 default = [
-    # "newShape",
+    "newShape",
     # "newSymCal",
     # "callZ3CheckUnsatConstr",
     "sortENodesByNT",
