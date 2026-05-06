@@ -189,52 +189,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         res.compose(&origBij)
     }
 
-    // pub fn shapeMutWithSort(&self, eOrig: &mut L) -> Bijection {
-    //     if eOrig.hasBind() {
-    //         let ret = self.orig_shape(&eOrig);
-    //         *eOrig = ret.0;
-    //         return ret.1;
-    //     }
-
-    //     let origBij = eOrig.weak_shapeMut();
-
-    //     self.find_enodeMut(eOrig);
-
-    //     // TODO:
-    //     let appIds: Vec<&AppliedId> = eOrig.applied_id_occurrences();
-
-    //     if appIds.len() == 0 {
-    //         // have to compute weak shape again because find might destroy weak shape invariants
-    //         // TODO: can we move find up and not recompute weak shape?
-    //         return eOrig.weak_shapeMut().compose(&origBij);
-    //     }
-
-    //     let mut appIdsSorted = appIds;
-    //     appIdsSorted.sort();
-    //     appIdsSorted.dedup();
-
-    //     // if all id different then return
-    //     let idSet = appIdsSorted.iter().map(|x| x.id()).collect::<BTreeSet<_>>();
-    //     if idSet.len() == appIdsSorted.len() {
-    //         return appIdsSorted;
-    //     }
-    //     let (lab, appIdToV, _) = canonAppIdsWithRename(&appIdsSorted.iter().collect(), None, cache);
-
-    //     let mut VToAppIds = BTreeMap::new();
-    //     for (id, v) in appIdToV {
-    //         let old = VToAppIds.insert(v, id);
-    //         assert!(old.is_none());
-    //     }
-
-    //     let mut sortedAppIds = vec![];
-    //     for i in &lab[0..appIdsSorted.len()] {
-    //         sortedAppIds.push(VToAppIds[&(*i as usize)].clone());
-    //     }
-    //     sortedAppIds.dedup();
-
-    //     sortedAppIds
-    // }
-
     #[allow(unused)]
     pub(crate) fn proven_shape(&self, e: &L) -> (ProvenNode<L>, Bijection) {
         self.proven_proven_shape(&self.refl_pn(e))

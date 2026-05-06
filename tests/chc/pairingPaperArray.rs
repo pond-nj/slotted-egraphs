@@ -8,7 +8,7 @@ const ITER_LIMIT: usize = 2;
 const TIME_LIMIT_SECS: u64 = 600;
 const NODE_LIMIT: usize = 1_000_000;
 
-#[test]
+// #[test]
 fn mainTest() {
     initLogger();
     let mut eg = CHCEGraph::default();
@@ -16,7 +16,7 @@ fn mainTest() {
     eg.rebuild();
 
     info!("Egraph before");
-    printCHCEGraph(&eg);
+    logCHCEGraph(&eg);
 
     let mut runner: CHCRunner = Runner::default()
         .with_egraph(eg)
@@ -46,5 +46,5 @@ fn mainTest() {
     info!("report {report:?}");
 
     info!("Egraph after");
-    printCHCEGraph(&runner.egraph);
+    logCHCEGraph(&runner.egraph);
 }

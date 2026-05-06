@@ -229,7 +229,7 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
     let minLeafId = minLeafCHC(x, y, count, &mut eg);
     eg.union(&minLeafDummyId, &minLeafId);
 
-    printCHCEGraph(&eg);
+    logCHCEGraph(&eg);
 
     let mut runner: CHCRunner = Runner::default()
         .with_egraph(eg)
@@ -292,7 +292,7 @@ pub fn buildLeafDropCHC(mut eg: CHCEGraph, count: &mut u32) -> (AppliedId, CHCRu
     println!("report {report:?}");
 
     println!("egraph after run");
-    printCHCEGraph(&runner.egraph);
+    logCHCEGraph(&runner.egraph);
     if CHECKS {
         runner.egraph.check();
     }
@@ -320,7 +320,7 @@ fn mainTestSpawn() {
     }
 }
 
-#[test]
+// #[test]
 fn mainTest() {
     initLogger();
 

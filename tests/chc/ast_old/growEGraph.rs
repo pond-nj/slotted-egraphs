@@ -133,7 +133,7 @@ pub fn growEGraph(fname: &str, eg: &mut CHCEGraph) {
 
     debug!("end of growEGraph");
     eg.printUnionFind();
-    printCHCEGraph(eg);
+    logCHCEGraph(eg);
 
     if CHECKS {
         checkComposeMerge(eg);

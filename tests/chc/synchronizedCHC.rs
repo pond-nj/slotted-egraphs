@@ -17,7 +17,7 @@ fn mainTest() {
     eg.rebuild();
 
     info!("Egraph before");
-    printCHCEGraph(&eg);
+    logCHCEGraph(&eg);
 
     let mut runner: CHCRunner = Runner::default()
         .with_egraph(eg)
@@ -38,7 +38,7 @@ fn mainTest() {
     info!("report {report:?}");
 
     info!("Egraph after");
-    printCHCEGraph(&runner.egraph);
+    logCHCEGraph(&runner.egraph);
 
     // checkCHCExists("tests/chc/cases/synchronized_chc_out1.txt", &runner.egraph);
 }

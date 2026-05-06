@@ -255,7 +255,10 @@ fn writeCHCEGraph(eg: &CHCEGraph, writer: &mut impl Write) -> io::Result<()> {
 //     writeCHCEClass(i, map, eqvIds, eg, &mut writer).expect("failed to write CHC eclass dump");
 // }
 
-pub fn printCHCEGraph(eg: &CHCEGraph) {
+pub fn logCHCEGraph(eg: &CHCEGraph) {
+    if !LOG {
+        return;
+    }
     let stdout = io::stdout();
     let mut writer = stdout.lock();
     writeCHCEGraph(eg, &mut writer).expect("failed to print CHC egraph");

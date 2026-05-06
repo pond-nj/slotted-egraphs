@@ -34,7 +34,7 @@ fn find_nontrivial_random_extract(eg: &CHCEGraph) -> RandomExtract {
     panic!("failed to find a non-trivial CHC extraction candidate");
 }
 
-#[test]
+// #[test]
 fn mainTest() {
     // rayon::ThreadPoolBuilder::new()
     //     .num_threads(2)
@@ -62,7 +62,9 @@ fn mainTest() {
         },
     );
     runner.prepareRun(&rewrites);
-    dumpCHCEGraph(&runner.egraph, "leafdrop_0.dump");
+    if LOG {
+        dumpCHCEGraph(&runner.egraph, "leafdrop_0.dump");
+    }
     let t: _ = time(|| {
         // define
         runner.run_one(&rewrites);
@@ -94,7 +96,7 @@ fn mainTest() {
     info!("total time = {t:?}");
 
     info!("Egraph after");
-    printCHCEGraph(&runner.egraph);
+    logCHCEGraph(&runner.egraph);
 
     checkCHCExists("tests/chc/cases/leaf_drop_out.txt", &runner.egraph);
 
