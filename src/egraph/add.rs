@@ -212,7 +212,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         if let Some(x) = lookupRes {
             return x;
         }
-        let shapeENodeId = self.getOrAddENodeId(&self.shape(&t.0).0);
+        let mut shape = t.0.clone();
+        self.shapeMut(&mut shape);
+        let shapeENodeId = self.getOrAddENodeId(&shape);
 
         trace!("lookup no result {t:?}");
 
@@ -232,7 +234,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let enodeWeakShape = enode.weak_shape();
             // let weakShapeEnodeId = self.getENodeId(&enodeWeakShape.0);
             let synHashconsResult = self.syn_hashcons.get(&weakShapeEnodeId);
-            let shape = self.shape(&enode);
+            let shape = {
+                let mut shape = enode.clone();
+                let bij = self.shapeMut(&mut shape);
+                (shape, bij)
+            };
 
             assert!(
                 synHashconsResult.is_none(),
@@ -272,13 +278,15 @@ lookup weak_shape result in hashcons: {:?}
     }
 
     pub fn lookupMut(&mut self, n: &L) -> Option<AppliedId> {
-        let (enodeShape, bij) = self.shape(n);
+        let mut enodeShape = n.clone();
+        let bij = self.shapeMut(&mut enodeShape);
         let enodeId = self.getOrAddENodeId(&enodeShape);
         self.lookup_internal((enodeId, bij))
     }
 
     pub fn lookup(&self, n: &L) -> Option<AppliedId> {
-        let (enodeShape, bij) = self.shape(n);
+        let mut enodeShape = n.clone();
+        let bij = self.shapeMut(&mut enodeShape);
         let enodeShapeId = self.getENodeId(&enodeShape)?;
         self.lookup_internal((enodeShapeId, bij))
     }
@@ -399,8 +407,9 @@ lookup weak_shape result in hashcons: {:?}
     }
 
     pub fn getExactENodeInEGraph(&self, n: &L) -> L {
-        let (shape, _) = &self.shape(n);
-        let enodeId = self.getENodeId(shape);
+        let mut shape = n.clone();
+        self.shapeMut(&mut shape);
+        let enodeId = self.getENodeId(&shape);
         let i = self.getHashcons(enodeId.unwrap()).unwrap();
         let c = &self.classes[&i];
         let cn_bij = &c.nodes[&enodeId.unwrap()].elem;
@@ -413,8 +422,9 @@ lookup weak_shape result in hashcons: {:?}
             nClone.weak_shapeMut();
             assert!(self.getENodeId(&nClone).is_some());
         }
-        let (shape, _) = &self.shape(n);
-        let enodeId = self.getENodeId(shape).unwrap();
+        let mut shape = n.clone();
+        self.shapeMut(&mut shape);
+        let enodeId = self.getENodeId(&shape).unwrap();
         let c = &self.classes[&i];
         let cn_bij = &c.nodes[&enodeId].elem;
         shape.apply_slotmap(cn_bij)
@@ -600,7 +610,11 @@ orig {syn_enode:?}\n
 shape {:?}\n
 orig_weak_shape {:?}\n
 -> {app_id:?}",
-                self.shape(&syn_enode),
+                {
+                    let mut shape = syn_enode.clone();
+                    let bij = self.shapeMut(&mut shape);
+                    (shape, bij)
+                },
                 syn_enode.orig_weak_shape()
             );
             self.syn_hashcons.insert(enodeId, app_id);

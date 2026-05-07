@@ -72,12 +72,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // get smallest weak shape
     pub(crate) fn pc_find(&self, pc: &ProvenContains<L>) -> ProvenContains<L> {
         trace!("pc.node.elem {:?}", pc.node.elem.weak_shape().0);
-        let sh = self.shape(&pc.node.elem);
+        let mut sh = pc.node.elem.clone();
+        let bij = self.shapeMut(&mut sh);
         trace!("pc_find sh {sh:?}");
         ProvenContains {
             // node: self.proven_proven_pre_shape(&pc.node),
             node: ProvenNode {
-                elem: sh.0.apply_slotmap(&sh.1),
+                elem: sh.apply_slotmap(&bij),
             },
             pai: self.proven_proven_find_applied_id(&pc.pai),
         }

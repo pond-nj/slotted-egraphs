@@ -171,7 +171,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
                 // shape, computed from permutation of slots in appliedId from permutation
                 // in children eclasses
-                let (computed_sh, computed_bij) = self.shape(&real);
+                let mut computed_sh = real.clone();
+                let computed_bij = self.shapeMut(&mut computed_sh);
                 let weak_shape = real.weak_shape();
                 trace!(
                     "weak_shape {real:?} -> {:?} {:?}",
@@ -201,7 +202,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     error!("");
                     error!("egraph {self:?}");
                     error!("sh {sh:?}");
-                    let (_, _) = self.shape(&real);
+                    let mut shaped_real = real.clone();
+                    let _ = self.shapeMut(&mut shaped_real);
                     error!("computed bij {:?}", computed_bij);
                     error!("computed bij inverse {:?}", computed_bij.inverse());
                     error!("bij {:?}", bij);

@@ -1,6 +1,7 @@
 use std::cell::{Ref, RefMut};
 
 use log::info;
+use std::io::{self, Write};
 
 use super::*;
 
@@ -91,7 +92,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 let appId = &appIdsMut[i];
                 let perms: &Vec<_> = &allPerms[i];
                 if CHECKS {
-                    assert!(slotsToNewIdx.keys_set().is_superset(&appId.m.values_set()));
+                    assert!(
+                        slotsToNewIdx.keys_set().is_superset(&appId.m.values_set()),
+                        "appIdsMut {appIdsMut:?}, 
+                        allPerms {allPerms:?},
+                        i {i},
+                    slotsToNewIdx {slotsToNewIdx:?}, 
+                    appId {appId:?}"
+                    );
                 }
 
                 // TODO: is this necessary?
@@ -109,48 +117,49 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    #[cfg(feature = "newShape")]
+    // #[cfg(feature = "newShape")]
     // TODO: it seems for some reason this function changes depends on the input slots
     // like even if the weak shape is the same, it can output two different stuffs
-    pub fn shape(&self, eOrig: &L) -> (L, Bijection) {
-        if eOrig.hasBind() {
-            let ret = self.orig_shape(&eOrig);
-            return ret;
-        }
+    // pub fn shape(&self, eOrig: &L) -> (L, Bijection) {
+    //     if eOrig.hasBind() {
+    //         let ret = self.orig_shape(&eOrig);
+    //         return ret;
+    //     }
 
-        let mut eOrig = eOrig.clone();
-        let origBij = eOrig.weak_shapeMut();
+    //     let mut eOrig = eOrig.clone();
+    //     let origBij = eOrig.weak_shapeMut();
 
-        self.find_enodeMut(&mut eOrig);
-        let mut enodeAfterFind = eOrig;
+    //     self.find_enodeMut(&mut eOrig);
+    //     let mut enodeAfterFind = eOrig;
 
-        let appIds: Vec<&AppliedId> = enodeAfterFind.applied_id_occurrences();
+    //     let appIds: Vec<&AppliedId> = enodeAfterFind.applied_id_occurrences();
 
-        if appIds.len() == 0 {
-            let bij = enodeAfterFind.weak_shapeMut();
-            return (enodeAfterFind, bij.compose(&origBij));
-        }
+    //     if appIds.len() == 0 {
+    //         let bij = enodeAfterFind.weak_shapeMut();
+    //         return (enodeAfterFind, bij.compose(&origBij));
+    //     }
 
-        // TODO: should we cache this?
-        let allPerms: Vec<Vec<ProvenPerm>> = self.getAppIdsPerm(&appIds);
-        let (lab, _, slotsToV) =
-            canonAppIdsWithRename(&appIds, Some(&allPerms), self.canonAppIdsCache());
+    //     // TODO: should we cache this?
+    //     let allPerms: Vec<Vec<ProvenPerm>> = self.getAppIdsPerm(&appIds);
+    //     let (lab, _, slotsToV) =
+    //         canonAppIdsWithRename(&appIds, Some(&allPerms), self.canonAppIdsCache());
 
-        let slotsToNewIdx = self.createSlotsToNewIdx(&slotsToV, &lab);
-        // let shaped = self.createUpdatedAppIds(&appIds, &slotsToNewIdx, &allPerms);
+    //     let slotsToNewIdx = self.createSlotsToNewIdx(&slotsToV, &lab);
+    //     // let shaped = self.createUpdatedAppIds(&appIds, &slotsToNewIdx, &allPerms);
 
-        let mut appIdsMut = enodeAfterFind.applied_id_occurrences_mut();
-        self.updateAppIds(&mut appIdsMut, &slotsToNewIdx, &allPerms);
+    //     let mut appIdsMut = enodeAfterFind.applied_id_occurrences_mut();
+    //     self.updateAppIds(&mut appIdsMut, &slotsToNewIdx, &allPerms);
 
-        // find smallest according to canonical label
+    //     // find smallest according to canonical label
 
-        let (eNewWS, bij) = enodeAfterFind.orig_weak_shape();
-        let res = slotsToNewIdx.composePartial(&bij.inverse()).inverse();
-        let ret = (eNewWS, res.compose(&origBij));
-        ret
-    }
+    //     let (eNewWS, bij) = enodeAfterFind.orig_weak_shape();
+    //     let res = slotsToNewIdx.composePartial(&bij.inverse()).inverse();
+    //     let ret = (eNewWS, res.compose(&origBij));
+    //     ret
+    // }
 
     // TODO: we want to change everything to mutable version
+    // #[cfg(feature = "newShape")]
     pub fn shapeMut(&self, eOrig: &mut L) -> Bijection {
         if eOrig.hasBind() {
             let ret = self.orig_shape(&eOrig);
@@ -159,16 +168,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         // weak shape domain to original domain
-        let origBij = eOrig.weak_shapeMut();
-
         self.find_enodeMut(eOrig);
+
+        let origBij = eOrig.weak_shapeMut();
 
         let appIds: Vec<&AppliedId> = eOrig.applied_id_occurrences();
 
         if appIds.len() == 0 {
             // have to compute weak shape again because find might destroy weak shape invariants
             // TODO: can we move find up and not recompute weak shape?
-            return eOrig.weak_shapeMut().compose(&origBij);
+            return origBij;
         }
 
         // TODO: should we cache this?
@@ -177,7 +186,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             canonAppIdsWithRename(&appIds, Some(&allPerms), self.canonAppIdsCache());
 
         let slotsToNewIdx = self.createSlotsToNewIdx(&slotsToV, &lab);
-        // let shaped = self.createUpdatedAppIds(&appIds, &slotsToNewIdx, &allPerms);
+
+        io::stdout().flush().unwrap();
 
         let mut appIdsMut = eOrig.applied_id_occurrences_mut();
         self.updateAppIds(&mut appIdsMut, &slotsToNewIdx, &allPerms);

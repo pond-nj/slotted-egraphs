@@ -28,7 +28,7 @@ default = [
     # "callZ3CheckUnsatConstr",
     "sortENodesByNT",
     # "parallelAdd",
-    # "checks",
+    "checks",
     # "adtDefine",
     # "log",
     "tmp",

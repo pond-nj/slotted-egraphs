@@ -223,7 +223,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         assert_eq!(app_i, self.find_applied_id(&app_i));
 
         let sortedENode = enode.sorted(self.canonAppIdsCache());
-        let (enodeShape, bij) = self.shape(&sortedENode);
+        let mut enodeShape = sortedENode.clone();
+        let bij = self.shapeMut(&mut enodeShape);
         let enodeShapeId = self.getOrAddENodeId(&enodeShape);
         let lookupSortedRes = self.lookup_internal((enodeShapeId, bij));
         if lookupSortedRes.is_some() && lookupSortedRes.unwrap() != app_i {
@@ -291,7 +292,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             findAppId = self.find_applied_id(&findAppId);
         }
 
-        let (enodeShape, enodeShapeBij) = self.shape(&enode);
+        let mut enodeShape = enode;
+        let enodeShapeBij = self.shapeMut(&mut enodeShape);
 
         // upwards merging found a match!
         // if there's another Enode in Egraph already
@@ -385,7 +387,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(in crate::egraph) fn handle_congruence(&mut self, pc1: ProvenContains<L>) {
-        let (sh, _) = self.shape(&pc1.node.elem);
+        let mut sh = pc1.node.elem.clone();
+        self.shapeMut(&mut sh);
         let pc2 = self.pc_from_shape(&sh);
 
         let (a, b, prf) = self.pc_congruence(&pc1, &pc2);

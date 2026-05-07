@@ -170,7 +170,7 @@ impl AppliedId {
 }
 
 // TODO: assert that appIds vec is initialized in weak shape
-fn renameAppIdsAndPermsTmp(
+fn renameAppIdsAndPerms(
     appIdsVec: &Vec<&AppliedId>,
     allPerms: Option<&Vec<Vec<ProvenPerm>>>,
 ) -> (
@@ -245,70 +245,6 @@ fn renameAppIdsAndPermsTmp(
     };
 
     (newAppIds, newAllPerms, idMap, fromSlotMaps, toSlotMap)
-}
-
-fn renameAppIdsAndPerms(
-    appIdsVec: &Vec<&AppliedId>,
-    allPerms: Option<&Vec<Vec<ProvenPerm>>>,
-) -> (
-    Vec<AppliedId>,
-    Option<Vec<Vec<ProvenPerm>>>,
-    BTreeMap<Id, Id>,
-    BTreeMap<Id, SlotMap>,
-) {
-    let mut slotMaps: BTreeMap<Id, SlotMap> = BTreeMap::new();
-
-    let mut idMap: BTreeMap<Id, Id> = BTreeMap::new();
-    {
-        let mut appIdsVecSort = appIdsVec.clone();
-        appIdsVecSort.sort();
-        for appId in appIdsVecSort.iter() {
-            let idMapLen = Id(idMap.len());
-            idMap.entry(appId.id).or_insert(idMapLen);
-        }
-    }
-
-    let mut newAppIds = vec![];
-    for appId in appIdsVec.iter() {
-        let newId = *idMap.get(&appId.id).unwrap();
-
-        let mut updatedMap = SlotMap::new();
-        let mut slotMap = SlotMap::new();
-        for (i, (from, to)) in appId.m.iter().enumerate() {
-            // assert!(to < appId.m.len());
-            let newSlot = Slot::numeric(i as u32);
-            slotMap.insert(from, newSlot);
-            updatedMap.insert(newSlot, to);
-        }
-        slotMaps.insert(appId.id, slotMap);
-        newAppIds.push(AppliedId {
-            id: newId,
-            m: updatedMap,
-        });
-    }
-
-    let newAllPerms = if let Some(allPerms) = allPerms {
-        let mut newAllPerms: Vec<Vec<ProvenPerm>> = vec![];
-        for (i, perms) in allPerms.iter().enumerate() {
-            let mut newPerms: Vec<ProvenPerm> = vec![];
-            let id = appIdsVec[i].id;
-            for perm in perms.iter() {
-                let mut newPerm: Perm = SlotMap::new();
-                for (from, to) in perm.iter() {
-                    let newFrom = slotMaps[&id].get(from).unwrap();
-                    let newTo = slotMaps[&id].get(to).unwrap();
-                    newPerm.insert(newFrom, newTo);
-                }
-                newPerms.push(ProvenPerm { elem: newPerm });
-            }
-            newAllPerms.push(newPerms);
-        }
-        Some(newAllPerms)
-    } else {
-        None
-    };
-
-    (newAppIds, newAllPerms, idMap, slotMaps)
 }
 
 // TODO: create a caching from weak shape of appIdsVec with perm to result
@@ -512,15 +448,16 @@ pub fn canonAppIdsOrig<'a>(
     (lab, appIdToV, slotsToV)
 }
 
-fn translateBackTmp(
+fn translateBack(
     appIdToV: &Vec<(AppliedId, usize)>,
+    slotsToV: &BTreeMap<Slot, usize>,
     idMap: &BTreeMap<Id, Id>,
     fromSlotMaps: &BTreeMap<Id, SlotMap>,
     toSlotMap: &SlotMap,
-) -> Vec<(AppliedId, usize)> {
+) -> (Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>) {
     let idMapInverse: BTreeMap<Id, Id> = idMap.iter().map(|(k, v)| (*v, *k)).collect();
     let toSlotMapInverse = toSlotMap.inverse();
-    appIdToV
+    let appIdToV = appIdToV
         .iter()
         .map(|(appId, v)| {
             let origId = *idMapInverse.get(&appId.id).unwrap();
@@ -544,40 +481,19 @@ fn translateBackTmp(
                 *v,
             )
         })
-        .collect()
-}
-
-fn translateBack(
-    appIdToV: &Vec<(AppliedId, usize)>,
-    idMap: &BTreeMap<Id, Id>,
-    slotMaps: &BTreeMap<Id, SlotMap>,
-) -> Vec<(AppliedId, usize)> {
-    let idMapInverse: BTreeMap<Id, Id> = idMap.iter().map(|(k, v)| (*v, *k)).collect();
-    appIdToV
+        .collect();
+    let slotsToV = slotsToV
         .iter()
-        .map(|(appId, v)| {
-            let origId = *idMapInverse.get(&appId.id).unwrap();
-            let slotMapInverse = slotMaps.get(&origId).unwrap().inverse();
+        .map(|(slot, v)| {
             (
-                AppliedId {
-                    id: origId,
-                    m: appId
-                        .m
-                        .iter()
-                        .map(|(from, to)| {
-                            (
-                                slotMapInverse
-                                    .get(from)
-                                    .expect(&format!("{from} not found")),
-                                to,
-                            )
-                        })
-                        .collect(),
-                },
+                toSlotMapInverse
+                    .get(*slot)
+                    .expect(&format!("{slot} not found")),
                 *v,
             )
         })
-        .collect()
+        .collect();
+    (appIdToV, slotsToV)
 }
 
 #[cfg(not(feature = "parallelAdd"))]
@@ -909,48 +825,37 @@ pub fn canonAppIdsWithRename(
     }
 
     // TODO: vals in input appIds must start from 0, 1,...
-    // debug!("original {appIdsVec:?}, {allPerms:?}");
-    // {
-    //     let (appIdsVec, allPerms, idMap, slotMaps) = renameAppIdsAndPerms(appIdsVec, allPerms);
-    //     debug!("actual after rename ({appIdsVec:?}, {allPerms:?}, {idMap:?}, {slotMaps:?})");
-    //     let (lab, appIdToV, slotsToV) = canonAppIdsInternal(&appIdsVec, &allPerms, cache);
-    //     let appIdToV = translateBack(&appIdToV, &idMap, &slotMaps);
 
-    //     debug!("actual ({lab:?}, {appIdToV:?}, {slotsToV:?})");
-    // }
+    debug!(
+        "before rename
+    appIdsVec {appIdsVec:?},
+    allPerms{allPerms:?},
+    "
+    );
 
     let (appIdsVec, allPerms, idMap, fromSlotMaps, toSlotMap) =
-        renameAppIdsAndPermsTmp(appIdsVec, allPerms);
+        renameAppIdsAndPerms(appIdsVec, allPerms);
+
     debug!(
-        "ret after rename ({appIdsVec:?},
-        {allPerms:?},
-        {idMap:?},
-        {fromSlotMaps:?}
-        {toSlotMap:?}))"
+        "ret after rename (
+        appIdsVec {appIdsVec:?},
+        allPerms{allPerms:?},
+        idMap {idMap:?},
+        fromSlotMaps {fromSlotMaps:?}
+        toSlotMap {toSlotMap:?}))"
     );
     let (lab, appIdToV, slotsToV) = canonAppIdsInternal(&appIdsVec, &allPerms, cache);
-    let appIdToV = translateBackTmp(&appIdToV, &idMap, &fromSlotMaps, &toSlotMap);
+    let (appIdToV, slotsToV) =
+        translateBack(&appIdToV, &slotsToV, &idMap, &fromSlotMaps, &toSlotMap);
 
-    debug!("ret ({lab:?}, {appIdToV:?}, {slotsToV:?})");
+    debug!(
+        "ret (
+    lab {lab:?}, 
+    appIdToV {appIdToV:?}, 
+    slotsToV {slotsToV:?})"
+    );
     (lab, appIdToV, slotsToV)
 }
-
-// pub fn canonAppIdsWithRename(
-//     appIdsVec: &Vec<&AppliedId>,
-//     allPerms: Option<&Vec<Vec<ProvenPerm>>>,
-//     cache: &CanonAppIdsCache,
-// ) -> (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>) {
-//     if appIdsVec.len() == 0 {
-//         return (vec![], vec![], BTreeMap::new());
-//     }
-
-//     let (appIdsVec, allPerms, idMap, slotMaps) = renameAppIdsAndPerms(appIdsVec, allPerms);
-//     debug!("actual after rename ({appIdsVec:?}, {allPerms:?}, {idMap:?}, {slotMaps:?})");
-//     let (lab, appIdToV, slotsToV) = canonAppIdsInternal(&appIdsVec, &allPerms, cache);
-//     let appIdToV = translateBack(&appIdToV, &idMap, &slotMaps);
-
-//     (lab, appIdToV, slotsToV)
-// }
 
 pub fn checkDedup(
     eclassId: Id,
