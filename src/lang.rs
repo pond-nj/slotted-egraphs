@@ -26,6 +26,7 @@ pub enum LanguageChildrenType {
     AppliedId,
     Star,
     Vec(Vec<LanguageChildrenType>),
+    OrderVec(OrderVec<LanguageChildrenType>),
     Bind,
     Bare(u64),
 }
@@ -625,11 +626,11 @@ impl<L: LanguageChildren + Into<AppliedId> + From<AppliedId>> LanguageChildren f
     }
 
     fn get_type(&self) -> LanguageChildrenType {
-        let mut out = Vec::new();
+        let mut out = OrderVec::new();
         for x in self.iter() {
             out.push(x.get_type());
         }
-        LanguageChildrenType::Vec(out)
+        LanguageChildrenType::OrderVec(out)
     }
     fn hasBind(&self) -> bool {
         self.iter().any(|x| x.hasBind())

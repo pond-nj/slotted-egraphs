@@ -172,7 +172,7 @@ impl AppliedId {
 // TODO: assert that appIds vec is initialized in weak shape
 fn renameAppIdsAndPerms(
     appIdsVec: &Vec<&AppliedId>,
-    allPerms: Option<&Vec<Vec<ProvenPerm>>>,
+    allPerms: Option<&BTreeMap<AppliedId, Vec<ProvenPerm>>>,
 ) -> (
     Vec<AppliedId>,
     Option<Vec<Vec<ProvenPerm>>>,
@@ -180,7 +180,13 @@ fn renameAppIdsAndPerms(
     BTreeMap<Id, SlotMap>,
     SlotMap,
 ) {
-    trace!("renameAppIdsAndPermsTmp get appIdsVec {appIdsVec:?}");
+    debug!(
+        "before rename
+    appIdsVec {appIdsVec:?},
+    allPerms{allPerms:?},
+    "
+    );
+
     let mut fromSlotMaps: BTreeMap<Id, SlotMap> = BTreeMap::new();
 
     let mut idMap: BTreeMap<Id, Id> = BTreeMap::new();
@@ -223,9 +229,10 @@ fn renameAppIdsAndPerms(
 
     let newAllPerms = if let Some(allPerms) = allPerms {
         let mut newAllPerms: Vec<Vec<ProvenPerm>> = vec![];
-        for (i, perms) in allPerms.iter().enumerate() {
+        for appId in appIdsVec {
             let mut newPerms: Vec<ProvenPerm> = vec![];
-            let id = appIdsVec[i].id;
+            let id = appId.id;
+            let perms = &allPerms[appId];
             for perm in perms.iter() {
                 let mut newPerm: Perm = SlotMap::new();
                 for (from, to) in perm.iter() {
@@ -243,6 +250,15 @@ fn renameAppIdsAndPerms(
     } else {
         None
     };
+
+    debug!(
+        "ret after rename (
+        (new) appIdsVec {newAppIds:?},
+        (new) allPerms {newAllPerms:?},
+        idMap {idMap:?},
+        fromSlotMaps {fromSlotMaps:?}
+        toSlotMap {toSlotMap:?}))"
+    );
 
     (newAppIds, newAllPerms, idMap, fromSlotMaps, toSlotMap)
 }
@@ -610,8 +626,11 @@ impl CanonAppIdsCache {
 fn canonAppIdsInternal(
     appIdsVec: &Vec<AppliedId>,
     allPerms: &Option<Vec<Vec<ProvenPerm>>>,
+    orderVecPos: &Option<&Vec<(usize, usize)>>,
     cache: &CanonAppIdsCache,
 ) -> (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>) {
+    // assert!(appIdsVec.is_sorted());
+
     // {f(x, y), f(y, x), g(x, y)}
     // should have a color order f < g < arg < var
     // 1(f) - 2(arg) - 3(arg)
@@ -705,21 +724,51 @@ fn canonAppIdsInternal(
     }
 
     // color sorted by eclass id then follow by args and vars
-    let mut appIdToVVec = appIdToV
+    let mut idToV = appIdToV
         .iter()
         .map(|(x, v)| (x.id(), v))
         .collect::<Vec<_>>();
-    // sort by id
-    appIdToVVec.sort();
+    // sort by id, either globally or only within the OrderVec ranges
+    if orderVecPos.is_none() {
+        idToV.sort();
+    } else {
+        // note that orderVecPos can be empty
+        let orderVecPos = orderVecPos.unwrap();
+        for (start_pos, len) in orderVecPos.iter() {
+            if *len <= 1 {
+                continue;
+            }
+            let end_pos = start_pos + len;
+            assert!(end_pos <= idToV.len());
+            idToV[*start_pos..end_pos].sort();
+        }
+    }
+
     let mut lab: Vec<i32> = vec![];
     let mut ptn = vec![];
 
+    // the returned label will respect the color order,
+    // so we need to sort the appIdToV by id
     // color for ids
+
+    let canOrderPos = if let Some(orderVecPos) = orderVecPos {
+        let mut canOrderPos = vec![false; idToV.len()];
+        for (start_pos, range_len) in orderVecPos.iter() {
+            let end_pos = start_pos + range_len;
+            assert!(end_pos <= idToV.len());
+            canOrderPos[*start_pos..end_pos].fill(true);
+        }
+        canOrderPos
+    } else {
+        vec![true; idToV.len()]
+    };
+
     let mut groupLen = 0;
-    let mut thisGroupId = appIdToVVec[0].0;
-    for (id, v) in &appIdToVVec {
+    let mut thisGroupId = (idToV[0].0, canOrderPos[0]);
+
+    for (i, (id, v)) in idToV.iter().enumerate() {
         lab.push(**v as i32);
-        if *id == thisGroupId {
+        if (*id, canOrderPos[i]) == thisGroupId {
             groupLen += 1;
         } else {
             for _ in 0..groupLen - 1 {
@@ -728,7 +777,7 @@ fn canonAppIdsInternal(
             ptn.push(0);
 
             groupLen = 1;
-            thisGroupId = *id;
+            thisGroupId = (*id, canOrderPos[i]);
         }
     }
     assert!(groupLen > 0);
@@ -736,6 +785,14 @@ fn canonAppIdsInternal(
         ptn.push(1);
     }
     ptn.push(0);
+
+    // println!("ptn {ptn:?}");
+    // println!("lab {lab:?}");
+    // println!("appIdToV {appIdToV:?}");
+    // println!("canOrderPos {canOrderPos:?}");
+
+    assert!(lab.len() == appIdToV.len());
+    assert!(ptn.len() == appIdToV.len());
 
     // color for args
     if argsV.len() > 0 {
@@ -817,7 +874,8 @@ fn canonAppIdsInternal(
 
 pub fn canonAppIdsWithRename(
     appIdsVec: &Vec<&AppliedId>,
-    allPerms: Option<&Vec<Vec<ProvenPerm>>>,
+    allPerms: Option<&BTreeMap<AppliedId, Vec<ProvenPerm>>>,
+    orderPosVec: Option<&Vec<(usize, usize)>>,
     cache: &CanonAppIdsCache,
 ) -> (Vec<i32>, Vec<(AppliedId, usize)>, BTreeMap<Slot, usize>) {
     if appIdsVec.len() == 0 {
@@ -825,26 +883,10 @@ pub fn canonAppIdsWithRename(
     }
 
     // TODO: vals in input appIds must start from 0, 1,...
-
-    debug!(
-        "before rename
-    appIdsVec {appIdsVec:?},
-    allPerms{allPerms:?},
-    "
-    );
-
     let (appIdsVec, allPerms, idMap, fromSlotMaps, toSlotMap) =
         renameAppIdsAndPerms(appIdsVec, allPerms);
 
-    debug!(
-        "ret after rename (
-        appIdsVec {appIdsVec:?},
-        allPerms{allPerms:?},
-        idMap {idMap:?},
-        fromSlotMaps {fromSlotMaps:?}
-        toSlotMap {toSlotMap:?}))"
-    );
-    let (lab, appIdToV, slotsToV) = canonAppIdsInternal(&appIdsVec, &allPerms, cache);
+    let (lab, appIdToV, slotsToV) = canonAppIdsInternal(&appIdsVec, &allPerms, &orderPosVec, cache);
     let (appIdToV, slotsToV) =
         translateBack(&appIdToV, &slotsToV, &idMap, &fromSlotMaps, &toSlotMap);
 
@@ -891,7 +933,8 @@ pub fn sortAppId(
     if appIdsSet.len() == appIdsSorted.len() {
         return appIdsSorted;
     }
-    let (lab, appIdToV, _) = canonAppIdsWithRename(&appIdsSorted.iter().collect(), None, cache);
+    let (lab, appIdToV, _) =
+        canonAppIdsWithRename(&appIdsSorted.iter().collect(), None, None, cache);
 
     let mut VToAppIds = BTreeMap::new();
     for (id, v) in appIdToV {

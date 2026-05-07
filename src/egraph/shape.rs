@@ -29,9 +29,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         (pnode.elem, bij)
     }
 
-    fn checkPermsWithAppIds(&self, appIds: &Vec<&AppliedId>, allPerms: &Vec<Vec<ProvenPerm>>) {
-        for (i, perms) in allPerms.iter().enumerate() {
-            let appId = &appIds[i];
+    fn checkPermsWithAppIds(
+        &self,
+        appIds: &Vec<&AppliedId>,
+        allPerms: &BTreeMap<AppliedId, Vec<ProvenPerm>>,
+    ) {
+        for appId in appIds.iter() {
+            let perms = &allPerms[appId];
             for p in perms {
                 assert_eq!(
                     p.elem.keys_set(),
@@ -49,10 +53,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    fn getAppIdsPerm(&self, appIds: &Vec<&AppliedId>) -> Vec<Vec<ProvenPerm>> {
-        let allPerms = appIds
+    fn getAppIdsToPerm(&self, appIds: &Vec<&AppliedId>) -> BTreeMap<AppliedId, Vec<ProvenPerm>> {
+        let allPerms: BTreeMap<AppliedId, Vec<ProvenPerm>> = appIds
             .iter()
-            .map(|x| self.classes[&x.id].group().all_perms())
+            .map(|x| ((*x).clone(), self.classes[&x.id].group().all_perms()))
             .collect();
 
         if CHECKS {
@@ -84,13 +88,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     fn updateAppIds(
         &self,
         appIdsMut: &mut Vec<&mut AppliedId>,
+        sortedAppIds: &Vec<AppliedId>,
         slotsToNewIdx: &SlotMap,
-        allPerms: &Vec<Vec<ProvenPerm>>,
+        allPerms: &BTreeMap<AppliedId, Vec<ProvenPerm>>,
     ) {
+        assert_eq!(
+            appIdsMut.len(),
+            sortedAppIds.len(),
+            "appIdsMut {appIdsMut:?}, sortedAppIds {sortedAppIds:?}"
+        );
         for i in 0..appIdsMut.len() {
             *appIdsMut[i] = {
-                let appId = &appIdsMut[i];
-                let perms: &Vec<_> = &allPerms[i];
+                let appId = &sortedAppIds[i];
+                let perms: &Vec<_> = &allPerms[appId];
                 if CHECKS {
                     assert!(
                         slotsToNewIdx.keys_set().is_superset(&appId.m.values_set()),
@@ -102,7 +112,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     );
                 }
 
-                // TODO: is this necessary?
+                // find min overall permutation
                 perms
                     .into_iter()
                     .map(|p| AppliedId {
@@ -117,26 +127,24 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    // before
     // #[cfg(feature = "newShape")]
-    // TODO: it seems for some reason this function changes depends on the input slots
-    // like even if the weak shape is the same, it can output two different stuffs
-    // pub fn shape(&self, eOrig: &L) -> (L, Bijection) {
+    // pub fn shapeMut(&self, eOrig: &mut L) -> Bijection {
     //     if eOrig.hasBind() {
     //         let ret = self.orig_shape(&eOrig);
-    //         return ret;
+    //         *eOrig = ret.0;
+    //         return ret.1;
     //     }
 
-    //     let mut eOrig = eOrig.clone();
+    //     // weak shape domain to original domain
+    //     self.find_enodeMut(eOrig);
+
     //     let origBij = eOrig.weak_shapeMut();
 
-    //     self.find_enodeMut(&mut eOrig);
-    //     let mut enodeAfterFind = eOrig;
-
-    //     let appIds: Vec<&AppliedId> = enodeAfterFind.applied_id_occurrences();
+    //     let mut appIds: Vec<&AppliedId> = eOrig.applied_id_occurrences();
 
     //     if appIds.len() == 0 {
-    //         let bij = enodeAfterFind.weak_shapeMut();
-    //         return (enodeAfterFind, bij.compose(&origBij));
+    //         return origBij;
     //     }
 
     //     // TODO: should we cache this?
@@ -145,21 +153,154 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     //         canonAppIdsWithRename(&appIds, Some(&allPerms), self.canonAppIdsCache());
 
     //     let slotsToNewIdx = self.createSlotsToNewIdx(&slotsToV, &lab);
-    //     // let shaped = self.createUpdatedAppIds(&appIds, &slotsToNewIdx, &allPerms);
 
-    //     let mut appIdsMut = enodeAfterFind.applied_id_occurrences_mut();
+    //     let mut appIdsMut = eOrig.applied_id_occurrences_mut();
+    //     // find smallest according to canonical label
     //     self.updateAppIds(&mut appIdsMut, &slotsToNewIdx, &allPerms);
 
-    //     // find smallest according to canonical label
-
-    //     let (eNewWS, bij) = enodeAfterFind.orig_weak_shape();
+    //     let bij = eOrig.weak_shapeMut();
     //     let res = slotsToNewIdx.composePartial(&bij.inverse()).inverse();
-    //     let ret = (eNewWS, res.compose(&origBij));
-    //     ret
+    //     res.compose(&origBij)
     // }
 
-    // TODO: we want to change everything to mutable version
-    // #[cfg(feature = "newShape")]
+    // return (pos, len)
+    fn findOrderVecPos(&self, enode: &L) -> Vec<(usize, usize)> {
+        let mut orderVecPos = vec![];
+        let childrenTypes = enode.getChildrenType();
+        let mut counter = 0;
+        for childType in childrenTypes {
+            match childType {
+                LanguageChildrenType::Vec(v) => {
+                    counter += v.len();
+                }
+                LanguageChildrenType::OrderVec(v) => {
+                    orderVecPos.push((counter, v.len()));
+                    counter += v.len();
+                }
+                LanguageChildrenType::AppliedId => {
+                    counter += 1;
+                }
+                _ => {
+                    continue;
+                }
+            }
+        }
+
+        orderVecPos
+    }
+
+    fn sortAppIdsAtOrderVecPos(
+        &self,
+        appIds: &mut Vec<&AppliedId>,
+        orderVecPos: &Vec<(usize, usize)>,
+    ) {
+        for (start, len) in orderVecPos {
+            if *len <= 1 {
+                continue;
+            }
+            let end = start + len;
+            assert!(end <= appIds.len());
+            appIds[*start..end].sort();
+        }
+    }
+
+    fn checkOrderVecSplitIds(&self, appIds: &Vec<&AppliedId>, orderVecPos: &Vec<(usize, usize)>) {
+        let mut idsNotIn = BTreeSet::new();
+        let mut idsIn = BTreeSet::new();
+        let mut rangeIdx = 0;
+
+        for (idx, appId) in appIds.iter().enumerate() {
+            while rangeIdx < orderVecPos.len()
+                && idx >= orderVecPos[rangeIdx].0 + orderVecPos[rangeIdx].1
+            {
+                rangeIdx += 1;
+            }
+
+            let inOrderVec = if rangeIdx < orderVecPos.len() {
+                let (start, len) = orderVecPos[rangeIdx];
+                idx >= start && idx < start + len
+            } else {
+                false
+            };
+
+            if !inOrderVec {
+                idsNotIn.insert(appId.id);
+            } else {
+                idsIn.insert(appId.id);
+            }
+        }
+
+        // check they do not have overlap
+        assert!(idsNotIn.is_disjoint(&idsIn));
+    }
+
+    fn reorderAppIds(
+        &self,
+        appIds: &Vec<&AppliedId>,
+        appIdToV: &Vec<(AppliedId, usize)>,
+        lab: &Vec<i32>,
+    ) -> Vec<AppliedId> {
+        assert_eq!(appIds.len(), appIdToV.len());
+        let mut VToAppIds = BTreeMap::new();
+        for (id, v) in appIdToV {
+            let old = VToAppIds.insert(v, id);
+            assert!(old.is_none());
+        }
+
+        if CHECKS {
+            assert_eq!(
+                appIdToV
+                    .iter()
+                    .map(|(a, _)| a.clone())
+                    .collect::<BTreeSet<_>>(),
+                appIds.iter().map(|a| (*a).clone()).collect::<BTreeSet<_>>()
+            );
+        }
+
+        let mut sortedAppIds = vec![];
+        // push in label order
+        for i in &lab[0..appIds.len()] {
+            sortedAppIds.push(VToAppIds[&(*i as usize)].clone());
+        }
+
+        sortedAppIds
+    }
+
+    fn checkIdsNotInOrderVecUnchanged(
+        &self,
+        appIdsOrig: &Vec<AppliedId>,
+        appIdsMut: &Vec<&mut AppliedId>,
+        orderVecPos: &Vec<(usize, usize)>,
+    ) {
+        assert_eq!(appIdsOrig.len(), appIdsMut.len());
+
+        let mut rangeIdx = 0;
+        for idx in 0..appIdsOrig.len() {
+            while rangeIdx < orderVecPos.len()
+                && idx >= orderVecPos[rangeIdx].0 + orderVecPos[rangeIdx].1
+            {
+                rangeIdx += 1;
+            }
+
+            let inOrderVec = if rangeIdx < orderVecPos.len() {
+                let (start, len) = orderVecPos[rangeIdx];
+                idx >= start && idx < start + len
+            } else {
+                false
+            };
+
+            if !inOrderVec {
+                assert_eq!(
+                    appIdsOrig[idx].id, appIdsMut[idx].id,
+                    "non-OrderVec appId changed at index {idx}: orig {:?}, new {:?}",
+                    appIdsOrig[idx], appIdsMut[idx]
+                );
+            }
+        }
+    }
+
+    // with sort
+    #[cfg(feature = "newShape")]
     pub fn shapeMut(&self, eOrig: &mut L) -> Bijection {
         if eOrig.hasBind() {
             let ret = self.orig_shape(&eOrig);
@@ -172,27 +313,39 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let origBij = eOrig.weak_shapeMut();
 
-        let appIds: Vec<&AppliedId> = eOrig.applied_id_occurrences();
-
+        let mut appIds: Vec<&AppliedId> = eOrig.applied_id_occurrences();
         if appIds.len() == 0 {
-            // have to compute weak shape again because find might destroy weak shape invariants
-            // TODO: can we move find up and not recompute weak shape?
             return origBij;
         }
 
+        let appIdsOrig: Vec<AppliedId> = appIds.iter().map(|app_id| (*app_id).clone()).collect();
+
+        let orderVecPos = self.findOrderVecPos(eOrig);
+        if CHECKS {
+            self.checkOrderVecSplitIds(&appIds, &orderVecPos);
+        }
+        self.sortAppIdsAtOrderVecPos(&mut appIds, &orderVecPos);
+
         // TODO: should we cache this?
-        let allPerms: Vec<Vec<ProvenPerm>> = self.getAppIdsPerm(&appIds);
-        let (lab, _, slotsToV) =
-            canonAppIdsWithRename(&appIds, Some(&allPerms), self.canonAppIdsCache());
+        let allPerms: BTreeMap<AppliedId, Vec<ProvenPerm>> = self.getAppIdsToPerm(&appIds);
+        let (lab, appIdToV, slotsToV) = canonAppIdsWithRename(
+            &appIds,
+            Some(&allPerms),
+            Some(&orderVecPos),
+            self.canonAppIdsCache(),
+        );
 
         let slotsToNewIdx = self.createSlotsToNewIdx(&slotsToV, &lab);
-
-        io::stdout().flush().unwrap();
-
+        // println!("appIds {appIds:?}");
+        // println!("appIdToV {appIdToV:?}");
+        // TODO: reorder must check orderVec first
+        let sortedAppIds = self.reorderAppIds(&appIds, &appIdToV, &lab);
         let mut appIdsMut = eOrig.applied_id_occurrences_mut();
-        self.updateAppIds(&mut appIdsMut, &slotsToNewIdx, &allPerms);
-
         // find smallest according to canonical label
+        self.updateAppIds(&mut appIdsMut, &sortedAppIds, &slotsToNewIdx, &allPerms);
+        if CHECKS {
+            self.checkIdsNotInOrderVecUnchanged(&appIdsOrig, &appIdsMut, &orderVecPos);
+        }
 
         let bij = eOrig.weak_shapeMut();
         let res = slotsToNewIdx.composePartial(&bij.inverse()).inverse();
