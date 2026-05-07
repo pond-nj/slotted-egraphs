@@ -764,27 +764,38 @@ fn canonAppIdsInternal(
     };
 
     let mut groupLen = 0;
-    let mut thisGroupId = (idToV[0].0, canOrderPos[0]);
+    let mut thisGroupId = Some(idToV[0].0);
 
     for (i, (id, v)) in idToV.iter().enumerate() {
+        if !canOrderPos[i] {
+            lab.push(**v as i32);
+            ptn.push(0);
+            groupLen = 0;
+            thisGroupId = None;
+            continue;
+        }
+
         lab.push(**v as i32);
-        if (*id, canOrderPos[i]) == thisGroupId {
+        if thisGroupId.is_some() && *id == thisGroupId.unwrap() {
             groupLen += 1;
         } else {
-            for _ in 0..groupLen - 1 {
-                ptn.push(1);
+            if groupLen > 0 {
+                for _ in 0..groupLen - 1 {
+                    ptn.push(1);
+                }
+                ptn.push(0);
             }
-            ptn.push(0);
 
             groupLen = 1;
-            thisGroupId = (*id, canOrderPos[i]);
+            thisGroupId = Some(*id);
         }
     }
-    assert!(groupLen > 0);
-    for _ in 0..groupLen - 1 {
-        ptn.push(1);
+    if groupLen > 0 {
+        for _ in 0..groupLen - 1 {
+            ptn.push(1);
+        }
+        ptn.push(0);
     }
-    ptn.push(0);
 
     // println!("ptn {ptn:?}");
     // println!("lab {lab:?}");
